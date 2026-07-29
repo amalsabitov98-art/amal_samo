@@ -193,6 +193,18 @@
       insurancePlan: state.insurancePlans.filter(function (p) { return p.id === state.insurancePlanId; })[0] || null,
     });
 
+    var submitBtn = document.getElementById("submit-booking");
+
+    if (!breakdown.priceAvailable) {
+      document.getElementById("price-breakdown").innerHTML =
+        '<div class="tt-price-total"><span>Цена</span><span>по запросу</span></div>' +
+        '<p class="tt-muted-note">Для этой комбинации даты, категории отеля и размещения ' +
+        "цена не задана. Свяжитесь с менеджером — рассчитаем индивидуально.</p>";
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
+    if (submitBtn) submitBtn.disabled = false;
+
     var rows = "";
     rows += '<div class="tt-price-row"><span>Проживание (' + state.travelersCount + ' чел.)</span><span>' + TourPricing.formatMoney(breakdown.base) + "</span></div>";
     if (breakdown.excursions > 0) rows += '<div class="tt-price-row"><span>Экскурсии</span><span>' + TourPricing.formatMoney(breakdown.excursions) + "</span></div>";
@@ -385,6 +397,10 @@
         state.excursions = excursions;
         renderPage();
       });
+    }).catch(function (err) {
+      content.innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить данные тура.' +
+        '<div class="tt-muted-note">' + (err && err.message ? err.message : "Проверьте соединение и обновите страницу.") + "</div></div>";
     });
   }
 

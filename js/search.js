@@ -64,7 +64,11 @@
       query: queryInput.value.trim(),
       country: countrySelect.value,
       dateFrom: dateInput.value,
-    }).then(renderTours);
+    }).then(renderTours).catch(function (err) {
+      toursGrid.innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить туры.' +
+        '<div class="tt-muted-note">' + (err && err.message ? err.message : "Проверьте соединение и обновите страницу.") + "</div></div>";
+    });
   }
 
   form.addEventListener("submit", function (e) {
@@ -89,8 +93,12 @@
       opt.textContent = c;
       countrySelect.appendChild(opt);
     });
+  }).catch(function () {
+    // список стран не критичен: поиск работает и с "Все страны"
   });
 
-  TourData.getAllExcursions().then(renderExcursions);
+  TourData.getAllExcursions().then(renderExcursions).catch(function () {
+    excursionsGrid.innerHTML = '<div class="tt-empty-state">Не удалось загрузить экскурсии.</div>';
+  });
   runSearch();
 })();

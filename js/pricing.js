@@ -5,11 +5,17 @@
 (function (global) {
   "use strict";
 
+  // Целые суммы показываем без копеек, дробные (например, тариф страховки
+  // 2.5 в день) — с двумя знаками, иначе округление врёт клиенту о цене.
   function formatMoney(amount, currency) {
     currency = currency || "USD";
     var symbols = { USD: "$", EUR: "€", RUB: "₽", AED: "AED " };
     var sym = symbols[currency] || currency + " ";
-    return sym + Math.round(amount).toLocaleString("ru-RU");
+    var isWhole = Math.abs(amount - Math.round(amount)) < 0.005;
+    return sym + amount.toLocaleString("ru-RU", {
+      minimumFractionDigits: isWhole ? 0 : 2,
+      maximumFractionDigits: isWhole ? 0 : 2,
+    });
   }
 
   // Минимальная цена за человека по всему тур-матриксу (для карточки поиска)
@@ -48,8 +54,13 @@
     var selectedModuleIds = opts.selectedModuleIds || [];
     var insurancePlan = opts.insurancePlan || null;
 
-    var base = pricePerPerson(tour, hotelCategory, roomType, seasonCode) || 0;
-    var baseTotal = base * travelersCount;
+    // Если в матрице нет такой комбинации (категория × размещение × сезон),
+    // считать базу нулём нельзя — иначе клиент увидит цену только за
+    // допуслуги и решит, что тур стоит $200. Отдаём флаг наверх, чтобы UI
+    // показал «цена по запросу» и не дал отправить заявку.
+    var base = pricePerPerson(tour, hotelCategory, roomType, seasonCode);
+    var priceAvailable = base !== null;
+    var baseTotal = (base || 0) * travelersCount;
 
     var excursionsTotal = 0;
     selectedExcursionIds.forEach(function (id) {
@@ -70,6 +81,7 @@
     }
 
     return {
+      priceAvailable: priceAvailable,
       base: baseTotal,
       excursions: excursionsTotal,
       modules: modulesTotal,
