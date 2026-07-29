@@ -16,6 +16,8 @@
  *   POST /api/admin/payments     провести оплату по брони
  *   GET  /api/admin/agencies     список агентств
  *   POST /api/admin/agencies     завести агентство
+ *   POST /api/admin/agencies/:id/activate|deactivate   включить/отключить
+ *   POST /api/admin/agencies/:id/password              сменить пароль
  *
  * Агентство видит только свои брони: во всех запросах фильтр по agency_id
  * из сессии, идентификатор из тела запроса никогда не принимается.
@@ -420,7 +422,28 @@ async function manifest(env, departureCode) {
       ORDER BY b.created_at, p.id`
   ).bind(departure.id).all();
 
-  return { departure, passengers: rows.results };
+  // Сводка по заезду: сколько продано, получено и сколько ещё должны.
+  // Считаем по броням, а не по строкам пассажиров, иначе сумма брони
+  // умножилась бы на число человек в ней.
+  const totals = await env.DB.prepare(
+    `SELECT COUNT(*) AS bookings_count,
+            COALESCE(SUM(b.total_price), 0) AS revenue,
+            COALESCE(SUM((SELECT COALESCE(SUM(amount), 0) FROM payments pay
+                           WHERE pay.booking_id = b.id)), 0) AS paid
+       FROM bookings b
+      WHERE b.departure_id = ? AND b.status = 'confirmed'`
+  ).bind(departure.id).first();
+
+  const summary = {
+    bookings_count: totals.bookings_count,
+    passengers_count: rows.results.length,
+    seats_used: rows.results.filter((p) => p.occupies_seat).length,
+    revenue: totals.revenue,
+    paid: totals.paid,
+    owed: Math.round((totals.revenue - totals.paid) * 100) / 100,
+  };
+
+  return { departure, summary, passengers: rows.results };
 }
 
 async function adminBookings(env, departureCode) {
@@ -474,6 +497,42 @@ async function addPayment(request, env) {
     booking_code, paid,
     balance: Math.round((booking.total_price - paid) * 100) / 100,
   });
+}
+
+async function setAgencyActive(env, agencyId, isActive) {
+  const row = await env.DB.prepare(
+    "SELECT id, name FROM agencies WHERE id = ? AND role = 'agency'"
+  ).bind(agencyId).first();
+  if (!row) return fail("Агентство не найдено", 404);
+
+  await env.DB.batch([
+    env.DB.prepare("UPDATE agencies SET is_active = ? WHERE id = ?").bind(isActive ? 1 : 0, agencyId),
+    // отключаем — сразу гасим открытые сессии, иначе агентство продолжит
+    // работать до истечения токена
+    env.DB.prepare("DELETE FROM sessions WHERE agency_id = ? AND ? = 0").bind(agencyId, isActive ? 1 : 0),
+  ]);
+  return json({ id: agencyId, name: row.name, is_active: isActive ? 1 : 0 });
+}
+
+async function setAgencyPassword(request, env, agencyId) {
+  const { password } = await request.json();
+  if (!password || String(password).length < 8) return fail("Пароль короче 8 символов");
+
+  const row = await env.DB.prepare(
+    "SELECT id, login FROM agencies WHERE id = ? AND role = 'agency'"
+  ).bind(agencyId).first();
+  if (!row) return fail("Агентство не найдено", 404);
+
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16)));
+  const hash = await hashPassword(password, salt);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE agencies SET password_hash = ?, password_salt = ? WHERE id = ?")
+      .bind(hash, salt, agencyId),
+    // старые сессии больше не действуют — смысл смены пароля в этом
+    env.DB.prepare("DELETE FROM sessions WHERE agency_id = ?").bind(agencyId),
+    env.DB.prepare("DELETE FROM login_attempts WHERE login = ?").bind(row.login),
+  ]);
+  return json({ id: agencyId, login: row.login });
 }
 
 async function createAgency(request, env) {
@@ -572,6 +631,16 @@ async function route(request, env) {
         }
         if (path === "/api/admin/agencies" && request.method === "POST") {
           return await createAgency(request, env);
+        }
+
+        const toggle = path.match(/^\/api\/admin\/agencies\/(\d+)\/(activate|deactivate)$/);
+        if (toggle && request.method === "POST") {
+          return await setAgencyActive(env, Number(toggle[1]), toggle[2] === "activate");
+        }
+
+        const pwd = path.match(/^\/api\/admin\/agencies\/(\d+)\/password$/);
+        if (pwd && request.method === "POST") {
+          return await setAgencyPassword(request, env, Number(pwd[1]));
         }
         return fail("Not found", 404);
     }

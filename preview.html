@@ -618,7 +618,7 @@ a { color: inherit; }
 
 .tt-tour {
   display: grid;
-  grid-template-columns: 1fr 170px 110px;
+  grid-template-columns: 1fr 170px minmax(110px, auto);
   gap: 18px;
   align-items: center;
   background: var(--tt-surface);
@@ -725,6 +725,14 @@ a { color: inherit; }
 .tt-table tbody tr:last-child td { border-bottom: none; }
 .tt-table tbody tr:hover { background: var(--tt-bg); }
 .tt-table td:nth-child(11) { font-variant-numeric: tabular-nums; text-align: right; }
+
+.tt-agency-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
@@ -3675,7 +3683,21 @@ window.TURON_TOURS = [
             }));
           });
         });
-        return Promise.resolve({ departure: d, passengers: rows });
+        var bookings = s.bookings.filter(function (b) {
+          return b.departure_code === departureCode && b.status === "confirmed";
+        });
+        return Promise.resolve({
+          departure: d,
+          summary: {
+            bookings_count: bookings.length,
+            passengers_count: rows.length,
+            seats_used: rows.filter(function (x) { return x.occupies_seat; }).length,
+            revenue: bookings.reduce(function (a, b) { return a + b.total_price; }, 0),
+            paid: bookings.reduce(function (a, b) { return a + b.paid; }, 0),
+            owed: bookings.reduce(function (a, b) { return a + (b.total_price - b.paid); }, 0),
+          },
+          passengers: rows,
+        });
       }
       return request("/api/admin/manifest?departure=" + encodeURIComponent(departureCode));
     },
@@ -3716,6 +3738,24 @@ window.TURON_TOURS = [
           }));
       }
       return request("/api/admin/agencies");
+    },
+
+    setAgencyActive: function (id, active) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме агентства не меняются — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies/" + id + (active ? "/activate" : "/deactivate"),
+                     { method: "POST" });
+    },
+
+    setAgencyPassword: function (id, password) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме пароли не меняются — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies/" + id + "/password",
+                     { method: "POST", body: { password: password } });
     },
 
     createAgency: function (login, name, password) {
@@ -3845,10 +3885,18 @@ window.TURON_TOURS = [
       }).join("") + "</tr>";
     }).join("");
 
-    var seats = pax.filter(function (p) { return p.occupies_seat; }).length;
+    var sum = data.summary || {};
     $("adm-manifest").innerHTML =
-      '<div class="tt-manifest-meta">Пассажиров: <strong>' + pax.length +
-        "</strong> · занимают мест: <strong>" + seats + "</strong></div>" +
+      '<div class="tt-earnings">' +
+        '<div><span>Броней</span><strong>' + (sum.bookings_count || 0) + "</strong></div>" +
+        '<div><span>Пассажиров</span><strong>' + pax.length +
+          '<span class="tt-muted-note"> · мест ' + (sum.seats_used || 0) + "</span></strong></div>" +
+        '<div><span>Продано на</span><strong>' + money(sum.revenue || 0) + "</strong></div>" +
+        '<div><span>Оплачено</span><strong' + (sum.paid > 0 ? ' class="tt-earn-value"' : "") + ">" +
+          money(sum.paid || 0) + "</strong></div>" +
+        '<div><span>Долг</span><strong' + (sum.owed > 0 ? ' class="tt-owed-value"' : "") + ">" +
+          money(sum.owed || 0) + "</strong></div>" +
+      "</div>" +
       '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' + head +
       "</tr></thead><tbody>" + body + "</tbody></table></div>";
   }
@@ -3913,9 +3961,16 @@ window.TURON_TOURS = [
             "<div><strong>" + esc(a.name) + "</strong>" +
               '<div class="tt-muted-note">логин: ' + esc(a.login) + "</div></div>" +
             "<div>" + a.bookings_count + " броней</div>" +
-            "<div>" + (a.is_active
-              ? '<span class="tt-badge">Активно</span>'
-              : '<span class="tt-badge tt-badge-off">Отключено</span>') + "</div>" +
+            '<div class="tt-agency-actions">' +
+              (a.is_active
+                ? '<span class="tt-badge">Активно</span>'
+                : '<span class="tt-badge tt-badge-off">Отключено</span>') +
+              '<button class="tt-btn secondary tt-btn-sm" data-toggle="' + a.id +
+                '" data-active="' + (a.is_active ? 1 : 0) + '">' +
+                (a.is_active ? "Отключить" : "Включить") + "</button>" +
+              '<button class="tt-btn secondary tt-btn-sm" data-password="' + a.id +
+                '" data-name="' + esc(a.name) + '">Сменить пароль</button>' +
+            "</div>" +
           "</article>"
         );
       }).join("");
@@ -3955,6 +4010,29 @@ window.TURON_TOURS = [
         btn.disabled = false;
         alert(err.message);
       });
+    });
+
+    $("adm-agencies").addEventListener("click", function (e) {
+      var toggle = e.target.closest("[data-toggle]");
+      if (toggle) {
+        var willActivate = toggle.dataset.active === "0";
+        if (!willActivate && !confirm(
+          "Отключить агентство? Оно не сможет войти, а открытые сессии закроются.")) return;
+        toggle.disabled = true;
+        TuronApi.setAgencyActive(Number(toggle.dataset.toggle), willActivate)
+          .then(loadAgencies)
+          .catch(function (err) { toggle.disabled = false; alert(err.message); });
+        return;
+      }
+      var pwd = e.target.closest("[data-password]");
+      if (pwd) {
+        var value = prompt("Новый пароль для «" + pwd.dataset.name + "» (от 8 символов).\n" +
+                           "Открытые сессии агентства будут закрыты:");
+        if (value === null) return;
+        TuronApi.setAgencyPassword(Number(pwd.dataset.password), value)
+          .then(function (res) { alert("Пароль для " + res.login + " изменён."); })
+          .catch(function (err) { alert(err.message); });
+      }
     });
 
     $("adm-new-agency").addEventListener("submit", function (e) {

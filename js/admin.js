@@ -105,10 +105,18 @@
       }).join("") + "</tr>";
     }).join("");
 
-    var seats = pax.filter(function (p) { return p.occupies_seat; }).length;
+    var sum = data.summary || {};
     $("adm-manifest").innerHTML =
-      '<div class="tt-manifest-meta">Пассажиров: <strong>' + pax.length +
-        "</strong> · занимают мест: <strong>" + seats + "</strong></div>" +
+      '<div class="tt-earnings">' +
+        '<div><span>Броней</span><strong>' + (sum.bookings_count || 0) + "</strong></div>" +
+        '<div><span>Пассажиров</span><strong>' + pax.length +
+          '<span class="tt-muted-note"> · мест ' + (sum.seats_used || 0) + "</span></strong></div>" +
+        '<div><span>Продано на</span><strong>' + money(sum.revenue || 0) + "</strong></div>" +
+        '<div><span>Оплачено</span><strong' + (sum.paid > 0 ? ' class="tt-earn-value"' : "") + ">" +
+          money(sum.paid || 0) + "</strong></div>" +
+        '<div><span>Долг</span><strong' + (sum.owed > 0 ? ' class="tt-owed-value"' : "") + ">" +
+          money(sum.owed || 0) + "</strong></div>" +
+      "</div>" +
       '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' + head +
       "</tr></thead><tbody>" + body + "</tbody></table></div>";
   }
@@ -173,9 +181,16 @@
             "<div><strong>" + esc(a.name) + "</strong>" +
               '<div class="tt-muted-note">логин: ' + esc(a.login) + "</div></div>" +
             "<div>" + a.bookings_count + " броней</div>" +
-            "<div>" + (a.is_active
-              ? '<span class="tt-badge">Активно</span>'
-              : '<span class="tt-badge tt-badge-off">Отключено</span>') + "</div>" +
+            '<div class="tt-agency-actions">' +
+              (a.is_active
+                ? '<span class="tt-badge">Активно</span>'
+                : '<span class="tt-badge tt-badge-off">Отключено</span>') +
+              '<button class="tt-btn secondary tt-btn-sm" data-toggle="' + a.id +
+                '" data-active="' + (a.is_active ? 1 : 0) + '">' +
+                (a.is_active ? "Отключить" : "Включить") + "</button>" +
+              '<button class="tt-btn secondary tt-btn-sm" data-password="' + a.id +
+                '" data-name="' + esc(a.name) + '">Сменить пароль</button>' +
+            "</div>" +
           "</article>"
         );
       }).join("");
@@ -215,6 +230,29 @@
         btn.disabled = false;
         alert(err.message);
       });
+    });
+
+    $("adm-agencies").addEventListener("click", function (e) {
+      var toggle = e.target.closest("[data-toggle]");
+      if (toggle) {
+        var willActivate = toggle.dataset.active === "0";
+        if (!willActivate && !confirm(
+          "Отключить агентство? Оно не сможет войти, а открытые сессии закроются.")) return;
+        toggle.disabled = true;
+        TuronApi.setAgencyActive(Number(toggle.dataset.toggle), willActivate)
+          .then(loadAgencies)
+          .catch(function (err) { toggle.disabled = false; alert(err.message); });
+        return;
+      }
+      var pwd = e.target.closest("[data-password]");
+      if (pwd) {
+        var value = prompt("Новый пароль для «" + pwd.dataset.name + "» (от 8 символов).\n" +
+                           "Открытые сессии агентства будут закрыты:");
+        if (value === null) return;
+        TuronApi.setAgencyPassword(Number(pwd.dataset.password), value)
+          .then(function (res) { alert("Пароль для " + res.login + " изменён."); })
+          .catch(function (err) { alert(err.message); });
+      }
     });
 
     $("adm-new-agency").addEventListener("submit", function (e) {

@@ -282,7 +282,21 @@
             }));
           });
         });
-        return Promise.resolve({ departure: d, passengers: rows });
+        var bookings = s.bookings.filter(function (b) {
+          return b.departure_code === departureCode && b.status === "confirmed";
+        });
+        return Promise.resolve({
+          departure: d,
+          summary: {
+            bookings_count: bookings.length,
+            passengers_count: rows.length,
+            seats_used: rows.filter(function (x) { return x.occupies_seat; }).length,
+            revenue: bookings.reduce(function (a, b) { return a + b.total_price; }, 0),
+            paid: bookings.reduce(function (a, b) { return a + b.paid; }, 0),
+            owed: bookings.reduce(function (a, b) { return a + (b.total_price - b.paid); }, 0),
+          },
+          passengers: rows,
+        });
       }
       return request("/api/admin/manifest?departure=" + encodeURIComponent(departureCode));
     },
@@ -323,6 +337,24 @@
           }));
       }
       return request("/api/admin/agencies");
+    },
+
+    setAgencyActive: function (id, active) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме агентства не меняются — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies/" + id + (active ? "/activate" : "/deactivate"),
+                     { method: "POST" });
+    },
+
+    setAgencyPassword: function (id, password) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме пароли не меняются — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies/" + id + "/password",
+                     { method: "POST", body: { password: password } });
     },
 
     createAgency: function (login, name, password) {

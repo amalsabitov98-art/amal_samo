@@ -90,6 +90,15 @@ check('возврат больше оплаченного отклонён', r.s
 r = await call('/api/bookings', { token: umida });
 check('агентство видит оплату', r.data[0].paid === 1000 && r.data[0].balance === 770, JSON.stringify(r.data[0]));
 
+console.log('\n--- сводка по заезду ---');
+r = await call('/api/admin/manifest?departure=TZX1707', { token: op });
+const sum = r.data.summary;
+check('сводка отдаётся', !!sum, JSON.stringify(r.data).slice(0,120));
+check('броней 1', sum.bookings_count === 1, JSON.stringify(sum));
+check('пассажиров 3, мест 2', sum.passengers_count === 3 && sum.seats_used === 2, JSON.stringify(sum));
+check('продано 1770', sum.revenue === 1770, JSON.stringify(sum));
+check('оплачено 1000, долг 770', sum.paid === 1000 && sum.owed === 770, JSON.stringify(sum));
+
 console.log('\n--- заведение агентства ---');
 r = await call('/api/admin/agencies', { method:'POST', token: op, body:{ login:'newagency', name:'NEW AGENCY', password:'secret123' } });
 check('агентство заведено', r.status === 200, JSON.stringify(r.data));
@@ -109,6 +118,24 @@ r = await call('/api/departures', { token: umida });
 check('места вернулись', r.data.find(d=>d.code==='TZX1707').seats_free === freeBefore);
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('повторная отмена отклонена', r.status === 404);
+
+console.log('\n--- управление агентствами ---');
+r = await call('/api/admin/agencies', { token: op });
+const target = r.data.find(a => a.login === 'newagency');
+r = await call('/api/admin/agencies/' + target.id + '/deactivate', { method:'POST', token: op });
+check('агентство отключено', r.status === 200 && r.data.is_active === 0, JSON.stringify(r.data));
+r = await call('/api/login', { method:'POST', body:{ login:'newagency', password:'secret123' } });
+check('отключённое не входит', r.status === 401, JSON.stringify(r.data));
+r = await call('/api/admin/agencies/' + target.id + '/activate', { method:'POST', token: op });
+check('включено обратно', r.data.is_active === 1);
+r = await call('/api/admin/agencies/' + target.id + '/password', { method:'POST', token: op, body:{ password:'newpass123' } });
+check('пароль сменён', r.status === 200, JSON.stringify(r.data));
+r = await call('/api/login', { method:'POST', body:{ login:'newagency', password:'newpass123' } });
+check('вход по новому паролю', r.status === 200);
+r = await call('/api/login', { method:'POST', body:{ login:'newagency', password:'secret123' } });
+check('старый пароль не работает', r.status === 401);
+r = await call('/api/admin/agencies/' + target.id + '/password', { method:'POST', token: op, body:{ password:'123' } });
+check('короткий пароль отклонён', r.status === 400);
 
 console.log('\n--- срок действия паспорта ---');
 r = await call('/api/bookings', { method:'POST', token: umida, body:{

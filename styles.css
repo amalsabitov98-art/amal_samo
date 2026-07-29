@@ -615,7 +615,7 @@ a { color: inherit; }
 
 .tt-tour {
   display: grid;
-  grid-template-columns: 1fr 170px 110px;
+  grid-template-columns: 1fr 170px minmax(110px, auto);
   gap: 18px;
   align-items: center;
   background: var(--tt-surface);
@@ -722,3 +722,11 @@ a { color: inherit; }
 .tt-table tbody tr:last-child td { border-bottom: none; }
 .tt-table tbody tr:hover { background: var(--tt-bg); }
 .tt-table td:nth-child(11) { font-variant-numeric: tabular-nums; text-align: right; }
+
+.tt-agency-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
