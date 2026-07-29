@@ -635,3 +635,90 @@ a { color: inherit; }
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* ==================== Сторона оператора ==================== */
+
+.tt-ok-box {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-success);
+  background: var(--tt-accent-soft);
+  color: var(--tt-success);
+  font-size: 0.85rem;
+}
+
+.tt-panel {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.tt-panel h2 { margin: 0 0 14px; font-size: 1.05rem; }
+
+.tt-new-agency-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+@media (max-width: 780px) {
+  .tt-new-agency-grid { grid-template-columns: 1fr; }
+}
+.tt-new-agency-grid label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 5px;
+}
+.tt-new-agency-grid input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 0.95rem;
+}
+
+.tt-manifest-meta {
+  font-size: 0.88rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 12px;
+}
+
+/* Таблица широкая — прокручиваем её саму, страница вбок не едет */
+.tt-table-wrap {
+  overflow-x: auto;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+.tt-table th,
+.tt-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-table th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tt-text-muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--tt-surface);
+}
+.tt-table tbody tr:last-child td { border-bottom: none; }
+.tt-table tbody tr:hover { background: var(--tt-bg); }
+.tt-table td:nth-child(11) { font-variant-numeric: tabular-nums; text-align: right; }

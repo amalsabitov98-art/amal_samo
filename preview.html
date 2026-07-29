@@ -639,6 +639,93 @@ a { color: inherit; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ==================== Сторона оператора ==================== */
+
+.tt-ok-box {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-success);
+  background: var(--tt-accent-soft);
+  color: var(--tt-success);
+  font-size: 0.85rem;
+}
+
+.tt-panel {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.tt-panel h2 { margin: 0 0 14px; font-size: 1.05rem; }
+
+.tt-new-agency-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+@media (max-width: 780px) {
+  .tt-new-agency-grid { grid-template-columns: 1fr; }
+}
+.tt-new-agency-grid label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 5px;
+}
+.tt-new-agency-grid input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 0.95rem;
+}
+
+.tt-manifest-meta {
+  font-size: 0.88rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 12px;
+}
+
+/* Таблица широкая — прокручиваем её саму, страница вбок не едет */
+.tt-table-wrap {
+  overflow-x: auto;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+.tt-table th,
+.tt-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-table th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tt-text-muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--tt-surface);
+}
+.tt-table tbody tr:last-child td { border-bottom: none; }
+.tt-table tbody tr:hover { background: var(--tt-bg); }
+.tt-table td:nth-child(11) { font-variant-numeric: tabular-nums; text-align: right; }
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -695,9 +782,12 @@ a { color: inherit; }
 
   <main class="tt-container">
     <div class="tt-tabs">
-      <button class="tt-tab is-active" data-tab="departures">Заезды</button>
-      <button class="tt-tab" data-tab="bookings">Мои брони</button>
-      <button class="tt-tab" data-tab="tours">Туры и комиссии</button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="departures">Заезды</button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings">Мои брони</button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours">Туры и комиссии</button>
+      <button class="tt-tab tt-tab-op" data-tab="manifest" hidden>Списки пассажиров</button>
+      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden>Все брони</button>
+      <button class="tt-tab tt-tab-op" data-tab="agencies" hidden>Агентства</button>
     </div>
 
     <section id="panel-departures">
@@ -725,6 +815,38 @@ a { color: inherit; }
 
     <section id="panel-tours" hidden>
       <div id="tours-list"></div>
+    </section>
+
+    <section id="panel-manifest" hidden>
+      <div class="tt-toolbar">
+        <div class="tt-field" style="min-width:340px">
+          <label for="adm-departure">Заезд</label>
+          <select id="adm-departure"></select>
+        </div>
+        <button class="tt-btn" id="adm-export" disabled>Выгрузить CSV</button>
+      </div>
+      <div id="adm-manifest"></div>
+    </section>
+
+    <section id="panel-admin-bookings" hidden>
+      <div id="adm-bookings"></div>
+    </section>
+
+    <section id="panel-agencies" hidden>
+      <form class="tt-panel" id="adm-new-agency">
+        <h2>Новое агентство</h2>
+        <div class="tt-new-agency-grid">
+          <div><label for="na-name">Название</label>
+            <input type="text" id="na-name" required /></div>
+          <div><label for="na-login">Логин</label>
+            <input type="text" id="na-login" autocomplete="off" required /></div>
+          <div><label for="na-password">Пароль (от 8 символов)</label>
+            <input type="text" id="na-password" autocomplete="new-password" required /></div>
+          <button type="submit" class="tt-btn">Завести</button>
+        </div>
+        <div id="adm-agency-result"></div>
+      </form>
+      <div id="adm-agencies"></div>
     </section>
   </main>
 </div>
@@ -3310,6 +3432,7 @@ window.TURON_TOURS = [
     { id: 1, login: "umida", name: "UMIDA" },
     { id: 2, login: "easytourism", name: "EASY TOURISM" },
     { id: 3, login: "ofotour", name: "OFO TOUR" },
+    { id: 4, login: "operator", name: "Turon Tour (оператор)", role: "operator" },
   ];
   var DEMO_PASSWORD = "turon2026";
 
@@ -3359,6 +3482,7 @@ window.TURON_TOURS = [
     if (!agency || password !== DEMO_PASSWORD) {
       return Promise.reject(new Error("Неверный логин или пароль"));
     }
+    agency = Object.assign({ role: "agency" }, agency);
     var s = demoState(); s.agency = agency; saveDemo(s);
     setToken("demo-" + agency.id);
     return Promise.resolve({ token: "demo-" + agency.id, agency: agency });
@@ -3377,7 +3501,12 @@ window.TURON_TOURS = [
         return Promise.reject(new Error(
           "Для заезда " + d.code + " нет цены на размещение " + p.placement));
       }
-      priced.push({ full_name: p.full_name, tariff: t.label, price: t.price });
+      priced.push({
+        full_name: p.full_name, birth_date: p.birth_date,
+        passport_number: p.passport_number, passport_expiry: p.passport_expiry || "",
+        placement: p.placement, price_code: t.code, tariff: t.label,
+        price: t.price, occupies_seat: t.occupies_seat,
+      });
       if (t.occupies_seat) seats++;
       total += t.price;
     }
@@ -3402,8 +3531,10 @@ window.TURON_TOURS = [
       total_price: total,
       agency_commission: commission,
       paid: 0,
+      payments: [],
       note: payload.note || null,
       created_at: new Date().toISOString(),
+      passengers: priced,
     };
     s.bookings.push(booking); saveDemo(s);
     return Promise.resolve({
@@ -3486,11 +3617,366 @@ window.TURON_TOURS = [
       return request("/api/bookings/" + id + "/cancel", { method: "POST" });
     },
 
+
+    // ------------------------------------------------ сторона оператора
+    adminBookings: function (departureCode) {
+      if (!API_BASE) {
+        var s = demoState();
+        var byCode = {};
+        DEMO_AGENCIES.forEach(function (a) { byCode[a.id] = a.name; });
+        return Promise.resolve(s.bookings
+          .filter(function (b) { return !departureCode || b.departure_code === departureCode; })
+          .map(function (b) {
+            return Object.assign({}, b, {
+              agency_name: byCode[b.agency_id] || "—",
+              balance: b.total_price - b.paid,
+            });
+          }).reverse());
+      }
+      return request("/api/admin/bookings" +
+        (departureCode ? "?departure=" + encodeURIComponent(departureCode) : ""));
+    },
+
+    manifest: function (departureCode) {
+      if (!API_BASE) {
+        var s = demoState();
+        var d = s.departures.filter(function (x) { return x.code === departureCode; })[0];
+        if (!d) return Promise.reject(new Error("Заезд не найден"));
+        var byId = {};
+        DEMO_AGENCIES.forEach(function (a) { byId[a.id] = a; });
+        var rows = [];
+        s.bookings.filter(function (b) {
+          return b.departure_code === departureCode && b.status === "confirmed";
+        }).forEach(function (b) {
+          (b.passengers || []).forEach(function (p) {
+            rows.push(Object.assign({}, p, {
+              booking_code: b.code, booked_at: b.created_at, note: b.note,
+              agency_name: (byId[b.agency_id] || {}).name || "—",
+              channel: "B2B", total_price: b.total_price, booking_paid: b.paid,
+            }));
+          });
+        });
+        return Promise.resolve({ departure: d, passengers: rows });
+      }
+      return request("/api/admin/manifest?departure=" + encodeURIComponent(departureCode));
+    },
+
+    addPayment: function (bookingCode, amount, note) {
+      if (!API_BASE) {
+        var s = demoState();
+        var b = s.bookings.filter(function (x) { return x.code === bookingCode; })[0];
+        if (!b || b.status !== "confirmed") {
+          return Promise.reject(new Error("Бронь не найдена или отменена"));
+        }
+        if (b.paid + amount < 0) {
+          return Promise.reject(new Error("Возврат больше оплаченного: оплачено " + b.paid));
+        }
+        b.paid += amount;
+        (b.payments = b.payments || []).push({ amount: amount, note: note || null });
+        saveDemo(s);
+        return Promise.resolve({
+          booking_code: bookingCode, paid: b.paid, balance: b.total_price - b.paid,
+        });
+      }
+      return request("/api/admin/payments", {
+        method: "POST", body: { booking_code: bookingCode, amount: amount, note: note },
+      });
+    },
+
+    agencies: function () {
+      if (!API_BASE) {
+        var s = demoState();
+        return Promise.resolve(DEMO_AGENCIES
+          .filter(function (a) { return a.role !== "operator"; })
+          .map(function (a) {
+            return Object.assign({ is_active: 1 }, a, {
+              bookings_count: s.bookings.filter(function (b) {
+                return b.agency_id === a.id && b.status === "confirmed";
+              }).length,
+            });
+          }));
+      }
+      return request("/api/admin/agencies");
+    },
+
+    createAgency: function (login, name, password) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме агентства не заводятся — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies", {
+        method: "POST", body: { login: login, name: name, password: password },
+      });
+    },
+
     priceFor: priceFor,
     ageOn: ageOn,
   };
 
   global.TuronApi = Api;
+})(window);
+
+</script>
+<script>
+/*
+ * Экраны туроператора. Подключается всегда, но включается только для
+ * учётной записи с ролью operator — агентство этих вкладок не видит,
+ * и сервер всё равно отдаст 403 на /api/admin/*.
+ *
+ * Главное здесь — выгрузка списка пассажиров заезда: колонки повторяют
+ * исходную ведомость, чтобы её можно было перестать вести руками.
+ */
+(function (global) {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { departures: [], current: null };
+
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+
+  function money(v) {
+    var whole = Math.abs(v - Math.round(v)) < 0.005;
+    return "$" + v.toLocaleString("ru-RU", {
+      minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2,
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+
+  // ------------------------------------------------------------- выгрузка
+  // Колонки и их порядок — как в ведомости, включая узбекские заголовки:
+  // менеджер открывает файл и видит привычную таблицу.
+  var MANIFEST_COLUMNS = [
+    ["ID", function (p) { return p.booking_code; }],
+    ["бронь санаси", function (p) { return formatDate(p.booked_at); }],
+    ["Ф.И.О.", function (p) { return p.full_name; }],
+    ["туғилган санаси", function (p) { return formatDate(p.birth_date); }],
+    ["паспорт рақами", function (p) { return p.passport_number; }],
+    ["тугаш санаси", function (p) { return formatDate(p.passport_expiry); }],
+    ["жойлашув", function (p) { return p.placement; }],
+    ["B2B/B2C", function (p) { return p.channel || "B2B"; }],
+    ["номланиши", function (p) { return p.agency_name; }],
+    ["тариф", function (p) { return p.price_code; }],
+    ["нарх USD", function (p) { return p.price; }],
+    ["изоҳ", function (p) { return p.note || ""; }],
+  ];
+
+  function toCsv(passengers) {
+    var cell = function (v) {
+      var s = String(v == null ? "" : v);
+      return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    var lines = [MANIFEST_COLUMNS.map(function (c) { return cell(c[0]); }).join(";")];
+    passengers.forEach(function (p) {
+      lines.push(MANIFEST_COLUMNS.map(function (c) { return cell(c[1](p)); }).join(";"));
+    });
+    // BOM обязателен: без него Excel открывает кириллицу кракозябрами,
+    // а разделитель «;» — чтобы не спорить с локальными настройками.
+    return "﻿" + lines.join("\r\n");
+  }
+
+  function downloadCsv(departureCode, passengers) {
+    var blob = new Blob([toCsv(passengers)], { type: "text/csv;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "turon-" + departureCode + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // --------------------------------------------------------------- заезды
+  function renderDeparturePicker() {
+    $("adm-departure").innerHTML = state.departures.map(function (d) {
+      return '<option value="' + esc(d.code) + '">' +
+        formatDate(d.date_start) + " · " + (TRANSPORT[d.transport] || d.transport) +
+        " · " + esc(d.code) + " (занято " + d.seats_taken + "/" + d.capacity + ")</option>";
+    }).join("");
+  }
+
+  function renderManifest(data) {
+    state.current = data;
+    var pax = data.passengers;
+    if (!pax.length) {
+      $("adm-manifest").innerHTML =
+        '<div class="tt-empty-state">На этот заезд ещё нет броней через кабинет.' +
+        '<div class="tt-muted-note">Места, проданные до запуска системы, ' +
+        "учтены в счётчике заезда, но пофамильно их здесь нет.</div></div>";
+      $("adm-export").disabled = true;
+      return;
+    }
+    $("adm-export").disabled = false;
+
+    var head = MANIFEST_COLUMNS.map(function (c) { return "<th>" + esc(c[0]) + "</th>"; }).join("");
+    var body = pax.map(function (p) {
+      return "<tr>" + MANIFEST_COLUMNS.map(function (c) {
+        return "<td>" + esc(c[1](p)) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+
+    var seats = pax.filter(function (p) { return p.occupies_seat; }).length;
+    $("adm-manifest").innerHTML =
+      '<div class="tt-manifest-meta">Пассажиров: <strong>' + pax.length +
+        "</strong> · занимают мест: <strong>" + seats + "</strong></div>" +
+      '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' + head +
+      "</tr></thead><tbody>" + body + "</tbody></table></div>";
+  }
+
+  function loadManifest() {
+    var code = $("adm-departure").value;
+    if (!code) return;
+    $("adm-manifest").innerHTML = '<div class="tt-empty-state">Загрузка…</div>';
+    TuronApi.manifest(code).then(renderManifest).catch(function (err) {
+      $("adm-manifest").innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить список.<div class="tt-muted-note">' +
+        esc(err.message) + "</div></div>";
+    });
+  }
+
+  // ---------------------------------------------------------------- брони
+  function renderAdminBookings(list) {
+    if (!list.length) {
+      $("adm-bookings").innerHTML = '<div class="tt-empty-state">Броней пока нет.</div>';
+      return;
+    }
+    $("adm-bookings").innerHTML = list.map(function (b) {
+      var cancelled = b.status === "cancelled";
+      return (
+        '<article class="tt-booking' + (cancelled ? " is-cancelled" : "") + '">' +
+          "<div>" +
+            "<strong>" + esc(b.code) + "</strong>" +
+            '<div class="tt-muted-note">' + esc(b.agency_name) + " · " +
+              formatDate(b.date_start) + " · " + b.passengers_count + " чел." +
+              (cancelled ? " · отменена" : "") + "</div>" +
+          "</div>" +
+          '<div class="tt-booking-money">' +
+            '<div class="tt-sum-line"><span>Стоимость</span><strong>' + money(b.total_price) + "</strong></div>" +
+            '<div class="tt-sum-line"><span>Оплачено</span><strong>' + money(b.paid) + "</strong></div>" +
+            '<div class="tt-sum-line' + (b.balance > 0 ? " tt-owed" : "") +
+              '"><span>Остаток</span><strong>' + money(b.balance) + "</strong></div>" +
+          "</div>" +
+          '<div class="tt-booking-action">' +
+            (cancelled ? "" :
+              '<button class="tt-btn tt-btn-sm" data-pay="' + esc(b.code) +
+              '" data-balance="' + b.balance + '">Внести оплату</button>') +
+          "</div>" +
+        "</article>"
+      );
+    }).join("");
+  }
+
+  function loadAdminBookings() {
+    return TuronApi.adminBookings().then(renderAdminBookings).catch(function (err) {
+      $("adm-bookings").innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить брони.<div class="tt-muted-note">' +
+        esc(err.message) + "</div></div>";
+    });
+  }
+
+  // ------------------------------------------------------------- агентства
+  function loadAgencies() {
+    return TuronApi.agencies().then(function (list) {
+      $("adm-agencies").innerHTML = list.map(function (a) {
+        return (
+          '<article class="tt-tour">' +
+            "<div><strong>" + esc(a.name) + "</strong>" +
+              '<div class="tt-muted-note">логин: ' + esc(a.login) + "</div></div>" +
+            "<div>" + a.bookings_count + " броней</div>" +
+            "<div>" + (a.is_active
+              ? '<span class="tt-badge">Активно</span>'
+              : '<span class="tt-badge tt-badge-off">Отключено</span>') + "</div>" +
+          "</article>"
+        );
+      }).join("");
+    }).catch(function (err) {
+      $("adm-agencies").innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить агентства.<div class="tt-muted-note">' +
+        esc(err.message) + "</div></div>";
+    });
+  }
+
+  // ------------------------------------------------------------------ вход
+  function bind() {
+    $("adm-departure").addEventListener("change", loadManifest);
+    $("adm-export").addEventListener("click", function () {
+      if (state.current) downloadCsv(state.current.departure.code, state.current.passengers);
+    });
+
+    $("adm-bookings").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-pay]");
+      if (!btn) return;
+      var code = btn.dataset.pay;
+      var suggested = Number(btn.dataset.balance) || 0;
+      var raw = prompt("Сумма оплаты по брони " + code +
+        " (остаток " + money(suggested) + "). Отрицательная сумма — возврат:", suggested);
+      if (raw === null) return;
+      var amount = Number(String(raw).replace(",", "."));
+      if (!isFinite(amount) || amount === 0) {
+        alert("Введите сумму числом, не равную нулю.");
+        return;
+      }
+      btn.disabled = true;
+      TuronApi.addPayment(code, amount).then(function (res) {
+        Admin.reload();
+        alert("Оплата проведена. По брони " + res.booking_code +
+              " оплачено " + money(res.paid) + ", остаток " + money(res.balance) + ".");
+      }).catch(function (err) {
+        btn.disabled = false;
+        alert(err.message);
+      });
+    });
+
+    $("adm-new-agency").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var box = $("adm-agency-result");
+      TuronApi.createAgency($("na-login").value.trim(), $("na-name").value.trim(),
+                            $("na-password").value)
+        .then(function (res) {
+          box.innerHTML = '<div class="tt-ok-box">Агентство «' + esc(res.name) +
+            '» заведено, логин ' + esc(res.login) + "</div>";
+          e.target.reset();
+          loadAgencies();
+        })
+        .catch(function (err) {
+          box.innerHTML = '<div class="tt-error-box">' + esc(err.message) + "</div>";
+        });
+    });
+  }
+
+  var Admin = {
+    isOperator: function (agency) { return agency && agency.role === "operator"; },
+
+    start: function () {
+      document.body.classList.add("is-operator");
+      bind();
+      return TuronApi.departures().then(function (list) {
+        // у оператора в выборе — все заезды, включая заполненные
+        state.departures = list.slice().reverse();
+        renderDeparturePicker();
+        loadManifest();
+        loadAdminBookings();
+        loadAgencies();
+      });
+    },
+
+    reload: function () {
+      loadManifest();
+      loadAdminBookings();
+    },
+  };
+
+  global.TuronAdmin = Admin;
 })(window);
 
 </script>
@@ -3530,6 +4016,18 @@ window.TURON_TOURS = [
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
+
+    // Оператору показываем его вкладки и прячем агентские: он не бронирует
+    // и своих комиссий не имеет.
+    var isOperator = TuronAdmin.isOperator(agency);
+    document.querySelectorAll(".tt-tab-op").forEach(function (t) { t.hidden = !isOperator; });
+    document.querySelectorAll(".tt-tab-ag").forEach(function (t) { t.hidden = isOperator; });
+    if (isOperator) {
+      TuronAdmin.start();
+      switchTab("manifest");
+      return;
+    }
+    switchTab("departures");
     loadDepartures();
     loadBookings();
     loadTours();
@@ -3921,9 +4419,11 @@ window.TURON_TOURS = [
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    $("panel-departures").hidden = name !== "departures";
-    $("panel-bookings").hidden = name !== "bookings";
-    $("panel-tours").hidden = name !== "tours";
+    ["departures", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+      .forEach(function (key) {
+        var panel = $("panel-" + key);
+        if (panel) panel.hidden = key !== name;
+      });
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {

@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS agencies (
   password_hash  TEXT    NOT NULL,   -- PBKDF2-SHA256, hex
   password_salt  TEXT    NOT NULL,   -- hex
   name           TEXT    NOT NULL,
+  -- role='operator' — сотрудник туроператора: видит брони всех агентств,
+  -- выгружает списки пассажиров и проводит оплаты. В списках агентств
+  -- такие строки не показываются.
+  role           TEXT    NOT NULL DEFAULT 'agency'
+                   CHECK (role IN ('agency','operator')),
   channel        TEXT    NOT NULL DEFAULT 'B2B',
   is_active      INTEGER NOT NULL DEFAULT 1,
   created_at     TEXT    NOT NULL DEFAULT (datetime('now'))

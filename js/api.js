@@ -39,6 +39,7 @@
     { id: 1, login: "umida", name: "UMIDA" },
     { id: 2, login: "easytourism", name: "EASY TOURISM" },
     { id: 3, login: "ofotour", name: "OFO TOUR" },
+    { id: 4, login: "operator", name: "Turon Tour (оператор)", role: "operator" },
   ];
   var DEMO_PASSWORD = "turon2026";
 
@@ -88,6 +89,7 @@
     if (!agency || password !== DEMO_PASSWORD) {
       return Promise.reject(new Error("Неверный логин или пароль"));
     }
+    agency = Object.assign({ role: "agency" }, agency);
     var s = demoState(); s.agency = agency; saveDemo(s);
     setToken("demo-" + agency.id);
     return Promise.resolve({ token: "demo-" + agency.id, agency: agency });
@@ -106,7 +108,12 @@
         return Promise.reject(new Error(
           "Для заезда " + d.code + " нет цены на размещение " + p.placement));
       }
-      priced.push({ full_name: p.full_name, tariff: t.label, price: t.price });
+      priced.push({
+        full_name: p.full_name, birth_date: p.birth_date,
+        passport_number: p.passport_number, passport_expiry: p.passport_expiry || "",
+        placement: p.placement, price_code: t.code, tariff: t.label,
+        price: t.price, occupies_seat: t.occupies_seat,
+      });
       if (t.occupies_seat) seats++;
       total += t.price;
     }
@@ -131,8 +138,10 @@
       total_price: total,
       agency_commission: commission,
       paid: 0,
+      payments: [],
       note: payload.note || null,
       created_at: new Date().toISOString(),
+      passengers: priced,
     };
     s.bookings.push(booking); saveDemo(s);
     return Promise.resolve({
@@ -213,6 +222,98 @@
         return Promise.resolve({ booking_code: b.code, released_seats: b.seats_used });
       }
       return request("/api/bookings/" + id + "/cancel", { method: "POST" });
+    },
+
+
+    // ------------------------------------------------ сторона оператора
+    adminBookings: function (departureCode) {
+      if (!API_BASE) {
+        var s = demoState();
+        var byCode = {};
+        DEMO_AGENCIES.forEach(function (a) { byCode[a.id] = a.name; });
+        return Promise.resolve(s.bookings
+          .filter(function (b) { return !departureCode || b.departure_code === departureCode; })
+          .map(function (b) {
+            return Object.assign({}, b, {
+              agency_name: byCode[b.agency_id] || "—",
+              balance: b.total_price - b.paid,
+            });
+          }).reverse());
+      }
+      return request("/api/admin/bookings" +
+        (departureCode ? "?departure=" + encodeURIComponent(departureCode) : ""));
+    },
+
+    manifest: function (departureCode) {
+      if (!API_BASE) {
+        var s = demoState();
+        var d = s.departures.filter(function (x) { return x.code === departureCode; })[0];
+        if (!d) return Promise.reject(new Error("Заезд не найден"));
+        var byId = {};
+        DEMO_AGENCIES.forEach(function (a) { byId[a.id] = a; });
+        var rows = [];
+        s.bookings.filter(function (b) {
+          return b.departure_code === departureCode && b.status === "confirmed";
+        }).forEach(function (b) {
+          (b.passengers || []).forEach(function (p) {
+            rows.push(Object.assign({}, p, {
+              booking_code: b.code, booked_at: b.created_at, note: b.note,
+              agency_name: (byId[b.agency_id] || {}).name || "—",
+              channel: "B2B", total_price: b.total_price, booking_paid: b.paid,
+            }));
+          });
+        });
+        return Promise.resolve({ departure: d, passengers: rows });
+      }
+      return request("/api/admin/manifest?departure=" + encodeURIComponent(departureCode));
+    },
+
+    addPayment: function (bookingCode, amount, note) {
+      if (!API_BASE) {
+        var s = demoState();
+        var b = s.bookings.filter(function (x) { return x.code === bookingCode; })[0];
+        if (!b || b.status !== "confirmed") {
+          return Promise.reject(new Error("Бронь не найдена или отменена"));
+        }
+        if (b.paid + amount < 0) {
+          return Promise.reject(new Error("Возврат больше оплаченного: оплачено " + b.paid));
+        }
+        b.paid += amount;
+        (b.payments = b.payments || []).push({ amount: amount, note: note || null });
+        saveDemo(s);
+        return Promise.resolve({
+          booking_code: bookingCode, paid: b.paid, balance: b.total_price - b.paid,
+        });
+      }
+      return request("/api/admin/payments", {
+        method: "POST", body: { booking_code: bookingCode, amount: amount, note: note },
+      });
+    },
+
+    agencies: function () {
+      if (!API_BASE) {
+        var s = demoState();
+        return Promise.resolve(DEMO_AGENCIES
+          .filter(function (a) { return a.role !== "operator"; })
+          .map(function (a) {
+            return Object.assign({ is_active: 1 }, a, {
+              bookings_count: s.bookings.filter(function (b) {
+                return b.agency_id === a.id && b.status === "confirmed";
+              }).length,
+            });
+          }));
+      }
+      return request("/api/admin/agencies");
+    },
+
+    createAgency: function (login, name, password) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме агентства не заводятся — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/agencies", {
+        method: "POST", body: { login: login, name: name, password: password },
+      });
     },
 
     priceFor: priceFor,

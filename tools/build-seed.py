@@ -22,9 +22,10 @@ PLACEMENT_LABELS = {
 }
 
 DEMO_AGENCIES = [
-    ("umida", "UMIDA"),
-    ("easytourism", "EASY TOURISM"),
-    ("ofotour", "OFO TOUR"),
+    ("umida", "UMIDA", "agency"),
+    ("easytourism", "EASY TOURISM", "agency"),
+    ("ofotour", "OFO TOUR", "agency"),
+    ("operator", "Turon Tour (оператор)", "operator"),
 ]
 DEMO_PASSWORD = "turon2026"
 
@@ -82,11 +83,11 @@ def main():
     out.append("DELETE FROM agencies;")
     out.append("")
 
-    for login, name in DEMO_AGENCIES:
+    for login, name, role in DEMO_AGENCIES:
         h, s = hash_password(DEMO_PASSWORD)
         out.append(
-            f"INSERT INTO agencies (login, password_hash, password_salt, name) "
-            f"VALUES ({q(login)}, {q(h)}, {q(s)}, {q(name)});"
+            f"INSERT INTO agencies (login, password_hash, password_salt, name, role) "
+            f"VALUES ({q(login)}, {q(h)}, {q(s)}, {q(name)}, {q(role)});"
         )
     out.append("")
 

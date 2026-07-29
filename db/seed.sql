@@ -4,9 +4,10 @@ DELETE FROM departures;
 DELETE FROM tours;
 DELETE FROM agencies;
 
-INSERT INTO agencies (login, password_hash, password_salt, name) VALUES ('umida', '76504f7b7bfbec4bb77bfefe089f7a6ecf5794265791317d38a7229e72b3fe7a', '480d82dbdb8025778653c9b552134e68', 'UMIDA');
-INSERT INTO agencies (login, password_hash, password_salt, name) VALUES ('easytourism', '8d79bd08d657d38e850c05a2a31c7c0e41adce14e84ec4ec5c7c543ecffe9d66', '5b6417501b36e29251601ff7e6b60f3b', 'EASY TOURISM');
-INSERT INTO agencies (login, password_hash, password_salt, name) VALUES ('ofotour', '189f645f0d04a081b98491789b1bd75fe16355dd121784248d1daf456426c08d', '6ff68b85a542b7ded3d95a79b031d542', 'OFO TOUR');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'cace0aa66113acc67a96d596b78402763ac17fec3b75c28c0237c1f318ac47c1', 'b2d7115f2765cc612479c3680bb60a46', 'UMIDA', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'e12afcdbaacc1556d21cafdfbf5d3c3b1bf44b29afe6c2e958d92c579c8ae52d', '6a1fa718314f9c46a2326cfae7cc4321', 'EASY TOURISM', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '14f36386664af2218343d9a998e16ed1c2b477250c5ce9dbeb6c236f51454137', 'd618f04ed4930cbef958a8e39c555850', 'OFO TOUR', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '1524c2a642a5d333ded329d5b77d29d94170f67e8279b2ea3fd2c0e1c77f6382', '563ffb78a9f4f523306ddf3e29ec0953', 'Turon Tour (оператор)', 'operator');
 
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения');
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('JP_CONSTRUCTOR', 'Тур-конструктор «Легенды и огни Токио»', 'Япония', 100, 30, 0, 'Ожидаются даты заездов и цены');

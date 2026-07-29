@@ -33,6 +33,18 @@
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
+
+    // Оператору показываем его вкладки и прячем агентские: он не бронирует
+    // и своих комиссий не имеет.
+    var isOperator = TuronAdmin.isOperator(agency);
+    document.querySelectorAll(".tt-tab-op").forEach(function (t) { t.hidden = !isOperator; });
+    document.querySelectorAll(".tt-tab-ag").forEach(function (t) { t.hidden = isOperator; });
+    if (isOperator) {
+      TuronAdmin.start();
+      switchTab("manifest");
+      return;
+    }
+    switchTab("departures");
     loadDepartures();
     loadBookings();
     loadTours();
@@ -424,9 +436,11 @@
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    $("panel-departures").hidden = name !== "departures";
-    $("panel-bookings").hidden = name !== "bookings";
-    $("panel-tours").hidden = name !== "tours";
+    ["departures", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+      .forEach(function (key) {
+        var panel = $("panel-" + key);
+        if (panel) panel.hidden = key !== name;
+      });
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {

@@ -10,6 +10,13 @@
  *   GET  /api/bookings       свои брони с оплачено/остаток
  *   POST /api/bookings/:id/cancel   отменить бронь и вернуть места
  *
+ * Только для роли operator (сотрудник туроператора):
+ *   GET  /api/admin/bookings     брони всех агентств
+ *   GET  /api/admin/manifest     список пассажиров заезда (замена ведомости)
+ *   POST /api/admin/payments     провести оплату по брони
+ *   GET  /api/admin/agencies     список агентств
+ *   POST /api/admin/agencies     завести агентство
+ *
  * Агентство видит только свои брони: во всех запросах фильтр по agency_id
  * из сессии, идентификатор из тела запроса никогда не принимается.
  */
@@ -73,7 +80,7 @@ async function authenticate(request, env) {
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!token) return null;
   const row = await env.DB.prepare(
-    `SELECT a.id, a.login, a.name, a.channel
+    `SELECT a.id, a.login, a.name, a.channel, a.role
        FROM sessions s JOIN agencies a ON a.id = s.agency_id
       WHERE s.token = ? AND s.expires_at > datetime('now') AND a.is_active = 1`
   ).bind(token).first();
@@ -108,7 +115,10 @@ async function handleLogin(request, env) {
 
   return json({
     token,
-    agency: { id: agency.id, login: agency.login, name: agency.name, channel: agency.channel },
+    agency: {
+      id: agency.id, login: agency.login, name: agency.name,
+      channel: agency.channel, role: agency.role,
+    },
   });
 }
 
@@ -300,6 +310,107 @@ async function cancelBooking(env, agency, bookingId) {
   return json({ booking_code: booking.code, released_seats: seats.n });
 }
 
+
+// ------------------------------------------------------- сторона оператора
+// Список пассажиров заезда — то, ради чего и велась ведомость. Колонки
+// повторяют её порядок, чтобы менеджеру не пришлось переучиваться.
+async function manifest(env, departureCode) {
+  const departure = await env.DB.prepare(
+    `SELECT d.id, d.code, d.date_start, d.transport, d.capacity, d.seats_taken
+       FROM departures d WHERE d.code = ?`
+  ).bind(departureCode).first();
+  if (!departure) return null;
+
+  const rows = await env.DB.prepare(
+    `SELECT b.code AS booking_code, b.created_at AS booked_at, b.status,
+            b.note, a.name AS agency_name, a.channel,
+            p.full_name, p.birth_date, p.passport_number, p.passport_expiry,
+            p.placement, p.price_code, p.price, p.occupies_seat,
+            b.total_price,
+            COALESCE((SELECT SUM(amount) FROM payments pay
+                       WHERE pay.booking_id = b.id), 0) AS booking_paid
+       FROM passengers p
+       JOIN bookings b ON b.id = p.booking_id
+       JOIN agencies a ON a.id = b.agency_id
+      WHERE b.departure_id = ? AND b.status = 'confirmed'
+      ORDER BY b.created_at, p.id`
+  ).bind(departure.id).all();
+
+  return { departure, passengers: rows.results };
+}
+
+async function adminBookings(env, departureCode) {
+  const where = departureCode ? "WHERE d.code = ?" : "";
+  const stmt = env.DB.prepare(
+    `SELECT b.id, b.code, b.status, b.total_price, b.agency_commission,
+            b.created_at, b.note,
+            a.name AS agency_name,
+            d.code AS departure_code, d.date_start, d.transport,
+            (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
+            COALESCE((SELECT SUM(amount) FROM payments pay
+                       WHERE pay.booking_id = b.id), 0) AS paid
+       FROM bookings b
+       JOIN agencies a ON a.id = b.agency_id
+       JOIN departures d ON d.id = b.departure_id
+       ${where}
+      ORDER BY b.created_at DESC`
+  );
+  const rows = await (departureCode ? stmt.bind(departureCode) : stmt).all();
+  return rows.results.map((b) => ({
+    ...b, balance: Math.round((b.total_price - b.paid) * 100) / 100,
+  }));
+}
+
+async function addPayment(request, env) {
+  const { booking_code, amount, note } = await request.json();
+  const value = Number(amount);
+  if (!booking_code) return fail("Не указана бронь");
+  if (!isFinite(value) || value === 0) return fail("Сумма должна быть числом, не равным нулю");
+
+  const booking = await env.DB.prepare(
+    "SELECT id, total_price FROM bookings WHERE code = ? AND status = 'confirmed'"
+  ).bind(booking_code).first();
+  if (!booking) return fail("Бронь не найдена или отменена", 404);
+
+  const paidRow = await env.DB.prepare(
+    "SELECT COALESCE(SUM(amount), 0) AS paid FROM payments WHERE booking_id = ?"
+  ).bind(booking.id).first();
+
+  // Отрицательная сумма — это возврат; в минус по брони не уходим.
+  if (paidRow.paid + value < 0) {
+    return fail(`Возврат больше оплаченного: оплачено ${paidRow.paid}`);
+  }
+
+  await env.DB.prepare(
+    "INSERT INTO payments (booking_id, amount, note) VALUES (?, ?, ?)"
+  ).bind(booking.id, value, note || null).run();
+
+  const paid = paidRow.paid + value;
+  return json({
+    booking_code, paid,
+    balance: Math.round((booking.total_price - paid) * 100) / 100,
+  });
+}
+
+async function createAgency(request, env) {
+  const { login, name, password } = await request.json();
+  if (!login || !name || !password) return fail("Нужны логин, название и пароль");
+  if (String(password).length < 8) return fail("Пароль короче 8 символов");
+
+  const clean = String(login).trim().toLowerCase();
+  const exists = await env.DB.prepare("SELECT id FROM agencies WHERE login = ?")
+    .bind(clean).first();
+  if (exists) return fail("Такой логин уже занят");
+
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16)));
+  const hash = await hashPassword(password, salt);
+  await env.DB.prepare(
+    `INSERT INTO agencies (login, password_hash, password_salt, name, role)
+     VALUES (?, ?, ?, ?, 'agency')`
+  ).bind(clean, hash, salt, name).run();
+  return json({ login: clean, name });
+}
+
 // ------------------------------------------------------------------- роутер
 export default {
   async fetch(request, env) {
@@ -349,6 +460,36 @@ export default {
       const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
       if (cancel && request.method === "POST") {
         return await cancelBooking(env, agency, Number(cancel[1]));
+      }
+
+      // ------------------------------------------------- только оператор
+      if (path.startsWith("/api/admin/")) {
+        if (agency.role !== "operator") return fail("Недостаточно прав", 403);
+
+        if (path === "/api/admin/bookings" && request.method === "GET") {
+          return json(await adminBookings(env, url.searchParams.get("departure")));
+        }
+        if (path === "/api/admin/manifest" && request.method === "GET") {
+          const data = await manifest(env, url.searchParams.get("departure"));
+          if (!data) return fail("Заезд не найден", 404);
+          return json(data);
+        }
+        if (path === "/api/admin/payments" && request.method === "POST") {
+          return await addPayment(request, env);
+        }
+        if (path === "/api/admin/agencies" && request.method === "GET") {
+          const rows = await env.DB.prepare(
+            `SELECT a.id, a.login, a.name, a.is_active, a.created_at,
+                    (SELECT COUNT(*) FROM bookings b
+                      WHERE b.agency_id = a.id AND b.status = 'confirmed') AS bookings_count
+               FROM agencies a WHERE a.role = 'agency' ORDER BY a.name`
+          ).all();
+          return json(rows.results);
+        }
+        if (path === "/api/admin/agencies" && request.method === "POST") {
+          return await createAgency(request, env);
+        }
+        return fail("Not found", 404);
       }
 
       return fail("Not found", 404);
