@@ -86,7 +86,35 @@
     </section>
 
     <section id="panel-admin-bookings" hidden>
+      <div class="tt-toolbar">
+        <div class="tt-field" style="min-width:230px">
+          <label for="ab-query">Поиск</label>
+          <input type="search" id="ab-query" placeholder="Номер брони или фамилия" />
+        </div>
+        <div class="tt-field" style="min-width:200px">
+          <label for="ab-agency">Агентство</label>
+          <select id="ab-agency"><option value="">Все</option></select>
+        </div>
+        <div class="tt-field" style="min-width:210px">
+          <label for="ab-departure">Заезд</label>
+          <select id="ab-departure"><option value="">Все</option></select>
+        </div>
+        <div class="tt-field" style="min-width:150px">
+          <label for="ab-status">Статус</label>
+          <select id="ab-status">
+            <option value="confirmed">Действующие</option>
+            <option value="">Все</option>
+            <option value="cancelled">Отменённые</option>
+          </select>
+        </div>
+        <label class="tt-check-inline">
+          <input type="checkbox" id="ab-debt" />
+          Только с долгом
+        </label>
+      </div>
+      <div id="adm-bookings-count" class="tt-muted-note"></div>
       <div id="adm-bookings"></div>
+      <div id="adm-bookings-more"></div>
     </section>
 
     <section id="panel-agencies" hidden>

@@ -80,12 +80,32 @@ console.log('\n--- права оператора ---');
 r = await call('/api/admin/bookings', { token: umida });
 check('агентство в админку → 403', r.status === 403, JSON.stringify(r.data));
 r = await call('/api/admin/bookings', { token: op });
-check('оператор видит бронь', r.status === 200 && r.data.length === 1);
-check('видно имя агентства', r.data[0].agency_name === 'UMIDA', r.data[0].agency_name);
+check('оператор видит бронь', r.status === 200 && r.data.items.length === 1, JSON.stringify(r.data).slice(0,120));
+check('отдаётся общее количество', r.data.total === 1, JSON.stringify(r.data.total));
+check('видно имя агентства', r.data.items[0].agency_name === 'UMIDA', r.data.items[0].agency_name);
 
 r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
 check('список пассажиров: 3 строки', r.data.passengers.length === 3, 'получено ' + (r.data.passengers||[]).length);
 check('тариф ребёнка CHD_5_10', r.data.passengers[1].price_code === 'CHD_5_10', r.data.passengers[1].price_code);
+
+console.log('\n--- фильтры и поиск у оператора ---');
+r = await call('/api/admin/bookings?q=ADULT', { token: op });
+check('поиск по фамилии пассажира', r.data.total === 1, JSON.stringify(r.data.total));
+r = await call('/api/admin/bookings?q=' + encodeURIComponent('НЕТТАКОГО'), { token: op });
+check('поиск без совпадений пуст', r.data.total === 0);
+r = await call('/api/admin/bookings?q=TZX', { token: op });
+check('поиск по номеру брони', r.data.total === 1, JSON.stringify(r.data.total));
+r = await call('/api/admin/bookings?departure=BUS2509', { token: op });
+check('фильтр по чужому заезду пуст', r.data.total === 0);
+r = await call('/api/admin/bookings?status=cancelled', { token: op });
+check('фильтр по отменённым пуст', r.data.total === 0);
+r = await call('/api/admin/bookings?debt=1', { token: op });
+check('фильтр по долгу находит неоплаченную', r.data.total === 1, JSON.stringify(r.data.total));
+r = await call('/api/admin/bookings?limit=1&offset=0', { token: op });
+check('порция ограничена', r.data.items.length <= 1 && r.data.limit === 1, JSON.stringify(r.data.limit));
+r = await call("/api/admin/bookings?q=" + encodeURIComponent("' OR 1=1 --"), { token: op });
+check('кавычка в поиске не ломает запрос', r.status === 200 && r.data.total === 0,
+      JSON.stringify(r.data).slice(0,100));
 
 console.log('\n--- оплаты ---');
 r = await call('/api/admin/payments', { method:'POST', token: op, body:{ booking_code: bookingCode, amount: 1000 } });

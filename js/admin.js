@@ -10,7 +10,7 @@
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
-  var state = { departures: [], current: null };
+  var state = { departures: [], current: null, agencies: [], loaded: [], offset: 0 };
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
 
@@ -133,12 +133,23 @@
   }
 
   // ---------------------------------------------------------------- брони
-  function renderAdminBookings(list) {
-    if (!list.length) {
-      $("adm-bookings").innerHTML = '<div class="tt-empty-state">Броней пока нет.</div>';
+  function currentFilters() {
+    return {
+      query: $("ab-query").value.trim(),
+      agencyId: $("ab-agency").value || null,
+      departure: $("ab-departure").value || null,
+      status: $("ab-status").value,
+      debtOnly: $("ab-debt").checked,
+    };
+  }
+
+  function renderAdminBookings(list, append) {
+    if (!list.length && !append) {
+      $("adm-bookings").innerHTML =
+        '<div class="tt-empty-state">Ничего не найдено по этим условиям.</div>';
       return;
     }
-    $("adm-bookings").innerHTML = list.map(function (b) {
+    var html = list.map(function (b) {
       var cancelled = b.status === "cancelled";
       return (
         '<article class="tt-booking' + (cancelled ? " is-cancelled" : "") + '">' +
@@ -162,10 +173,23 @@
         "</article>"
       );
     }).join("");
+    if (append) $("adm-bookings").insertAdjacentHTML("beforeend", html);
+    else $("adm-bookings").innerHTML = html;
   }
 
-  function loadAdminBookings() {
-    return TuronApi.adminBookings().then(renderAdminBookings).catch(function (err) {
+  function loadAdminBookings(append) {
+    var filters = currentFilters();
+    filters.offset = append ? state.offset : 0;
+    return TuronApi.adminBookings(filters).then(function (res) {
+      state.offset = res.offset + res.items.length;
+      renderAdminBookings(res.items, append);
+      $("adm-bookings-count").textContent = res.total
+        ? "Показано " + Math.min(state.offset, res.total) + " из " + res.total
+        : "";
+      $("adm-bookings-more").innerHTML = state.offset < res.total
+        ? '<button class="tt-btn secondary" id="adm-more">Показать ещё</button>'
+        : "";
+    }).catch(function (err) {
       $("adm-bookings").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить брони.<div class="tt-muted-note">' +
         esc(err.message) + "</div></div>";
@@ -175,6 +199,12 @@
   // ------------------------------------------------------------- агентства
   function loadAgencies() {
     return TuronApi.agencies().then(function (list) {
+      state.agencies = list;
+      var picked = $("ab-agency").value;
+      $("ab-agency").innerHTML = '<option value="">Все</option>' + list.map(function (a) {
+        return '<option value="' + a.id + '">' + esc(a.name) + "</option>";
+      }).join("");
+      $("ab-agency").value = picked;
       $("adm-agencies").innerHTML = list.map(function (a) {
         return (
           '<article class="tt-tour">' +
@@ -202,8 +232,27 @@
   }
 
   // ------------------------------------------------------------------ вход
+  // Поиск не дёргает сервер на каждой букве — ждём паузы в наборе.
+  function debounce(fn, ms) {
+    var timer;
+    return function () {
+      clearTimeout(timer);
+      timer = setTimeout(fn, ms);
+    };
+  }
+
   function bind() {
     $("adm-departure").addEventListener("change", loadManifest);
+
+    ["ab-agency", "ab-departure", "ab-status", "ab-debt"].forEach(function (id) {
+      $(id).addEventListener("change", function () { loadAdminBookings(false); });
+    });
+    $("ab-query").addEventListener("input", debounce(function () {
+      loadAdminBookings(false);
+    }, 300));
+    $("adm-bookings-more").addEventListener("click", function (e) {
+      if (e.target.id === "adm-more") loadAdminBookings(true);
+    });
     $("adm-export").addEventListener("click", function () {
       if (state.current) downloadCsv(state.current.departure.code, state.current.passengers);
     });
@@ -282,15 +331,20 @@
         // у оператора в выборе — все заезды, включая заполненные
         state.departures = list.slice().reverse();
         renderDeparturePicker();
+        $("ab-departure").innerHTML = '<option value="">Все</option>' +
+          state.departures.map(function (d) {
+            return '<option value="' + esc(d.code) + '">' + formatDate(d.date_start) +
+              " · " + esc(d.code) + "</option>";
+          }).join("");
         loadManifest();
-        loadAdminBookings();
         loadAgencies();
+        return loadAdminBookings(false);
       });
     },
 
     reload: function () {
       loadManifest();
-      loadAdminBookings();
+      loadAdminBookings(false);
     },
   };
 

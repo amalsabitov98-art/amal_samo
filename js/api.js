@@ -286,22 +286,48 @@
 
 
     // ------------------------------------------------ сторона оператора
-    adminBookings: function (departureCode) {
+    adminBookings: function (filters) {
+      filters = filters || {};
       if (!API_BASE) {
         var s = demoState();
-        var byCode = {};
-        DEMO_AGENCIES.forEach(function (a) { byCode[a.id] = a.name; });
-        return Promise.resolve(s.bookings
-          .filter(function (b) { return !departureCode || b.departure_code === departureCode; })
-          .map(function (b) {
-            return Object.assign({}, b, {
-              agency_name: byCode[b.agency_id] || "—",
-              balance: b.total_price - b.paid,
+        var byId = {};
+        DEMO_AGENCIES.forEach(function (a) { byId[a.id] = a.name; });
+        var q = (filters.query || "").toLowerCase();
+        var list = s.bookings.filter(function (b) {
+          if (filters.departure && b.departure_code !== filters.departure) return false;
+          if (filters.agencyId && b.agency_id !== Number(filters.agencyId)) return false;
+          if (filters.status && b.status !== filters.status) return false;
+          if (filters.debtOnly && !(b.status === "confirmed" && b.total_price > b.paid)) return false;
+          if (q) {
+            var inCode = b.code.toLowerCase().indexOf(q) !== -1;
+            var inName = (b.passengers || []).some(function (p) {
+              return (p.full_name || "").toLowerCase().indexOf(q) !== -1;
             });
-          }).reverse());
+            if (!inCode && !inName) return false;
+          }
+          return true;
+        }).map(function (b) {
+          return Object.assign({}, b, {
+            agency_name: byId[b.agency_id] || "—",
+            balance: b.total_price - b.paid,
+          });
+        }).reverse();
+        var limit = Number(filters.limit) || 50;
+        var offset = Number(filters.offset) || 0;
+        return Promise.resolve({
+          total: list.length, limit: limit, offset: offset,
+          items: list.slice(offset, offset + limit),
+        });
       }
-      return request("/api/admin/bookings" +
-        (departureCode ? "?departure=" + encodeURIComponent(departureCode) : ""));
+      var qs = [];
+      if (filters.departure) qs.push("departure=" + encodeURIComponent(filters.departure));
+      if (filters.agencyId) qs.push("agency_id=" + encodeURIComponent(filters.agencyId));
+      if (filters.status) qs.push("status=" + encodeURIComponent(filters.status));
+      if (filters.debtOnly) qs.push("debt=1");
+      if (filters.query) qs.push("q=" + encodeURIComponent(filters.query));
+      if (filters.limit) qs.push("limit=" + filters.limit);
+      if (filters.offset) qs.push("offset=" + filters.offset);
+      return request("/api/admin/bookings" + (qs.length ? "?" + qs.join("&") : ""));
     },
 
     manifest: function (departureCode) {

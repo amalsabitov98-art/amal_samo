@@ -571,9 +571,53 @@ async function manifest(env, departureCode) {
   return { departure, summary, passengers: rows.results };
 }
 
-async function adminBookings(env, departureCode) {
-  const where = departureCode ? "WHERE d.code = ?" : "";
-  const stmt = env.DB.prepare(
+const ADMIN_PAGE_SIZE = 50;
+
+/*
+ * Брони всех агентств с отбором. За сезон их набегают сотни, поэтому
+ * список отдаётся порциями и с фильтрами — иначе оператору нечем найти
+ * конкретную бронь, а выборка целиком тянет всю таблицу.
+ *
+ * Условия собираются в массив, а значения — в параллельный массив
+ * параметров: конкатенировать значения в SQL нельзя, это открытая дверь
+ * для инъекции через строку поиска.
+ */
+async function adminBookings(env, params) {
+  const conditions = [];
+  const values = [];
+
+  if (params.departure) { conditions.push("d.code = ?"); values.push(params.departure); }
+  if (params.agencyId) { conditions.push("a.id = ?"); values.push(Number(params.agencyId)); }
+  if (params.status === "confirmed" || params.status === "cancelled") {
+    conditions.push("b.status = ?");
+    values.push(params.status);
+  }
+  if (params.debtOnly) {
+    conditions.push(`b.status = 'confirmed' AND b.total_price >
+      COALESCE((SELECT SUM(amount) FROM payments pay WHERE pay.booking_id = b.id), 0)`);
+  }
+  if (params.query) {
+    // ищем и по номеру брони, и по фамилии пассажира — оператору обычно
+    // называют одно из двух
+    conditions.push(`(b.code LIKE ? OR EXISTS (
+      SELECT 1 FROM passengers p WHERE p.booking_id = b.id AND p.full_name LIKE ?))`);
+    const like = `%${params.query}%`;
+    values.push(like, like);
+  }
+
+  const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
+  const limit = Math.min(Number(params.limit) || ADMIN_PAGE_SIZE, 200);
+  const offset = Math.max(Number(params.offset) || 0, 0);
+
+  const totals = await env.DB.prepare(
+    `SELECT COUNT(*) AS total
+       FROM bookings b
+       JOIN agencies a ON a.id = b.agency_id
+       JOIN departures d ON d.id = b.departure_id
+       ${where}`
+  ).bind(...values).first();
+
+  const rows = await env.DB.prepare(
     `SELECT b.id, b.code, b.status, b.total_price, b.agency_commission,
             b.created_at, b.note,
             a.name AS agency_name,
@@ -585,12 +629,18 @@ async function adminBookings(env, departureCode) {
        JOIN agencies a ON a.id = b.agency_id
        JOIN departures d ON d.id = b.departure_id
        ${where}
-      ORDER BY b.created_at DESC`
-  );
-  const rows = await (departureCode ? stmt.bind(departureCode) : stmt).all();
-  return rows.results.map((b) => ({
-    ...b, balance: Math.round((b.total_price - b.paid) * 100) / 100,
-  }));
+      ORDER BY b.created_at DESC
+      LIMIT ? OFFSET ?`
+  ).bind(...values, limit, offset).all();
+
+  return {
+    total: totals.total,
+    limit,
+    offset,
+    items: rows.results.map((b) => ({
+      ...b, balance: Math.round((b.total_price - b.paid) * 100) / 100,
+    })),
+  };
 }
 
 async function addPayment(request, env) {
@@ -743,7 +793,16 @@ async function route(request, env) {
         if (agency.role !== "operator") return fail("Недостаточно прав", 403);
 
         if (path === "/api/admin/bookings" && request.method === "GET") {
-          return json(await adminBookings(env, url.searchParams.get("departure")));
+          const q = url.searchParams;
+          return json(await adminBookings(env, {
+            departure: q.get("departure"),
+            agencyId: q.get("agency_id"),
+            status: q.get("status"),
+            debtOnly: q.get("debt") === "1",
+            query: (q.get("q") || "").trim(),
+            limit: q.get("limit"),
+            offset: q.get("offset"),
+          }));
         }
         if (path === "/api/admin/manifest" && request.method === "GET") {
           const data = await manifest(env, url.searchParams.get("departure"));
