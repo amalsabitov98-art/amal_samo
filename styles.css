@@ -730,3 +730,24 @@ a { color: inherit; }
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+.tt-history {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--tt-border);
+  display: grid;
+  gap: 4px;
+}
+.tt-history-row {
+  display: grid;
+  grid-template-columns: 130px 130px 1fr 1fr;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--tt-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tt-history-row strong { color: var(--tt-text); font-weight: 600; }
+@media (max-width: 700px) {
+  .tt-history-row { grid-template-columns: 1fr 1fr; }
+}

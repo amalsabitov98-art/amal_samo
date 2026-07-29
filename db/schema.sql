@@ -138,3 +138,17 @@ CREATE TABLE IF NOT EXISTS payments (
   paid_at     TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_payments_booking ON payments(booking_id);
+
+-- Журнал действий по броням. В системе, где считаются чужие деньги,
+-- нужно уметь ответить «кто это сделал и когда»: агентство и оператор
+-- меняют одни и те же брони.
+CREATE TABLE IF NOT EXISTS booking_events (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id  INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  actor_id    INTEGER REFERENCES agencies(id),
+  actor_name  TEXT NOT NULL,   -- копия имени: учётку могут переименовать
+  action      TEXT NOT NULL,   -- created | edited | cancelled | payment
+  details     TEXT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_events_booking ON booking_events(booking_id, created_at);

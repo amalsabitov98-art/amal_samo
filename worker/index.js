@@ -15,6 +15,7 @@
  *   GET  /api/admin/bookings     брони всех агентств
  *   GET  /api/admin/manifest     список пассажиров заезда (замена ведомости)
  *   POST /api/admin/payments     провести оплату по брони
+ *   GET  /api/admin/bookings/:id/history   история изменений брони
  *   GET  /api/admin/agencies     список агентств
  *   POST /api/admin/agencies     завести агентство
  *   POST /api/admin/agencies/:id/activate|deactivate   включить/отключить
@@ -264,6 +265,15 @@ function passportIssue(expiry, departureDate) {
   return null;
 }
 
+// Запись в журнал. Имя исполнителя копируем строкой: учётку могут
+// переименовать или отключить, а история должна остаться читаемой.
+function logEvent(env, bookingId, actor, action, details) {
+  return env.DB.prepare(
+    `INSERT INTO booking_events (booking_id, actor_id, actor_name, action, details)
+     VALUES (?, ?, ?, ?, ?)`
+  ).bind(bookingId, actor.id, actor.name, action, details || null);
+}
+
 // ---------------------------------------------------------------- брониро­вание
 async function createBooking(request, env, agency) {
   const body = await request.json();
@@ -345,7 +355,10 @@ async function createBooking(request, env, agency) {
         p.tariff.occupies_seat
       )
     );
-    await env.DB.batch(inserts);
+    await env.DB.batch(inserts.concat([
+      logEvent(env, booking.id, agency, "created",
+               `${priced.length} чел., ${total} USD`),
+    ]));
 
     return json({
       booking_code: code,
@@ -443,6 +456,8 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
              p.tariff.occupies_seat)),
       env.DB.prepare("UPDATE bookings SET total_price = ?, agency_commission = ? WHERE id = ?")
         .bind(total, commission, bookingId),
+      logEvent(env, bookingId, agency, "edited",
+               `стало ${priced.length} чел., ${total} USD`),
     ];
     await env.DB.batch(statements);
   } catch (err) {
@@ -517,6 +532,7 @@ async function cancelBooking(env, agency, bookingId) {
     env.DB.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").bind(booking.id),
     env.DB.prepare("UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?")
       .bind(seats.n, booking.departure_id),
+    logEvent(env, booking.id, agency, "cancelled", `освобождено мест: ${seats.n}`),
   ]);
   return json({ booking_code: booking.code, released_seats: seats.n });
 }
@@ -643,7 +659,7 @@ async function adminBookings(env, params) {
   };
 }
 
-async function addPayment(request, env) {
+async function addPayment(request, env, actor) {
   const { booking_code, amount, note } = await request.json();
   const value = Number(amount);
   if (!booking_code) return fail("Не указана бронь");
@@ -663,9 +679,12 @@ async function addPayment(request, env) {
     return fail(`Возврат больше оплаченного: оплачено ${paidRow.paid}`);
   }
 
-  await env.DB.prepare(
-    "INSERT INTO payments (booking_id, amount, note) VALUES (?, ?, ?)"
-  ).bind(booking.id, value, note || null).run();
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO payments (booking_id, amount, note) VALUES (?, ?, ?)")
+      .bind(booking.id, value, note || null),
+    logEvent(env, booking.id, actor,
+             value >= 0 ? "payment" : "refund", `${value} USD`),
+  ]);
 
   const paid = paidRow.paid + value;
   return json({
@@ -810,7 +829,7 @@ async function route(request, env) {
           return json(data);
         }
         if (path === "/api/admin/payments" && request.method === "POST") {
-          return await addPayment(request, env);
+          return await addPayment(request, env, agency);
         }
         if (path === "/api/admin/agencies" && request.method === "GET") {
           const rows = await env.DB.prepare(
@@ -823,6 +842,15 @@ async function route(request, env) {
         }
         if (path === "/api/admin/agencies" && request.method === "POST") {
           return await createAgency(request, env);
+        }
+
+        const history = path.match(/^\/api\/admin\/bookings\/(\d+)\/history$/);
+        if (history && request.method === "GET") {
+          const rows = await env.DB.prepare(
+            `SELECT actor_name, action, details, created_at
+               FROM booking_events WHERE booking_id = ? ORDER BY created_at, id`
+          ).bind(Number(history[1])).all();
+          return json(rows.results);
         }
 
         const toggle = path.match(/^\/api\/admin\/agencies\/(\d+)\/(activate|deactivate)$/);

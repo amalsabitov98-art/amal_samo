@@ -182,6 +182,21 @@ check('места вернулись', r.data.find(d=>d.code==='TZX2808').seats_
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('повторная отмена отклонена', r.status === 404);
 
+console.log('\n--- журнал действий ---');
+r = await call('/api/admin/bookings/' + editId + '/history', { token: op });
+const log = r.data;
+check('журнал отдаётся', Array.isArray(log) && log.length > 0, JSON.stringify(log).slice(0,120));
+check('есть запись о создании', log.some(e => e.action === 'created'), JSON.stringify(log.map(e=>e.action)));
+check('есть записи о правке', log.filter(e => e.action === 'edited').length === 2,
+      JSON.stringify(log.map(e=>e.action)));
+check('есть оплата', log.some(e => e.action === 'payment'), JSON.stringify(log.map(e=>e.action)));
+check('видно, кто создал', log.find(e => e.action === 'created').actor_name === 'UMIDA',
+      log.find(e => e.action === 'created').actor_name);
+check('оплату провёл оператор', log.find(e => e.action === 'payment').actor_name.includes('оператор'),
+      log.find(e => e.action === 'payment').actor_name);
+r = await call('/api/admin/bookings/' + editId + '/history', { token: umida });
+check('агентству журнал не отдаётся', r.status === 403, JSON.stringify(r.data));
+
 console.log('\n--- управление агентствами ---');
 r = await call('/api/admin/agencies', { token: op });
 const target = r.data.find(a => a.login === 'newagency');

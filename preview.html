@@ -735,6 +735,27 @@ a { color: inherit; }
   justify-content: flex-end;
 }
 
+.tt-history {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--tt-border);
+  display: grid;
+  gap: 4px;
+}
+.tt-history-row {
+  display: grid;
+  grid-template-columns: 130px 130px 1fr 1fr;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--tt-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tt-history-row strong { color: var(--tt-text); font-weight: 600; }
+@media (max-width: 700px) {
+  .tt-history-row { grid-template-columns: 1fr 1fr; }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -3820,6 +3841,14 @@ window.TURON_TOURS = [
       });
     },
 
+    bookingHistory: function (id) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме журнал не ведётся — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/bookings/" + id + "/history");
+    },
+
     agencies: function () {
       if (!API_BASE) {
         var s = demoState();
@@ -3900,6 +3929,25 @@ window.TURON_TOURS = [
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  var ACTION_LABELS = {
+    created: "создана",
+    edited: "изменён состав",
+    cancelled: "отменена",
+    payment: "оплата",
+    refund: "возврат",
+  };
+
+  function formatDateTime(iso) {
+    if (!iso) return "";
+    // даты из базы приходят как «YYYY-MM-DD HH:MM:SS» по UTC
+    var d = new Date(iso.replace(" ", "T") + "Z");
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString("ru-RU", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
     });
   }
 
@@ -4045,7 +4093,9 @@ window.TURON_TOURS = [
             (cancelled ? "" :
               '<button class="tt-btn tt-btn-sm" data-pay="' + esc(b.code) +
               '" data-balance="' + b.balance + '">Внести оплату</button>') +
+            '<button class="tt-btn secondary tt-btn-sm" data-history="' + b.id + '">История</button>' +
           "</div>" +
+          '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
       );
     }).join("");
@@ -4134,6 +4184,26 @@ window.TURON_TOURS = [
     });
 
     $("adm-bookings").addEventListener("click", function (e) {
+      var hist = e.target.closest("[data-history]");
+      if (hist) {
+        var box = document.querySelector('[data-history-for="' + hist.dataset.history + '"]');
+        if (!box.hidden) { box.hidden = true; return; }
+        box.hidden = false;
+        box.innerHTML = '<span class="tt-muted-note">загрузка…</span>';
+        TuronApi.bookingHistory(Number(hist.dataset.history)).then(function (events) {
+          box.innerHTML = events.length
+            ? events.map(function (ev) {
+                return '<div class="tt-history-row"><span>' + formatDateTime(ev.created_at) +
+                  "</span><strong>" + esc(ACTION_LABELS[ev.action] || ev.action) + "</strong>" +
+                  "<span>" + esc(ev.actor_name) + "</span>" +
+                  '<span class="tt-muted-note">' + esc(ev.details || "") + "</span></div>";
+              }).join("")
+            : '<span class="tt-muted-note">записей нет</span>';
+        }).catch(function (err) {
+          box.innerHTML = '<span class="tt-muted-note">' + esc(err.message) + "</span>";
+        });
+        return;
+      }
       var btn = e.target.closest("[data-pay]");
       if (!btn) return;
       var code = btn.dataset.pay;

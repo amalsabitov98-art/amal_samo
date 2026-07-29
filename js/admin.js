@@ -27,6 +27,25 @@
     });
   }
 
+  var ACTION_LABELS = {
+    created: "создана",
+    edited: "изменён состав",
+    cancelled: "отменена",
+    payment: "оплата",
+    refund: "возврат",
+  };
+
+  function formatDateTime(iso) {
+    if (!iso) return "";
+    // даты из базы приходят как «YYYY-MM-DD HH:MM:SS» по UTC
+    var d = new Date(iso.replace(" ", "T") + "Z");
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString("ru-RU", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  }
+
   function formatDate(iso) {
     if (!iso) return "";
     return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -169,7 +188,9 @@
             (cancelled ? "" :
               '<button class="tt-btn tt-btn-sm" data-pay="' + esc(b.code) +
               '" data-balance="' + b.balance + '">Внести оплату</button>') +
+            '<button class="tt-btn secondary tt-btn-sm" data-history="' + b.id + '">История</button>' +
           "</div>" +
+          '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
       );
     }).join("");
@@ -258,6 +279,26 @@
     });
 
     $("adm-bookings").addEventListener("click", function (e) {
+      var hist = e.target.closest("[data-history]");
+      if (hist) {
+        var box = document.querySelector('[data-history-for="' + hist.dataset.history + '"]');
+        if (!box.hidden) { box.hidden = true; return; }
+        box.hidden = false;
+        box.innerHTML = '<span class="tt-muted-note">загрузка…</span>';
+        TuronApi.bookingHistory(Number(hist.dataset.history)).then(function (events) {
+          box.innerHTML = events.length
+            ? events.map(function (ev) {
+                return '<div class="tt-history-row"><span>' + formatDateTime(ev.created_at) +
+                  "</span><strong>" + esc(ACTION_LABELS[ev.action] || ev.action) + "</strong>" +
+                  "<span>" + esc(ev.actor_name) + "</span>" +
+                  '<span class="tt-muted-note">' + esc(ev.details || "") + "</span></div>";
+              }).join("")
+            : '<span class="tt-muted-note">записей нет</span>';
+        }).catch(function (err) {
+          box.innerHTML = '<span class="tt-muted-note">' + esc(err.message) + "</span>";
+        });
+        return;
+      }
       var btn = e.target.closest("[data-pay]");
       if (!btn) return;
       var code = btn.dataset.pay;

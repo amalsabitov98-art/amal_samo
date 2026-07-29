@@ -390,6 +390,14 @@
       });
     },
 
+    bookingHistory: function (id) {
+      if (!API_BASE) {
+        return Promise.reject(new Error(
+          "В демо-режиме журнал не ведётся — нужен подключённый бэкенд"));
+      }
+      return request("/api/admin/bookings/" + id + "/history");
+    },
+
     agencies: function () {
       if (!API_BASE) {
         var s = demoState();
