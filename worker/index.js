@@ -115,11 +115,13 @@ async function handleLogin(request, env) {
 // --------------------------------------------------------------- справочник
 async function listDepartures(env) {
   const departures = await env.DB.prepare(
-    `SELECT id, code, date_start, transport, is_info_tour, capacity, seats_taken,
-            capacity - seats_taken AS seats_free
-       FROM departures
-      WHERE is_open = 1
-      ORDER BY date_start, transport`
+    `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
+            d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free,
+            t.code AS tour_code, t.name AS tour_name, t.destination,
+            t.agency_commission
+       FROM departures d JOIN tours t ON t.id = d.tour_id
+      WHERE d.is_open = 1 AND t.is_bookable = 1
+      ORDER BY d.date_start, d.transport`
   ).all();
 
   const prices = await env.DB.prepare(
@@ -194,6 +196,9 @@ async function createBooking(request, env, agency) {
 
   const seatsNeeded = priced.filter((p) => p.tariff.occupies_seat).length;
   const total = priced.reduce((sum, p) => sum + p.tariff.price, 0);
+  // Комиссия — за проданного туриста. Младенец на руках продажей не
+  // считается: он не занимает места и идёт по символическому тарифу.
+  const commission = (departure.agency_commission || 0) * seatsNeeded;
 
   /*
    * Ключевое место всей системы: места списываются одним UPDATE с проверкой
@@ -222,9 +227,10 @@ async function createBooking(request, env, agency) {
     const code = `${departure.code}-${String((seq.n || 0) + 1).padStart(2, "0")}`;
 
     const booking = await env.DB.prepare(
-      `INSERT INTO bookings (code, agency_id, departure_id, total_price, note)
-       VALUES (?, ?, ?, ?, ?) RETURNING id`
-    ).bind(code, agency.id, departure.id, total, body.note || null).first();
+      `INSERT INTO bookings (code, agency_id, departure_id, total_price,
+                             agency_commission, note)
+       VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
+    ).bind(code, agency.id, departure.id, total, commission, body.note || null).first();
 
     const inserts = priced.map((p) =>
       env.DB.prepare(
@@ -244,6 +250,7 @@ async function createBooking(request, env, agency) {
       departure_code: departure.code,
       seats_taken: seatsNeeded,
       total_price: total,
+      agency_commission: commission,
       passengers: priced.map((p) => ({
         full_name: p.full_name, tariff: p.tariff.label, price: p.tariff.price,
       })),
@@ -259,7 +266,8 @@ async function createBooking(request, env, agency) {
 
 async function listBookings(env, agency) {
   const rows = await env.DB.prepare(
-    `SELECT b.id, b.code, b.status, b.total_price, b.created_at, b.note,
+    `SELECT b.id, b.code, b.status, b.total_price, b.agency_commission,
+            b.created_at, b.note,
             d.code AS departure_code, d.date_start, d.transport,
             (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
             COALESCE((SELECT SUM(amount) FROM payments pay WHERE pay.booking_id = b.id), 0) AS paid
@@ -315,6 +323,15 @@ export default {
         const token = (request.headers.get("Authorization") || "").slice(7);
         await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind(token).run();
         return json({ ok: true });
+      }
+
+      if (path === "/api/tours" && request.method === "GET") {
+        // operator_commission агентству не отдаём — это доля оператора
+        const tours = await env.DB.prepare(
+          `SELECT code, name, destination, agency_commission, is_bookable, note
+             FROM tours ORDER BY destination, name`
+        ).all();
+        return json(tours.results);
       }
 
       if (path === "/api/departures" && request.method === "GET") {

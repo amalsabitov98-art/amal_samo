@@ -467,9 +467,11 @@ a { color: inherit; }
 }
 
 /* ----------------------------------------------------- бронирование */
-/* hidden сам по себе не скрывает элемент, которому задан display:
-   явный display выигрывает, и невидимое окно перехватывает клики */
-.tt-modal[hidden] { display: none; }
+/* hidden не скрывает элемент, которому задан display — явный display
+   выигрывает. Ловилось дважды: невидимое окно брони перехватывало клики,
+   а экран входа оставался поверх кабинета. Правило общее, чтобы не
+   наступить снова при добавлении новых блоков с display. */
+[hidden] { display: none !important; }
 
 .tt-modal {
   position: fixed;
@@ -595,6 +597,48 @@ a { color: inherit; }
   .tt-flash { transition: none; }
 }
 
+/* ------------------------------------------------ комиссии и заработок */
+.tt-earn strong, .tt-earn-value { color: var(--tt-success); }
+.tt-owed-value { color: var(--tt-warn-text); }
+
+.tt-earnings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+.tt-earnings > div { display: flex; flex-direction: column; gap: 2px; }
+.tt-earnings span { font-size: 0.8rem; color: var(--tt-text-muted); }
+.tt-earnings strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+
+.tt-tour {
+  display: grid;
+  grid-template-columns: 1fr 170px 110px;
+  gap: 18px;
+  align-items: center;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+@media (max-width: 700px) {
+  .tt-tour { grid-template-columns: 1fr; gap: 10px; }
+}
+.tt-tour.is-pending { opacity: 0.72; }
+.tt-tour-commission { display: flex; flex-direction: column; }
+.tt-tour-commission .tt-earn-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -653,6 +697,7 @@ a { color: inherit; }
     <div class="tt-tabs">
       <button class="tt-tab is-active" data-tab="departures">Заезды</button>
       <button class="tt-tab" data-tab="bookings">Мои брони</button>
+      <button class="tt-tab" data-tab="tours">Туры и комиссии</button>
     </div>
 
     <section id="panel-departures">
@@ -674,7 +719,12 @@ a { color: inherit; }
     </section>
 
     <section id="panel-bookings" hidden>
+      <div id="earnings-summary"></div>
       <div id="bookings-list"></div>
+    </section>
+
+    <section id="panel-tours" hidden>
+      <div id="tours-list"></div>
     </section>
   </main>
 </div>
@@ -731,6 +781,9 @@ window.TURON_SEED = [
   "is_info_tour": 1,
   "capacity": 65,
   "seats_taken": 30,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -768,6 +821,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 32,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -832,6 +888,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 31,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -896,6 +955,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -960,6 +1022,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 56,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1033,6 +1098,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 52,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1106,6 +1174,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 54,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1170,6 +1241,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 52,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1243,6 +1317,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 51,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1316,6 +1393,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1389,6 +1469,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1462,6 +1545,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 59,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1535,6 +1621,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 60,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1590,6 +1679,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 64,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1663,6 +1755,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1736,6 +1831,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1809,6 +1907,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1882,6 +1983,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1955,6 +2059,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 62,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2028,6 +2135,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 64,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2101,6 +2211,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 60,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2174,6 +2287,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 58,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2247,6 +2363,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2320,6 +2439,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 21,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2393,6 +2515,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 47,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2466,6 +2591,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 13,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2539,6 +2667,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 19,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2612,6 +2743,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 12,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2685,6 +2819,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 17,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2758,6 +2895,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 6,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2822,6 +2962,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 5,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2886,6 +3029,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2950,6 +3096,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -3014,6 +3163,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -3070,6 +3222,48 @@ window.TURON_SEED = [
     "occupies_seat": 0
    }
   ]
+ }
+];
+window.TURON_TOURS = [
+ {
+  "code": "KARADENIZ",
+  "name": "Карадениз — Трабзон и Ризе",
+  "destination": "Турция",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Еженедельные заезды, цены по типу размещения"
+ },
+ {
+  "code": "JP_CONSTRUCTOR",
+  "name": "Тур-конструктор «Легенды и огни Токио»",
+  "destination": "Япония",
+  "agency_commission": 100,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_TOKYO",
+  "name": "Легенды и огни Токио",
+  "destination": "Япония",
+  "agency_commission": 150,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_GOLDEN_RING",
+  "name": "Золотое кольцо Японии",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_CAMP",
+  "name": "Учебный лагерь Japan Camp",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
  }
 ];
 
@@ -3191,6 +3385,8 @@ window.TURON_SEED = [
       return Promise.reject(new Error(
         "Не хватает мест: нужно " + seats + ", свободно " + (d.capacity - d.seats_taken)));
     }
+    // Комиссия — за проданного туриста; младенец на руках продажей не считается.
+    var commission = (d.agency_commission || 0) * seats;
     d.seats_taken += seats;
     var n = s.bookings.filter(function (b) { return b.departure_code === d.code; }).length + 1;
     var booking = {
@@ -3204,6 +3400,7 @@ window.TURON_SEED = [
       passengers_count: payload.passengers.length,
       seats_used: seats,
       total_price: total,
+      agency_commission: commission,
       paid: 0,
       note: payload.note || null,
       created_at: new Date().toISOString(),
@@ -3211,7 +3408,8 @@ window.TURON_SEED = [
     s.bookings.push(booking); saveDemo(s);
     return Promise.resolve({
       booking_code: booking.code, departure_code: d.code,
-      seats_taken: seats, total_price: total, passengers: priced,
+      seats_taken: seats, total_price: total,
+      agency_commission: commission, passengers: priced,
     });
   }
 
@@ -3242,6 +3440,11 @@ window.TURON_SEED = [
                         : Promise.reject(new Error("Требуется вход"));
       }
       return request("/api/me");
+    },
+
+    tours: function () {
+      if (!API_BASE) return Promise.resolve((global.TURON_TOURS || []).slice());
+      return request("/api/tours");
     },
 
     departures: function () {
@@ -3329,6 +3532,7 @@ window.TURON_SEED = [
     $("agency-name").textContent = agency.name;
     loadDepartures();
     loadBookings();
+    loadTours();
   }
 
   $("login-form").addEventListener("submit", function (e) {
@@ -3506,10 +3710,15 @@ window.TURON_SEED = [
     var overflow = seats > d.seats_free;
     if (overflow) ready = false;
 
+    var commission = (d.agency_commission || 0) * seats;
     $("bm-summary").innerHTML =
       '<div class="tt-sum-line"><span>Пассажиров</span><strong>' + rows.length + "</strong></div>" +
       '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + " из " + d.seats_free + " свободных</strong></div>" +
-      '<div class="tt-sum-total"><span>Итого</span><strong>' + money(total) + "</strong></div>" +
+      (commission > 0
+        ? '<div class="tt-sum-line tt-earn"><span>Ваша комиссия</span><strong>' +
+          money(commission) + "</strong></div>"
+        : "") +
+      '<div class="tt-sum-total"><span>Итого к оплате</span><strong>' + money(total) + "</strong></div>" +
       (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
 
     $("bm-submit").disabled = !ready;
@@ -3623,6 +3832,10 @@ window.TURON_SEED = [
           '<div class="tt-sum-line"><span>Оплачено</span><strong>' + money(b.paid) + "</strong></div>" +
           '<div class="tt-sum-line' + (b.balance > 0 ? " tt-owed" : "") + '"><span>Остаток</span><strong>' +
             money(b.balance) + "</strong></div>" +
+          (b.agency_commission > 0
+            ? '<div class="tt-sum-line tt-earn"><span>Комиссия</span><strong>' +
+              money(b.agency_commission) + "</strong></div>"
+            : "") +
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
@@ -3634,6 +3847,17 @@ window.TURON_SEED = [
 
   function loadBookings() {
     return TuronApi.bookings().then(function (list) {
+      var active = list.filter(function (b) { return b.status !== "cancelled"; });
+      var earned = active.reduce(function (s, b) { return s + (b.agency_commission || 0); }, 0);
+      var owed = active.reduce(function (s, b) { return s + (b.balance || 0); }, 0);
+      $("earnings-summary").innerHTML = active.length
+        ? '<div class="tt-earnings">' +
+            '<div><span>Активных броней</span><strong>' + active.length + "</strong></div>" +
+            '<div><span>Заработано комиссии</span><strong class="tt-earn-value">' + money(earned) + "</strong></div>" +
+            '<div><span>К доплате оператору</span><strong' + (owed > 0 ? ' class="tt-owed-value"' : "") + ">" +
+              money(owed) + "</strong></div>" +
+          "</div>"
+        : "";
       $("bookings-list").innerHTML = list.length
         ? list.map(bookingRowHtml).join("")
         : '<div class="tt-empty-state">Броней пока нет. Выберите заезд на вкладке «Заезды».</div>';
@@ -3659,12 +3883,47 @@ window.TURON_SEED = [
   });
 
   // ---------------------------------------------------------------- прочее
+  function tourRowHtml(t) {
+    return (
+      '<article class="tt-tour' + (t.is_bookable ? "" : " is-pending") + '">' +
+        "<div>" +
+          "<strong>" + esc(t.name) + "</strong>" +
+          '<div class="tt-muted-note">' + esc(t.destination) +
+            (t.note ? " · " + esc(t.note) : "") + "</div>" +
+        "</div>" +
+        '<div class="tt-tour-commission">' +
+          (t.agency_commission > 0
+            ? '<span class="tt-earn-value">' + money(t.agency_commission) + "</span>" +
+              '<span class="tt-muted-note">с туриста</span>'
+            : '<span class="tt-muted-note">без комиссии</span>') +
+        "</div>" +
+        "<div>" +
+          (t.is_bookable
+            ? '<span class="tt-badge">Открыт</span>'
+            : '<span class="tt-badge tt-badge-off">Скоро</span>') +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function loadTours() {
+    return TuronApi.tours().then(function (list) {
+      $("tours-list").innerHTML = list.map(tourRowHtml).join("") +
+        '<p class="tt-muted-note" style="margin-top:16px">' +
+        "Комиссия начисляется за каждого проданного туриста. Младенцы до 2 лет " +
+        "не занимают место и продажей не считаются.</p>";
+    }).catch(function () {
+      $("tours-list").innerHTML = '<div class="tt-empty-state">Не удалось загрузить туры.</div>';
+    });
+  }
+
   function switchTab(name) {
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
     $("panel-departures").hidden = name !== "departures";
     $("panel-bookings").hidden = name !== "bookings";
+    $("panel-tours").hidden = name !== "tours";
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {

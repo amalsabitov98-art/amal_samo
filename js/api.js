@@ -114,6 +114,8 @@
       return Promise.reject(new Error(
         "Не хватает мест: нужно " + seats + ", свободно " + (d.capacity - d.seats_taken)));
     }
+    // Комиссия — за проданного туриста; младенец на руках продажей не считается.
+    var commission = (d.agency_commission || 0) * seats;
     d.seats_taken += seats;
     var n = s.bookings.filter(function (b) { return b.departure_code === d.code; }).length + 1;
     var booking = {
@@ -127,6 +129,7 @@
       passengers_count: payload.passengers.length,
       seats_used: seats,
       total_price: total,
+      agency_commission: commission,
       paid: 0,
       note: payload.note || null,
       created_at: new Date().toISOString(),
@@ -134,7 +137,8 @@
     s.bookings.push(booking); saveDemo(s);
     return Promise.resolve({
       booking_code: booking.code, departure_code: d.code,
-      seats_taken: seats, total_price: total, passengers: priced,
+      seats_taken: seats, total_price: total,
+      agency_commission: commission, passengers: priced,
     });
   }
 
@@ -165,6 +169,11 @@
                         : Promise.reject(new Error("Требуется вход"));
       }
       return request("/api/me");
+    },
+
+    tours: function () {
+      if (!API_BASE) return Promise.resolve((global.TURON_TOURS || []).slice());
+      return request("/api/tours");
     },
 
     departures: function () {

@@ -27,9 +27,28 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_agency ON sessions(agency_id);
 
+
+-- -------------------------------------------------------------------- туры
+-- Продукт, к которому относятся заезды. Комиссия задаётся здесь, а не на
+-- заезде: у оператора она фиксирована в долларах на человека и не зависит
+-- от даты. agency_commission — заработок агентства, operator_commission —
+-- доля оператора сверху агентской, агентству она не показывается.
+CREATE TABLE IF NOT EXISTS tours (
+  id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+  code                 TEXT    NOT NULL UNIQUE,
+  name                 TEXT    NOT NULL,
+  destination          TEXT    NOT NULL,
+  agency_commission    REAL    NOT NULL DEFAULT 0,
+  operator_commission  REAL    NOT NULL DEFAULT 0,
+  -- продукт заведён, но заезды и цены ещё не проставлены
+  is_bookable          INTEGER NOT NULL DEFAULT 1,
+  note                 TEXT
+);
+
 -- ------------------------------------------------------------------ заезды
 CREATE TABLE IF NOT EXISTS departures (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  tour_id       INTEGER NOT NULL REFERENCES tours(id),
   code          TEXT    NOT NULL UNIQUE,   -- TZX2905
   date_start    TEXT    NOT NULL,          -- YYYY-MM-DD
   transport     TEXT    NOT NULL,          -- TZX (авиа) | BUS
@@ -69,6 +88,9 @@ CREATE TABLE IF NOT EXISTS bookings (
   status        TEXT    NOT NULL DEFAULT 'confirmed'
                   CHECK (status IN ('confirmed','cancelled')),
   total_price   REAL    NOT NULL DEFAULT 0,
+  -- фиксируем на момент продажи: изменение тарифа не должно задним числом
+  -- переписывать уже заработанное агентством
+  agency_commission REAL NOT NULL DEFAULT 0,
   note          TEXT,
   created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );

@@ -35,6 +35,7 @@
     $("agency-name").textContent = agency.name;
     loadDepartures();
     loadBookings();
+    loadTours();
   }
 
   $("login-form").addEventListener("submit", function (e) {
@@ -212,10 +213,15 @@
     var overflow = seats > d.seats_free;
     if (overflow) ready = false;
 
+    var commission = (d.agency_commission || 0) * seats;
     $("bm-summary").innerHTML =
       '<div class="tt-sum-line"><span>Пассажиров</span><strong>' + rows.length + "</strong></div>" +
       '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + " из " + d.seats_free + " свободных</strong></div>" +
-      '<div class="tt-sum-total"><span>Итого</span><strong>' + money(total) + "</strong></div>" +
+      (commission > 0
+        ? '<div class="tt-sum-line tt-earn"><span>Ваша комиссия</span><strong>' +
+          money(commission) + "</strong></div>"
+        : "") +
+      '<div class="tt-sum-total"><span>Итого к оплате</span><strong>' + money(total) + "</strong></div>" +
       (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
 
     $("bm-submit").disabled = !ready;
@@ -329,6 +335,10 @@
           '<div class="tt-sum-line"><span>Оплачено</span><strong>' + money(b.paid) + "</strong></div>" +
           '<div class="tt-sum-line' + (b.balance > 0 ? " tt-owed" : "") + '"><span>Остаток</span><strong>' +
             money(b.balance) + "</strong></div>" +
+          (b.agency_commission > 0
+            ? '<div class="tt-sum-line tt-earn"><span>Комиссия</span><strong>' +
+              money(b.agency_commission) + "</strong></div>"
+            : "") +
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
@@ -340,6 +350,17 @@
 
   function loadBookings() {
     return TuronApi.bookings().then(function (list) {
+      var active = list.filter(function (b) { return b.status !== "cancelled"; });
+      var earned = active.reduce(function (s, b) { return s + (b.agency_commission || 0); }, 0);
+      var owed = active.reduce(function (s, b) { return s + (b.balance || 0); }, 0);
+      $("earnings-summary").innerHTML = active.length
+        ? '<div class="tt-earnings">' +
+            '<div><span>Активных броней</span><strong>' + active.length + "</strong></div>" +
+            '<div><span>Заработано комиссии</span><strong class="tt-earn-value">' + money(earned) + "</strong></div>" +
+            '<div><span>К доплате оператору</span><strong' + (owed > 0 ? ' class="tt-owed-value"' : "") + ">" +
+              money(owed) + "</strong></div>" +
+          "</div>"
+        : "";
       $("bookings-list").innerHTML = list.length
         ? list.map(bookingRowHtml).join("")
         : '<div class="tt-empty-state">Броней пока нет. Выберите заезд на вкладке «Заезды».</div>';
@@ -365,12 +386,47 @@
   });
 
   // ---------------------------------------------------------------- прочее
+  function tourRowHtml(t) {
+    return (
+      '<article class="tt-tour' + (t.is_bookable ? "" : " is-pending") + '">' +
+        "<div>" +
+          "<strong>" + esc(t.name) + "</strong>" +
+          '<div class="tt-muted-note">' + esc(t.destination) +
+            (t.note ? " · " + esc(t.note) : "") + "</div>" +
+        "</div>" +
+        '<div class="tt-tour-commission">' +
+          (t.agency_commission > 0
+            ? '<span class="tt-earn-value">' + money(t.agency_commission) + "</span>" +
+              '<span class="tt-muted-note">с туриста</span>'
+            : '<span class="tt-muted-note">без комиссии</span>') +
+        "</div>" +
+        "<div>" +
+          (t.is_bookable
+            ? '<span class="tt-badge">Открыт</span>'
+            : '<span class="tt-badge tt-badge-off">Скоро</span>') +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function loadTours() {
+    return TuronApi.tours().then(function (list) {
+      $("tours-list").innerHTML = list.map(tourRowHtml).join("") +
+        '<p class="tt-muted-note" style="margin-top:16px">' +
+        "Комиссия начисляется за каждого проданного туриста. Младенцы до 2 лет " +
+        "не занимают место и продажей не считаются.</p>";
+    }).catch(function () {
+      $("tours-list").innerHTML = '<div class="tt-empty-state">Не удалось загрузить туры.</div>';
+    });
+  }
+
   function switchTab(name) {
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
     $("panel-departures").hidden = name !== "departures";
     $("panel-bookings").hidden = name !== "bookings";
+    $("panel-tours").hidden = name !== "tours";
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {

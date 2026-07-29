@@ -28,6 +28,23 @@ DEMO_AGENCIES = [
 ]
 DEMO_PASSWORD = "turon2026"
 
+# Комиссии — в долларах на человека, операторская идёт СВЕРХУ агентской
+# (агентству она не показывается).
+# (код, название, направление, агентская, операторская, бронируемый, примечание)
+TOURS = [
+    ("KARADENIZ", "Карадениз — Трабзон и Ризе", "Турция", 0, 0, 1,
+     "Еженедельные заезды, цены по типу размещения"),
+    ("JP_CONSTRUCTOR", "Тур-конструктор «Легенды и огни Токио»", "Япония", 100, 30, 0,
+     "Ожидаются даты заездов и цены"),
+    ("JP_TOKYO", "Легенды и огни Токио", "Япония", 150, 40, 0,
+     "Ожидаются даты заездов и цены"),
+    ("JP_GOLDEN_RING", "Золотое кольцо Японии", "Япония", 250, 50, 0,
+     "Ожидаются даты заездов и цены"),
+    ("JP_CAMP", "Учебный лагерь Japan Camp", "Япония", 250, 50, 0,
+     "Ожидаются даты заездов и цены"),
+]
+KARADENIZ = "KARADENIZ"
+
 
 def q(v):
     if v is None:
@@ -61,6 +78,7 @@ def main():
     out.append("-- Сгенерировано tools/build-seed.py. Не редактировать вручную.")
     out.append("DELETE FROM departure_prices;")
     out.append("DELETE FROM departures;")
+    out.append("DELETE FROM tours;")
     out.append("DELETE FROM agencies;")
     out.append("")
 
@@ -72,12 +90,22 @@ def main():
         )
     out.append("")
 
+    for code, name, dest, agc, opc, bookable, note in TOURS:
+        out.append(
+            "INSERT INTO tours (code, name, destination, agency_commission, "
+            "operator_commission, is_bookable, note) VALUES ("
+            f"{q(code)}, {q(name)}, {q(dest)}, {agc}, {opc}, {bookable}, {q(note)});"
+        )
+    out.append("")
+
     for d in departures:
         cap = max(d["booked_seats"], DEFAULT_CAPACITY.get(d["transport"], 65))
         out.append(
-            "INSERT INTO departures (code, date_start, transport, is_info_tour, capacity, seats_taken) "
-            f"VALUES ({q(d['code'])}, {q(d['date_start'])}, {q(d['transport'])}, "
-            f"{1 if d['is_info_tour'] else 0}, {cap}, {d['booked_seats']});"
+            "INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, "
+            "capacity, seats_taken) SELECT id, "
+            f"{q(d['code'])}, {q(d['date_start'])}, {q(d['transport'])}, "
+            f"{1 if d['is_info_tour'] else 0}, {cap}, {d['booked_seats']} "
+            f"FROM tours WHERE code = {q(KARADENIZ)};"
         )
         rows = []
         for code, price in sorted(d["prices"].items()):

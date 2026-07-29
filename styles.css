@@ -464,9 +464,11 @@ a { color: inherit; }
 }
 
 /* ----------------------------------------------------- бронирование */
-/* hidden сам по себе не скрывает элемент, которому задан display:
-   явный display выигрывает, и невидимое окно перехватывает клики */
-.tt-modal[hidden] { display: none; }
+/* hidden не скрывает элемент, которому задан display — явный display
+   выигрывает. Ловилось дважды: невидимое окно брони перехватывало клики,
+   а экран входа оставался поверх кабинета. Правило общее, чтобы не
+   наступить снова при добавлении новых блоков с display. */
+[hidden] { display: none !important; }
 
 .tt-modal {
   position: fixed;
@@ -590,4 +592,46 @@ a { color: inherit; }
 .tt-flash.is-out { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   .tt-flash { transition: none; }
+}
+
+/* ------------------------------------------------ комиссии и заработок */
+.tt-earn strong, .tt-earn-value { color: var(--tt-success); }
+.tt-owed-value { color: var(--tt-warn-text); }
+
+.tt-earnings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+.tt-earnings > div { display: flex; flex-direction: column; gap: 2px; }
+.tt-earnings span { font-size: 0.8rem; color: var(--tt-text-muted); }
+.tt-earnings strong { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+
+.tt-tour {
+  display: grid;
+  grid-template-columns: 1fr 170px 110px;
+  gap: 18px;
+  align-items: center;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+@media (max-width: 700px) {
+  .tt-tour { grid-template-columns: 1fr; gap: 10px; }
+}
+.tt-tour.is-pending { opacity: 0.72; }
+.tt-tour-commission { display: flex; flex-direction: column; }
+.tt-tour-commission .tt-earn-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }

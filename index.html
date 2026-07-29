@@ -41,6 +41,7 @@
     <div class="tt-tabs">
       <button class="tt-tab is-active" data-tab="departures">Заезды</button>
       <button class="tt-tab" data-tab="bookings">Мои брони</button>
+      <button class="tt-tab" data-tab="tours">Туры и комиссии</button>
     </div>
 
     <section id="panel-departures">
@@ -62,7 +63,12 @@
     </section>
 
     <section id="panel-bookings" hidden>
+      <div id="earnings-summary"></div>
       <div id="bookings-list"></div>
+    </section>
+
+    <section id="panel-tours" hidden>
+      <div id="tours-list"></div>
     </section>
   </main>
 </div>

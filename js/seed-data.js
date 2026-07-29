@@ -9,6 +9,9 @@ window.TURON_SEED = [
   "is_info_tour": 1,
   "capacity": 65,
   "seats_taken": 30,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -46,6 +49,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 32,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -110,6 +116,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 31,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -174,6 +183,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -238,6 +250,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 56,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -311,6 +326,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 52,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -384,6 +402,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 54,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -448,6 +469,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 52,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -521,6 +545,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 51,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -594,6 +621,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -667,6 +697,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 50,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -740,6 +773,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 59,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -813,6 +849,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 60,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -868,6 +907,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 64,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -941,6 +983,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1014,6 +1059,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1087,6 +1135,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1160,6 +1211,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1233,6 +1287,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 62,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1306,6 +1363,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 64,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1379,6 +1439,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 60,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1452,6 +1515,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 58,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1525,6 +1591,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 61,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1598,6 +1667,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 21,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1671,6 +1743,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 47,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1744,6 +1819,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 13,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1817,6 +1895,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 19,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1890,6 +1971,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 12,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -1963,6 +2047,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 17,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2036,6 +2123,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 6,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2100,6 +2190,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 5,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2164,6 +2257,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2228,6 +2324,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2292,6 +2391,9 @@ window.TURON_SEED = [
   "is_info_tour": 0,
   "capacity": 65,
   "seats_taken": 0,
+  "tour_code": "KARADENIZ",
+  "tour_name": "Карадениз — Трабзон и Ризе",
+  "agency_commission": 0,
   "prices": [
    {
     "code": "DBL",
@@ -2348,5 +2450,47 @@ window.TURON_SEED = [
     "occupies_seat": 0
    }
   ]
+ }
+];
+window.TURON_TOURS = [
+ {
+  "code": "KARADENIZ",
+  "name": "Карадениз — Трабзон и Ризе",
+  "destination": "Турция",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Еженедельные заезды, цены по типу размещения"
+ },
+ {
+  "code": "JP_CONSTRUCTOR",
+  "name": "Тур-конструктор «Легенды и огни Токио»",
+  "destination": "Япония",
+  "agency_commission": 100,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_TOKYO",
+  "name": "Легенды и огни Токио",
+  "destination": "Япония",
+  "agency_commission": 150,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_GOLDEN_RING",
+  "name": "Золотое кольцо Японии",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
+ },
+ {
+  "code": "JP_CAMP",
+  "name": "Учебный лагерь Japan Camp",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены"
  }
 ];
