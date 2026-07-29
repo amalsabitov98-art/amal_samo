@@ -11,6 +11,9 @@
   --tt-accent-dark: #8f5a24;
   --tt-accent-soft: #f3e6d6;
   --tt-success: #3a7d54;
+  --tt-warn-bg: #fdf3e0;
+  --tt-warn-border: #e6c48a;
+  --tt-warn-text: #7a5312;
   --tt-radius: 14px;
   --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
   font-synthesis: none;
@@ -27,6 +30,9 @@
     --tt-accent-dark: #eab475;
     --tt-accent-soft: #3a2d1c;
     --tt-success: #6fbf8b;
+    --tt-warn-bg: #3a2f19;
+    --tt-warn-border: #6d5629;
+    --tt-warn-text: #f0d9a8;
     --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   }
 }
@@ -41,6 +47,9 @@
   --tt-accent-dark: #eab475;
   --tt-accent-soft: #3a2d1c;
   --tt-success: #6fbf8b;
+  --tt-warn-bg: #3a2f19;
+  --tt-warn-border: #6d5629;
+  --tt-warn-text: #f0d9a8;
   --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
@@ -54,6 +63,9 @@
   --tt-accent-dark: #8f5a24;
   --tt-accent-soft: #f3e6d6;
   --tt-success: #3a7d54;
+  --tt-warn-bg: #fdf3e0;
+  --tt-warn-border: #e6c48a;
+  --tt-warn-text: #7a5312;
   --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
 }
 
@@ -436,6 +448,21 @@ a { color: inherit; }
   font-size: 0.8rem;
   color: var(--tt-text-muted);
   margin-top: 4px;
+}
+
+/* Предупреждения: услуга выбрана, но цену подтвердит менеджер.
+   Не ошибка — поэтому янтарный, а не красный. */
+.tt-warn-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-warn-border);
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.8rem;
+  text-align: left;
+  display: grid;
+  gap: 6px;
 }
 
 
@@ -988,6 +1015,50 @@ window.TURON_CONFIG = {
     return typeof price === "number" ? price : null;
   }
 
+  // Сколько человек подразумевает тип номера: цена за человека в DBL
+  // посчитана из расчёта двоих в номере, в TRPL — троих.
+  var ROOM_MIN_OCCUPANCY = { DBL: 2, TRPL: 3 };
+
+  // Мягкие проверки: заявку не блокируем, а помечаем спорные места —
+  // турист видит предупреждение, менеджер получает его же в заявке и
+  // уточняет цену. Так решили сознательно: жёсткие запреты отсекали бы
+  // нормальные случаи (например, двое хотят выкупить трёхместный номер).
+  function collectWarnings(opts) {
+    var count = opts.travelersCount || 1;
+    var warnings = [];
+
+    var needed = ROOM_MIN_OCCUPANCY[opts.roomType];
+    if (needed && count < needed) {
+      warnings.push(
+        "Размещение «" + (opts.roomTypeLabel || opts.roomType) + "» рассчитано на " +
+        needed + " чел. в номере, а туристов " + count +
+        ". Цена показана из полной загрузки — менеджер уточнит доплату."
+      );
+    }
+
+    (opts.selectedExcursionIds || []).forEach(function (id) {
+      var ex = (opts.allExcursions || []).filter(function (e) { return e.id === id; })[0];
+      if (ex && ex.min_group && count < ex.min_group) {
+        warnings.push(
+          "«" + ex.title + "»: минимальная группа " + ex.min_group +
+          " чел., сейчас " + count + ". Менеджер подтвердит цену."
+        );
+      }
+    });
+
+    (opts.tour.optional_modules || []).forEach(function (mod) {
+      if ((opts.selectedModuleIds || []).indexOf(mod.id) !== -1 &&
+          mod.min_group && count < mod.min_group) {
+        warnings.push(
+          "Модуль «" + mod.title + "»: минимальная группа " + mod.min_group +
+          " чел., сейчас " + count + ". Менеджер подтвердит цену."
+        );
+      }
+    });
+
+    return warnings;
+  }
+
   // Итоговый расчёт бронирования: база (проживание) * туристов +
   // доп.услуги/модули (выбранные, за человека) + страховка (за
   // человека за день тура).
@@ -1030,6 +1101,7 @@ window.TURON_CONFIG = {
 
     return {
       priceAvailable: priceAvailable,
+      warnings: collectWarnings(opts),
       base: baseTotal,
       excursions: excursionsTotal,
       modules: modulesTotal,
@@ -1342,6 +1414,7 @@ window.TURON_CONFIG = {
       tour: state.tour,
       hotelCategory: state.hotelCategory,
       roomType: state.roomType,
+      roomTypeLabel: TourData.ROOM_TYPES[state.roomType],
       seasonCode: currentSeasonCode(),
       travelersCount: state.travelersCount,
       selectedExcursionIds: state.selectedExcursionIds,
@@ -1368,6 +1441,12 @@ window.TURON_CONFIG = {
     if (breakdown.modules > 0) rows += '<div class="tt-price-row"><span>Модули</span><span>' + TourPricing.formatMoney(breakdown.modules) + "</span></div>";
     if (breakdown.insurance > 0) rows += '<div class="tt-price-row"><span>Страховка</span><span>' + TourPricing.formatMoney(breakdown.insurance) + "</span></div>";
     rows += '<div class="tt-price-total"><span>Итого</span><span>' + TourPricing.formatMoney(breakdown.total) + "</span></div>";
+
+    if (breakdown.warnings.length) {
+      rows += '<div class="tt-warn-box">' + breakdown.warnings.map(function (w) {
+        return "<div>" + w + "</div>";
+      }).join("") + "</div>";
+    }
 
     document.getElementById("price-breakdown").innerHTML = rows;
   }
@@ -1494,6 +1573,7 @@ window.TURON_CONFIG = {
       tour: state.tour,
       hotelCategory: state.hotelCategory,
       roomType: state.roomType,
+      roomTypeLabel: TourData.ROOM_TYPES[state.roomType],
       seasonCode: currentSeasonCode(),
       travelersCount: state.travelersCount,
       selectedExcursionIds: state.selectedExcursionIds,
@@ -1513,6 +1593,9 @@ window.TURON_CONFIG = {
       selected_module_ids: state.selectedModuleIds.slice(),
       insurance_plan_id: state.insurancePlanId || null,
       total_price: breakdown.total,
+      // спорные места (мин. группа, недобор в номере) — менеджеру видно
+      // прямо в заявке, чтобы он уточнил цену перед подтверждением
+      warnings: breakdown.warnings,
       contact_name: contactName,
       contact_phone: contactPhone,
       contact_email: document.getElementById("contact-email").value.trim(),
@@ -1524,7 +1607,14 @@ window.TURON_CONFIG = {
         '<div class="tt-success-box">' +
           "<h2>Заявка отправлена!</h2>" +
           "<p>Номер заявки: <strong>" + saved.booking_id + "</strong></p>" +
-          "<p>Итоговая сумма: <strong>" + TourPricing.formatMoney(saved.total_price) + "</strong></p>" +
+          "<p>Итоговая сумма: <strong>" + TourPricing.formatMoney(saved.total_price) +
+            (booking.warnings.length ? " (предварительно)" : "") + "</strong></p>" +
+          (booking.warnings.length
+            ? '<div class="tt-warn-box">Часть услуг требует уточнения — менеджер пересчитает ' +
+              "и подтвердит финальную стоимость:" +
+              booking.warnings.map(function (w) { return "<div>" + w + "</div>"; }).join("") +
+              "</div>"
+            : "") +
           "<p>Менеджер свяжется с вами по телефону " + saved.contact_phone + " для подтверждения.</p>" +
         "</div>";
     }).catch(function () {

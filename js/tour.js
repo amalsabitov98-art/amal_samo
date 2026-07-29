@@ -185,6 +185,7 @@
       tour: state.tour,
       hotelCategory: state.hotelCategory,
       roomType: state.roomType,
+      roomTypeLabel: TourData.ROOM_TYPES[state.roomType],
       seasonCode: currentSeasonCode(),
       travelersCount: state.travelersCount,
       selectedExcursionIds: state.selectedExcursionIds,
@@ -211,6 +212,12 @@
     if (breakdown.modules > 0) rows += '<div class="tt-price-row"><span>Модули</span><span>' + TourPricing.formatMoney(breakdown.modules) + "</span></div>";
     if (breakdown.insurance > 0) rows += '<div class="tt-price-row"><span>Страховка</span><span>' + TourPricing.formatMoney(breakdown.insurance) + "</span></div>";
     rows += '<div class="tt-price-total"><span>Итого</span><span>' + TourPricing.formatMoney(breakdown.total) + "</span></div>";
+
+    if (breakdown.warnings.length) {
+      rows += '<div class="tt-warn-box">' + breakdown.warnings.map(function (w) {
+        return "<div>" + w + "</div>";
+      }).join("") + "</div>";
+    }
 
     document.getElementById("price-breakdown").innerHTML = rows;
   }
@@ -337,6 +344,7 @@
       tour: state.tour,
       hotelCategory: state.hotelCategory,
       roomType: state.roomType,
+      roomTypeLabel: TourData.ROOM_TYPES[state.roomType],
       seasonCode: currentSeasonCode(),
       travelersCount: state.travelersCount,
       selectedExcursionIds: state.selectedExcursionIds,
@@ -356,6 +364,9 @@
       selected_module_ids: state.selectedModuleIds.slice(),
       insurance_plan_id: state.insurancePlanId || null,
       total_price: breakdown.total,
+      // спорные места (мин. группа, недобор в номере) — менеджеру видно
+      // прямо в заявке, чтобы он уточнил цену перед подтверждением
+      warnings: breakdown.warnings,
       contact_name: contactName,
       contact_phone: contactPhone,
       contact_email: document.getElementById("contact-email").value.trim(),
@@ -367,7 +378,14 @@
         '<div class="tt-success-box">' +
           "<h2>Заявка отправлена!</h2>" +
           "<p>Номер заявки: <strong>" + saved.booking_id + "</strong></p>" +
-          "<p>Итоговая сумма: <strong>" + TourPricing.formatMoney(saved.total_price) + "</strong></p>" +
+          "<p>Итоговая сумма: <strong>" + TourPricing.formatMoney(saved.total_price) +
+            (booking.warnings.length ? " (предварительно)" : "") + "</strong></p>" +
+          (booking.warnings.length
+            ? '<div class="tt-warn-box">Часть услуг требует уточнения — менеджер пересчитает ' +
+              "и подтвердит финальную стоимость:" +
+              booking.warnings.map(function (w) { return "<div>" + w + "</div>"; }).join("") +
+              "</div>"
+            : "") +
           "<p>Менеджер свяжется с вами по телефону " + saved.contact_phone + " для подтверждения.</p>" +
         "</div>";
     }).catch(function () {

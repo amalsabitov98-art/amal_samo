@@ -62,8 +62,12 @@
 при каждой заявке: `booking_id, created_at, tour_id, tour_title,
 departure_date_start, departure_date_end, hotel_category, room_type,
 travelers_json, selected_excursion_ids, selected_module_ids,
-insurance_plan_id, total_price, contact_name, contact_phone,
+insurance_plan_id, total_price, warnings, contact_name, contact_phone,
 contact_email`.
+
+Колонка `warnings` — то, что нужно уточнить перед подтверждением: недобор
+до минимальной группы экскурсии или неполная загрузка номера. Если она
+не пустая, сумма в заявке предварительная.
 
 ## 2. Создать сервис-аккаунт Google
 

@@ -283,6 +283,7 @@ async function handleBooking(request, env) {
     (booking.selected_module_ids || []).join(","),
     booking.insurance_plan_id || "",
     booking.total_price || 0,
+    (booking.warnings || []).join(" | "),
     booking.contact_name || "",
     booking.contact_phone || "",
     booking.contact_email || "",

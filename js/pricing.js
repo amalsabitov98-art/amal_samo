@@ -40,6 +40,50 @@
     return typeof price === "number" ? price : null;
   }
 
+  // Сколько человек подразумевает тип номера: цена за человека в DBL
+  // посчитана из расчёта двоих в номере, в TRPL — троих.
+  var ROOM_MIN_OCCUPANCY = { DBL: 2, TRPL: 3 };
+
+  // Мягкие проверки: заявку не блокируем, а помечаем спорные места —
+  // турист видит предупреждение, менеджер получает его же в заявке и
+  // уточняет цену. Так решили сознательно: жёсткие запреты отсекали бы
+  // нормальные случаи (например, двое хотят выкупить трёхместный номер).
+  function collectWarnings(opts) {
+    var count = opts.travelersCount || 1;
+    var warnings = [];
+
+    var needed = ROOM_MIN_OCCUPANCY[opts.roomType];
+    if (needed && count < needed) {
+      warnings.push(
+        "Размещение «" + (opts.roomTypeLabel || opts.roomType) + "» рассчитано на " +
+        needed + " чел. в номере, а туристов " + count +
+        ". Цена показана из полной загрузки — менеджер уточнит доплату."
+      );
+    }
+
+    (opts.selectedExcursionIds || []).forEach(function (id) {
+      var ex = (opts.allExcursions || []).filter(function (e) { return e.id === id; })[0];
+      if (ex && ex.min_group && count < ex.min_group) {
+        warnings.push(
+          "«" + ex.title + "»: минимальная группа " + ex.min_group +
+          " чел., сейчас " + count + ". Менеджер подтвердит цену."
+        );
+      }
+    });
+
+    (opts.tour.optional_modules || []).forEach(function (mod) {
+      if ((opts.selectedModuleIds || []).indexOf(mod.id) !== -1 &&
+          mod.min_group && count < mod.min_group) {
+        warnings.push(
+          "Модуль «" + mod.title + "»: минимальная группа " + mod.min_group +
+          " чел., сейчас " + count + ". Менеджер подтвердит цену."
+        );
+      }
+    });
+
+    return warnings;
+  }
+
   // Итоговый расчёт бронирования: база (проживание) * туристов +
   // доп.услуги/модули (выбранные, за человека) + страховка (за
   // человека за день тура).
@@ -82,6 +126,7 @@
 
     return {
       priceAvailable: priceAvailable,
+      warnings: collectWarnings(opts),
       base: baseTotal,
       excursions: excursionsTotal,
       modules: modulesTotal,

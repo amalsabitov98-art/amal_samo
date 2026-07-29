@@ -8,6 +8,9 @@
   --tt-accent-dark: #8f5a24;
   --tt-accent-soft: #f3e6d6;
   --tt-success: #3a7d54;
+  --tt-warn-bg: #fdf3e0;
+  --tt-warn-border: #e6c48a;
+  --tt-warn-text: #7a5312;
   --tt-radius: 14px;
   --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
   font-synthesis: none;
@@ -24,6 +27,9 @@
     --tt-accent-dark: #eab475;
     --tt-accent-soft: #3a2d1c;
     --tt-success: #6fbf8b;
+    --tt-warn-bg: #3a2f19;
+    --tt-warn-border: #6d5629;
+    --tt-warn-text: #f0d9a8;
     --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   }
 }
@@ -38,6 +44,9 @@
   --tt-accent-dark: #eab475;
   --tt-accent-soft: #3a2d1c;
   --tt-success: #6fbf8b;
+  --tt-warn-bg: #3a2f19;
+  --tt-warn-border: #6d5629;
+  --tt-warn-text: #f0d9a8;
   --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
@@ -51,6 +60,9 @@
   --tt-accent-dark: #8f5a24;
   --tt-accent-soft: #f3e6d6;
   --tt-success: #3a7d54;
+  --tt-warn-bg: #fdf3e0;
+  --tt-warn-border: #e6c48a;
+  --tt-warn-text: #7a5312;
   --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
 }
 
@@ -433,4 +445,19 @@ a { color: inherit; }
   font-size: 0.8rem;
   color: var(--tt-text-muted);
   margin-top: 4px;
+}
+
+/* Предупреждения: услуга выбрана, но цену подтвердит менеджер.
+   Не ошибка — поэтому янтарный, а не красный. */
+.tt-warn-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-warn-border);
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.8rem;
+  text-align: left;
+  display: grid;
+  gap: 6px;
 }
