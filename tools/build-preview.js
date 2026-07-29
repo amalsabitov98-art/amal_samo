@@ -26,7 +26,11 @@ const markup = bodyMatch[1].replace(/<script src="[^"]+"><\/script>\s*/g, "").tr
 const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
 if (!scripts.length) throw new Error("В index.html не найдено подключённых скриптов");
 
-const out = `<meta charset="utf-8" />
+// Мета-теги берём из index.html: без viewport телефон отрисует превью
+// как десктоп, и проверять мобильную вёрстку на нём будет бессмысленно.
+const metaTags = [...html.matchAll(/<meta [^>]*>/g)].map((m) => m[0]).join("\n");
+
+const out = `${metaTags}
 <title>Turon Tour — кабинет агентства (превью)</title>
 <style>
 ${read("styles.css")}
