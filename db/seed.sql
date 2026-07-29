@@ -4,10 +4,10 @@ DELETE FROM departures;
 DELETE FROM tours;
 DELETE FROM agencies;
 
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'cace0aa66113acc67a96d596b78402763ac17fec3b75c28c0237c1f318ac47c1', 'b2d7115f2765cc612479c3680bb60a46', 'UMIDA', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'e12afcdbaacc1556d21cafdfbf5d3c3b1bf44b29afe6c2e958d92c579c8ae52d', '6a1fa718314f9c46a2326cfae7cc4321', 'EASY TOURISM', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '14f36386664af2218343d9a998e16ed1c2b477250c5ce9dbeb6c236f51454137', 'd618f04ed4930cbef958a8e39c555850', 'OFO TOUR', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '1524c2a642a5d333ded329d5b77d29d94170f67e8279b2ea3fd2c0e1c77f6382', '563ffb78a9f4f523306ddf3e29ec0953', 'Turon Tour (оператор)', 'operator');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', '894380d0c8f941a09ce94838a15a9daf6fa96f78fdce13b79ad02161fe76aaa4', '70e9900bf2a330b02319ed13fddafeaa', 'UMIDA', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', '7b2182b02f709d64ec67fcb039057c08d8c5fbada173536eb091af45495b4b4e', '06632d7ea4aca87c6fea316a7552fe2e', 'EASY TOURISM', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '37d0fae5a243d582a3b98c314b157d659a6a241fec382713477fbe718af35881', 'd887e4bf3680e8a88c015f1d7a5d8822', 'OFO TOUR', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '080229d9b1826d7964f0c9565221ed8c9a2b8f9e997b3ed3667902a871d2cbf4', 'a4cbcf9d2f1cd0ed9495b228757a05da', 'Turon Tour (оператор)', 'operator');
 
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения');
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('JP_CONSTRUCTOR', 'Тур-конструктор «Легенды и огни Токио»', 'Япония', 100, 30, 0, 'Ожидаются даты заездов и цены');

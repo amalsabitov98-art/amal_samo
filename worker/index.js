@@ -24,24 +24,53 @@
 const SESSION_TTL_HOURS = 12;
 const PBKDF2_ITERATIONS = 100000;
 
+// Порог перебора паролей. По логину строже, чем по адресу: за одним
+// адресом может сидеть целое агентство через общий интернет.
+const LOGIN_WINDOW_MINUTES = 15;
+const MAX_FAILS_PER_LOGIN = 8;
+const MAX_FAILS_PER_IP = 25;
+
 // ------------------------------------------------------------------ утилиты
-function cors() {
+/*
+ * Источник кабинета задаётся переменной ALLOWED_ORIGIN (в wrangler.toml).
+ * Пока она не задана, отвечаем «*» — удобно при разработке, но на бою
+ * обязательно указать адрес кабинета, иначе к API сможет обратиться
+ * любая сторонняя страница от имени залогиненного пользователя.
+ */
+function cors(env, request) {
+  const allowed = env && env.ALLOWED_ORIGIN;
+  const origin = request && request.headers.get("Origin");
+  let value = "*";
+  if (allowed) {
+    const list = allowed.split(",").map((s) => s.trim()).filter(Boolean);
+    value = origin && list.includes(origin) ? origin : list[0];
+  }
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": value,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
   };
 }
 
+// Заголовки CORS зависят от запроса, поэтому их подставляет роутер —
+// json() отдаёт тело, роутер добавляет заголовки.
 function json(data, status) {
   return new Response(JSON.stringify(data), {
     status: status || 200,
-    headers: Object.assign({ "Content-Type": "application/json" }, cors()),
+    headers: { "Content-Type": "application/json" },
   });
 }
 
 function fail(message, status) {
   return json({ error: message }, status || 400);
+}
+
+function withCors(response, env, request) {
+  const headers = new Headers(response.headers);
+  const extra = cors(env, request);
+  Object.keys(extra).forEach((k) => headers.set(k, extra[k]));
+  return new Response(response.body, { status: response.status, headers });
 }
 
 function toHex(buf) {
@@ -91,21 +120,50 @@ async function handleLogin(request, env) {
   const { login, password } = await request.json();
   if (!login || !password) return fail("Введите логин и пароль");
 
+  const clean = String(login).trim().toLowerCase();
+  const ip = request.headers.get("CF-Connecting-IP") ||
+             request.headers.get("X-Forwarded-For") || "unknown";
+  const since = `-${LOGIN_WINDOW_MINUTES} minutes`;
+
+  const fails = await env.DB.prepare(
+    `SELECT
+       SUM(CASE WHEN login = ? THEN 1 ELSE 0 END) AS by_login,
+       SUM(CASE WHEN ip = ? THEN 1 ELSE 0 END) AS by_ip
+     FROM login_attempts WHERE attempted_at > datetime('now', ?)`
+  ).bind(clean, ip, since).first();
+
+  if ((fails.by_login || 0) >= MAX_FAILS_PER_LOGIN ||
+      (fails.by_ip || 0) >= MAX_FAILS_PER_IP) {
+    return fail(
+      `Слишком много попыток входа. Попробуйте через ${LOGIN_WINDOW_MINUTES} минут.`, 429
+    );
+  }
+
+  const noteFailure = () => env.DB.prepare(
+    "INSERT INTO login_attempts (login, ip) VALUES (?, ?)"
+  ).bind(clean, ip).run();
+
   const agency = await env.DB.prepare(
     "SELECT * FROM agencies WHERE login = ? AND is_active = 1"
-  ).bind(String(login).trim().toLowerCase()).first();
+  ).bind(clean).first();
 
   // Один и тот же текст на неизвестный логин и на неверный пароль, чтобы
   // нельзя было перебором выяснить, какие агентства заведены.
-  const invalid = () => fail("Неверный логин или пароль", 401);
+  const invalid = async () => { await noteFailure(); return fail("Неверный логин или пароль", 401); };
   if (!agency) {
     // всё равно считаем хеш: иначе несуществующий логин отвечает заметно
     // быстрее и его видно по времени ответа
     await hashPassword(password, "00".repeat(16));
-    return invalid();
+    return await invalid();
   }
   const hash = await hashPassword(password, agency.password_salt);
-  if (!safeEqual(hash, agency.password_hash)) return invalid();
+  if (!safeEqual(hash, agency.password_hash)) return await invalid();
+
+  // вход удался — снимаем накопленные промахи и подчищаем старые записи
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM login_attempts WHERE login = ?").bind(clean),
+    env.DB.prepare("DELETE FROM login_attempts WHERE attempted_at < datetime('now', '-1 day')"),
+  ]);
 
   const token = toHex(crypto.getRandomValues(new Uint8Array(32)));
   await env.DB.prepare(
@@ -412,58 +470,58 @@ async function createAgency(request, env) {
 }
 
 // ------------------------------------------------------------------- роутер
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
+// Разбор запроса вынесен из fetch(), чтобы заголовки CORS навешивались
+// один раз на любой ответ — включая ошибки. Иначе легко забыть обернуть
+// какую-нибудь ветку, и браузер молча отвергнет ответ.
+async function route(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
 
-    if (request.method === "OPTIONS") return new Response(null, { headers: cors() });
-
-    try {
-      if (path === "/api/login" && request.method === "POST") {
+  try {
+    if (path === "/api/login" && request.method === "POST") {
         return await handleLogin(request, env);
-      }
+    }
 
-      // всё ниже — только для вошедшего агентства
-      const agency = await authenticate(request, env);
-      if (!agency) return fail("Требуется вход", 401);
+    // всё ниже — только для вошедшего агентства
+    const agency = await authenticate(request, env);
+    if (!agency) return fail("Требуется вход", 401);
 
-      if (path === "/api/me") return json({ agency });
+    if (path === "/api/me") return json({ agency });
 
-      if (path === "/api/logout" && request.method === "POST") {
+    if (path === "/api/logout" && request.method === "POST") {
         const token = (request.headers.get("Authorization") || "").slice(7);
         await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind(token).run();
         return json({ ok: true });
-      }
+    }
 
-      if (path === "/api/tours" && request.method === "GET") {
+    if (path === "/api/tours" && request.method === "GET") {
         // operator_commission агентству не отдаём — это доля оператора
         const tours = await env.DB.prepare(
           `SELECT code, name, destination, agency_commission, is_bookable, note
              FROM tours ORDER BY destination, name`
         ).all();
         return json(tours.results);
-      }
+    }
 
-      if (path === "/api/departures" && request.method === "GET") {
+    if (path === "/api/departures" && request.method === "GET") {
         return json(await listDepartures(env));
-      }
+    }
 
-      if (path === "/api/bookings" && request.method === "POST") {
+    if (path === "/api/bookings" && request.method === "POST") {
         return await createBooking(request, env, agency);
-      }
+    }
 
-      if (path === "/api/bookings" && request.method === "GET") {
+    if (path === "/api/bookings" && request.method === "GET") {
         return json(await listBookings(env, agency));
-      }
+    }
 
-      const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
-      if (cancel && request.method === "POST") {
+    const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
+    if (cancel && request.method === "POST") {
         return await cancelBooking(env, agency, Number(cancel[1]));
-      }
+    }
 
-      // ------------------------------------------------- только оператор
-      if (path.startsWith("/api/admin/")) {
+    // ------------------------------------------------- только оператор
+    if (path.startsWith("/api/admin/")) {
         if (agency.role !== "operator") return fail("Недостаточно прав", 403);
 
         if (path === "/api/admin/bookings" && request.method === "GET") {
@@ -490,11 +548,19 @@ export default {
           return await createAgency(request, env);
         }
         return fail("Not found", 404);
-      }
-
-      return fail("Not found", 404);
-    } catch (err) {
-      return fail(err.message, 500);
     }
+
+    return fail("Not found", 404);
+  } catch (err) {
+    return fail(err.message, 500);
+  }
+}
+
+export default {
+  async fetch(request, env) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: cors(env, request) });
+    }
+    return withCors(await route(request, env), env, request);
   },
 };

@@ -33,6 +33,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS idx_sessions_agency ON sessions(agency_id);
 
 
+-- Неудачные попытки входа. Нужны, чтобы пароль нельзя было перебирать:
+-- при частых промахах по одному логину или с одного адреса вход временно
+-- закрывается. Успешный вход свои записи удаляет.
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  login        TEXT NOT NULL,
+  ip           TEXT NOT NULL,
+  attempted_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_attempts_login ON login_attempts(login, attempted_at);
+CREATE INDEX IF NOT EXISTS idx_attempts_ip ON login_attempts(ip, attempted_at);
+
 -- -------------------------------------------------------------------- туры
 -- Продукт, к которому относятся заезды. Комиссия задаётся здесь, а не на
 -- заезде: у оператора она фиксирована в долларах на человека и не зависит

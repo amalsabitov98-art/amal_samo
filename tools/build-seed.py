@@ -7,7 +7,12 @@
 Уже проданные места учитываются обезличенно, через seats_taken заезда:
 свободных мест остаётся ровно столько, сколько на самом деле.
 """
-import json, re, sys, hashlib, secrets
+import json, os, re, sys, hashlib, secrets
+from pathlib import Path
+
+# Пути считаем от расположения скрипта, а не от текущего каталога:
+# генератор запускают и из корня репозитория, и из worker/.
+ROOT = Path(__file__).resolve().parent.parent
 
 # Вместимость в ведомости нигде не указана. Максимум фактической загрузки —
 # 64 человека, поэтому берём 65 как рабочее значение; его нужно подтвердить
@@ -27,7 +32,16 @@ DEMO_AGENCIES = [
     ("ofotour", "OFO TOUR", "agency"),
     ("operator", "Turon Tour (оператор)", "operator"),
 ]
-DEMO_PASSWORD = "turon2026"
+# Пароли не зашиваем в репозиторий: генерируем при сборке и печатаем
+# один раз в консоль. Иначе вход открыт всем, кто видел исходники.
+def make_password():
+    # TURON_SEED_PASSWORD задаёт один известный пароль всем учёткам —
+    # нужно только для автотестов, на бою переменную не выставлять.
+    forced = os.environ.get("TURON_SEED_PASSWORD")
+    if forced:
+        return forced
+    alphabet = "abcdefghijkmnpqrstuvwxyz23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(12))
 
 # Комиссии — в долларах на человека, операторская идёт СВЕРХУ агентской
 # (агентству она не показывается).
@@ -74,7 +88,7 @@ def parse_child_label(label):
 
 
 def main():
-    departures = json.load(open("seed/departures.json", encoding="utf-8"))
+    departures = json.load(open(ROOT / "seed" / "departures.json", encoding="utf-8"))
     out = []
     out.append("-- Сгенерировано tools/build-seed.py. Не редактировать вручную.")
     out.append("DELETE FROM departure_prices;")
@@ -83,8 +97,11 @@ def main():
     out.append("DELETE FROM agencies;")
     out.append("")
 
+    issued = []
     for login, name, role in DEMO_AGENCIES:
-        h, s = hash_password(DEMO_PASSWORD)
+        password = make_password()
+        h, s = hash_password(password)
+        issued.append((login, name, password))
         out.append(
             f"INSERT INTO agencies (login, password_hash, password_salt, name, role) "
             f"VALUES ({q(login)}, {q(h)}, {q(s)}, {q(name)}, {q(role)});"
@@ -128,8 +145,13 @@ def main():
         out.append("")
 
     print("\n".join(out))
-    print(f"-- заездов: {len(departures)}; демо-агентств: {len(DEMO_AGENCIES)} "
-          f"(пароль у всех: {DEMO_PASSWORD})", file=sys.stderr)
+    print(f"-- заездов: {len(departures)}", file=sys.stderr)
+    print("\nВЫДАННЫЕ ПАРОЛИ (сохраните, второй раз показаны не будут):",
+          file=sys.stderr)
+    for login, name, password in issued:
+        print(f"  {login:<14} {name:<26} {password}", file=sys.stderr)
+    print("\nПароли есть только здесь — в db/seed.sql лежат лишь хеши.",
+          file=sys.stderr)
 
 
 if __name__ == "__main__":

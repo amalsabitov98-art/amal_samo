@@ -1,4 +1,6 @@
 const BASE = 'http://127.0.0.1:8787';
+// База для тестов наполняется с TURON_SEED_PASSWORD=turon2026 (см. test/README.md)
+const PW = process.env.TURON_SEED_PASSWORD || 'turon2026';
 let pass = 0, fail = 0;
 
 const call = async (path, opts = {}) => {
@@ -20,12 +22,12 @@ let r = await call('/api/login', { method:'POST', body:{ login:'umida', password
 check('неверный пароль → 401', r.status === 401, JSON.stringify(r.data));
 r = await call('/api/login', { method:'POST', body:{ login:'нетакого', password:'x' } });
 check('несуществующий логин → тот же текст', r.data.error === 'Неверный логин или пароль', r.data.error);
-r = await call('/api/login', { method:'POST', body:{ login:'umida', password:'turon2026' } });
+r = await call('/api/login', { method:'POST', body:{ login:'umida', password:PW } });
 check('вход агентства', r.status === 200 && !!r.data.token);
 const umida = r.data.token;
 check('роль agency', r.data.agency.role === 'agency', r.data.agency.role);
 
-r = await call('/api/login', { method:'POST', body:{ login:'operator', password:'turon2026' } });
+r = await call('/api/login', { method:'POST', body:{ login:'operator', password:PW } });
 const op = r.data.token;
 check('вход оператора, роль operator', r.data.agency.role === 'operator');
 
@@ -64,7 +66,7 @@ console.log('\n--- изоляция агентств ---');
 r = await call('/api/bookings', { token: umida });
 check('umida видит свою бронь', r.data.length === 1);
 check('остаток = полной сумме', r.data[0].balance === 1770, JSON.stringify(r.data[0]));
-r = await call('/api/login', { method:'POST', body:{ login:'ofotour', password:'turon2026' } });
+r = await call('/api/login', { method:'POST', body:{ login:'ofotour', password:PW } });
 r = await call('/api/bookings', { token: r.data.token });
 check('ofotour чужих броней не видит', r.data.length === 0, 'видит ' + r.data.length);
 
@@ -107,6 +109,18 @@ r = await call('/api/departures', { token: umida });
 check('места вернулись', r.data.find(d=>d.code==='TZX1707').seats_free === freeBefore);
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('повторная отмена отклонена', r.status === 404);
+
+console.log('\n--- защита от перебора пароля ---');
+// ofotour в тестах выше нигде не логинился успешно, поэтому его счётчик чист
+let blocked = null;
+for (let i = 1; i <= 12 && blocked === null; i++) {
+  const a = await call('/api/login', { method:'POST', body:{ login:'ofotour', password:'wrong' + i } });
+  if (a.status === 429) blocked = i;
+}
+check('вход блокируется после серии промахов', blocked !== null, 'не заблокировался');
+check('блокировка не раньше 5-й попытки', blocked === null || blocked >= 5, 'на попытке ' + blocked);
+r = await call('/api/login', { method:'POST', body:{ login:'umida', password:PW } });
+check('другой логин при этом работает', r.status === 200, JSON.stringify(r.data));
 
 console.log(`\nИТОГО: ${pass} пройдено, ${fail} провалено`);
 process.exit(fail ? 1 : 0);
