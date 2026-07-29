@@ -1,0 +1,10 @@
+# Конфиг только для локального прогона: wrangler dev --local.
+# Боевой — wrangler.toml, там реальный database_id.
+name = "turon-tour-api"
+main = "index.js"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "turon-tour-local"
+database_id = "local-only-placeholder"
