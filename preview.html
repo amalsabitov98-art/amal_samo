@@ -1,0 +1,1613 @@
+<meta charset="utf-8" />
+<title>Turon Tour — превью системы авторских туров</title>
+<style>
+:root {
+  --tt-bg: #f7f5f0;
+  --tt-surface: #ffffff;
+  --tt-border: #e4e0d6;
+  --tt-text: #22201b;
+  --tt-text-muted: #6b6558;
+  --tt-accent: #b5722e;
+  --tt-accent-dark: #8f5a24;
+  --tt-accent-soft: #f3e6d6;
+  --tt-success: #3a7d54;
+  --tt-radius: 14px;
+  --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
+  font-synthesis: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tt-bg: #17140f;
+    --tt-surface: #221e17;
+    --tt-border: #34302a;
+    --tt-text: #f3efe6;
+    --tt-text-muted: #b3ab9a;
+    --tt-accent: #d99a52;
+    --tt-accent-dark: #eab475;
+    --tt-accent-soft: #3a2d1c;
+    --tt-success: #6fbf8b;
+    --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --tt-bg: #17140f;
+  --tt-surface: #221e17;
+  --tt-border: #34302a;
+  --tt-text: #f3efe6;
+  --tt-text-muted: #b3ab9a;
+  --tt-accent: #d99a52;
+  --tt-accent-dark: #eab475;
+  --tt-accent-soft: #3a2d1c;
+  --tt-success: #6fbf8b;
+  --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="light"] {
+  --tt-bg: #f7f5f0;
+  --tt-surface: #ffffff;
+  --tt-border: #e4e0d6;
+  --tt-text: #22201b;
+  --tt-text-muted: #6b6558;
+  --tt-accent: #b5722e;
+  --tt-accent-dark: #8f5a24;
+  --tt-accent-soft: #f3e6d6;
+  --tt-success: #3a7d54;
+  --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  line-height: 1.45;
+}
+
+a { color: inherit; }
+
+.tt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  background: var(--tt-surface);
+  border-bottom: 1px solid var(--tt-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tt-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+.tt-logo span { color: var(--tt-accent); }
+
+.tt-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+.tt-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--tt-border);
+}
+
+.tt-tab {
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  color: var(--tt-text-muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tt-tab.is-active {
+  color: var(--tt-accent);
+  border-bottom-color: var(--tt-accent);
+  font-weight: 600;
+}
+
+.tt-search-panel {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 720px) {
+  .tt-search-panel { grid-template-columns: 1fr; }
+}
+
+.tt-field label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 6px;
+}
+
+.tt-field input,
+.tt-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 0.95rem;
+}
+
+.tt-btn {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--tt-accent);
+  color: #fff;
+  transition: background 0.15s ease;
+}
+.tt-btn:hover { background: var(--tt-accent-dark); }
+.tt-btn.secondary {
+  background: transparent;
+  color: var(--tt-accent);
+  border: 1px solid var(--tt-accent);
+}
+.tt-btn.secondary:hover { background: var(--tt-accent-soft); }
+.tt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tt-search-panel .tt-btn { align-self: end; }
+
+.tt-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.tt-card {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tt-card-cover {
+  height: 150px;
+  background: linear-gradient(135deg, var(--tt-accent-soft), var(--tt-border));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tt-accent-dark);
+  font-size: 0.85rem;
+}
+
+.tt-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.tt-card-title { font-size: 1.05rem; font-weight: 700; }
+.tt-card-meta { font-size: 0.85rem; color: var(--tt-text-muted); }
+.tt-card-desc { font-size: 0.88rem; color: var(--tt-text-muted); flex: 1; }
+
+.tt-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--tt-accent-soft);
+  color: var(--tt-accent-dark);
+  width: fit-content;
+}
+
+.tt-card-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tt-accent-dark);
+}
+.tt-card-price small {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--tt-text-muted);
+}
+
+.tt-card-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--tt-border);
+}
+
+.tt-empty-state {
+  text-align: center;
+  color: var(--tt-text-muted);
+  padding: 60px 20px;
+}
+
+/* ---------- Tour card / booking page ---------- */
+
+.tt-tour-hero {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.tt-tour-hero h1 { margin: 4px 0 10px; }
+
+.tt-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .tt-layout { grid-template-columns: 1fr; }
+}
+
+.tt-section {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.tt-section h2 { margin-top: 0; font-size: 1.1rem; }
+
+.tt-day-item {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-day-item:last-child { border-bottom: none; }
+.tt-day-num {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--tt-accent-soft);
+  color: var(--tt-accent-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.tt-day-title { font-weight: 600; margin-bottom: 2px; }
+.tt-day-desc { font-size: 0.88rem; color: var(--tt-text-muted); }
+
+.tt-list-check, .tt-list-cross {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+.tt-list-check li::before { content: "✓ "; color: var(--tt-success); font-weight: 700; }
+.tt-list-cross li::before { content: "✕ "; color: #b5453a; font-weight: 700; }
+
+.tt-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 640px) { .tt-two-col { grid-template-columns: 1fr; } }
+
+.tt-option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-option-row:last-child { border-bottom: none; }
+.tt-option-row input { margin-top: 4px; }
+.tt-option-title { font-weight: 600; font-size: 0.92rem; }
+.tt-option-desc { font-size: 0.82rem; color: var(--tt-text-muted); }
+.tt-option-price { margin-left: auto; font-weight: 700; color: var(--tt-accent-dark); white-space: nowrap; }
+
+/* Sticky price/booking sidebar */
+.tt-sidebar {
+  position: sticky;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tt-price-box {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 20px;
+}
+
+.tt-price-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  padding: 5px 0;
+  color: var(--tt-text-muted);
+}
+.tt-price-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-top: 10px;
+  margin-top: 6px;
+  border-top: 1px solid var(--tt-border);
+}
+
+.tt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tt-stepper button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.tt-stepper span { min-width: 20px; text-align: center; font-weight: 600; }
+
+.tt-traveler-card {
+  border: 1px solid var(--tt-border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.tt-traveler-card h3 { margin: 0 0 10px; font-size: 0.95rem; }
+
+.tt-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 520px) { .tt-form-grid { grid-template-columns: 1fr; } }
+
+.tt-form-grid label,
+.tt-field-full label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 4px;
+}
+.tt-form-grid input,
+.tt-form-grid select,
+.tt-field-full input,
+.tt-field-full select,
+.tt-field-full textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 0.9rem;
+}
+.tt-field-full { margin-bottom: 12px; }
+
+.tt-back-link {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  color: var(--tt-accent);
+  text-decoration: none;
+}
+
+.tt-success-box {
+  background: var(--tt-accent-soft);
+  border: 1px solid var(--tt-accent);
+  border-radius: var(--tt-radius);
+  padding: 24px;
+  text-align: center;
+}
+.tt-success-box h2 { color: var(--tt-accent-dark); margin-top: 0; }
+
+.tt-muted-note {
+  font-size: 0.8rem;
+  color: var(--tt-text-muted);
+  margin-top: 4px;
+}
+
+
+/* — только для превью: полоса-пояснение над реальным интерфейсом — */
+.tt-preview-note {
+  background: var(--tt-accent-soft);
+  border-bottom: 1px solid var(--tt-border);
+  color: var(--tt-text);
+  padding: 10px 28px;
+  font-size: 0.82rem;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+.tt-preview-note strong { color: var(--tt-accent-dark); }
+.tt-preview-note span { color: var(--tt-text-muted); }
+</style>
+
+<div class="tt-preview-note">
+  <strong>Превью</strong>
+  <span>Рабочая сборка на демо-данных: заявки никуда не уходят, сохраняются локально в браузере.</span>
+</div>
+
+<header class="tt-header">
+  <div class="tt-logo">Turon <span>Tour</span></div>
+  <div class="tt-muted-note">Авторские туры</div>
+</header>
+
+<div id="view-search"><main class="tt-container">
+  <div class="tt-tabs">
+    <button class="tt-tab is-active" data-tab="tours">Туры</button>
+    <button class="tt-tab" data-tab="excursions">Экскурсии</button>
+  </div>
+
+  <section id="panel-tours">
+    <form class="tt-search-panel" id="search-form">
+      <div class="tt-field">
+        <label for="f-query">Направление или название тура</label>
+        <input type="text" id="f-query" placeholder="Например, Токио" />
+      </div>
+      <div class="tt-field">
+        <label for="f-country">Страна</label>
+        <select id="f-country">
+          <option value="">Все страны</option>
+        </select>
+      </div>
+      <div class="tt-field">
+        <label for="f-date">Заезд не раньше</label>
+        <input type="date" id="f-date" />
+      </div>
+      <button type="submit" class="tt-btn">Найти</button>
+    </form>
+
+    <div class="tt-results-grid" id="tours-grid"></div>
+  </section>
+
+  <section id="panel-excursions" hidden>
+    <div class="tt-results-grid" id="excursions-grid"></div>
+  </section>
+</main></div>
+<div id="view-tour" hidden><main class="tt-container" id="app">
+  <a class="tt-back-link" href="index.html">&larr; Назад к поиску</a>
+  <div id="tour-content">
+    <div class="tt-empty-state">Загрузка тура…</div>
+  </div>
+</main></div>
+
+<script>
+// Настройка источника данных Turon Tour.
+//
+// Пусто ("") — сайт работает на встроенных моковых турах (см. js/data.js),
+// это состояние по умолчанию и то, что задеплоено на GitHub Pages сейчас.
+//
+// Чтобы подключить реальные данные из Google Sheet: задеплойте
+// worker/index.js как Cloudflare Worker (см. worker/README.md) и впишите
+// сюда его публичный адрес, например:
+//   apiBaseUrl: "https://turon-tour-api.<ваш-субдомен>.workers.dev"
+window.TURON_CONFIG = {
+  apiBaseUrl: "",
+};
+
+</script>
+<script>
+/*
+ * Слой данных Turon Tour.
+ *
+ * Источник данных абстрагирован через DataSource: сейчас это моки ниже,
+ * позже — замена на fetch() к Cloudflare Worker, который отдаёт те же
+ * структуры из Google Sheet. Экраны (search.js, tour.js, booking.js)
+ * работают только через функции TourData.* и не знают, откуда данные.
+ */
+(function (global) {
+  "use strict";
+
+  // ---------------------------------------------------------------------
+  // Категории размещения и типы номеров — общий справочник
+  // ---------------------------------------------------------------------
+  var ROOM_TYPES = {
+    DBL: "Двухместный (Standard Double/Twin)",
+    SGL: "Одноместный (Single)",
+    TRPL: "Трёхместный (Triple)",
+  };
+
+  var HOTEL_CATEGORIES = {
+    standard: "Стандарт",
+    comfort: "Комфорт",
+    premium: "Премиум",
+  };
+
+  // ---------------------------------------------------------------------
+  // Моковые туры (структура соответствует будущим листам Google Sheet:
+  // Tours, TourDepartures, TourPriceMatrix, TourProgram, Excursions)
+  // ---------------------------------------------------------------------
+  var TOURS = [
+    {
+      id: "jp-golden-ring",
+      slug: "zolotoe-koltso-yaponii",
+      title: "Золотое кольцо Японии",
+      country: "Япония",
+      cities: ["Токио", "Киото", "Осака", "Нара"],
+      duration_days: 10,
+      duration_nights: 9,
+      cover_image: "assets/tours/jp-golden-ring/cover.jpg",
+      short_description:
+        "Классический маршрут по главным городам Японии: императорский Токио, древний Киото, храмы Нары и гастрономическая Осака.",
+      is_constructor: false,
+      departures: [
+        { date_start: "2026-09-12", date_end: "2026-09-21", season_code: "autumn_low" },
+        { date_start: "2026-10-03", date_end: "2026-10-12", season_code: "autumn_high" },
+        { date_start: "2026-11-07", date_end: "2026-11-16", season_code: "autumn_high" },
+        { date_start: "2027-04-03", date_end: "2027-04-12", season_code: "sakura_peak" },
+      ],
+      hotels: [
+        { category: "standard", name: "3* сети Sotetsu Fresa / аналог" },
+        { category: "comfort", name: "4* сети Mitsui Garden / аналог" },
+        { category: "premium", name: "5* сети Hyatt Regency / аналог" },
+      ],
+      // цена за человека, USD, по категории отеля -> типу номера -> сезону
+      price_matrix: {
+        standard: {
+          DBL: { autumn_low: 2190, autumn_high: 2390, sakura_peak: 2690 },
+          SGL: { autumn_low: 2890, autumn_high: 3090, sakura_peak: 3390 },
+          TRPL: { autumn_low: 2050, autumn_high: 2230, sakura_peak: 2510 },
+        },
+        comfort: {
+          DBL: { autumn_low: 2490, autumn_high: 2690, sakura_peak: 2990 },
+          SGL: { autumn_low: 3290, autumn_high: 3490, sakura_peak: 3790 },
+          TRPL: { autumn_low: 2340, autumn_high: 2520, sakura_peak: 2800 },
+        },
+        premium: {
+          DBL: { autumn_low: 3190, autumn_high: 3490, sakura_peak: 3890 },
+          SGL: { autumn_low: 4190, autumn_high: 4490, sakura_peak: 4890 },
+          TRPL: { autumn_low: 2990, autumn_high: 3250, sakura_peak: 3620 },
+        },
+      },
+      program: [
+        { day: 1, title: "Прилёт в Токио", description: "Встреча в аэропорту Нарита/Ханэда, трансфер в отель, свободное время." },
+        { day: 2, title: "Токио: императорский дворец и Асакуса", description: "Площадь Императорского дворца, храм Сэнсо-дзи, квартал Асакуса, смотровая площадка Tokyo Skytree." },
+        { day: 3, title: "Токио: Сибуя и Харадзюку", description: "Перекрёсток Сибуя, улица Такэсита, парк Ёёги, современные кварталы." },
+        { day: 4, title: "Переезд в Киото на синкансэне", description: "Скоростной поезд Токио–Киото, размещение, вечерняя прогулка по Гиону." },
+        { day: 5, title: "Киото: золотой и серебряный павильоны", description: "Кинкаку-дзи, Гинкаку-дзи, философская тропа." },
+        { day: 6, title: "Нара: олений парк и Тодай-дзи", description: "Дневная экскурсия в Нару, храм Тодай-дзи, парк с ручными оленями." },
+        { day: 7, title: "Киото: Фусими Инари", description: "Тысячи оранжевых тории храма Фусими Инари, район Арасияма и бамбуковая роща." },
+        { day: 8, title: "Переезд в Осаку", description: "Замок Осаки, квартал Дотонбори, гастрономический вечер." },
+        { day: 9, title: "Осака: свободный день", description: "Свободное время для шоппинга и дополнительных экскурсий (см. блок «Дополнительно»)." },
+        { day: 10, title: "Вылет из Осаки/Токио", description: "Трансфер в аэропорт, вылет." },
+      ],
+      included: [
+        "Проживание согласно выбранной категории отеля",
+        "Завтраки на протяжении всего тура",
+        "Внутренние переезды по программе (синкансэн, трансферы)",
+        "Русскоговорящий гид-сопровождающий",
+        "Входные билеты по программе",
+      ],
+      excluded: [
+        "Авиаперелёт до Токио и обратно из Осаки",
+        "Виза в Японию",
+        "Медицинская страховка",
+        "Личные расходы",
+        "Дополнительные экскурсии",
+      ],
+      visa_documents: [
+        "Загранпаспорт (срок действия от 6 мес. после окончания поездки)",
+        "Анкета на визу",
+        "Фото 4.5×4.5 см",
+        "Справка с места работы",
+        "Выписка со счёта / спонсорское письмо",
+      ],
+      excursion_ids: ["jp-osaka-food", "jp-teamlab", "jp-mtfuji"],
+    },
+    {
+      id: "jp-tokyo-lights",
+      slug: "legendy-i-ogni-tokio",
+      title: "Легенды и огни Токио",
+      country: "Япония",
+      cities: ["Токио"],
+      duration_days: 6,
+      duration_nights: 5,
+      cover_image: "assets/tours/jp-tokyo-lights/cover.jpg",
+      short_description:
+        "Компактный городской тур по Токио: от древних храмов до неоновых кварталов будущего.",
+      is_constructor: false,
+      departures: [
+        { date_start: "2026-09-05", date_end: "2026-09-10", season_code: "autumn_low" },
+        { date_start: "2026-10-17", date_end: "2026-10-22", season_code: "autumn_high" },
+        { date_start: "2026-12-26", date_end: "2026-12-31", season_code: "newyear" },
+      ],
+      hotels: [
+        { category: "standard", name: "3* сети Sotetsu Fresa / аналог" },
+        { category: "comfort", name: "4* сети Shinagawa Prince / аналог" },
+        { category: "premium", name: "5* сети Park Hyatt / аналог" },
+      ],
+      price_matrix: {
+        standard: {
+          DBL: { autumn_low: 1290, autumn_high: 1390, newyear: 1690 },
+          SGL: { autumn_low: 1690, autumn_high: 1790, newyear: 2190 },
+          TRPL: { autumn_low: 1190, autumn_high: 1280, newyear: 1560 },
+        },
+        comfort: {
+          DBL: { autumn_low: 1490, autumn_high: 1590, newyear: 1890 },
+          SGL: { autumn_low: 1990, autumn_high: 2090, newyear: 2490 },
+          TRPL: { autumn_low: 1390, autumn_high: 1480, newyear: 1760 },
+        },
+        premium: {
+          DBL: { autumn_low: 1990, autumn_high: 2190, newyear: 2590 },
+          SGL: { autumn_low: 2690, autumn_high: 2890, newyear: 3390 },
+          TRPL: { autumn_low: 1860, autumn_high: 2040, newyear: 2420 },
+        },
+      },
+      program: [
+        { day: 1, title: "Прилёт в Токио", description: "Встреча, трансфер в отель, вечерняя прогулка по Синдзюку." },
+        { day: 2, title: "Асакуса и Уэно", description: "Храм Сэнсо-дзи, парк Уэно, музеи (по желанию)." },
+        { day: 3, title: "Сибуя, Харадзюку, Одайба", description: "Современный Токио и ночная иллюминация Одайбы." },
+        { day: 4, title: "TeamLab и Акихабара", description: "Цифровой музей искусства, квартал электроники и аниме-культуры." },
+        { day: 5, title: "Свободный день", description: "Время для шоппинга и дополнительных экскурсий." },
+        { day: 6, title: "Вылет из Токио", description: "Трансфер в аэропорт." },
+      ],
+      included: [
+        "Проживание согласно выбранной категории отеля",
+        "Завтраки",
+        "Трансферы аэропорт-отель-аэропорт",
+        "Русскоговорящий гид",
+      ],
+      excluded: [
+        "Авиаперелёт",
+        "Виза в Японию",
+        "Медицинская страховка",
+        "Дополнительные экскурсии",
+      ],
+      visa_documents: [
+        "Загранпаспорт (срок действия от 6 мес. после окончания поездки)",
+        "Анкета на визу",
+        "Фото 4.5×4.5 см",
+      ],
+      excursion_ids: ["jp-teamlab", "jp-disneysea"],
+    },
+    {
+      id: "jp-tokyo-constructor",
+      slug: "tur-konstruktor-legendy-i-ogni-tokio",
+      title: "Тур-конструктор «Легенды и огни Токио»",
+      country: "Япония",
+      cities: ["Токио"],
+      duration_days: 6,
+      duration_nights: 5,
+      cover_image: "assets/tours/jp-tokyo-lights/cover.jpg",
+      short_description:
+        "Та же база, что и «Легенды и огни Токио», но вы сами собираете программу: гид, экскурсии и трансферы — по желанию.",
+      is_constructor: true,
+      departures: [
+        { date_start: "2026-09-05", date_end: "2026-09-10", season_code: "autumn_low" },
+        { date_start: "2026-10-17", date_end: "2026-10-22", season_code: "autumn_high" },
+        { date_start: "2026-12-26", date_end: "2026-12-31", season_code: "newyear" },
+      ],
+      hotels: [
+        { category: "standard", name: "3* сети Sotetsu Fresa / аналог" },
+        { category: "comfort", name: "4* сети Shinagawa Prince / аналог" },
+        { category: "premium", name: "5* сети Park Hyatt / аналог" },
+      ],
+      // в конструкторе базовая цена — это только перелёт+проживание,
+      // остальное собирается из optional_modules
+      price_matrix: {
+        standard: {
+          DBL: { autumn_low: 990, autumn_high: 1060, newyear: 1290 },
+          SGL: { autumn_low: 1290, autumn_high: 1360, newyear: 1690 },
+          TRPL: { autumn_low: 910, autumn_high: 970, newyear: 1190 },
+        },
+        comfort: {
+          DBL: { autumn_low: 1160, autumn_high: 1230, newyear: 1460 },
+          SGL: { autumn_low: 1560, autumn_high: 1630, newyear: 1960 },
+          TRPL: { autumn_low: 1080, autumn_high: 1140, newyear: 1360 },
+        },
+        premium: {
+          DBL: { autumn_low: 1590, autumn_high: 1730, newyear: 2060 },
+          SGL: { autumn_low: 2160, autumn_high: 2320, newyear: 2760 },
+          TRPL: { autumn_low: 1490, autumn_high: 1620, newyear: 1930 },
+        },
+      },
+      program: [
+        { day: 1, title: "Прилёт в Токио", description: "Заселение в отель. Трансфер и гид — опционально (см. модули)." },
+        { day: 2, title: "Свободный день / модуль «Классика Токио»", description: "Асакуса, Сибуя, Харадзюку — при выборе модуля." },
+        { day: 3, title: "Свободный день / модуль «TeamLab + Одайба»", description: "Цифровое искусство и вечерний Токио — при выборе модуля." },
+        { day: 4, title: "Свободный день / модуль «Диснейленд/DisneySea»", description: "Полный день в парке развлечений — при выборе модуля." },
+        { day: 5, title: "Свободный день", description: "На усмотрение туриста." },
+        { day: 6, title: "Вылет из Токио", description: "Трансфер в аэропорт — опционально." },
+      ],
+      included: [
+        "Проживание согласно выбранной категории отеля",
+        "Завтраки",
+      ],
+      excluded: [
+        "Авиаперелёт",
+        "Виза в Японию",
+        "Медицинская страховка",
+        "Трансферы (доступны как модуль)",
+        "Гид и экскурсии (доступны как модули)",
+      ],
+      visa_documents: [
+        "Загранпаспорт (срок действия от 6 мес. после окончания поездки)",
+        "Анкета на визу",
+        "Фото 4.5×4.5 см",
+      ],
+      excursion_ids: [],
+      optional_modules: [
+        { id: "mod-transfer", title: "Трансфер аэропорт-отель-аэропорт", price_per_person: 65, min_group: 1 },
+        { id: "mod-guide-classic", title: "Модуль «Классика Токио» с гидом", price_per_person: 120, min_group: 2 },
+        { id: "mod-teamlab", title: "Модуль «TeamLab + Одайба»", price_per_person: 95, min_group: 2 },
+        { id: "mod-disney", title: "Модуль «Диснейленд/DisneySea», билет+трансфер", price_per_person: 140, min_group: 1 },
+      ],
+    },
+  ];
+
+  // ---------------------------------------------------------------------
+  // Экскурсии — независимая сущность, привязывается к турам по excursion_ids
+  // ---------------------------------------------------------------------
+  var EXCURSIONS = [
+    {
+      id: "jp-osaka-food",
+      title: "Гастрономический вечер в Дотонбори",
+      description: "Дегустация такояки, окономияки и крафтового саке с местным гидом.",
+      price_per_person: 85,
+      min_group: 2,
+      duration_hours: 3,
+    },
+    {
+      id: "jp-teamlab",
+      title: "TeamLab Planets — цифровое искусство",
+      description: "Билет и трансфер в интерактивный музей цифрового искусства.",
+      price_per_person: 60,
+      min_group: 1,
+      duration_hours: 3,
+    },
+    {
+      id: "jp-mtfuji",
+      title: "Гора Фудзи и озеро Кавагутико",
+      description: "Однодневная поездка к подножию Фудзи, смотровая площадка, озеро.",
+      price_per_person: 140,
+      min_group: 4,
+      duration_hours: 10,
+    },
+    {
+      id: "jp-disneysea",
+      title: "Tokyo DisneySea — целый день",
+      description: "Входной билет и трансфер в парк развлечений Tokyo DisneySea.",
+      price_per_person: 130,
+      min_group: 1,
+      duration_hours: 9,
+    },
+  ];
+
+  // ---------------------------------------------------------------------
+  // Страховки — фиксированный список тарифов
+  // ---------------------------------------------------------------------
+  var INSURANCE_PLANS = [
+    { id: "ins-basic", title: "Базовая медицинская страховка", price_per_person_per_day: 2.5, coverage: "до $30 000" },
+    { id: "ins-extended", title: "Расширенная страховка (спорт, эвакуация)", price_per_person_per_day: 4.5, coverage: "до $75 000" },
+  ];
+
+  // ---------------------------------------------------------------------
+  // Источник данных переключается через window.TURON_CONFIG.apiBaseUrl
+  // (см. js/config.js). Пусто/не задан — работаем на моках выше, что
+  // удобно для разработки фронта и для демо на GitHub Pages без бэкенда.
+  // Задан — данные читаются из Cloudflare Worker (worker/index.js),
+  // который сам тянет их из Google Sheet. Экраны вызывают только
+  // TourData.* и не знают, какой источник активен.
+  // ---------------------------------------------------------------------
+  var API_BASE = (global.TURON_CONFIG && global.TURON_CONFIG.apiBaseUrl) || "";
+
+  function apiGet(path) {
+    return fetch(API_BASE + path).then(function (r) {
+      if (!r.ok) throw new Error("API error " + r.status + " on " + path);
+      return r.json();
+    });
+  }
+
+  var toursPromise = null;
+  var excursionsPromise = null;
+  var insurancePromise = null;
+
+  function loadTours() {
+    if (!toursPromise) {
+      toursPromise = API_BASE ? apiGet("/api/tours") : Promise.resolve(TOURS.slice());
+    }
+    return toursPromise;
+  }
+
+  function loadExcursions() {
+    if (!excursionsPromise) {
+      excursionsPromise = API_BASE ? apiGet("/api/excursions") : Promise.resolve(EXCURSIONS.slice());
+    }
+    return excursionsPromise;
+  }
+
+  function loadInsurancePlans() {
+    if (!insurancePromise) {
+      insurancePromise = API_BASE ? apiGet("/api/insurance") : Promise.resolve(INSURANCE_PLANS.slice());
+    }
+    return insurancePromise;
+  }
+
+  var TourData = {
+    ROOM_TYPES: ROOM_TYPES,
+    HOTEL_CATEGORIES: HOTEL_CATEGORIES,
+
+    getTours: function (filters) {
+      filters = filters || {};
+      return loadTours().then(function (all) {
+        var list = all.slice();
+        if (filters.country) {
+          list = list.filter(function (t) { return t.country === filters.country; });
+        }
+        if (filters.query) {
+          var q = filters.query.toLowerCase();
+          list = list.filter(function (t) {
+            return t.title.toLowerCase().indexOf(q) !== -1 ||
+              t.cities.join(" ").toLowerCase().indexOf(q) !== -1;
+          });
+        }
+        if (filters.dateFrom) {
+          list = list.filter(function (t) {
+            return t.departures.some(function (d) { return d.date_start >= filters.dateFrom; });
+          });
+        }
+        return list;
+      });
+    },
+
+    getTourBySlug: function (slug) {
+      return loadTours().then(function (all) {
+        return all.filter(function (t) { return t.slug === slug; })[0] || null;
+      });
+    },
+
+    getExcursionsByIds: function (ids) {
+      var set = {};
+      (ids || []).forEach(function (id) { set[id] = true; });
+      return loadExcursions().then(function (all) {
+        return all.filter(function (e) { return set[e.id]; });
+      });
+    },
+
+    getAllExcursions: function () {
+      return loadExcursions();
+    },
+
+    getInsurancePlans: function () {
+      return loadInsurancePlans();
+    },
+
+    getCountries: function () {
+      return loadTours().then(function (all) {
+        var seen = {};
+        all.forEach(function (t) { seen[t.country] = true; });
+        return Object.keys(seen);
+      });
+    },
+
+    // Без API_BASE заявка складывается в localStorage (демо-режим).
+    // С настроенным Worker'ом — POST на /api/bookings, который дописывает
+    // строку в лист "Заявки" Google Sheet.
+    submitBooking: function (booking) {
+      if (API_BASE) {
+        return fetch(API_BASE + "/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(booking),
+        }).then(function (r) {
+          if (!r.ok) throw new Error("Booking API error " + r.status);
+          return r.json();
+        });
+      }
+      try {
+        var key = "turon_bookings";
+        var existing = JSON.parse(localStorage.getItem(key) || "[]");
+        booking.booking_id = "TT-" + Date.now().toString(36).toUpperCase();
+        booking.created_at = new Date().toISOString();
+        existing.push(booking);
+        localStorage.setItem(key, JSON.stringify(existing));
+        return Promise.resolve(booking);
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    },
+  };
+
+  global.TourData = TourData;
+})(window);
+
+</script>
+<script>
+/*
+ * Общая логика расчёта цены тура. Используется страницей поиска (для
+ * "цена от") и карточкой тура/бронирования (для live-пересчёта).
+ */
+(function (global) {
+  "use strict";
+
+  // Целые суммы показываем без копеек, дробные (например, тариф страховки
+  // 2.5 в день) — с двумя знаками, иначе округление врёт клиенту о цене.
+  function formatMoney(amount, currency) {
+    currency = currency || "USD";
+    var symbols = { USD: "$", EUR: "€", RUB: "₽", AED: "AED " };
+    var sym = symbols[currency] || currency + " ";
+    var isWhole = Math.abs(amount - Math.round(amount)) < 0.005;
+    return sym + amount.toLocaleString("ru-RU", {
+      minimumFractionDigits: isWhole ? 0 : 2,
+      maximumFractionDigits: isWhole ? 0 : 2,
+    });
+  }
+
+  // Минимальная цена за человека по всему тур-матриксу (для карточки поиска)
+  function minPricePerPerson(tour) {
+    var min = Infinity;
+    Object.keys(tour.price_matrix || {}).forEach(function (category) {
+      var byRoom = tour.price_matrix[category];
+      Object.keys(byRoom).forEach(function (roomType) {
+        var bySeason = byRoom[roomType];
+        Object.keys(bySeason).forEach(function (season) {
+          if (bySeason[season] < min) min = bySeason[season];
+        });
+      });
+    });
+    return min === Infinity ? null : min;
+  }
+
+  function pricePerPerson(tour, hotelCategory, roomType, seasonCode) {
+    var byCategory = tour.price_matrix && tour.price_matrix[hotelCategory];
+    var byRoom = byCategory && byCategory[roomType];
+    var price = byRoom && byRoom[seasonCode];
+    return typeof price === "number" ? price : null;
+  }
+
+  // Итоговый расчёт бронирования: база (проживание) * туристов +
+  // доп.услуги/модули (выбранные, за человека) + страховка (за
+  // человека за день тура).
+  function calculateTotal(opts) {
+    var tour = opts.tour;
+    var hotelCategory = opts.hotelCategory;
+    var roomType = opts.roomType;
+    var seasonCode = opts.seasonCode;
+    var travelersCount = opts.travelersCount || 1;
+    var selectedExcursionIds = opts.selectedExcursionIds || [];
+    var allExcursions = opts.allExcursions || [];
+    var selectedModuleIds = opts.selectedModuleIds || [];
+    var insurancePlan = opts.insurancePlan || null;
+
+    // Если в матрице нет такой комбинации (категория × размещение × сезон),
+    // считать базу нулём нельзя — иначе клиент увидит цену только за
+    // допуслуги и решит, что тур стоит $200. Отдаём флаг наверх, чтобы UI
+    // показал «цена по запросу» и не дал отправить заявку.
+    var base = pricePerPerson(tour, hotelCategory, roomType, seasonCode);
+    var priceAvailable = base !== null;
+    var baseTotal = (base || 0) * travelersCount;
+
+    var excursionsTotal = 0;
+    selectedExcursionIds.forEach(function (id) {
+      var ex = allExcursions.filter(function (e) { return e.id === id; })[0];
+      if (ex) excursionsTotal += ex.price_per_person * travelersCount;
+    });
+
+    var modulesTotal = 0;
+    (tour.optional_modules || []).forEach(function (mod) {
+      if (selectedModuleIds.indexOf(mod.id) !== -1) {
+        modulesTotal += mod.price_per_person * travelersCount;
+      }
+    });
+
+    var insuranceTotal = 0;
+    if (insurancePlan) {
+      insuranceTotal = insurancePlan.price_per_person_per_day * tour.duration_days * travelersCount;
+    }
+
+    return {
+      priceAvailable: priceAvailable,
+      base: baseTotal,
+      excursions: excursionsTotal,
+      modules: modulesTotal,
+      insurance: insuranceTotal,
+      total: baseTotal + excursionsTotal + modulesTotal + insuranceTotal,
+    };
+  }
+
+  global.TourPricing = {
+    formatMoney: formatMoney,
+    minPricePerPerson: minPricePerPerson,
+    pricePerPerson: pricePerPerson,
+    calculateTotal: calculateTotal,
+  };
+})(window);
+
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var toursGrid = document.getElementById("tours-grid");
+  var excursionsGrid = document.getElementById("excursions-grid");
+  var form = document.getElementById("search-form");
+  var countrySelect = document.getElementById("f-country");
+  var queryInput = document.getElementById("f-query");
+  var dateInput = document.getElementById("f-date");
+  var tabs = document.querySelectorAll(".tt-tab");
+  var panels = { tours: document.getElementById("panel-tours"), excursions: document.getElementById("panel-excursions") };
+
+  function tourCardHtml(tour) {
+    var minPrice = TourPricing.minPricePerPerson(tour);
+    var priceHtml = minPrice
+      ? TourPricing.formatMoney(minPrice) + " <small>/ чел.</small>"
+      : "цена по запросу";
+    var badge = tour.is_constructor ? "Тур-конструктор" : "Групповой заезд";
+    return (
+      '<article class="tt-card">' +
+        '<div class="tt-card-cover">' + tour.cities.join(" · ") + "</div>" +
+        '<div class="tt-card-body">' +
+          '<span class="tt-badge">' + badge + "</span>" +
+          '<div class="tt-card-title">' + tour.title + "</div>" +
+          '<div class="tt-card-meta">' + tour.duration_days + " дней / " + tour.duration_nights + " ночей &middot; " + tour.country + "</div>" +
+          '<div class="tt-card-desc">' + tour.short_description + "</div>" +
+          '<div class="tt-card-price">' + priceHtml + "</div>" +
+        "</div>" +
+        '<div class="tt-card-footer">' +
+          '<a class="tt-btn" style="display:block;text-align:center;text-decoration:none" href="tour.html?slug=' + encodeURIComponent(tour.slug) + '">Подробнее</a>' +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function excursionCardHtml(ex) {
+    return (
+      '<article class="tt-card">' +
+        '<div class="tt-card-cover">Экскурсия</div>' +
+        '<div class="tt-card-body">' +
+          '<div class="tt-card-title">' + ex.title + "</div>" +
+          '<div class="tt-card-meta">' + ex.duration_hours + " ч &middot; мин. группа " + ex.min_group + " чел.</div>" +
+          '<div class="tt-card-desc">' + ex.description + "</div>" +
+          '<div class="tt-card-price">' + TourPricing.formatMoney(ex.price_per_person) + " <small>/ чел.</small></div>" +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function renderTours(list) {
+    if (!list.length) {
+      toursGrid.innerHTML = '<div class="tt-empty-state">Ничего не найдено. Попробуйте изменить параметры поиска.</div>';
+      return;
+    }
+    toursGrid.innerHTML = list.map(tourCardHtml).join("");
+  }
+
+  function renderExcursions(list) {
+    excursionsGrid.innerHTML = list.map(excursionCardHtml).join("");
+  }
+
+  function runSearch() {
+    TourData.getTours({
+      query: queryInput.value.trim(),
+      country: countrySelect.value,
+      dateFrom: dateInput.value,
+    }).then(renderTours).catch(function (err) {
+      toursGrid.innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить туры.' +
+        '<div class="tt-muted-note">' + (err && err.message ? err.message : "Проверьте соединение и обновите страницу.") + "</div></div>";
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    runSearch();
+  });
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.classList.remove("is-active"); });
+      tab.classList.add("is-active");
+      Object.keys(panels).forEach(function (key) {
+        panels[key].hidden = key !== tab.dataset.tab;
+      });
+    });
+  });
+
+  TourData.getCountries().then(function (countries) {
+    countries.forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      countrySelect.appendChild(opt);
+    });
+  }).catch(function () {
+    // список стран не критичен: поиск работает и с "Все страны"
+  });
+
+  TourData.getAllExcursions().then(renderExcursions).catch(function () {
+    excursionsGrid.innerHTML = '<div class="tt-empty-state">Не удалось загрузить экскурсии.</div>';
+  });
+  runSearch();
+})();
+
+</script>
+<script type="text/plain" id="tour-source">
+(function () {
+  "use strict";
+
+  var content = document.getElementById("tour-content");
+
+  var state = {
+    tour: null,
+    excursions: [],
+    insurancePlans: [],
+    departureIndex: 0,
+    hotelCategory: null,
+    roomType: "DBL",
+    travelersCount: 2,
+    selectedExcursionIds: [],
+    selectedModuleIds: [],
+    insurancePlanId: "",
+  };
+
+  function qs(name) {
+    var params = new URLSearchParams(window.__PREVIEW_QS || window.location.search);
+    return params.get(name);
+  }
+
+  function dayListHtml(program) {
+    return program.map(function (d) {
+      return (
+        '<div class="tt-day-item">' +
+          '<div class="tt-day-num">' + d.day + "</div>" +
+          '<div>' +
+            '<div class="tt-day-title">' + d.title + "</div>" +
+            '<div class="tt-day-desc">' + d.description + "</div>" +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function listHtml(className, items) {
+    return '<ul class="' + className + '">' + items.map(function (i) { return "<li>" + i + "</li>"; }).join("") + "</ul>";
+  }
+
+  function departureLabel(dep) {
+    var opts = { day: "2-digit", month: "short" };
+    var start = new Date(dep.date_start).toLocaleDateString("ru-RU", opts);
+    var end = new Date(dep.date_end).toLocaleDateString("ru-RU", opts);
+    return start + " — " + end;
+  }
+
+  function optionsForDepartures(tour) {
+    return tour.departures.map(function (dep, i) {
+      return '<option value="' + i + '">' + departureLabel(dep) + "</option>";
+    }).join("");
+  }
+
+  function optionsForHotels(tour) {
+    return tour.hotels.map(function (h) {
+      return '<option value="' + h.category + '">' + TourData.HOTEL_CATEGORIES[h.category] + " — " + h.name + "</option>";
+    }).join("");
+  }
+
+  function optionsForRoomTypes() {
+    return Object.keys(TourData.ROOM_TYPES).map(function (code) {
+      return '<option value="' + code + '">' + TourData.ROOM_TYPES[code] + "</option>";
+    }).join("");
+  }
+
+  function excursionsOrModulesHtml(tour, excursions) {
+    if (tour.is_constructor && tour.optional_modules && tour.optional_modules.length) {
+      var modulesRows = tour.optional_modules.map(function (mod) {
+        return (
+          '<label class="tt-option-row">' +
+            '<input type="checkbox" data-role="module" value="' + mod.id + '" />' +
+            '<span>' +
+              '<div class="tt-option-title">' + mod.title + "</div>" +
+              '<div class="tt-option-desc">Мин. группа: ' + mod.min_group + " чел.</div>" +
+            "</span>" +
+            '<span class="tt-option-price">' + TourPricing.formatMoney(mod.price_per_person) + " / чел.</span>" +
+          "</label>"
+        );
+      }).join("");
+      return '<section class="tt-section"><h2>Модули тур-конструктора</h2>' + modulesRows + "</section>";
+    }
+    if (excursions.length) {
+      var rows = excursions.map(function (ex) {
+        return (
+          '<label class="tt-option-row">' +
+            '<input type="checkbox" data-role="excursion" value="' + ex.id + '" />' +
+            '<span>' +
+              '<div class="tt-option-title">' + ex.title + "</div>" +
+              '<div class="tt-option-desc">' + ex.description + " &middot; мин. группа " + ex.min_group + " чел.</div>" +
+            "</span>" +
+            '<span class="tt-option-price">' + TourPricing.formatMoney(ex.price_per_person) + " / чел.</span>" +
+          "</label>"
+        );
+      }).join("");
+      return '<section class="tt-section"><h2>Дополнительные экскурсии</h2>' + rows + "</section>";
+    }
+    return "";
+  }
+
+  function insuranceHtml(plans) {
+    var rows = plans.map(function (p) {
+      return (
+        '<label class="tt-option-row">' +
+          '<input type="radio" name="insurance" data-role="insurance" value="' + p.id + '" />' +
+          '<span>' +
+            '<div class="tt-option-title">' + p.title + "</div>" +
+            '<div class="tt-option-desc">Покрытие ' + p.coverage + "</div>" +
+          "</span>" +
+          '<span class="tt-option-price">' + TourPricing.formatMoney(p.price_per_person_per_day) + " / чел. в день</span>" +
+        "</label>"
+      );
+    }).join("");
+    rows += (
+      '<label class="tt-option-row">' +
+        '<input type="radio" name="insurance" data-role="insurance" value="" checked />' +
+        '<span><div class="tt-option-title">Без страховки</div></span>' +
+      "</label>"
+    );
+    return '<section class="tt-section"><h2>Медицинская страховка</h2>' + rows + "</section>";
+  }
+
+  function renderPage() {
+    var tour = state.tour;
+    var badge = tour.is_constructor ? "Тур-конструктор" : "Групповой заезд";
+
+    content.innerHTML =
+      '<div class="tt-tour-hero">' +
+        '<span class="tt-badge">' + badge + "</span>" +
+        "<h1>" + tour.title + "</h1>" +
+        '<div class="tt-card-meta">' + tour.cities.join(" · ") + " &middot; " + tour.duration_days + " дней / " + tour.duration_nights + " ночей</div>" +
+        "<p>" + tour.short_description + "</p>" +
+      "</div>" +
+      '<div class="tt-layout">' +
+        '<div class="tt-main-col">' +
+          '<section class="tt-section"><h2>Программа по дням</h2>' + dayListHtml(tour.program) + "</section>" +
+          '<section class="tt-section"><h2>Проживание</h2><ul class="tt-list-check">' +
+            tour.hotels.map(function (h) { return "<li>" + TourData.HOTEL_CATEGORIES[h.category] + ": " + h.name + "</li>"; }).join("") +
+          "</ul></section>" +
+          '<div class="tt-two-col">' +
+            '<section class="tt-section"><h2>Включено</h2>' + listHtml("tt-list-check", tour.included) + "</section>" +
+            '<section class="tt-section"><h2>Не включено</h2>' + listHtml("tt-list-cross", tour.excluded) + "</section>" +
+          "</div>" +
+          '<section class="tt-section"><h2>Документы для визы</h2>' + listHtml("tt-list-check", tour.visa_documents) + "</section>" +
+          excursionsOrModulesHtml(tour, state.excursions) +
+          insuranceHtml(state.insurancePlans) +
+          '<section class="tt-section" id="booking-section"><h2>Данные туристов</h2><div id="travelers-list"></div>' +
+            '<div class="tt-field-full"><label>Имя контактного лица</label><input type="text" id="contact-name" placeholder="Как к вам обращаться" /></div>' +
+            '<div class="tt-form-grid">' +
+              '<div><label>Телефон</label><input type="tel" id="contact-phone" placeholder="+998 90 123 45 67" /></div>' +
+              '<div><label>Email</label><input type="email" id="contact-email" placeholder="you@example.com" /></div>' +
+            "</div>" +
+            '<button class="tt-btn" id="submit-booking" style="margin-top:14px">Отправить заявку</button>' +
+            '<div id="booking-result"></div>' +
+          "</section>" +
+        "</div>" +
+        '<aside class="tt-sidebar">' +
+          '<div class="tt-price-box">' +
+            '<div class="tt-field"><label>Дата заезда</label><select id="sel-departure">' + optionsForDepartures(tour) + "</select></div>" +
+            '<div class="tt-field"><label>Категория отеля</label><select id="sel-hotel">' + optionsForHotels(tour) + "</select></div>" +
+            '<div class="tt-field"><label>Тип размещения</label><select id="sel-room">' + optionsForRoomTypes() + "</select></div>" +
+            '<div class="tt-field"><label>Туристов</label>' +
+              '<div class="tt-stepper"><button type="button" id="travelers-minus">−</button><span id="travelers-count">2</span><button type="button" id="travelers-plus">+</button></div>' +
+            "</div>" +
+            '<div id="price-breakdown" style="margin-top:14px"></div>' +
+          "</div>" +
+        "</aside>" +
+      "</div>";
+
+    // Defaults
+    state.hotelCategory = tour.hotels[0].category;
+    document.getElementById("sel-room").value = state.roomType;
+
+    bindEvents();
+    renderTravelerForms();
+    updatePriceBox();
+  }
+
+  function currentSeasonCode() {
+    return state.tour.departures[state.departureIndex].season_code;
+  }
+
+  function updatePriceBox() {
+    var breakdown = TourPricing.calculateTotal({
+      tour: state.tour,
+      hotelCategory: state.hotelCategory,
+      roomType: state.roomType,
+      seasonCode: currentSeasonCode(),
+      travelersCount: state.travelersCount,
+      selectedExcursionIds: state.selectedExcursionIds,
+      allExcursions: state.excursions,
+      selectedModuleIds: state.selectedModuleIds,
+      insurancePlan: state.insurancePlans.filter(function (p) { return p.id === state.insurancePlanId; })[0] || null,
+    });
+
+    var submitBtn = document.getElementById("submit-booking");
+
+    if (!breakdown.priceAvailable) {
+      document.getElementById("price-breakdown").innerHTML =
+        '<div class="tt-price-total"><span>Цена</span><span>по запросу</span></div>' +
+        '<p class="tt-muted-note">Для этой комбинации даты, категории отеля и размещения ' +
+        "цена не задана. Свяжитесь с менеджером — рассчитаем индивидуально.</p>";
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
+    if (submitBtn) submitBtn.disabled = false;
+
+    var rows = "";
+    rows += '<div class="tt-price-row"><span>Проживание (' + state.travelersCount + ' чел.)</span><span>' + TourPricing.formatMoney(breakdown.base) + "</span></div>";
+    if (breakdown.excursions > 0) rows += '<div class="tt-price-row"><span>Экскурсии</span><span>' + TourPricing.formatMoney(breakdown.excursions) + "</span></div>";
+    if (breakdown.modules > 0) rows += '<div class="tt-price-row"><span>Модули</span><span>' + TourPricing.formatMoney(breakdown.modules) + "</span></div>";
+    if (breakdown.insurance > 0) rows += '<div class="tt-price-row"><span>Страховка</span><span>' + TourPricing.formatMoney(breakdown.insurance) + "</span></div>";
+    rows += '<div class="tt-price-total"><span>Итого</span><span>' + TourPricing.formatMoney(breakdown.total) + "</span></div>";
+
+    document.getElementById("price-breakdown").innerHTML = rows;
+  }
+
+  function travelerCardHtml(index) {
+    return (
+      '<div class="tt-traveler-card" data-traveler="' + index + '">' +
+        "<h3>Турист " + (index + 1) + "</h3>" +
+        '<div class="tt-form-grid">' +
+          '<div><label>ФИО (как в паспорте)</label><input type="text" data-field="full_name" /></div>' +
+          '<div><label>Гражданство</label><input type="text" data-field="citizenship" /></div>' +
+          '<div><label>Дата рождения</label><input type="date" data-field="dob" /></div>' +
+          '<div><label>Номер загранпаспорта</label><input type="text" data-field="passport_number" /></div>' +
+          '<div><label>Срок действия паспорта</label><input type="date" data-field="passport_expiry" /></div>' +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function renderTravelerForms() {
+    var list = document.getElementById("travelers-list");
+    var existing = {};
+    list.querySelectorAll(".tt-traveler-card").forEach(function (card) {
+      var idx = card.dataset.traveler;
+      var data = {};
+      card.querySelectorAll("[data-field]").forEach(function (input) {
+        data[input.dataset.field] = input.value;
+      });
+      existing[idx] = data;
+    });
+
+    var html = "";
+    for (var i = 0; i < state.travelersCount; i++) html += travelerCardHtml(i);
+    list.innerHTML = html;
+
+    // restore values that survive a resize of the travelers list
+    Object.keys(existing).forEach(function (idx) {
+      var card = list.querySelector('[data-traveler="' + idx + '"]');
+      if (!card) return;
+      Object.keys(existing[idx]).forEach(function (field) {
+        var input = card.querySelector('[data-field="' + field + '"]');
+        if (input) input.value = existing[idx][field];
+      });
+    });
+  }
+
+  function collectTravelers() {
+    var cards = document.querySelectorAll("#travelers-list .tt-traveler-card");
+    var travelers = [];
+    cards.forEach(function (card) {
+      var t = {};
+      card.querySelectorAll("[data-field]").forEach(function (input) {
+        t[input.dataset.field] = input.value.trim();
+      });
+      travelers.push(t);
+    });
+    return travelers;
+  }
+
+  function bindEvents() {
+    document.getElementById("sel-departure").addEventListener("change", function (e) {
+      state.departureIndex = Number(e.target.value);
+      updatePriceBox();
+    });
+    document.getElementById("sel-hotel").addEventListener("change", function (e) {
+      state.hotelCategory = e.target.value;
+      updatePriceBox();
+    });
+    document.getElementById("sel-room").addEventListener("change", function (e) {
+      state.roomType = e.target.value;
+      updatePriceBox();
+    });
+    document.getElementById("travelers-minus").addEventListener("click", function () {
+      if (state.travelersCount > 1) state.travelersCount--;
+      document.getElementById("travelers-count").textContent = state.travelersCount;
+      renderTravelerForms();
+      updatePriceBox();
+    });
+    document.getElementById("travelers-plus").addEventListener("click", function () {
+      if (state.travelersCount < 10) state.travelersCount++;
+      document.getElementById("travelers-count").textContent = state.travelersCount;
+      renderTravelerForms();
+      updatePriceBox();
+    });
+
+    content.addEventListener("change", function (e) {
+      var role = e.target.dataset.role;
+      if (role === "excursion") {
+        var id = e.target.value;
+        var idx = state.selectedExcursionIds.indexOf(id);
+        if (e.target.checked && idx === -1) state.selectedExcursionIds.push(id);
+        if (!e.target.checked && idx !== -1) state.selectedExcursionIds.splice(idx, 1);
+        updatePriceBox();
+      }
+      if (role === "module") {
+        var mid = e.target.value;
+        var midx = state.selectedModuleIds.indexOf(mid);
+        if (e.target.checked && midx === -1) state.selectedModuleIds.push(mid);
+        if (!e.target.checked && midx !== -1) state.selectedModuleIds.splice(midx, 1);
+        updatePriceBox();
+      }
+      if (role === "insurance") {
+        state.insurancePlanId = e.target.value;
+        updatePriceBox();
+      }
+    });
+
+    document.getElementById("submit-booking").addEventListener("click", onSubmitBooking);
+  }
+
+  function onSubmitBooking() {
+    var travelers = collectTravelers();
+    var incomplete = travelers.some(function (t) { return !t.full_name || !t.citizenship || !t.passport_number; });
+    var contactName = document.getElementById("contact-name").value.trim();
+    var contactPhone = document.getElementById("contact-phone").value.trim();
+    var resultBox = document.getElementById("booking-result");
+
+    if (incomplete || !contactName || !contactPhone) {
+      resultBox.innerHTML = '<p class="tt-muted-note" style="color:#b5453a">Заполните ФИО, гражданство и номер паспорта для каждого туриста, а также имя и телефон контактного лица.</p>';
+      return;
+    }
+
+    var breakdown = TourPricing.calculateTotal({
+      tour: state.tour,
+      hotelCategory: state.hotelCategory,
+      roomType: state.roomType,
+      seasonCode: currentSeasonCode(),
+      travelersCount: state.travelersCount,
+      selectedExcursionIds: state.selectedExcursionIds,
+      allExcursions: state.excursions,
+      selectedModuleIds: state.selectedModuleIds,
+      insurancePlan: state.insurancePlans.filter(function (p) { return p.id === state.insurancePlanId; })[0] || null,
+    });
+
+    var booking = {
+      tour_id: state.tour.id,
+      tour_title: state.tour.title,
+      departure: state.tour.departures[state.departureIndex],
+      hotel_category: state.hotelCategory,
+      room_type: state.roomType,
+      travelers: travelers,
+      selected_excursion_ids: state.selectedExcursionIds.slice(),
+      selected_module_ids: state.selectedModuleIds.slice(),
+      insurance_plan_id: state.insurancePlanId || null,
+      total_price: breakdown.total,
+      contact_name: contactName,
+      contact_phone: contactPhone,
+      contact_email: document.getElementById("contact-email").value.trim(),
+    };
+
+    document.getElementById("submit-booking").disabled = true;
+    TourData.submitBooking(booking).then(function (saved) {
+      resultBox.innerHTML =
+        '<div class="tt-success-box">' +
+          "<h2>Заявка отправлена!</h2>" +
+          "<p>Номер заявки: <strong>" + saved.booking_id + "</strong></p>" +
+          "<p>Итоговая сумма: <strong>" + TourPricing.formatMoney(saved.total_price) + "</strong></p>" +
+          "<p>Менеджер свяжется с вами по телефону " + saved.contact_phone + " для подтверждения.</p>" +
+        "</div>";
+    }).catch(function () {
+      document.getElementById("submit-booking").disabled = false;
+      resultBox.innerHTML = '<p class="tt-muted-note" style="color:#b5453a">Не удалось отправить заявку, попробуйте ещё раз.</p>';
+    });
+  }
+
+  function init() {
+    var slug = qs("slug");
+    if (!slug) {
+      content.innerHTML = '<div class="tt-empty-state">Тур не указан.</div>';
+      return;
+    }
+    Promise.all([
+      TourData.getTourBySlug(slug),
+      TourData.getInsurancePlans(),
+    ]).then(function (res) {
+      var tour = res[0];
+      state.insurancePlans = res[1];
+      if (!tour) {
+        content.innerHTML = '<div class="tt-empty-state">Тур не найден.</div>';
+        return;
+      }
+      state.tour = tour;
+      return TourData.getExcursionsByIds(tour.excursion_ids || []).then(function (excursions) {
+        state.excursions = excursions;
+        renderPage();
+      });
+    }).catch(function (err) {
+      content.innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить данные тура.' +
+        '<div class="tt-muted-note">' + (err && err.message ? err.message : "Проверьте соединение и обновите страницу.") + "</div></div>";
+    });
+  }
+
+  init();
+})();
+
+</script>
+<script>
+// Шим превью: склеивает две страницы сайта в одну.
+(function () {
+  "use strict";
+  var searchView = document.getElementById("view-search");
+  var tourView = document.getElementById("view-tour");
+  var tourSource = document.getElementById("tour-source").textContent;
+
+  function showSearch() {
+    tourView.hidden = true;
+    searchView.hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  function openTour(slug) {
+    window.__PREVIEW_QS = "?slug=" + encodeURIComponent(slug);
+    // сбрасываем контейнер и заново выполняем tour.js — он сам отрисует
+    // карточку выбранного тура, как при обычном переходе на tour.html
+    tourView.querySelector("#tour-content").innerHTML =
+      '<div class="tt-empty-state">Загрузка тура…</div>';
+    searchView.hidden = true;
+    tourView.hidden = false;
+    window.scrollTo(0, 0);
+    var s = document.createElement("script");
+    s.textContent = tourSource;
+    document.body.appendChild(s);
+    document.body.removeChild(s);
+  }
+
+  document.addEventListener("click", function (e) {
+    var toTour = e.target.closest('a[href^="tour.html"]');
+    if (toTour) {
+      e.preventDefault();
+      var slug = new URL(toTour.getAttribute("href"), "https://example.invalid/")
+        .searchParams.get("slug");
+      if (slug) openTour(slug);
+      return;
+    }
+    var toSearch = e.target.closest('a[href="index.html"]');
+    if (toSearch) {
+      e.preventDefault();
+      showSearch();
+    }
+  });
+})();
+</script>
