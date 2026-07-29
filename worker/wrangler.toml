@@ -1,0 +1,8 @@
+name = "turon-tour-api"
+main = "index.js"
+compatibility_date = "2024-11-01"
+
+# Секреты (НЕ храните их здесь, задавайте через `wrangler secret put <имя>`):
+#   GOOGLE_SERVICE_ACCOUNT_EMAIL
+#   GOOGLE_PRIVATE_KEY
+#   SHEET_ID
