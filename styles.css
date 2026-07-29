@@ -251,213 +251,343 @@ a { color: inherit; }
   padding: 60px 20px;
 }
 
-/* ---------- Tour card / booking page ---------- */
 
-.tt-tour-hero {
-  background: var(--tt-surface);
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius);
-  box-shadow: var(--tt-shadow);
-  padding: 24px;
-  margin-bottom: 24px;
-}
-.tt-tour-hero h1 { margin: 4px 0 10px; }
+/* ======================= Кабинет агентства ======================= */
 
-.tt-layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 24px;
-  align-items: start;
-}
-@media (max-width: 900px) {
-  .tt-layout { grid-template-columns: 1fr; }
-}
+.tt-btn-sm { padding: 7px 14px; font-size: 0.85rem; }
 
-.tt-section {
-  background: var(--tt-surface);
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius);
-  box-shadow: var(--tt-shadow);
-  padding: 20px;
-  margin-bottom: 18px;
-}
-.tt-section h2 { margin-top: 0; font-size: 1.1rem; }
-
-.tt-day-item {
-  display: flex;
-  gap: 14px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--tt-border);
-}
-.tt-day-item:last-child { border-bottom: none; }
-.tt-day-num {
-  flex: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+.tt-header-right { display: flex; align-items: center; gap: 12px; }
+.tt-agency-chip {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
   background: var(--tt-accent-soft);
   color: var(--tt-accent-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-.tt-day-title { font-weight: 600; margin-bottom: 2px; }
-.tt-day-desc { font-size: 0.88rem; color: var(--tt-text-muted); }
-
-.tt-list-check, .tt-list-cross {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-.tt-list-check li::before { content: "✓ "; color: var(--tt-success); font-weight: 700; }
-.tt-list-cross li::before { content: "✕ "; color: #b5453a; font-weight: 700; }
-
-.tt-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-@media (max-width: 640px) { .tt-two-col { grid-template-columns: 1fr; } }
-
-.tt-option-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--tt-border);
-}
-.tt-option-row:last-child { border-bottom: none; }
-.tt-option-row input { margin-top: 4px; }
-.tt-option-title { font-weight: 600; font-size: 0.92rem; }
-.tt-option-desc { font-size: 0.82rem; color: var(--tt-text-muted); }
-.tt-option-price { margin-left: auto; font-weight: 700; color: var(--tt-accent-dark); white-space: nowrap; }
-
-/* Sticky price/booking sidebar */
-.tt-sidebar {
-  position: sticky;
-  top: 90px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
-.tt-price-box {
-  background: var(--tt-surface);
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius);
-  box-shadow: var(--tt-shadow);
-  padding: 20px;
-}
+.tt-muted-note { font-size: 0.8rem; color: var(--tt-text-muted); }
 
-.tt-price-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.88rem;
-  padding: 5px 0;
-  color: var(--tt-text-muted);
-}
-.tt-price-total {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.25rem;
-  font-weight: 700;
-  padding-top: 10px;
-  margin-top: 6px;
-  border-top: 1px solid var(--tt-border);
-}
-
-.tt-stepper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.tt-stepper button {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid var(--tt-border);
-  background: var(--tt-bg);
-  color: var(--tt-text);
-  font-size: 1rem;
-  cursor: pointer;
-}
-.tt-stepper span { min-width: 20px; text-align: center; font-weight: 600; }
-
-.tt-traveler-card {
-  border: 1px solid var(--tt-border);
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.tt-traveler-card h3 { margin: 0 0 10px; font-size: 0.95rem; }
-
-.tt-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 520px) { .tt-form-grid { grid-template-columns: 1fr; } }
-
-.tt-form-grid label,
+.tt-field-full { margin-bottom: 14px; text-align: left; }
 .tt-field-full label {
   display: block;
   font-size: 0.78rem;
   color: var(--tt-text-muted);
+  margin-bottom: 5px;
+}
+.tt-field-full input,
+.tt-field-full select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-bg);
+  color: var(--tt-text);
+  font-size: 0.95rem;
+}
+
+.tt-error-box {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid #d9a49e;
+  background: #fbecea;
+  color: #8d3229;
+  font-size: 0.85rem;
+  text-align: left;
+}
+@media (prefers-color-scheme: dark) {
+  .tt-error-box { border-color: #6b3b35; background: #3a211e; color: #f0bdb6; }
+}
+:root[data-theme="dark"] .tt-error-box {
+  border-color: #6b3b35; background: #3a211e; color: #f0bdb6;
+}
+:root[data-theme="light"] .tt-error-box {
+  border-color: #d9a49e; background: #fbecea; color: #8d3229;
+}
+
+/* ------------------------------------------------------------- вход */
+.tt-login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.tt-login-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 32px 28px;
+  text-align: center;
+}
+.tt-login-card .tt-muted-note { margin: 4px 0 22px; }
+.tt-login-card .tt-btn { width: 100%; }
+.tt-login-card #demo-hint {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tt-border);
+  line-height: 1.7;
+}
+
+/* -------------------------------------------------------- фильтры */
+.tt-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.tt-toolbar .tt-field { min-width: 190px; }
+.tt-check-inline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  color: var(--tt-text-muted);
+  padding-bottom: 10px;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------- заезды */
+.tt-dep {
+  display: grid;
+  grid-template-columns: 190px 1fr 170px 150px;
+  gap: 18px;
+  align-items: center;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-left: 3px solid var(--tt-success);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.tt-dep.is-low { border-left-color: var(--tt-warn-border); }
+.tt-dep.is-full { border-left-color: var(--tt-border); opacity: 0.62; }
+
+@media (max-width: 860px) {
+  .tt-dep { grid-template-columns: 1fr; gap: 12px; }
+}
+
+.tt-dep-date strong { font-size: 1.05rem; display: block; }
+.tt-dep-code {
+  font-size: 0.75rem;
+  color: var(--tt-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tt-dep-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.tt-badge-info { background: var(--tt-warn-bg); color: var(--tt-warn-text); }
+.tt-badge-off { background: var(--tt-border); color: var(--tt-text-muted); }
+
+.tt-dep-prices { display: flex; flex-wrap: wrap; gap: 6px; }
+.tt-price-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--tt-bg);
+  border: 1px solid var(--tt-border);
+  font-variant-numeric: tabular-nums;
+}
+.tt-price-chip em {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tt-text-muted);
+  letter-spacing: 0.04em;
+}
+.tt-child-prices {
+  flex-basis: 100%;
+  font-size: 0.76rem;
+  color: var(--tt-text-muted);
+  margin-top: 2px;
+}
+
+.tt-seat-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--tt-border);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.tt-seat-bar i { display: block; height: 100%; background: var(--tt-accent); }
+.tt-seat-text { font-size: 0.82rem; color: var(--tt-text-muted); }
+.tt-dep-action { text-align: right; }
+.tt-dep-action .tt-btn { width: 100%; }
+
+/* ------------------------------------------------------ мои брони */
+.tt-booking {
+  display: grid;
+  grid-template-columns: 1fr 260px 130px;
+  gap: 18px;
+  align-items: center;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+@media (max-width: 780px) {
+  .tt-booking { grid-template-columns: 1fr; }
+}
+.tt-booking.is-cancelled { opacity: 0.55; }
+.tt-booking-main { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+.tt-booking-action { text-align: right; }
+
+.tt-sum-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--tt-text-muted);
+  padding: 2px 0;
+  font-variant-numeric: tabular-nums;
+}
+.tt-sum-line.tt-owed strong { color: var(--tt-warn-text); }
+.tt-sum-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px solid var(--tt-border);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------- бронирование */
+/* hidden сам по себе не скрывает элемент, которому задан display:
+   явный display выигрывает, и невидимое окно перехватывает клики */
+.tt-modal[hidden] { display: none; }
+
+.tt-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 50;
+}
+.tt-modal-card {
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+.tt-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-modal-head h2 { margin: 0 0 2px; font-size: 1.15rem; }
+.tt-modal-body { padding: 18px 22px; overflow-y: auto; }
+.tt-modal-foot {
+  padding: 16px 22px;
+  border-top: 1px solid var(--tt-border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.tt-modal-foot > div { flex: 1; min-width: 220px; }
+
+.tt-icon-btn {
+  border: none;
+  background: none;
+  color: var(--tt-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.tt-icon-btn:hover { color: var(--tt-text); }
+
+.tt-pax {
+  border: 1px solid var(--tt-border);
+  border-radius: 11px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.tt-pax-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.92rem;
+}
+.tt-pax-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.tt-pax-grid .tt-col-2 { grid-column: span 2; }
+@media (max-width: 560px) {
+  .tt-pax-grid { grid-template-columns: 1fr; }
+  .tt-pax-grid .tt-col-2 { grid-column: span 1; }
+}
+.tt-pax-grid label {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--tt-text-muted);
   margin-bottom: 4px;
 }
-.tt-form-grid input,
-.tt-form-grid select,
-.tt-field-full input,
-.tt-field-full select,
-.tt-field-full textarea {
+.tt-pax-grid input,
+.tt-pax-grid select {
   width: 100%;
-  padding: 9px 11px;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--tt-border);
   background: var(--tt-bg);
   color: var(--tt-text);
-  font-size: 0.9rem;
-}
-.tt-field-full { margin-bottom: 12px; }
-
-.tt-back-link {
-  display: inline-block;
-  margin-bottom: 14px;
   font-size: 0.88rem;
-  color: var(--tt-accent);
-  text-decoration: none;
 }
-
-.tt-success-box {
-  background: var(--tt-accent-soft);
-  border: 1px solid var(--tt-accent);
-  border-radius: var(--tt-radius);
-  padding: 24px;
-  text-align: center;
+.tt-pax-price {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--tt-border);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
 }
-.tt-success-box h2 { color: var(--tt-accent-dark); margin-top: 0; }
+.tt-pax-tariff { color: var(--tt-text-muted); }
+.tt-price-warn { color: var(--tt-warn-text); }
 
-.tt-muted-note {
-  font-size: 0.8rem;
-  color: var(--tt-text-muted);
-  margin-top: 4px;
+/* ------------------------------------------------------ уведомление */
+.tt-flash {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--tt-text);
+  color: var(--tt-bg);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+  z-index: 80;
+  transition: opacity 0.5s ease;
 }
-
-/* Предупреждения: услуга выбрана, но цену подтвердит менеджер.
-   Не ошибка — поэтому янтарный, а не красный. */
-.tt-warn-box {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 9px;
-  border: 1px solid var(--tt-warn-border);
-  background: var(--tt-warn-bg);
-  color: var(--tt-warn-text);
-  font-size: 0.8rem;
-  text-align: left;
-  display: grid;
-  gap: 6px;
+.tt-flash.is-out { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .tt-flash { transition: none; }
 }

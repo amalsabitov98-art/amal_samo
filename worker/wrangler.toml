@@ -2,7 +2,15 @@ name = "turon-tour-api"
 main = "index.js"
 compatibility_date = "2024-11-01"
 
-# Секреты (НЕ храните их здесь, задавайте через `wrangler secret put <имя>`):
-#   GOOGLE_SERVICE_ACCOUNT_EMAIL
-#   GOOGLE_PRIVATE_KEY
-#   SHEET_ID
+# База агентского кабинета. Создать один раз:
+#   wrangler d1 create turon-tour
+# и подставить выданный database_id сюда.
+[[d1_databases]]
+binding = "DB"
+database_name = "turon-tour"
+database_id = "СЮДА_ID_ИЗ_КОМАНДЫ_d1_create"
+
+# Развёртывание:
+#   wrangler d1 execute turon-tour --remote --file=../db/schema.sql
+#   wrangler d1 execute turon-tour --remote --file=../db/seed.sql
+#   wrangler deploy

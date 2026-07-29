@@ -3,51 +3,98 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turon Tour — авторские туры</title>
+<title>Turon Tour — кабинет агентства</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<header class="tt-header">
-  <div class="tt-logo">Turon <span>Tour</span></div>
-  <div class="tt-muted-note">Авторские туры</div>
-</header>
 
-<main class="tt-container">
-  <div class="tt-tabs">
-    <button class="tt-tab is-active" data-tab="tours">Туры</button>
-    <button class="tt-tab" data-tab="excursions">Экскурсии</button>
+<!-- ------------------------------------------------------------- вход -->
+<section id="screen-login" class="tt-login-screen">
+  <form class="tt-login-card" id="login-form">
+    <div class="tt-logo">Turon <span>Tour</span></div>
+    <p class="tt-muted-note">Кабинет агентства</p>
+    <div class="tt-field-full">
+      <label for="l-login">Логин</label>
+      <input type="text" id="l-login" autocomplete="username" required />
+    </div>
+    <div class="tt-field-full">
+      <label for="l-password">Пароль</label>
+      <input type="password" id="l-password" autocomplete="current-password" required />
+    </div>
+    <button type="submit" class="tt-btn" id="login-btn">Войти</button>
+    <div id="login-error"></div>
+    <div id="demo-hint" class="tt-muted-note" hidden></div>
+  </form>
+</section>
+
+<!-- ------------------------------------------------------------ кабинет -->
+<div id="screen-app" hidden>
+  <header class="tt-header">
+    <div class="tt-logo">Turon <span>Tour</span></div>
+    <div class="tt-header-right">
+      <span id="agency-name" class="tt-agency-chip"></span>
+      <button class="tt-btn secondary tt-btn-sm" id="logout-btn">Выйти</button>
+    </div>
+  </header>
+
+  <main class="tt-container">
+    <div class="tt-tabs">
+      <button class="tt-tab is-active" data-tab="departures">Заезды</button>
+      <button class="tt-tab" data-tab="bookings">Мои брони</button>
+    </div>
+
+    <section id="panel-departures">
+      <div class="tt-toolbar">
+        <div class="tt-field">
+          <label for="f-transport">Транспорт</label>
+          <select id="f-transport">
+            <option value="">Все</option>
+            <option value="TZX">Авиа (Трабзон)</option>
+            <option value="BUS">Автобус</option>
+          </select>
+        </div>
+        <label class="tt-check-inline">
+          <input type="checkbox" id="f-available" checked />
+          Только со свободными местами
+        </label>
+      </div>
+      <div id="departures-list"></div>
+    </section>
+
+    <section id="panel-bookings" hidden>
+      <div id="bookings-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- --------------------------------------------------- окно бронирования -->
+<div id="booking-modal" class="tt-modal" hidden>
+  <div class="tt-modal-card">
+    <div class="tt-modal-head">
+      <div>
+        <h2 id="bm-title">Бронирование</h2>
+        <div class="tt-muted-note" id="bm-sub"></div>
+      </div>
+      <button class="tt-icon-btn" id="bm-close" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="tt-modal-body">
+      <div id="bm-passengers"></div>
+      <button class="tt-btn secondary tt-btn-sm" id="bm-add">+ Добавить пассажира</button>
+      <div class="tt-field-full" style="margin-top:16px">
+        <label for="bm-note">Примечание для менеджера</label>
+        <input type="text" id="bm-note" placeholder="Необязательно" />
+      </div>
+    </div>
+    <div class="tt-modal-foot">
+      <div id="bm-summary"></div>
+      <button class="tt-btn" id="bm-submit">Забронировать</button>
+    </div>
   </div>
-
-  <section id="panel-tours">
-    <form class="tt-search-panel" id="search-form">
-      <div class="tt-field">
-        <label for="f-query">Направление или название тура</label>
-        <input type="text" id="f-query" placeholder="Например, Токио" />
-      </div>
-      <div class="tt-field">
-        <label for="f-country">Страна</label>
-        <select id="f-country">
-          <option value="">Все страны</option>
-        </select>
-      </div>
-      <div class="tt-field">
-        <label for="f-date">Заезд не раньше</label>
-        <input type="date" id="f-date" />
-      </div>
-      <button type="submit" class="tt-btn">Найти</button>
-    </form>
-
-    <div class="tt-results-grid" id="tours-grid"></div>
-  </section>
-
-  <section id="panel-excursions" hidden>
-    <div class="tt-results-grid" id="excursions-grid"></div>
-  </section>
-</main>
+</div>
 
 <script src="js/config.js"></script>
-<script src="js/data.js"></script>
-<script src="js/pricing.js"></script>
-<script src="js/search.js"></script>
+<script src="js/seed-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

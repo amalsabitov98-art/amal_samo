@@ -1,336 +1,342 @@
 /*
- * Turon Tour API — Cloudflare Worker
+ * Turon Tour B2B — API кабинета агентства (Cloudflare Worker + D1).
  *
- * Читает туры/экскурсии/страховки из Google Sheet (сервис-аккаунт,
- * ключ хранится только тут, в секретах воркера) и отдаёт их фронту в
- * формате js/data.js. Заявки на бронирование дописывает в лист "Заявки".
+ * Маршруты:
+ *   POST /api/login          вход по логину/паролю, отдаёт токен сессии
+ *   POST /api/logout         погасить текущую сессию
+ *   GET  /api/me             кто вошёл
+ *   GET  /api/departures     заезды со свободными местами и прайсом
+ *   POST /api/bookings       создать бронь (место занимается сразу)
+ *   GET  /api/bookings       свои брони с оплачено/остаток
+ *   POST /api/bookings/:id/cancel   отменить бронь и вернуть места
  *
- * Структура листов Google Sheet — см. worker/README.md.
- *
- * Секреты/переменные окружения (wrangler secret put ...):
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL
- *   GOOGLE_PRIVATE_KEY   (весь PEM-ключ, включая BEGIN/END строки)
- *   SHEET_ID             (ID таблицы из её URL)
+ * Агентство видит только свои брони: во всех запросах фильтр по agency_id
+ * из сессии, идентификатор из тела запроса никогда не принимается.
  */
 
-const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
-const CACHE_TTL_SECONDS = 300;
+const SESSION_TTL_HOURS = 12;
+const PBKDF2_ITERATIONS = 100000;
 
-function corsHeaders() {
+// ------------------------------------------------------------------ утилиты
+function cors() {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }
 
-function jsonResponse(data, status) {
+function json(data, status) {
   return new Response(JSON.stringify(data), {
     status: status || 200,
-    headers: Object.assign({ "Content-Type": "application/json" }, corsHeaders()),
+    headers: Object.assign({ "Content-Type": "application/json" }, cors()),
   });
 }
 
-// --------------------------------------------------------------------
-// Auth: подпись JWT сервис-аккаунта (RS256) и обмен на access_token
-// --------------------------------------------------------------------
-function base64url(input) {
-  var base64;
-  if (typeof input === "string") {
-    base64 = btoa(input);
-  } else {
-    base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(input)));
-  }
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function fail(message, status) {
+  return json({ error: message }, status || 400);
 }
 
-function pemToArrayBuffer(pem) {
-  var b64 = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\s/g, "");
-  var binary = atob(b64);
-  var bytes = new Uint8Array(binary.length);
-  for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
+function toHex(buf) {
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function importPrivateKey(pem) {
-  return crypto.subtle.importKey(
-    "pkcs8",
-    pemToArrayBuffer(pem),
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"]
+function fromHex(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return bytes;
+}
+
+async function hashPassword(password, saltHex) {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]
   );
-}
-
-async function getAccessToken(env) {
-  var header = { alg: "RS256", typ: "JWT" };
-  var now = Math.floor(Date.now() / 1000);
-  var claim = {
-    iss: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    scope: SHEETS_SCOPE,
-    aud: "https://oauth2.googleapis.com/token",
-    exp: now + 3600,
-    iat: now,
-  };
-  var unsigned = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(claim));
-  var key = await importPrivateKey(env.GOOGLE_PRIVATE_KEY);
-  var signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned)
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: fromHex(saltHex), iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+    key, 256
   );
-  var jwt = unsigned + "." + base64url(signature);
+  return toHex(bits);
+}
 
-  var resp = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body:
-      "grant_type=" + encodeURIComponent("urn:ietf:params:oauth:grant-type:jwt-bearer") +
-      "&assertion=" + jwt,
+// Сравнение за постоянное время: обычное === на секретах даёт утечку по
+// времени ответа, по которой пароль подбирается посимвольно.
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// ------------------------------------------------------------------- сессии
+async function authenticate(request, env) {
+  const header = request.headers.get("Authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) return null;
+  const row = await env.DB.prepare(
+    `SELECT a.id, a.login, a.name, a.channel
+       FROM sessions s JOIN agencies a ON a.id = s.agency_id
+      WHERE s.token = ? AND s.expires_at > datetime('now') AND a.is_active = 1`
+  ).bind(token).first();
+  return row || null;
+}
+
+async function handleLogin(request, env) {
+  const { login, password } = await request.json();
+  if (!login || !password) return fail("Введите логин и пароль");
+
+  const agency = await env.DB.prepare(
+    "SELECT * FROM agencies WHERE login = ? AND is_active = 1"
+  ).bind(String(login).trim().toLowerCase()).first();
+
+  // Один и тот же текст на неизвестный логин и на неверный пароль, чтобы
+  // нельзя было перебором выяснить, какие агентства заведены.
+  const invalid = () => fail("Неверный логин или пароль", 401);
+  if (!agency) {
+    // всё равно считаем хеш: иначе несуществующий логин отвечает заметно
+    // быстрее и его видно по времени ответа
+    await hashPassword(password, "00".repeat(16));
+    return invalid();
+  }
+  const hash = await hashPassword(password, agency.password_salt);
+  if (!safeEqual(hash, agency.password_hash)) return invalid();
+
+  const token = toHex(crypto.getRandomValues(new Uint8Array(32)));
+  await env.DB.prepare(
+    `INSERT INTO sessions (token, agency_id, expires_at)
+     VALUES (?, ?, datetime('now', ?))`
+  ).bind(token, agency.id, `+${SESSION_TTL_HOURS} hours`).run();
+
+  return json({
+    token,
+    agency: { id: agency.id, login: agency.login, name: agency.name, channel: agency.channel },
   });
-  var data = await resp.json();
-  if (!resp.ok) throw new Error("Ошибка получения токена Google: " + JSON.stringify(data));
-  return data.access_token;
 }
 
-// --------------------------------------------------------------------
-// Sheets API helpers
-// --------------------------------------------------------------------
-async function getSheetValues(env, token, range) {
-  var url =
-    "https://sheets.googleapis.com/v4/spreadsheets/" + env.SHEET_ID +
-    "/values/" + encodeURIComponent(range);
-  var resp = await fetch(url, { headers: { Authorization: "Bearer " + token } });
-  var data = await resp.json();
-  if (!resp.ok) throw new Error("Ошибка чтения листа " + range + ": " + JSON.stringify(data));
-  return data.values || [];
+// --------------------------------------------------------------- справочник
+async function listDepartures(env) {
+  const departures = await env.DB.prepare(
+    `SELECT id, code, date_start, transport, is_info_tour, capacity, seats_taken,
+            capacity - seats_taken AS seats_free
+       FROM departures
+      WHERE is_open = 1
+      ORDER BY date_start, transport`
+  ).all();
+
+  const prices = await env.DB.prepare(
+    `SELECT departure_id, code, label, kind, price, age_from, age_to, occupies_seat
+       FROM departure_prices`
+  ).all();
+
+  const byDeparture = {};
+  for (const p of prices.results) {
+    (byDeparture[p.departure_id] = byDeparture[p.departure_id] || []).push(p);
+  }
+  return departures.results.map((d) => ({ ...d, prices: byDeparture[d.id] || [] }));
 }
 
-async function appendRow(env, token, sheetName, row) {
-  var url =
-    "https://sheets.googleapis.com/v4/spreadsheets/" + env.SHEET_ID +
-    "/values/" + encodeURIComponent(sheetName + "!A1") +
-    ":append?valueInputOption=RAW";
-  var resp = await fetch(url, {
-    method: "POST",
-    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ values: [row] }),
-  });
-  var data = await resp.json();
-  if (!resp.ok) throw new Error("Ошибка записи в лист " + sheetName + ": " + JSON.stringify(data));
-  return data;
+// Возраст на дату выезда — именно так тариф и определяется у оператора.
+function ageOn(birthDate, onDate) {
+  const b = new Date(birthDate), o = new Date(onDate);
+  let age = o.getFullYear() - b.getFullYear();
+  const m = o.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && o.getDate() < b.getDate())) age--;
+  return age;
 }
 
-function rowsToObjects(rows) {
-  if (!rows.length) return [];
-  var headers = rows[0];
-  return rows.slice(1).filter(function (r) { return r.length; }).map(function (row) {
-    var obj = {};
-    headers.forEach(function (h, i) { obj[h] = row[i] !== undefined ? row[i] : ""; });
-    return obj;
-  });
+/*
+ * Цена пассажира: если возраст попадает в детский тариф — берём его,
+ * иначе взрослую цену по типу размещения. Возрастные диапазоны в прайсе
+ * стыкуются встык (2-5 и 5-11), поэтому верхняя граница трактуется как
+ * «строго меньше»: пятилетний попадает в 5-11, а не в 2-5.
+ */
+function priceFor(passenger, departure) {
+  const age = ageOn(passenger.birth_date, departure.date_start);
+  // При пересечении диапазонов (ошибка в прайсе) берём самый узкий, а не
+  // самый дешёвый: иначе кривые данные молча режут выручку оператора.
+  const child = departure.prices
+    .filter((p) => p.kind === "child" && age >= p.age_from && age < p.age_to)
+    .sort((a, b) => (a.age_to - a.age_from) - (b.age_to - b.age_from))[0];
+  if (child) {
+    return { code: child.code, label: child.label, price: child.price, occupies_seat: child.occupies_seat };
+  }
+  const placement = departure.prices.find(
+    (p) => p.kind === "placement" && p.code === passenger.placement
+  );
+  if (!placement) return null;
+  return { code: placement.code, label: placement.label, price: placement.price, occupies_seat: 1 };
 }
 
-function splitList(value, sep) {
-  if (!value) return [];
-  return String(value).split(sep).map(function (s) { return s.trim(); }).filter(Boolean);
-}
+// ---------------------------------------------------------------- брониро­вание
+async function createBooking(request, env, agency) {
+  const body = await request.json();
+  const passengers = Array.isArray(body.passengers) ? body.passengers : [];
+  if (!body.departure_code) return fail("Не указан заезд");
+  if (!passengers.length) return fail("Добавьте хотя бы одного пассажира");
 
-function toBool(value) {
-  return String(value).trim().toUpperCase() === "TRUE";
-}
-
-function toNumber(value) {
-  var n = parseFloat(value);
-  return isNaN(n) ? 0 : n;
-}
-
-// --------------------------------------------------------------------
-// Сборка туров из нескольких листов в структуру js/data.js
-// --------------------------------------------------------------------
-async function buildTours(env, token) {
-  var toursRows = rowsToObjects(await getSheetValues(env, token, "Tours!A1:Z1000"));
-  var departuresRows = rowsToObjects(await getSheetValues(env, token, "TourDepartures!A1:Z1000"));
-  var programRows = rowsToObjects(await getSheetValues(env, token, "TourProgram!A1:Z1000"));
-  var hotelsRows = rowsToObjects(await getSheetValues(env, token, "TourHotels!A1:Z1000"));
-  var priceRows = rowsToObjects(await getSheetValues(env, token, "TourPriceMatrix!A1:Z1000"));
-  var modulesRows = rowsToObjects(await getSheetValues(env, token, "TourModules!A1:Z1000"));
-
-  function byTour(rows) {
-    var map = {};
-    rows.forEach(function (r) {
-      if (!map[r.tour_id]) map[r.tour_id] = [];
-      map[r.tour_id].push(r);
-    });
-    return map;
+  for (const p of passengers) {
+    if (!p.full_name || !p.birth_date || !p.passport_number || !p.placement) {
+      return fail("У каждого пассажира нужны ФИО, дата рождения, паспорт и размещение");
+    }
   }
 
-  var departuresByTour = byTour(departuresRows);
-  var programByTour = byTour(programRows);
-  var hotelsByTour = byTour(hotelsRows);
-  var priceByTour = byTour(priceRows);
-  var modulesByTour = byTour(modulesRows);
+  const all = await listDepartures(env);
+  const departure = all.find((d) => d.code === body.departure_code);
+  if (!departure) return fail("Заезд не найден или закрыт", 404);
 
-  return toursRows.map(function (t) {
-    var priceMatrix = {};
-    (priceByTour[t.id] || []).forEach(function (p) {
-      if (!priceMatrix[p.hotel_category]) priceMatrix[p.hotel_category] = {};
-      if (!priceMatrix[p.hotel_category][p.room_type]) priceMatrix[p.hotel_category][p.room_type] = {};
-      priceMatrix[p.hotel_category][p.room_type][p.season_code] = toNumber(p.price_per_person);
+  const priced = [];
+  for (const p of passengers) {
+    const tariff = priceFor(p, departure);
+    if (!tariff) {
+      return fail(`Для заезда ${departure.code} нет цены на размещение ${p.placement}`);
+    }
+    priced.push({ ...p, tariff });
+  }
+
+  const seatsNeeded = priced.filter((p) => p.tariff.occupies_seat).length;
+  const total = priced.reduce((sum, p) => sum + p.tariff.price, 0);
+
+  /*
+   * Ключевое место всей системы: места списываются одним UPDATE с проверкой
+   * лимита прямо в WHERE. Если два агентства бронируют последние места
+   * одновременно, второй UPDATE не найдёт подходящей строки и вернёт 0
+   * изменений — вместо того чтобы продать одно место дважды.
+   */
+  const claim = await env.DB.prepare(
+    `UPDATE departures SET seats_taken = seats_taken + ?
+      WHERE id = ? AND seats_taken + ? <= capacity AND is_open = 1`
+  ).bind(seatsNeeded, departure.id, seatsNeeded).run();
+
+  if (!claim.meta.changes) {
+    const fresh = await env.DB.prepare(
+      "SELECT capacity - seats_taken AS seats_free FROM departures WHERE id = ?"
+    ).bind(departure.id).first();
+    return fail(
+      `Не хватает мест: нужно ${seatsNeeded}, свободно ${fresh ? fresh.seats_free : 0}`, 409
+    );
+  }
+
+  try {
+    const seq = await env.DB.prepare(
+      "SELECT COUNT(*) AS n FROM bookings WHERE departure_id = ?"
+    ).bind(departure.id).first();
+    const code = `${departure.code}-${String((seq.n || 0) + 1).padStart(2, "0")}`;
+
+    const booking = await env.DB.prepare(
+      `INSERT INTO bookings (code, agency_id, departure_id, total_price, note)
+       VALUES (?, ?, ?, ?, ?) RETURNING id`
+    ).bind(code, agency.id, departure.id, total, body.note || null).first();
+
+    const inserts = priced.map((p) =>
+      env.DB.prepare(
+        `INSERT INTO passengers (booking_id, full_name, birth_date, passport_number,
+                                 passport_expiry, placement, price_code, price, occupies_seat)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        booking.id, p.full_name.trim(), p.birth_date, p.passport_number.trim(),
+        p.passport_expiry || null, p.placement, p.tariff.code, p.tariff.price,
+        p.tariff.occupies_seat
+      )
+    );
+    await env.DB.batch(inserts);
+
+    return json({
+      booking_code: code,
+      departure_code: departure.code,
+      seats_taken: seatsNeeded,
+      total_price: total,
+      passengers: priced.map((p) => ({
+        full_name: p.full_name, tariff: p.tariff.label, price: p.tariff.price,
+      })),
     });
-
-    var program = (programByTour[t.id] || [])
-      .map(function (p) { return { day: toNumber(p.day), title: p.title, description: p.description }; })
-      .sort(function (a, b) { return a.day - b.day; });
-
-    return {
-      id: t.id,
-      slug: t.slug,
-      title: t.title,
-      country: t.country,
-      cities: splitList(t.cities, ","),
-      duration_days: toNumber(t.duration_days),
-      duration_nights: toNumber(t.duration_nights),
-      cover_image: t.cover_image || "",
-      short_description: t.short_description || "",
-      is_constructor: toBool(t.is_constructor),
-      departures: (departuresByTour[t.id] || []).map(function (d) {
-        return { date_start: d.date_start, date_end: d.date_end, season_code: d.season_code };
-      }),
-      hotels: (hotelsByTour[t.id] || []).map(function (h) {
-        return { category: h.category, name: h.name };
-      }),
-      price_matrix: priceMatrix,
-      program: program,
-      included: splitList(t.included, "|"),
-      excluded: splitList(t.excluded, "|"),
-      visa_documents: splitList(t.visa_documents, "|"),
-      excursion_ids: splitList(t.excursion_ids, ","),
-      optional_modules: (modulesByTour[t.id] || []).map(function (m) {
-        return {
-          id: m.module_id,
-          title: m.title,
-          price_per_person: toNumber(m.price_per_person),
-          min_group: toNumber(m.min_group),
-        };
-      }),
-    };
-  });
+  } catch (err) {
+    // бронь не сохранилась — возвращаем места, иначе они зависнут занятыми
+    await env.DB.prepare(
+      "UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?"
+    ).bind(seatsNeeded, departure.id).run();
+    throw err;
+  }
 }
 
-async function buildExcursions(env, token) {
-  var rows = rowsToObjects(await getSheetValues(env, token, "Excursions!A1:Z1000"));
-  return rows.map(function (e) {
-    return {
-      id: e.id,
-      title: e.title,
-      description: e.description,
-      price_per_person: toNumber(e.price_per_person),
-      min_group: toNumber(e.min_group),
-      duration_hours: toNumber(e.duration_hours),
-    };
-  });
+async function listBookings(env, agency) {
+  const rows = await env.DB.prepare(
+    `SELECT b.id, b.code, b.status, b.total_price, b.created_at, b.note,
+            d.code AS departure_code, d.date_start, d.transport,
+            (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
+            COALESCE((SELECT SUM(amount) FROM payments pay WHERE pay.booking_id = b.id), 0) AS paid
+       FROM bookings b JOIN departures d ON d.id = b.departure_id
+      WHERE b.agency_id = ?
+      ORDER BY b.created_at DESC`
+  ).bind(agency.id).all();
+
+  return rows.results.map((b) => ({
+    ...b,
+    balance: Math.round((b.total_price - b.paid) * 100) / 100,
+  }));
 }
 
-async function buildInsurancePlans(env, token) {
-  var rows = rowsToObjects(await getSheetValues(env, token, "InsurancePlans!A1:Z1000"));
-  return rows.map(function (p) {
-    return {
-      id: p.id,
-      title: p.title,
-      price_per_person_per_day: toNumber(p.price_per_person_per_day),
-      coverage: p.coverage,
-    };
-  });
-}
+async function cancelBooking(env, agency, bookingId) {
+  const booking = await env.DB.prepare(
+    "SELECT * FROM bookings WHERE id = ? AND agency_id = ? AND status = 'confirmed'"
+  ).bind(bookingId, agency.id).first();
+  if (!booking) return fail("Бронь не найдена или уже отменена", 404);
 
-// --------------------------------------------------------------------
-// Кэш через встроенный Cache API воркера (по URL запроса)
-// --------------------------------------------------------------------
-async function cachedJson(request, buildFn) {
-  var cache = caches.default;
-  var cached = await cache.match(request);
-  if (cached) return cached;
+  const seats = await env.DB.prepare(
+    "SELECT COALESCE(SUM(occupies_seat), 0) AS n FROM passengers WHERE booking_id = ?"
+  ).bind(booking.id).first();
 
-  var data = await buildFn();
-  var response = jsonResponse(data);
-  response.headers.set("Cache-Control", "public, max-age=" + CACHE_TTL_SECONDS);
-  // put a clone since the response body can only be read once
-  await cache.put(request, response.clone());
-  return response;
-}
-
-async function handleBooking(request, env) {
-  var booking = await request.json();
-  var bookingId = "TT-" + Date.now().toString(36).toUpperCase();
-  var createdAt = new Date().toISOString();
-
-  var token = await getAccessToken(env);
-  await appendRow(env, token, "Заявки", [
-    bookingId,
-    createdAt,
-    booking.tour_id || "",
-    booking.tour_title || "",
-    booking.departure && booking.departure.date_start || "",
-    booking.departure && booking.departure.date_end || "",
-    booking.hotel_category || "",
-    booking.room_type || "",
-    JSON.stringify(booking.travelers || []),
-    (booking.selected_excursion_ids || []).join(","),
-    (booking.selected_module_ids || []).join(","),
-    booking.insurance_plan_id || "",
-    booking.total_price || 0,
-    (booking.warnings || []).join(" | "),
-    booking.contact_name || "",
-    booking.contact_phone || "",
-    booking.contact_email || "",
+  await env.DB.batch([
+    env.DB.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").bind(booking.id),
+    env.DB.prepare("UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?")
+      .bind(seats.n, booking.departure_id),
   ]);
-
-  booking.booking_id = bookingId;
-  booking.created_at = createdAt;
-  return jsonResponse(booking);
+  return json({ booking_code: booking.code, released_seats: seats.n });
 }
 
+// ------------------------------------------------------------------- роутер
 export default {
   async fetch(request, env) {
-    var url = new URL(request.url);
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders() });
-    }
+    if (request.method === "OPTIONS") return new Response(null, { headers: cors() });
 
     try {
-      if (url.pathname === "/api/tours" && request.method === "GET") {
-        return await cachedJson(request, async function () {
-          var token = await getAccessToken(env);
-          return buildTours(env, token);
-        });
+      if (path === "/api/login" && request.method === "POST") {
+        return await handleLogin(request, env);
       }
 
-      if (url.pathname === "/api/excursions" && request.method === "GET") {
-        return await cachedJson(request, async function () {
-          var token = await getAccessToken(env);
-          return buildExcursions(env, token);
-        });
+      // всё ниже — только для вошедшего агентства
+      const agency = await authenticate(request, env);
+      if (!agency) return fail("Требуется вход", 401);
+
+      if (path === "/api/me") return json({ agency });
+
+      if (path === "/api/logout" && request.method === "POST") {
+        const token = (request.headers.get("Authorization") || "").slice(7);
+        await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind(token).run();
+        return json({ ok: true });
       }
 
-      if (url.pathname === "/api/insurance" && request.method === "GET") {
-        return await cachedJson(request, async function () {
-          var token = await getAccessToken(env);
-          return buildInsurancePlans(env, token);
-        });
+      if (path === "/api/departures" && request.method === "GET") {
+        return json(await listDepartures(env));
       }
 
-      if (url.pathname === "/api/bookings" && request.method === "POST") {
-        return await handleBooking(request, env);
+      if (path === "/api/bookings" && request.method === "POST") {
+        return await createBooking(request, env, agency);
       }
 
-      return jsonResponse({ error: "Not found" }, 404);
+      if (path === "/api/bookings" && request.method === "GET") {
+        return json(await listBookings(env, agency));
+      }
+
+      const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
+      if (cancel && request.method === "POST") {
+        return await cancelBooking(env, agency, Number(cancel[1]));
+      }
+
+      return fail("Not found", 404);
     } catch (err) {
-      return jsonResponse({ error: err.message }, 500);
+      return fail(err.message, 500);
     }
   },
 };

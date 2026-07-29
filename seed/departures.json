@@ -1,0 +1,791 @@
+[
+  {
+    "code": "BUS2205",
+    "date_start": "2026-05-22",
+    "transport": "BUS",
+    "is_info_tour": true,
+    "prices": {
+      "DBL": 600.0,
+      "TRPL": 790.0,
+      "TWIN": 600.0
+    },
+    "child_prices": {},
+    "booked_seats": 30,
+    "booked_by_placement": {
+      "TWIN": 22,
+      "TRPL": 6,
+      "DBL": 2
+    },
+    "source_sheet": "22.05 TAS-BUS INFO TOUR"
+  },
+  {
+    "code": "BUS2905",
+    "date_start": "2026-05-29",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 830.0,
+      "TWIN": 830.0,
+      "TRPL": 790.0
+    },
+    "child_prices": {
+      "Chd 5-11": 600.0,
+      "Chd 2-5": 480.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 32,
+    "booked_by_placement": {
+      "DBL": 19,
+      "TRPL": 4,
+      "TWIN": 9
+    },
+    "source_sheet": "29.05 TAS-BUS"
+  },
+  {
+    "code": "TZX2905",
+    "date_start": "2026-05-29",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 830.0,
+      "TWIN": 830.0,
+      "TRPL": 790.0
+    },
+    "child_prices": {
+      "Chd 5-11": 600.0,
+      "Chd 2-5": 480.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 31,
+    "booked_by_placement": {
+      "TWIN": 22,
+      "DBL": 9
+    },
+    "source_sheet": "29.05 TAS-TZX"
+  },
+  {
+    "code": "BUS0506",
+    "date_start": "2026-06-05",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 630.0,
+      "Chd 2-5": 510.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 50,
+    "booked_by_placement": {
+      "TRPL": 12,
+      "DBL": 24,
+      "TWIN": 14
+    },
+    "source_sheet": "05.06 TAS-BUS "
+  },
+  {
+    "code": "TZX0506",
+    "date_start": "2026-06-05",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1095.0,
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 600.0,
+      "Chd 2-5": 480.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 56,
+    "booked_by_placement": {
+      "DBL": 17,
+      "TRPL": 27,
+      "TWIN": 10,
+      "SNG": 2
+    },
+    "source_sheet": "05.06 TAS-TZX "
+  },
+  {
+    "code": "BUS1206",
+    "date_start": "2026-06-12",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0,
+      "SNG": 1095.0
+    },
+    "child_prices": {
+      "Chd 5-11": 650.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 52,
+    "booked_by_placement": {
+      "TWIN": 16,
+      "TRPL": 15,
+      "SNG": 2,
+      "DBL": 19
+    },
+    "source_sheet": "12.06 TAS-BUS"
+  },
+  {
+    "code": "TZX1206",
+    "date_start": "2026-06-12",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 600.0,
+      "Chd 2-5": 480.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 54,
+    "booked_by_placement": {
+      "DBL": 32,
+      "TWIN": 16,
+      "TRPL": 6
+    },
+    "source_sheet": "12.06 TAS-TZX"
+  },
+  {
+    "code": "BUS1906",
+    "date_start": "2026-06-19",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1095.0,
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 650.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 52,
+    "booked_by_placement": {
+      "TRPL": 6,
+      "DBL": 24,
+      "TWIN": 20,
+      "SNG": 2
+    },
+    "source_sheet": "19.06 TAS-BUS"
+  },
+  {
+    "code": "TZX1906",
+    "date_start": "2026-06-19",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1095.0,
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 650.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 51,
+    "booked_by_placement": {
+      "DBL": 38,
+      "TRPL": 6,
+      "TWIN": 6,
+      "SNG": 1
+    },
+    "source_sheet": "19.06 TAS-TZX"
+  },
+  {
+    "code": "BUS2606",
+    "date_start": "2026-06-26",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1095.0,
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 650.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 50,
+    "booked_by_placement": {
+      "TWIN": 15,
+      "DBL": 22,
+      "TRPL": 13
+    },
+    "source_sheet": "26.06 TAS-BUS"
+  },
+  {
+    "code": "TZX2606",
+    "date_start": "2026-06-26",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1095.0,
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 875.0
+    },
+    "child_prices": {
+      "Chd 5-11": 650.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 50,
+    "booked_by_placement": {
+      "TWIN": 17,
+      "DBL": 18,
+      "TRPL": 12,
+      "SNG": 3
+    },
+    "source_sheet": "26.06 TAS-TZX"
+  },
+  {
+    "code": "BUS0307",
+    "date_start": "2026-07-03",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-11": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 59,
+    "booked_by_placement": {
+      "DBL": 33,
+      "TWIN": 17,
+      "TRPL": 9
+    },
+    "source_sheet": "03.07 TAS-BUS"
+  },
+  {
+    "code": "TZX0307",
+    "date_start": "2026-07-03",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TRPL": 930.0,
+      "TWIN": 970.0
+    },
+    "child_prices": {
+      "Chd 5-11": 700.0
+    },
+    "booked_seats": 60,
+    "booked_by_placement": {
+      "DBL": 16,
+      "TRPL": 22,
+      "TWIN": 21,
+      "SNG": 1
+    },
+    "source_sheet": "03.07 TAS-TZX"
+  },
+  {
+    "code": "BUS1007",
+    "date_start": "2026-07-10",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-11": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 64,
+    "booked_by_placement": {
+      "TWIN": 18,
+      "DBL": 30,
+      "TRPL": 15,
+      "SNG": 1
+    },
+    "source_sheet": "10.07 TAS-BUS"
+  },
+  {
+    "code": "TZX1007",
+    "date_start": "2026-07-10",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-11": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 61,
+    "booked_by_placement": {
+      "DBL": 22,
+      "TWIN": 23,
+      "SNG": 1,
+      "TRPL": 15
+    },
+    "source_sheet": "10.07 TAS-TZX"
+  },
+  {
+    "code": "BUS1707",
+    "date_start": "2026-07-17",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 61,
+    "booked_by_placement": {
+      "TWIN": 20,
+      "DBL": 25,
+      "TRPL": 16
+    },
+    "source_sheet": "17.07 TAS-BUS"
+  },
+  {
+    "code": "TZX1707",
+    "date_start": "2026-07-17",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 61,
+    "booked_by_placement": {
+      "DBL": 12,
+      "TRPL": 18,
+      "SNG": 1,
+      "TWIN": 30
+    },
+    "source_sheet": "17.07 TAS-TZX"
+  },
+  {
+    "code": "BUS2407",
+    "date_start": "2026-07-24",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 61,
+    "booked_by_placement": {
+      "TWIN": 28,
+      "DBL": 24,
+      "TRPL": 9
+    },
+    "source_sheet": "24.07 TAS-BUS"
+  },
+  {
+    "code": "TZX2407",
+    "date_start": "2026-07-24",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 62,
+    "booked_by_placement": {
+      "DBL": 36,
+      "TWIN": 14,
+      "TRPL": 12
+    },
+    "source_sheet": "24.07 TAS-TZX"
+  },
+  {
+    "code": "BUS3107",
+    "date_start": "2026-07-31",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 64,
+    "booked_by_placement": {
+      "DBL": 26,
+      "TRPL": 23,
+      "TWIN": 14,
+      "SNG": 1
+    },
+    "source_sheet": "31.07 TAS-BUS"
+  },
+  {
+    "code": "TZX3107",
+    "date_start": "2026-07-31",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 60,
+    "booked_by_placement": {
+      "DBL": 30,
+      "TRPL": 15,
+      "TWIN": 14,
+      "SNG": 1
+    },
+    "source_sheet": "31.07 TAS-TZX"
+  },
+  {
+    "code": "BUS0708",
+    "date_start": "2026-08-07",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 58,
+    "booked_by_placement": {
+      "DBL": 51,
+      "TRPL": 6,
+      "SNG": 1
+    },
+    "source_sheet": "07.08 TAS-BUS"
+  },
+  {
+    "code": "TZX0708",
+    "date_start": "2026-08-07",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 61,
+    "booked_by_placement": {
+      "DBL": 45,
+      "TRPL": 16
+    },
+    "source_sheet": "07.08 TAS-TZX"
+  },
+  {
+    "code": "BUS1408",
+    "date_start": "2026-08-14",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 21,
+    "booked_by_placement": {
+      "DBL": 18,
+      "TRPL": 3
+    },
+    "source_sheet": "14.08 TAS-BUS"
+  },
+  {
+    "code": "TZX1408",
+    "date_start": "2026-08-14",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 47,
+    "booked_by_placement": {
+      "DBL": 35,
+      "TRPL": 12
+    },
+    "source_sheet": "14.08 TAS-TZX"
+  },
+  {
+    "code": "BUS2108",
+    "date_start": "2026-08-21",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 13,
+    "booked_by_placement": {
+      "DBL": 12,
+      "SNG": 1
+    },
+    "source_sheet": "21.08 TAS-BUS"
+  },
+  {
+    "code": "TZX2108",
+    "date_start": "2026-08-21",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 19,
+    "booked_by_placement": {
+      "DBL": 12,
+      "TRPL": 6,
+      "SNG": 1
+    },
+    "source_sheet": "21.08 TAS-TZX"
+  },
+  {
+    "code": "BUS2808",
+    "date_start": "2026-08-28",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 12,
+    "booked_by_placement": {
+      "DBL": 6,
+      "TRPL": 6
+    },
+    "source_sheet": "28.08 TAS-BUS"
+  },
+  {
+    "code": "TZX2808",
+    "date_start": "2026-08-28",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "SNG": 1145.0,
+      "DBL": 970.0,
+      "TWIN": 970.0,
+      "TRPL": 930.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 17,
+    "booked_by_placement": {
+      "TRPL": 9,
+      "DBL": 8
+    },
+    "source_sheet": "28.08 TAS-TZX"
+  },
+  {
+    "code": "BUS0409",
+    "date_start": "2026-09-04",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 880.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 6,
+    "booked_by_placement": {
+      "TRPL": 6
+    },
+    "source_sheet": "04.09 TAS-BUS"
+  },
+  {
+    "code": "TZX0409",
+    "date_start": "2026-09-04",
+    "transport": "TZX",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 880.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 5,
+    "booked_by_placement": {
+      "TRPL": 3,
+      "DBL": 2
+    },
+    "source_sheet": "04.09 TAS-TZX"
+  },
+  {
+    "code": "BUS1109",
+    "date_start": "2026-09-11",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 880.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 0,
+    "booked_by_placement": {},
+    "source_sheet": "11.09 TAS-BUS"
+  },
+  {
+    "code": "BUS1809",
+    "date_start": "2026-09-18",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 880.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 0,
+    "booked_by_placement": {},
+    "source_sheet": "18.09 TAS-BUS"
+  },
+  {
+    "code": "BUS2509",
+    "date_start": "2026-09-25",
+    "transport": "BUS",
+    "is_info_tour": false,
+    "prices": {
+      "DBL": 925.0,
+      "TWIN": 925.0,
+      "TRPL": 880.0
+    },
+    "child_prices": {
+      "Chd 5-10": 700.0,
+      "Chd 2-5": 550.0,
+      "inf 0-2": 100.0
+    },
+    "booked_seats": 0,
+    "booked_by_placement": {},
+    "source_sheet": "25.09 TAS-BUS"
+  }
+]
