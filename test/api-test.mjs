@@ -33,8 +33,14 @@ check('вход оператора, роль operator', r.data.agency.role === '
 
 console.log('\n--- справочники ---');
 r = await call('/api/departures', { token: umida });
-check('заездов 34', r.data.length === 34, 'получено ' + r.data.length);
-const dep = r.data.find(d => d.code === 'TZX1707');
+const allFuture = r.data.every(d => d.date_start >= new Date().toISOString().slice(0,10));
+check('агентству отдаются только предстоящие заезды', allFuture,
+      'есть прошедшие: ' + r.data.filter(d=>d.date_start < new Date().toISOString().slice(0,10)).map(d=>d.code).join(','));
+const opDeps = await call('/api/departures?all=1', { token: op });
+check('оператор видит все 34, включая прошедшие', opDeps.data.length === 34, 'получено ' + opDeps.data.length);
+const agAll = await call('/api/departures?all=1', { token: umida });
+check('агентство через ?all=1 прошедших не получает', agAll.data.length === r.data.length);
+const dep = r.data.find(d => d.code === 'TZX2808');
 check('у заезда есть прайс', dep && dep.prices.length > 0);
 const freeBefore = dep.seats_free;
 r = await call('/api/tours', { token: umida });
@@ -43,7 +49,7 @@ check('операторская комиссия не отдаётся', !('oper
 
 console.log('\n--- бронирование ---');
 r = await call('/api/bookings', { method:'POST', token: umida, body:{
-  departure_code:'TZX1707',
+  departure_code:'TZX2808',
   passengers:[
     { full_name:'ADULT ONE', birth_date:'1985-03-12', passport_number:'FA1', passport_expiry:'2030-01-01', placement:'DBL' },
     { full_name:'CHILD SEVEN', birth_date:'2019-01-20', passport_number:'FA2', passport_expiry:'2030-01-01', placement:'DBL' },
@@ -55,11 +61,11 @@ check('младенец места не занял (2, не 3)', r.data.seats_ta
 const bookingCode = r.data.booking_code;
 
 r = await call('/api/departures', { token: umida });
-const after = r.data.find(d => d.code === 'TZX1707');
+const after = r.data.find(d => d.code === 'TZX2808');
 check('места списались', after.seats_free === freeBefore - 2, `${freeBefore} → ${after.seats_free}`);
 
 r = await call('/api/bookings', { method:'POST', token: umida, body:{
-  departure_code:'TZX1707', passengers:[{ full_name:'X', birth_date:'1990-01-01', passport_number:'F', placement:'НЕТ' }]}});
+  departure_code:'TZX2808', passengers:[{ full_name:'X', birth_date:'1990-01-01', passport_number:'F', placement:'НЕТ' }]}});
 check('несуществующее размещение → ошибка', r.status === 400, JSON.stringify(r.data));
 
 console.log('\n--- изоляция агентств ---');
@@ -77,7 +83,7 @@ r = await call('/api/admin/bookings', { token: op });
 check('оператор видит бронь', r.status === 200 && r.data.length === 1);
 check('видно имя агентства', r.data[0].agency_name === 'UMIDA', r.data[0].agency_name);
 
-r = await call('/api/admin/manifest?departure=TZX1707', { token: op });
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
 check('список пассажиров: 3 строки', r.data.passengers.length === 3, 'получено ' + (r.data.passengers||[]).length);
 check('тариф ребёнка CHD_5_10', r.data.passengers[1].price_code === 'CHD_5_10', r.data.passengers[1].price_code);
 
@@ -90,8 +96,45 @@ check('возврат больше оплаченного отклонён', r.s
 r = await call('/api/bookings', { token: umida });
 check('агентство видит оплату', r.data[0].paid === 1000 && r.data[0].balance === 770, JSON.stringify(r.data[0]));
 
+console.log('\n--- правка состава брони ---');
+r = await call('/api/bookings', { token: umida });
+const editId = r.data[0].id;
+const editCode = r.data[0].code;
+check('состав отдаётся вместе с бронью', (r.data[0].passengers||[]).length === 3,
+      JSON.stringify((r.data[0].passengers||[]).length));
+let freeNow = (await call('/api/departures', { token: umida })).data.find(d=>d.code==='TZX2808').seats_free;
+
+// убираем ребёнка: пассажиров 2, мест 1 (взрослый + младенец без места)
+r = await call('/api/bookings/' + editId + '/passengers', { method:'POST', token: umida, body:{
+  passengers:[
+    { full_name:'ADULT ONE', birth_date:'1985-03-12', passport_number:'FA1', passport_expiry:'2031-01-01', placement:'DBL' },
+    { full_name:'BABY', birth_date:'2025-08-01', passport_number:'FA3', passport_expiry:'2031-01-01', placement:'DBL' },
+  ]}});
+check('состав изменён', r.status === 200, JSON.stringify(r.data));
+check('номер брони сохранён', r.data.booking_code === editCode, r.data.booking_code);
+check('цена пересчитана 970+100', r.data.total_price === 1070, 'получено ' + r.data.total_price);
+check('мест стало 1', r.data.seats_taken === 1, 'получено ' + r.data.seats_taken);
+let freeAfter = (await call('/api/departures', { token: umida })).data.find(d=>d.code==='TZX2808').seats_free;
+check('освободившееся место вернулось', freeAfter === freeNow + 1, `${freeNow} → ${freeAfter}`);
+
+// возвращаем ребёнка обратно
+r = await call('/api/bookings/' + editId + '/passengers', { method:'POST', token: umida, body:{
+  passengers:[
+    { full_name:'ADULT ONE', birth_date:'1985-03-12', passport_number:'FA1', passport_expiry:'2031-01-01', placement:'DBL' },
+    { full_name:'CHILD SEVEN', birth_date:'2019-01-20', passport_number:'FA2', passport_expiry:'2031-01-01', placement:'DBL' },
+    { full_name:'BABY', birth_date:'2025-08-01', passport_number:'FA3', passport_expiry:'2031-01-01', placement:'DBL' },
+  ]}});
+check('состав вернули, цена снова 1770', r.data.total_price === 1770, 'получено ' + r.data.total_price);
+
+r = await call('/api/bookings/' + editId + '/passengers', { method:'POST', token: umida, body:{ passengers: [] }});
+check('пустой состав отклонён', r.status === 400);
+const other = await call('/api/login', { method:'POST', body:{ login:'ofotour', password:PW } });
+r = await call('/api/bookings/' + editId + '/passengers', { method:'POST', token: other.data.token, body:{
+  passengers:[{ full_name:'X', birth_date:'1990-01-01', passport_number:'P', placement:'DBL' }]}});
+check('чужую бронь править нельзя', r.status === 404, JSON.stringify(r.data));
+
 console.log('\n--- сводка по заезду ---');
-r = await call('/api/admin/manifest?departure=TZX1707', { token: op });
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
 const sum = r.data.summary;
 check('сводка отдаётся', !!sum, JSON.stringify(r.data).slice(0,120));
 check('броней 1', sum.bookings_count === 1, JSON.stringify(sum));
@@ -115,7 +158,7 @@ const id = r.data[0].id;
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('бронь отменена', r.status === 200 && r.data.released_seats === 2, JSON.stringify(r.data));
 r = await call('/api/departures', { token: umida });
-check('места вернулись', r.data.find(d=>d.code==='TZX1707').seats_free === freeBefore);
+check('места вернулись', r.data.find(d=>d.code==='TZX2808').seats_free === freeBefore);
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('повторная отмена отклонена', r.status === 404);
 
@@ -139,7 +182,7 @@ check('короткий пароль отклонён', r.status === 400);
 
 console.log('\n--- срок действия паспорта ---');
 r = await call('/api/bookings', { method:'POST', token: umida, body:{
-  departure_code:'TZX2407',
+  departure_code:'BUS2808',
   passengers:[
     { full_name:'EXPIRED SOON', birth_date:'1980-01-01', passport_number:'FE1',
       passport_expiry:'2026-09-01', placement:'DBL' },

@@ -8,6 +8,7 @@
  *   GET  /api/departures     заезды со свободными местами и прайсом
  *   POST /api/bookings       создать бронь (место занимается сразу)
  *   GET  /api/bookings       свои брони с оплачено/остаток
+ *   POST /api/bookings/:id/passengers  заменить состав брони
  *   POST /api/bookings/:id/cancel   отменить бронь и вернуть места
  *
  * Только для роли operator (сотрудник туроператора):
@@ -183,14 +184,20 @@ async function handleLogin(request, env) {
 }
 
 // --------------------------------------------------------------- справочник
-async function listDepartures(env) {
+/*
+ * По умолчанию отдаём только предстоящие заезды: продавать место в рейс,
+ * который уже улетел, нельзя. Оператору нужны и прошедшие — по ним он
+ * выгружает списки пассажиров, поэтому для него includePast.
+ */
+async function listDepartures(env, includePast) {
+  const dateFilter = includePast ? "" : "AND d.date_start >= date('now')";
   const departures = await env.DB.prepare(
     `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
             d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free,
             t.code AS tour_code, t.name AS tour_name, t.destination,
             t.agency_commission
        FROM departures d JOIN tours t ON t.id = d.tour_id
-      WHERE d.is_open = 1 AND t.is_bookable = 1
+      WHERE d.is_open = 1 AND t.is_bookable = 1 ${dateFilter}
       ORDER BY d.date_start, d.transport`
   ).all();
 
@@ -360,6 +367,109 @@ async function createBooking(request, env, agency) {
   }
 }
 
+/*
+ * Замена состава брони. Номер брони сохраняется — в нём смысл: он уже
+ * назван клиенту и стоит в переписке. Меняется только состав, цена и,
+ * если нужно, количество занятых мест.
+ */
+async function updateBookingPassengers(request, env, agency, bookingId) {
+  const body = await request.json();
+  const passengers = Array.isArray(body.passengers) ? body.passengers : [];
+  if (!passengers.length) return fail("В брони должен остаться хотя бы один пассажир");
+  for (const p of passengers) {
+    if (!p.full_name || !p.birth_date || !p.passport_number || !p.placement) {
+      return fail("У каждого пассажира нужны ФИО, дата рождения, паспорт и размещение");
+    }
+  }
+
+  const booking = await env.DB.prepare(
+    `SELECT b.*, d.code AS departure_code, d.date_start
+       FROM bookings b JOIN departures d ON d.id = b.departure_id
+      WHERE b.id = ? AND b.agency_id = ? AND b.status = 'confirmed'`
+  ).bind(bookingId, agency.id).first();
+  if (!booking) return fail("Бронь не найдена или отменена", 404);
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (booking.date_start <= today) return fail("Заезд уже начался — состав не меняется");
+
+  const departure = (await listDepartures(env, true)).find((d) => d.code === booking.departure_code);
+  if (!departure) return fail("Заезд закрыт", 409);
+
+  const priced = [];
+  for (const p of passengers) {
+    const tariff = priceFor(p, departure);
+    if (!tariff) return fail(`Нет цены на размещение ${p.placement} для этого заезда`);
+    priced.push({ ...p, tariff });
+  }
+
+  const oldSeatsRow = await env.DB.prepare(
+    "SELECT COALESCE(SUM(occupies_seat), 0) AS n FROM passengers WHERE booking_id = ?"
+  ).bind(bookingId).first();
+  const oldSeats = oldSeatsRow.n;
+  const newSeats = priced.filter((p) => p.tariff.occupies_seat).length;
+  const delta = newSeats - oldSeats;
+
+  // Мест нужно больше — занимаем их так же условно, как при новой брони.
+  if (delta > 0) {
+    const claim = await env.DB.prepare(
+      `UPDATE departures SET seats_taken = seats_taken + ?
+        WHERE id = ? AND seats_taken + ? <= capacity AND is_open = 1`
+    ).bind(delta, booking.departure_id, delta).run();
+    if (!claim.meta.changes) {
+      const fresh = await env.DB.prepare(
+        "SELECT capacity - seats_taken AS seats_free FROM departures WHERE id = ?"
+      ).bind(booking.departure_id).first();
+      return fail(
+        `Не хватает мест: нужно ещё ${delta}, свободно ${fresh ? fresh.seats_free : 0}`, 409
+      );
+    }
+  } else if (delta < 0) {
+    await env.DB.prepare("UPDATE departures SET seats_taken = seats_taken + ? WHERE id = ?")
+      .bind(delta, booking.departure_id).run();
+  }
+
+  const total = priced.reduce((sum, p) => sum + p.tariff.price, 0);
+  const commission = (departure.agency_commission || 0) * newSeats;
+
+  try {
+    const statements = [
+      env.DB.prepare("DELETE FROM passengers WHERE booking_id = ?").bind(bookingId),
+      ...priced.map((p) => env.DB.prepare(
+        `INSERT INTO passengers (booking_id, full_name, birth_date, passport_number,
+                                 passport_expiry, placement, price_code, price, occupies_seat)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(bookingId, p.full_name.trim(), p.birth_date, p.passport_number.trim(),
+             p.passport_expiry || null, p.placement, p.tariff.code, p.tariff.price,
+             p.tariff.occupies_seat)),
+      env.DB.prepare("UPDATE bookings SET total_price = ?, agency_commission = ? WHERE id = ?")
+        .bind(total, commission, bookingId),
+    ];
+    await env.DB.batch(statements);
+  } catch (err) {
+    // состав не сохранился — возвращаем места в прежнее состояние
+    if (delta !== 0) {
+      await env.DB.prepare("UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?")
+        .bind(delta, booking.departure_id).run();
+    }
+    throw err;
+  }
+
+  const passportWarnings = [];
+  for (const p of priced) {
+    const issue = passportIssue(p.passport_expiry, departure.date_start);
+    if (issue) passportWarnings.push(`${p.full_name}: ${issue}`);
+  }
+
+  return json({
+    booking_code: booking.code,
+    passengers_count: priced.length,
+    seats_taken: newSeats,
+    total_price: total,
+    agency_commission: commission,
+    passport_warnings: passportWarnings,
+  });
+}
+
 async function listBookings(env, agency) {
   const rows = await env.DB.prepare(
     `SELECT b.id, b.code, b.status, b.total_price, b.agency_commission,
@@ -372,8 +482,23 @@ async function listBookings(env, agency) {
       ORDER BY b.created_at DESC`
   ).bind(agency.id).all();
 
+  const ids = rows.results.map((b) => b.id);
+  let byBooking = {};
+  if (ids.length) {
+    const pax = await env.DB.prepare(
+      `SELECT booking_id, full_name, birth_date, passport_number, passport_expiry,
+              placement, price_code, price, occupies_seat
+         FROM passengers WHERE booking_id IN (${ids.map(() => "?").join(",")})
+        ORDER BY id`
+    ).bind(...ids).all();
+    for (const p of pax.results) {
+      (byBooking[p.booking_id] = byBooking[p.booking_id] || []).push(p);
+    }
+  }
+
   return rows.results.map((b) => ({
     ...b,
+    passengers: byBooking[b.id] || [],
     balance: Math.round((b.total_price - b.paid) * 100) / 100,
   }));
 }
@@ -589,7 +714,10 @@ async function route(request, env) {
     }
 
     if (path === "/api/departures" && request.method === "GET") {
-        return json(await listDepartures(env));
+      // прошедшие заезды показываем только оператору — ему они нужны для
+      // выгрузки списков, агентству продавать их уже нельзя
+      const includePast = url.searchParams.get("all") === "1" && agency.role === "operator";
+      return json(await listDepartures(env, includePast));
     }
 
     if (path === "/api/bookings" && request.method === "POST") {
@@ -600,9 +728,14 @@ async function route(request, env) {
         return json(await listBookings(env, agency));
     }
 
+    const edit = path.match(/^\/api\/bookings\/(\d+)\/passengers$/);
+    if (edit && request.method === "POST") {
+      return await updateBookingPassengers(request, env, agency, Number(edit[1]));
+    }
+
     const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
     if (cancel && request.method === "POST") {
-        return await cancelBooking(env, agency, Number(cancel[1]));
+      return await cancelBooking(env, agency, Number(cancel[1]));
     }
 
     // ------------------------------------------------- только оператор

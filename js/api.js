@@ -204,18 +204,59 @@
       return request("/api/tours");
     },
 
-    departures: function () {
+    departures: function (opts) {
+      var all = opts && opts.all;
       if (!API_BASE) {
-        return Promise.resolve(demoState().departures.map(function (d) {
-          return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
-        }));
+        var today = new Date().toISOString().slice(0, 10);
+        return Promise.resolve(demoState().departures
+          .filter(function (d) { return all || d.date_start >= today; })
+          .map(function (d) {
+            return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
+          }));
       }
-      return request("/api/departures");
+      return request("/api/departures" + (all ? "?all=1" : ""));
     },
 
     createBooking: function (payload) {
       if (!API_BASE) return demoCreateBooking(payload);
       return request("/api/bookings", { method: "POST", body: payload });
+    },
+
+    updateBookingPassengers: function (id, passengers) {
+      if (!API_BASE) {
+        var s = demoState();
+        var b = s.bookings.filter(function (x) { return x.id === id; })[0];
+        if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
+        var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
+        var priced = [], seats = 0, total = 0;
+        for (var i = 0; i < passengers.length; i++) {
+          var t = priceFor(passengers[i], d);
+          if (!t) return Promise.reject(new Error("Нет цены на размещение " + passengers[i].placement));
+          priced.push(Object.assign({}, passengers[i], {
+            price_code: t.code, tariff: t.label, price: t.price, occupies_seat: t.occupies_seat,
+          }));
+          if (t.occupies_seat) seats++;
+          total += t.price;
+        }
+        var delta = seats - b.seats_used;
+        if (delta > 0 && d.seats_taken + delta > d.capacity) {
+          return Promise.reject(new Error(
+            "Не хватает мест: нужно ещё " + delta + ", свободно " + (d.capacity - d.seats_taken)));
+        }
+        d.seats_taken += delta;
+        b.passengers = priced;
+        b.passengers_count = priced.length;
+        b.seats_used = seats;
+        b.total_price = total;
+        b.agency_commission = (d.agency_commission || 0) * seats;
+        saveDemo(s);
+        return Promise.resolve({
+          booking_code: b.code, passengers_count: priced.length,
+          seats_taken: seats, total_price: total,
+        });
+      }
+      return request("/api/bookings/" + id + "/passengers",
+                     { method: "POST", body: { passengers: passengers } });
     },
 
     bookings: function () {

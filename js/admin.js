@@ -278,7 +278,7 @@
     start: function () {
       document.body.classList.add("is-operator");
       bind();
-      return TuronApi.departures().then(function (list) {
+      return TuronApi.departures({ all: true }).then(function (list) {
         // у оператора в выборе — все заезды, включая заполненные
         state.departures = list.slice().reverse();
         renderDeparturePicker();

@@ -2,7 +2,7 @@
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
-  var state = { departures: [], current: null, passengers: [] };
+  var state = { departures: [], current: null, passengers: [], editing: null };
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
 
@@ -225,13 +225,15 @@
         (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
-    var overflow = seats > d.seats_free;
+    // при правке места, уже занятые этой бронью, снова доступны ей самой
+    var available = d.seats_free + (state.editing ? state.editing.seats_used || 0 : 0);
+    var overflow = seats > available;
     if (overflow) ready = false;
 
     var commission = (d.agency_commission || 0) * seats;
     $("bm-summary").innerHTML =
       '<div class="tt-sum-line"><span>Пассажиров</span><strong>' + rows.length + "</strong></div>" +
-      '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + " из " + d.seats_free + " свободных</strong></div>" +
+      '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + " из " + available + " доступных</strong></div>" +
       (commission > 0
         ? '<div class="tt-sum-line tt-earn"><span>Ваша комиссия</span><strong>' +
           money(commission) + "</strong></div>"
@@ -240,6 +242,19 @@
       (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
 
     $("bm-submit").disabled = !ready;
+  }
+
+  function prefillPassengers(list) {
+    list.forEach(function (p, i) {
+      var card = document.querySelector('[data-pax="' + i + '"]');
+      if (!card) return;
+      ["full_name", "birth_date", "passport_number", "passport_expiry", "placement"]
+        .forEach(function (f) {
+          var input = card.querySelector('[data-f="' + f + '"]');
+          if (input && p[f]) input.value = p[f];
+        });
+    });
+    updateSummary();
   }
 
   function renderPassengers() {
@@ -258,17 +273,26 @@
     updateSummary();
   }
 
-  function openBooking(code) {
+  // Окно одно на два случая: новая бронь и правка состава существующей.
+  // Различие только в том, чем заполняем форму и куда отправляем.
+  function openBooking(code, booking) {
     var d = state.departures.filter(function (x) { return x.code === code; })[0];
     if (!d) return;
     state.current = d;
-    state.passengers = [{}];
-    $("bm-title").textContent = "Заезд " + formatDate(d.date_start);
+    state.editing = booking || null;
+    state.passengers = booking && booking.passengers && booking.passengers.length
+      ? booking.passengers.slice()
+      : [{}];
+    $("bm-title").textContent = booking
+      ? "Правка брони " + booking.code
+      : "Заезд " + formatDate(d.date_start);
     $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code +
       " · свободно " + d.seats_free;
-    $("bm-note").value = "";
+    $("bm-note").value = (booking && booking.note) || "";
+    $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
     $("booking-modal").hidden = false;
     renderPassengers();
+    if (booking) prefillPassengers(booking.passengers || []);
   }
 
   function closeBooking() {
@@ -315,16 +339,23 @@
   $("bm-submit").addEventListener("click", function () {
     var btn = $("bm-submit");
     btn.disabled = true;
-    TuronApi.createBooking({
-      departure_code: state.current.code,
-      passengers: collectPassengers(),
-      note: $("bm-note").value.trim() || null,
-    }).then(function (res) {
+    var editing = state.editing;
+    var action = editing
+      ? TuronApi.updateBookingPassengers(editing.id, collectPassengers())
+      : TuronApi.createBooking({
+          departure_code: state.current.code,
+          passengers: collectPassengers(),
+          note: $("bm-note").value.trim() || null,
+        });
+    action.then(function (res) {
       closeBooking();
       return Promise.all([loadDepartures(), loadBookings()]).then(function () {
         switchTab("bookings");
-        flash("Бронь " + res.booking_code + " создана на " + money(res.total_price) +
-              ", занято мест: " + res.seats_taken);
+        flash(editing
+          ? "Бронь " + res.booking_code + " обновлена: " + res.passengers_count +
+            " чел., " + money(res.total_price)
+          : "Бронь " + res.booking_code + " создана на " + money(res.total_price) +
+            ", занято мест: " + res.seats_taken);
       });
     }).catch(function (err) {
       $("bm-summary").innerHTML += '<div class="tt-error-box">' + esc(err.message) + "</div>";
@@ -357,7 +388,9 @@
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
-          (cancelled ? "" : '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id + '">Отменить</button>') +
+          (cancelled ? "" :
+            '<button class="tt-btn secondary tt-btn-sm" data-edit="' + b.id + '">Изменить</button>' +
+            '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id + '">Отменить</button>') +
         "</div>" +
       "</article>"
     );
@@ -387,6 +420,20 @@
   }
 
   $("bookings-list").addEventListener("click", function (e) {
+    var editBtn = e.target.closest("[data-edit]");
+    if (editBtn) {
+      TuronApi.bookings().then(function (list) {
+        var b = list.filter(function (x) { return x.id === Number(editBtn.dataset.edit); })[0];
+        if (!b) return;
+        var dep = state.departures.filter(function (d) { return d.code === b.departure_code; })[0];
+        if (!dep) {
+          alert("Заезд уже прошёл — состав не меняется.");
+          return;
+        }
+        openBooking(b.departure_code, b);
+      });
+      return;
+    }
     var btn = e.target.closest("[data-cancel]");
     if (!btn) return;
     if (!confirm("Отменить бронь? Места вернутся в продажу.")) return;
