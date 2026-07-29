@@ -236,6 +236,25 @@ function priceFor(passenger, departure) {
   return { code: placement.code, label: placement.label, price: placement.price, occupies_seat: 1 };
 }
 
+/*
+ * Проверка паспорта. Большинство стран, включая Турцию и Японию, требуют
+ * запас в 6 месяцев после окончания поездки, поэтому предупреждаем не
+ * только об уже истёкшем документе.
+ *
+ * Это предупреждение, а не запрет: правило зависит от направления, и
+ * решать должен менеджер, а не форма.
+ */
+function passportIssue(expiry, departureDate) {
+  if (!expiry) return null;
+  const exp = new Date(expiry), dep = new Date(departureDate);
+  if (isNaN(exp.getTime())) return null;
+  if (exp <= dep) return "паспорт истекает до поездки";
+  const sixMonths = new Date(dep);
+  sixMonths.setMonth(sixMonths.getMonth() + 6);
+  if (exp < sixMonths) return "до конца действия паспорта меньше 6 месяцев после поездки";
+  return null;
+}
+
 // ---------------------------------------------------------------- брониро­вание
 async function createBooking(request, env, agency) {
   const body = await request.json();
@@ -260,6 +279,12 @@ async function createBooking(request, env, agency) {
       return fail(`Для заезда ${departure.code} нет цены на размещение ${p.placement}`);
     }
     priced.push({ ...p, tariff });
+  }
+
+  const passportWarnings = [];
+  for (const p of priced) {
+    const issue = passportIssue(p.passport_expiry, departure.date_start);
+    if (issue) passportWarnings.push(`${p.full_name}: ${issue}`);
   }
 
   const seatsNeeded = priced.filter((p) => p.tariff.occupies_seat).length;
@@ -319,6 +344,7 @@ async function createBooking(request, env, agency) {
       seats_taken: seatsNeeded,
       total_price: total,
       agency_commission: commission,
+      passport_warnings: passportWarnings,
       passengers: priced.map((p) => ({
         full_name: p.full_name, tariff: p.tariff.label, price: p.tariff.price,
       })),

@@ -110,6 +110,23 @@ check('места вернулись', r.data.find(d=>d.code==='TZX1707').seats_
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
 check('повторная отмена отклонена', r.status === 404);
 
+console.log('\n--- срок действия паспорта ---');
+r = await call('/api/bookings', { method:'POST', token: umida, body:{
+  departure_code:'TZX2407',
+  passengers:[
+    { full_name:'EXPIRED SOON', birth_date:'1980-01-01', passport_number:'FE1',
+      passport_expiry:'2026-09-01', placement:'DBL' },
+    { full_name:'ALREADY EXPIRED', birth_date:'1980-01-01', passport_number:'FE2',
+      passport_expiry:'2026-01-01', placement:'DBL' },
+    { full_name:'ALL GOOD', birth_date:'1980-01-01', passport_number:'FE3',
+      passport_expiry:'2031-01-01', placement:'DBL' },
+  ]}});
+check('бронь всё равно создаётся (это предупреждение, не запрет)', r.status === 200);
+check('предупреждений ровно 2', (r.data.passport_warnings||[]).length === 2,
+      JSON.stringify(r.data.passport_warnings));
+check('истёкший паспорт назван', (r.data.passport_warnings||[]).some(w=>w.includes('ALREADY EXPIRED')));
+check('чистый паспорт не помечен', !(r.data.passport_warnings||[]).some(w=>w.includes('ALL GOOD')));
+
 console.log('\n--- защита от перебора пароля ---');
 // ofotour в тестах выше нигде не логинился успешно, поэтому его счётчик чист
 let blocked = null;

@@ -82,6 +82,25 @@
     return { code: pl.code, label: pl.label, price: pl.price, occupies_seat: 1 };
   }
 
+/*
+   * Проверка паспорта. Большинство стран, включая Турцию и Японию, требуют
+   * запас в 6 месяцев после окончания поездки, поэтому предупреждаем не
+   * только об уже истёкшем документе.
+   *
+   * Это предупреждение, а не запрет: правило зависит от направления, и
+   * решать должен менеджер, а не форма.
+   */
+  function passportIssue(expiry, departureDate) {
+    if (!expiry) return null;
+    const exp = new Date(expiry), dep = new Date(departureDate);
+    if (isNaN(exp.getTime())) return null;
+    if (exp <= dep) return "паспорт истекает до поездки";
+    const sixMonths = new Date(dep);
+    sixMonths.setMonth(sixMonths.getMonth() + 6);
+    if (exp < sixMonths) return "до конца действия паспорта меньше 6 месяцев после поездки";
+    return null;
+  }
+
   function demoLogin(login, password) {
     var agency = DEMO_AGENCIES.filter(function (a) {
       return a.login === String(login).trim().toLowerCase();
@@ -317,6 +336,7 @@
     },
 
     priceFor: priceFor,
+    passportIssue: passportIssue,
     ageOn: ageOn,
   };
 

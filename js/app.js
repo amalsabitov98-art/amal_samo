@@ -213,13 +213,16 @@
       });
       var needsCheck = childByAge && gotAdultTariff;
 
+      var passport = TuronApi.passportIssue(p.passport_expiry, d.date_start);
+
       box.innerHTML = '<span class="tt-pax-tariff">' + age + " лет · " + esc(t.label) + "</span>" +
         "<strong>" + money(t.price) + "</strong>" +
         (t.occupies_seat ? "" : '<span class="tt-muted-note"> · без места</span>') +
         (needsCheck
           ? '<span class="tt-price-warn"> · детский тариф на этот заезд не задан, ' +
             "посчитано по взрослому — менеджер уточнит</span>"
-          : "");
+          : "") +
+        (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
     var overflow = seats > d.seats_free;
