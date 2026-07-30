@@ -75,8 +75,13 @@
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
       <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Заезды</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙">Туристы</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣">Платежи</button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□">Документы</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○">Сообщения</button>
+      <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
+      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
       <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
@@ -109,7 +114,9 @@
         <h1 id="workspace-title">Новый тур</h1>
       </div>
       <div class="tt-header-right">
-        <button class="tt-notice-btn" type="button" aria-label="Уведомления">♧<i></i></button>
+        <button class="tt-notice-btn" type="button" aria-label="Уведомления">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg><i></i>
+        </button>
         <span class="tt-top-avatar">GW</span>
         <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name">Green Way Travel</strong></div>
         <span class="tt-top-chevron">⌄</span>
