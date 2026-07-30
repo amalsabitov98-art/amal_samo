@@ -71,6 +71,7 @@
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
+    $("top-agency-name").textContent = agency.name;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
     // и своих комиссий не имеет.
@@ -91,7 +92,7 @@
       });
     }
 
-    switchTab("departures");
+    switchTab("builder");
     var ready = loadDepartures();
     loadBookings();
     loadTours();
@@ -578,6 +579,7 @@
 
   function switchTab(name) {
     var labels = {
+      builder: ["Новый тур", "Конструктор путешествия"],
       departures: ["Заезды", "Рабочее пространство"],
       catalog: ["Каталог туров", "Маршруты и программы"],
       bookings: ["Мои брони", "Продажи агентства"],
@@ -589,11 +591,12 @@
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["departures", "catalog", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+    ["builder", "departures", "catalog", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;
       });
+    $("screen-app").classList.toggle("is-builder", name === "builder");
     if (labels[name]) {
       $("workspace-title").textContent = labels[name][0];
       $("workspace-kicker").textContent = labels[name][1];
@@ -606,6 +609,15 @@
     switchTab(tab.dataset.tab);
     // остатки мест могли измениться после брони — перерисовываем каталог
     if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
+  });
+
+  $("builder-book").addEventListener("click", function () {
+    var next = state.departures.filter(function (d) { return d.seats_free > 0; })[0];
+    if (!next) {
+      flash("Нет доступных заездов для бронирования.");
+      return;
+    }
+    openBooking(next.code);
   });
 
   function flash(text) {
