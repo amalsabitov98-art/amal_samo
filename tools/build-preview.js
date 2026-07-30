@@ -39,10 +39,32 @@ function bundledScript(src) {
 // как десктоп, и проверять мобильную вёрстку на нём будет бессмысленно.
 const metaTags = [...html.matchAll(/<meta [^>]*>/g)].map((m) => m[0]).join("\n");
 
+/*
+ * В боевой сборке фотографии лежат отдельными файлами в img/ — иначе
+ * styles.css весит полмегабайта и блокирует отрисовку страницы. Но
+ * превью — это один файл, который открывают откуда угодно, поэтому здесь
+ * картинки возвращаем обратно внутрь как data-URI.
+ */
+const MIME = { webp: "image/webp", png: "image/png", jpg: "image/jpeg",
+               jpeg: "image/jpeg", svg: "image/svg+xml", avif: "image/avif" };
+
+function inlineImages(css) {
+  return css.replace(/url\(\s*"(img\/[^"]+)"\s*\)/g, (whole, src) => {
+    const file = path.join(ROOT, src);
+    if (!fs.existsSync(file)) {
+      throw new Error(`styles.css ссылается на ${src}, но файла нет`);
+    }
+    const ext = path.extname(src).slice(1).toLowerCase();
+    const mime = MIME[ext];
+    if (!mime) throw new Error(`неизвестный тип картинки: ${src}`);
+    return `url("data:${mime};base64,${fs.readFileSync(file).toString("base64")}")`;
+  });
+}
+
 const out = `${metaTags}
 <title>Turon Tour — кабинет агентства (превью)</title>
 <style>
-${read("styles.css")}
+${inlineImages(read("styles.css"))}
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {

@@ -7,7 +7,19 @@
 <meta name="theme-color" content="#0d302a" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<!--
+  Шрифты грузим в обход блокировки отрисовки: обычный <link rel="stylesheet">
+  задерживает первый кадр до ответа fonts.googleapis.com, а он не везде
+  быстро отвечает. В CSS у каждого начертания есть запасное (Georgia,
+  Segoe UI), поэтому текст виден сразу и подменяется, когда шрифт приедет.
+-->
+<link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      onload="this.rel='stylesheet'" />
+<noscript>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
+</noscript>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
