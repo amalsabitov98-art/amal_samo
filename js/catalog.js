@@ -371,7 +371,17 @@
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
         root.innerHTML =
-          '<h1 class="tt-cat-h1">Направления</h1>' +
+          '<section class="tt-public-intro">' +
+            '<span class="tt-eyebrow">Экспедиции Turon Tour</span>' +
+            '<h1>Маршруты, которые хочется прожить.</h1>' +
+            '<p>Авторские групповые путешествия для партнёров — с понятными ' +
+              'остатками мест, программой и условиями бронирования.</p>' +
+            '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
+              '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
+            '</div>' +
+          '</section>' +
+          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">Куда отправимся</span>' +
+            '<h2>Направления</h2></div><p>Выберите регион, чтобы увидеть программы и даты.</p></div>' +
           (list.length
             ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
             : '<div class="tt-empty-state">Направления пока не заведены.</div>');
