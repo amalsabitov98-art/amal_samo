@@ -15,7 +15,7 @@
 (function (global) {
   "use strict";
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
