@@ -10,6 +10,12 @@
 import json, os, re, sys, hashlib, secrets
 from pathlib import Path
 
+# На Windows перенаправление `> db/seed.sql` пишет в системной кодировке
+# консоли (обычно cp1251), а не в UTF-8 — кириллица в SQL получается
+# битой. Фиксируем кодировку явно, независимо от платформы.
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 # Пути считаем от расположения скрипта, а не от текущего каталога:
 # генератор запускают и из корня репозитория, и из worker/.
 ROOT = Path(__file__).resolve().parent.parent
