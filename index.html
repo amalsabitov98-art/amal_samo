@@ -66,6 +66,7 @@
 
 <!-- ------------------------------------------------------------ кабинет -->
 <div id="screen-app" class="tt-app-shell" hidden>
+  <div class="tt-nav-scrim" id="nav-scrim" hidden></div>
   <aside class="tt-sidebar">
     <div class="tt-sidebar-brand">
       <div class="tt-logo tt-logo-light"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
@@ -108,7 +109,7 @@
 
   <div class="tt-workspace">
     <header class="tt-header tt-app-header">
-      <button class="tt-menu-btn" type="button" aria-label="Меню">☰</button>
+      <button class="tt-menu-btn" id="nav-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
       <div class="tt-workspace-heading">
         <span class="tt-eyebrow" id="workspace-kicker">Конструктор путешествия</span>
         <h1 id="workspace-title">Новый тур</h1>
@@ -127,8 +128,8 @@
       <section id="panel-builder">
         <div class="tt-builder-hero">
           <div class="tt-builder-hero-copy">
-            <h1>Батуми <i>→</i> Ризе <i>→</i> Трабзон</h1>
-            <div class="tt-builder-meta"><span>▣</span>31 июля — 7 августа <span>♙</span>2 туриста</div>
+            <h1 id="builder-title">Загрузка…</h1>
+            <div class="tt-builder-meta" id="builder-meta"></div>
           </div>
           <div class="tt-builder-map" aria-label="Маршрут Батуми — Ризе — Трабзон">
             <span>Батуми</span><i></i><b></b><i></i><strong>Ризе</strong><i></i><b></b><i></i><span>Трабзон</span>
@@ -147,33 +148,12 @@
 
             <section class="tt-build-card">
               <header><h2><i>▣</i>Дата и маршрут</h2></header>
-              <div class="tt-route-summary">
-                <div><strong>31 июля — 7 августа</strong><small>7 ночей / 8 дней</small></div>
-                <div class="tt-route-cities"><span>Батуми<small>2 ночи</small></span><i>→</i><span>Ризе<small>2 ночи</small></span><i>→</i><span>Трабзон<small>3 ночи</small></span></div>
-                <button class="tt-outline-btn" type="button">Изменить</button>
-              </div>
+              <div class="tt-route-summary" id="builder-route"></div>
             </section>
 
             <section class="tt-build-card">
-              <header><h2><i>✈</i>Рейсы</h2><button class="tt-outline-btn" type="button">Изменить</button></header>
-              <div class="tt-flight-grid">
-                <article class="tt-flight">
-                  <span class="tt-flight-tag">Туда</span>
-                  <div class="tt-airline"><b>◈</b><span>Centrum<br />Air</span></div>
-                  <div class="tt-airport"><strong>TAS</strong><small>Ташкент</small><time>10:30</time></div>
-                  <div class="tt-flight-line">→<small>3ч 10м<br />Прямой рейс</small></div>
-                  <div class="tt-airport"><strong>BUS</strong><small>Батуми</small><time>13:40</time></div>
-                  <div class="tt-flight-seats"><small>Места</small><strong>9/10</strong><span>Эконом</span></div>
-                </article>
-                <article class="tt-flight is-return">
-                  <span class="tt-flight-tag">Обратно</span>
-                  <div class="tt-airline"><b>◈</b><span>Centrum<br />Air</span></div>
-                  <div class="tt-airport"><strong>TZX</strong><small>Трабзон</small><time>14:20</time></div>
-                  <div class="tt-flight-line">→<small>3ч 10м<br />Прямой рейс</small></div>
-                  <div class="tt-airport"><strong>TAS</strong><small>Ташкент</small><time>18:40</time></div>
-                  <div class="tt-flight-seats"><small>Места</small><strong>7/10</strong><span>Эконом</span></div>
-                </article>
-              </div>
+              <header><h2><i>✈</i>Рейсы</h2></header>
+              <div class="tt-flight-grid" id="builder-flights"></div>
             </section>
 
             <section class="tt-build-card">
@@ -181,44 +161,29 @@
               <div class="tt-hotels-row">
                 <article class="tt-hotel-card">
                   <div class="tt-hotel-image is-batumi" role="img" aria-label="Batumi View Luxury"></div>
-                  <div><strong>Batumi View Luxury</strong><span class="tt-stars">★★★★★</span><small>Батуми<br />2 ночи / Завтраки включены</small></div>
-                  <button class="tt-outline-btn" type="button">Изменить</button>
+                  <div><strong>Batumi View Luxury</strong><span class="tt-stars">★★★★★</span><small>Батуми<br />Завтраки включены</small></div>
                 </article>
                 <i class="tt-hotel-arrow">→</i>
                 <article class="tt-hotel-card">
                   <div class="tt-hotel-image is-rize" role="img" aria-label="Rhisos Gold Hotel Rize"></div>
-                  <div><strong>Rhisos Gold Hotel Rize</strong><span class="tt-stars">★★★★</span><small>Ризе<br />2 ночи / Завтраки включены</small></div>
-                  <button class="tt-outline-btn" type="button">Изменить</button>
+                  <div><strong>Rhisos Gold Otel Rize</strong><span class="tt-stars">★★★★</span><small>Ризе<br />Завтраки включены</small></div>
                 </article>
               </div>
-              <button class="tt-add-line" type="button">＋ Добавить отель в Трабзоне</button>
+              <p class="tt-builder-hint">Распределение ночей по отелям оператор ещё не передал.</p>
             </section>
 
             <section class="tt-build-card">
               <header><h2><i>♙</i>Туристы</h2></header>
-              <div class="tt-traveller-list">
-                <article><b>1</b><div><strong>Иванов Иван</strong><small>19.05.1987 / Паспорт: AB1234567</small></div><span>Взрослый</span><div class="tt-qty"><button>−</button><strong>1</strong><button>＋</button></div><span>Дети (2–11)</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div><span>Младенцы</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div></article>
-                <article><b>2</b><div><strong>Иванова Анна</strong><small>23.11.1990 / Паспорт: AB7654321</small></div><span>Взрослый</span><div class="tt-qty"><button>−</button><strong>1</strong><button>＋</button></div><span>Дети (2–11)</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div><span>Младенцы</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div></article>
-              </div>
-              <button class="tt-add-line" type="button">＋ Добавить туриста</button>
+              <div class="tt-traveller-list" id="builder-travellers"></div>
+              <p class="tt-builder-hint">Тарифы взяты из прайса выбранного заезда. ФИО и паспорта
+                заполняются на следующем шаге — от даты рождения зависит детский тариф.</p>
             </section>
           </div>
 
           <aside class="tt-build-aside">
-            <section class="tt-book-summary">
-              <h2>Сводка бронирования</h2>
-              <div><span>Рейсы (2 билета)</span><strong>$698</strong></div>
-              <div><span>Отели (4 ночи)</span><strong>$980</strong></div>
-              <div><span>Сборы и сервисы</span><strong>$156</strong></div>
-              <div><span>Комиссия агентства (10%)</span><strong class="is-accent">− $176</strong></div>
-              <footer><span>Итого<small>Все суммы в USD</small></span><strong>$1 954</strong></footer>
-            </section>
-            <section class="tt-pay-plan">
-              <h2>График платежей</h2>
-              <div><i></i><span><strong>30% предоплата</strong><small>до 24 июля 2026</small></span><b>$586</b></div>
-              <div><i></i><span><strong>70% остаток</strong><small>до 24 июня 2026</small></span><b>$1 368</b></div>
-            </section>
-            <section class="tt-commission-box"><span><strong>Комиссия агентства</strong><small>10% от суммы тура</small></span><b>$176</b></section>
+            <section class="tt-book-summary" id="builder-summary"></section>
+            <section class="tt-pay-plan" id="builder-payplan"></section>
+            <section class="tt-commission-box" id="builder-commission" hidden></section>
             <button class="tt-builder-book" id="builder-book" type="button">Забронировать</button>
             <p class="tt-secure-note">♙ Безопасное бронирование и защита данных</p>
           </aside>

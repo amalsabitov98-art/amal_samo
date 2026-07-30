@@ -2,7 +2,11 @@
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
-  var state = { departures: [], current: null, passengers: [], editing: null };
+  var state = {
+    departures: [], current: null, passengers: [], editing: null,
+    // выбранный в конструкторе заезд и счётчики по тарифам
+    builder: { code: null, counts: {} },
+  };
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
   // Экземпляры независимы, создаются по одному разу.
@@ -227,6 +231,7 @@
     return TuronApi.departures().then(function (list) {
       state.departures = list;
       renderDepartures();
+      renderBuilder();
     }).catch(function (err) {
       $("departures-list").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить заезды.<div class="tt-muted-note">' +
@@ -236,6 +241,183 @@
 
   $("f-transport").addEventListener("change", renderDepartures);
   $("f-available").addEventListener("change", renderDepartures);
+
+  /* ------------------------------------------------------------- билдер
+   * «Новый тур» — тот же расчёт, что и калькулятор в каталоге, только в
+   * оформлении конструктора. Все цифры берутся из выбранного заезда:
+   * выдуманных пассажиров, рейсов и сумм здесь быть не должно — агент
+   * называет клиенту то, что видит.
+   */
+  function builderDeparture() {
+    if (!state.departures.length) return null;
+    var chosen = state.departures.filter(function (d) {
+      return d.code === state.builder.code;
+    })[0];
+    if (chosen) return chosen;
+    // по умолчанию — ближайший заезд, где ещё есть места
+    return state.departures.filter(function (d) { return d.seats_free > 0; })[0]
+      || state.departures[0];
+  }
+
+  // Тарифы заезда: взрослые по размещению + детские по возрасту. Строим из
+  // прайса самого заезда, чтобы счётчики не разошлись с расчётом сервера.
+  function builderTariffs(d) {
+    var adults = d.prices.filter(function (p) { return p.kind === "placement"; })
+      .sort(function (a, b) { return a.price - b.price; })
+      .map(function (p) {
+        return { code: p.code, price: p.price, seat: 1, title: "Взрослый", note: p.label };
+      });
+    var kids = d.prices.filter(function (p) { return p.kind === "child"; })
+      .sort(function (a, b) { return a.age_from - b.age_from; })
+      .map(function (p) {
+        // верхняя граница не включается: тариф 5-10 — это 5–9 лет
+        var top = p.age_to - 1;
+        return {
+          code: p.code, price: p.price, seat: p.occupies_seat, title: p.label,
+          note: p.occupies_seat ? p.age_from + "–" + top + " лет"
+                                : "младше " + p.age_to + " лет, без места",
+        };
+      });
+    return adults.concat(kids);
+  }
+
+  function builderTotals(d) {
+    var counts = state.builder.counts, total = 0, people = 0, seats = 0;
+    builderTariffs(d).forEach(function (t) {
+      var n = counts[t.code] || 0;
+      total += n * t.price;
+      people += n;
+      seats += n * (t.seat ? 1 : 0);
+    });
+    return { total: total, people: people, seats: seats };
+  }
+
+  function renderBuilder() {
+    var d = builderDeparture();
+    if (!d) return;
+    state.builder.code = d.code;
+
+    var t = builderTotals(d);
+    var over = t.seats > d.seats_free;
+    var end = TuronApi.departureEnd(d.date_start, d.nights);
+
+    $("builder-title").innerHTML = esc(d.tour_name || "Заезд");
+    $("builder-meta").innerHTML =
+      "<span>▣</span>" + formatRange(d.date_start, d.nights) +
+      " <span>♙</span>" + t.people + " " +
+      (t.people === 1 ? "турист" : t.people >= 2 && t.people <= 4 ? "туриста" : "туристов");
+
+    // ------------------------------------------------- дата и маршрут
+    $("builder-route").innerHTML =
+      "<div><strong>" + formatRange(d.date_start, d.nights) + "</strong><small>" +
+        (d.nights ? d.nights + " ночей / " + (d.nights + 1) + " дней" : "длительность уточняется") +
+      "</small></div>" +
+      '<div class="tt-route-cities"><span>' +
+        esc(TRANSPORT[d.transport] || d.transport) +
+        "<small>" + esc(d.code) + "</small></span><i>·</i><span>Свободно<small>" +
+        d.seats_free + " из " + d.capacity + "</small></span></div>" +
+      '<select class="tt-outline-btn" id="builder-departure" aria-label="Выбрать заезд">' +
+        state.departures.map(function (x) {
+          return '<option value="' + esc(x.code) + '"' +
+            (x.code === d.code ? " selected" : "") +
+            (x.seats_free <= 0 ? " disabled" : "") + ">" +
+            formatRange(x.date_start, x.nights) + " · " + esc(x.code) +
+            (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
+          "</option>";
+        }).join("") +
+      "</select>";
+
+    // ------------------------------------------------------------ рейсы
+    // Рейсы по заездам оператор пока не передал. Показывать выдуманные
+    // номера и время нельзя — агент отдаст их клиенту как настоящие.
+    $("builder-flights").innerHTML =
+      '<p class="tt-builder-empty">Рейсы по этому заезду ещё не заведены — ' +
+      "уточните время вылета у оператора.</p>";
+
+    // --------------------------------------------------------- туристы
+    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {
+      var n = state.builder.counts[r.code] || 0;
+      return '<article class="tt-tariff-row">' +
+        "<b>" + (i + 1) + "</b>" +
+        "<div><strong>" + esc(r.title) + "</strong><small>" + esc(r.note) + "</small></div>" +
+        "<span>" + money(r.price) + "</span>" +
+        '<div class="tt-qty">' +
+          '<button type="button" data-bstep="-1" data-tariff="' + esc(r.code) + '"' +
+            (n === 0 ? " disabled" : "") + ">−</button>" +
+          "<strong>" + n + "</strong>" +
+          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">＋</button>' +
+        "</div>" +
+        "<span>" + (n ? money(n * r.price) : "") + "</span>" +
+      "</article>";
+    }).join("");
+
+    // ------------------------------------------------------------ сводка
+    var lines = builderTariffs(d).filter(function (r) {
+      return (state.builder.counts[r.code] || 0) > 0;
+    }).map(function (r) {
+      var n = state.builder.counts[r.code];
+      return "<div><span>" + esc(r.title) + " · " + esc(r.note) + " × " + n +
+        "</span><strong>" + money(n * r.price) + "</strong></div>";
+    }).join("");
+
+    // Комиссия у нас в долларах за проданного туриста, а не процентом,
+    // и младенцы без места продажей не считаются.
+    var commission = (d.agency_commission || 0) * t.seats;
+
+    $("builder-summary").innerHTML =
+      "<h2>Сводка бронирования</h2>" +
+      (lines || '<div><span>Выберите туристов</span><strong>—</strong></div>') +
+      (commission > 0
+        ? '<div><span>Комиссия агентства</span><strong class="is-accent">− ' +
+          money(commission) + "</strong></div>"
+        : "") +
+      "<footer><span>Итого<small>Все суммы в USD</small></span><strong>" +
+        money(t.total) + "</strong></footer>" +
+      (over
+        ? '<div class="tt-error-box">Мест не хватает: нужно ' + t.seats +
+          ", свободно " + d.seats_free + ".</div>"
+        : "");
+
+    // ---------------------------------------------------- график платежей
+    var pol = TuronApi.paymentPolicy(d.date_start);
+    $("builder-payplan").innerHTML = "<h2>График платежей</h2>" +
+      pol.steps.map(function (s) {
+        return "<div><i></i><span><strong>" + Math.round(s.share * 100) + "% " +
+          esc(s.label) + "</strong><small>до " +
+          formatDate(s.due.toISOString().slice(0, 10)) + "</small></span><b>" +
+          (t.total > 0 ? money(Math.round(t.total * s.share * 100) / 100) : "—") +
+        "</b></div>";
+      }).join("") +
+      (pol.urgent
+        ? '<p class="tt-builder-hint">До выезда меньше 20 дней — рассрочки нет.</p>'
+        : "");
+
+    var box = $("builder-commission");
+    box.hidden = commission <= 0;
+    if (commission > 0) {
+      box.innerHTML = "<span><strong>Комиссия агентства</strong><small>" +
+        money(d.agency_commission) + " за проданного туриста</small></span><b>" +
+        money(commission) + "</b>";
+    }
+
+    $("builder-book").disabled = t.people === 0 || over;
+  }
+
+  // смена заезда и счётчиков
+  $("panel-builder").addEventListener("change", function (e) {
+    if (e.target.id !== "builder-departure") return;
+    state.builder = { code: e.target.value, counts: {} };
+    renderBuilder();
+  });
+
+  $("panel-builder").addEventListener("click", function (e) {
+    var step = e.target.closest("[data-bstep]");
+    if (!step) return;
+    var code = step.dataset.tariff;
+    var next = (state.builder.counts[code] || 0) + Number(step.dataset.bstep);
+    state.builder.counts[code] = Math.max(0, next);
+    renderBuilder();
+  });
 
   // --------------------------------------------------------- бронирование
   function passengerRowHtml(i, placements) {
@@ -607,17 +789,47 @@
     var tab = e.target.closest(".tt-tab");
     if (!tab || !tab.dataset.tab) return;
     switchTab(tab.dataset.tab);
+    setNav(false);   // на телефоне меню выдвижное — закрываем после выбора
     // остатки мест могли измениться после брони — перерисовываем каталог
     if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
   });
 
+  // Выдвижное меню на узком экране. Кнопка ☰ в шапке была, но ни к чему
+  // не подключена, а боковая колонка оставалась шириной 248px — из-за
+  // этого страница ехала вбок.
+  function setNav(open) {
+    $("screen-app").classList.toggle("is-nav-open", open);
+    $("nav-scrim").hidden = !open;
+    $("nav-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  $("nav-toggle").addEventListener("click", function () {
+    setNav(!$("screen-app").classList.contains("is-nav-open"));
+  });
+  $("nav-scrim").addEventListener("click", function () { setNav(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setNav(false);
+  });
+
   $("builder-book").addEventListener("click", function () {
-    var next = state.departures.filter(function (d) { return d.seats_free > 0; })[0];
-    if (!next) {
+    var d = builderDeparture();
+    if (!d) {
       flash("Нет доступных заездов для бронирования.");
       return;
     }
-    openBooking(next.code);
+    // Открываем ровно тот заезд и тот состав, что показаны в конструкторе:
+    // раньше кнопка брала первый попавшийся заезд, и бронь не совпадала
+    // с тем, что агент только что посчитал.
+    var rows = [];
+    builderTariffs(d).forEach(function (r) {
+      var n = state.builder.counts[r.code] || 0;
+      for (var i = 0; i < n; i++) {
+        // взрослому подставляем размещение, ребёнку нет: его тариф
+        // определит дата рождения
+        rows.push(r.title === "Взрослый" ? { placement: r.code } : {});
+      }
+    });
+    openBooking(d.code, null, rows.length ? rows : null);
   });
 
   function flash(text) {

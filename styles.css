@@ -2980,3 +2980,104 @@ select { font-family: inherit; }
   .tt-route-summary { display: flex; flex-wrap: wrap; }
   .tt-route-cities { width: 100%; overflow-x: auto; justify-content: space-between; }
 }
+
+/* --------------------- конструктор на реальных данных --------------------- */
+/* Строка тарифа в блоке «Туристы»: своя сетка вместо восьмиколоночной —
+   счётчики теперь по тарифам заезда, а не по выдуманным пассажирам. */
+.tt-traveller-list article.tt-tariff-row {
+  grid-template-columns: 28px minmax(150px, 1fr) 70px 82px 70px;
+  gap: 10px;
+}
+.tt-tariff-row > span {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tt-tariff-row > div:nth-child(2) strong { font-size: .62rem; }
+.tt-tariff-row > div:nth-child(2) small { color: #6d726e; font-size: .47rem; }
+.tt-qty button:disabled { opacity: .35; cursor: default; }
+
+.tt-builder-hint {
+  margin: 10px 13px 0;
+  color: #6c726e;
+  font-size: .5rem;
+  line-height: 1.6;
+}
+.tt-builder-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed #d7d4cc;
+  border-radius: 6px;
+  color: #6c726e;
+  font-size: .55rem;
+  line-height: 1.6;
+}
+
+/* Выбор заезда там, где была кнопка «Изменить» */
+select.tt-outline-btn {
+  max-width: 100%;
+  font: inherit;
+  font-size: .55rem;
+  cursor: pointer;
+}
+
+.tt-book-summary .tt-error-box { margin-top: 12px; }
+
+/* На телефоне конструктор ехал вбок: колонки фиксированной ширины и
+   липкая колонка сводки не помещались в 390px. */
+@media (max-width: 900px) {
+  .tt-builder-layout { grid-template-columns: 1fr; }
+  .tt-build-aside { position: static; }
+}
+@media (max-width: 640px) {
+  .tt-traveller-list article.tt-tariff-row {
+    grid-template-columns: 24px 1fr auto;
+    gap: 6px 8px;
+    padding: 10px 0;
+  }
+  .tt-tariff-row > span:nth-child(3) { grid-column: 2; text-align: left; }
+  .tt-tariff-row .tt-qty { grid-row: 1 / 3; grid-column: 3; }
+  .tt-tariff-row > span:last-child { display: none; }
+  .tt-route-summary { grid-template-columns: 1fr; gap: 10px; }
+  .tt-hotels-row { grid-template-columns: 1fr; }
+  .tt-hotel-arrow { display: none; }
+  .tt-builder-steps { overflow-x: auto; }
+}
+
+/* Боковое меню на телефоне: было 248px в сетке при экране 390px, из-за
+   чего содержимое вылезало вбок. Прячем за край и выдвигаем по кнопке —
+   кнопка ☰ в шапке уже была, но ни к чему не подключена. */
+@media (max-width: 860px) {
+  .tt-app-shell { grid-template-columns: minmax(0, 1fr); }
+  .tt-sidebar {
+    position: fixed;
+    z-index: 40;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 248px;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+  .tt-app-shell.is-nav-open .tt-sidebar { transform: none; }
+  .tt-nav-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(7, 32, 27, 0.55);
+  }
+}
+@media (min-width: 861px) {
+  .tt-nav-scrim { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-sidebar { transition: none; }
+}
+
+/* Предупреждение внутри тёмной сводки: базовый .tt-error-box рассчитан
+   на светлый фон и на зелёной панели почти не читался. */
+.tt-book-summary .tt-error-box {
+  border-color: rgba(255, 170, 150, 0.55);
+  background: rgba(255, 120, 90, 0.16);
+  color: #ffd9d0;
+}
