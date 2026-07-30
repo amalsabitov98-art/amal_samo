@@ -1,5 +1,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0d302a" />
 <title>Turon Tour — кабинет агентства (превью)</title>
 <style>
 :root {
@@ -756,6 +757,1637 @@ a { color: inherit; }
   .tt-history-row { grid-template-columns: 1fr 1fr; }
 }
 
+/* ------------------------------------------------------------- каталог */
+/* Публичный каталог направлений и карточка тура. Оформление собрано на
+   тех же токенах, что и кабинет, поэтому обе темы работают сами. */
+
+.tt-link-btn {
+  background: none;
+  border: 0;
+  padding: 6px 0 0;
+  color: var(--tt-text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+}
+.tt-link-btn:hover { color: var(--tt-accent); }
+
+@media (max-width: 640px) {
+  .tt-hide-sm { display: none; }
+}
+
+.tt-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--tt-text-muted);
+}
+.tt-crumbs i { font-style: normal; opacity: 0.5; }
+.tt-crumb {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--tt-accent);
+  font: inherit;
+  cursor: pointer;
+}
+.tt-crumb:hover { text-decoration: underline; }
+
+.tt-cat-h1 {
+  margin: 0 0 18px;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+/* --- плитки направлений --- */
+.tt-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.tt-cat-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+  cursor: pointer;
+  font: inherit;
+  color: var(--tt-text);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.tt-cat-tile:hover { transform: translateY(-2px); border-color: var(--tt-accent); }
+.tt-cat-tile.is-soon { opacity: 0.75; }
+.tt-cat-tile-art {
+  display: block;
+  height: 116px;
+  background-color: var(--tt-accent-soft);
+  background-image: linear-gradient(135deg, var(--tt-accent-soft), var(--tt-border));
+  background-size: cover;
+  background-position: center;
+}
+.tt-cat-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+.tt-cat-tile-body strong { font-size: 1.05rem; }
+.tt-cat-tile-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--tt-text-muted);
+}
+.tt-cat-tile-foot em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--tt-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- список туров направления --- */
+.tt-cat-tours { display: grid; gap: 14px; }
+.tt-cat-tour {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: start;
+  padding: 18px 20px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-cat-tour.is-soon { opacity: 0.8; }
+.tt-cat-tour h3 { margin: 0 0 4px; font-size: 1.1rem; }
+.tt-cat-tour p { margin: 8px 0 0; font-size: 0.9rem; line-height: 1.5; }
+.tt-cat-tour-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.tt-cat-from { text-align: right; line-height: 1.15; }
+.tt-cat-from span { display: block; font-size: 0.75rem; color: var(--tt-text-muted); }
+.tt-cat-from strong {
+  font-size: 1.25rem;
+  color: var(--tt-accent);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .tt-cat-tour { grid-template-columns: 1fr; }
+  .tt-cat-tour-side { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+
+/* --- карточка тура --- */
+.tt-cat-hero {
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-cat-hero h1 { margin: 0 0 6px; font-size: 1.55rem; letter-spacing: -0.01em; }
+.tt-cat-hero p { margin: 12px 0 0; line-height: 1.6; max-width: 68ch; }
+
+.tt-cat-block {
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-cat-block > h2 { margin: 0 0 14px; font-size: 1.1rem; }
+
+.tt-cat-variants { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.tt-cat-variant {
+  padding: 8px 14px;
+  background: var(--tt-bg);
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--tt-text-muted);
+  cursor: pointer;
+}
+.tt-cat-variant:hover { border-color: var(--tt-accent); color: var(--tt-text); }
+.tt-cat-variant.is-active {
+  background: var(--tt-accent-soft);
+  border-color: var(--tt-accent);
+  color: var(--tt-text);
+  font-weight: 600;
+}
+
+.tt-cat-days { margin: 16px 0 0; padding: 0; list-style: none; }
+.tt-cat-days li {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-cat-days li:first-child { border-top: 0; padding-top: 4px; }
+.tt-cat-days strong { font-size: 0.95rem; }
+.tt-cat-days span { font-size: 0.9rem; line-height: 1.55; color: var(--tt-text-muted); }
+@media (max-width: 640px) {
+  .tt-cat-days li { grid-template-columns: 1fr; gap: 4px; }
+}
+
+.tt-cat-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.tt-cat-list h3 { margin: 0 0 10px; font-size: 0.95rem; }
+.tt-cat-list ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.tt-cat-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.tt-cat-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+}
+.tt-cat-list.is-in li::before { content: "+"; color: var(--tt-success); }
+.tt-cat-list.is-out li::before { content: "−"; color: var(--tt-text-muted); }
+.tt-cat-list.is-out li { color: var(--tt-text-muted); }
+
+.tt-cat-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.tt-cat-gallery img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--tt-border);
+}
+
+.tt-cat-info { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.tt-cat-info li { font-size: 0.9rem; line-height: 1.5; color: var(--tt-text-muted); }
+.tt-cat-info a { color: var(--tt-accent); }
+
+/* --- заезды в карточке тура --- */
+.tt-cat-deps { display: grid; gap: 10px; }
+.tt-cat-dep {
+  display: grid;
+  grid-template-columns: 200px 1fr 130px auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--tt-bg);
+  border: 1px solid var(--tt-border);
+  border-radius: 12px;
+}
+.tt-cat-dep-when { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.tt-cat-dep-when strong { font-size: 1rem; }
+.tt-cat-dep-prices { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tt-cat-dep-seats {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tt-cat-dep-seats.is-ok { color: var(--tt-success); }
+.tt-cat-dep-seats.is-low { color: var(--tt-warn-text); }
+.tt-cat-dep-seats.is-full { color: var(--tt-text-muted); font-weight: 500; }
+.tt-cat-dep-action { display: flex; justify-content: flex-end; min-width: 0; }
+@media (max-width: 820px) {
+  /* Дата и остаток — в одну строку, цены и кнопка — на всю ширину:
+     иначе в узкой колонке каждый ценник встаёт отдельной строкой. */
+  .tt-cat-dep { grid-template-columns: 1fr auto; gap: 10px 12px; }
+  .tt-cat-dep-when { grid-area: 1 / 1; }
+  .tt-cat-dep-seats { grid-area: 1 / 2; align-self: start; }
+  .tt-cat-dep-prices { grid-column: 1 / -1; }
+  .tt-cat-dep-action { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+/* --------------------------------------- калькулятор заезда и оплата */
+/* Раскрывается под строкой заезда: счётчики по тарифам, итог и сроки
+   оплаты. Агент называет клиенту сумму, не заполняя паспорта. */
+
+.tt-cat-dep.is-open {
+  border-color: var(--tt-accent);
+  background: var(--tt-surface);
+}
+.tt-cat-calc {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--tt-border);
+}
+
+.tt-calc-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 118px 90px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
+.tt-calc-row + .tt-calc-row { border-top: 1px dashed var(--tt-border); }
+.tt-calc-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tt-calc-what strong { font-size: 0.9rem; }
+.tt-calc-price,
+.tt-calc-sum {
+  font-size: 0.9rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tt-calc-price { color: var(--tt-text-muted); }
+.tt-calc-sum { font-weight: 600; }
+
+.tt-calc-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: var(--tt-bg);
+  overflow: hidden;
+}
+.tt-calc-stepper button {
+  width: 34px;
+  height: 32px;
+  border: 0;
+  background: none;
+  color: var(--tt-accent);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tt-calc-stepper button:hover:not(:disabled) { background: var(--tt-accent-soft); }
+.tt-calc-stepper button:disabled { color: var(--tt-border); cursor: default; }
+.tt-calc-stepper output {
+  min-width: 34px;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-calc-total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  align-items: baseline;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tt-border);
+  font-size: 0.85rem;
+}
+.tt-calc-total span { color: var(--tt-text-muted); margin-right: 6px; }
+.tt-calc-total strong { font-variant-numeric: tabular-nums; }
+.tt-calc-grand { margin-left: auto; font-size: 1rem; }
+.tt-calc-grand strong { color: var(--tt-accent); font-size: 1.2rem; }
+
+.tt-calc-actions { margin-top: 14px; }
+
+.tt-cat-policy {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--tt-warn-bg);
+  border: 1px solid var(--tt-warn-border);
+  border-radius: 10px;
+}
+.tt-cat-policy h4 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--tt-warn-text);
+}
+.tt-cat-policy ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tt-cat-policy li { font-size: 0.85rem; line-height: 1.45; }
+.tt-cat-policy strong { font-variant-numeric: tabular-nums; }
+.tt-cat-policy p { margin: 8px 0 0; }
+.tt-cat-policy.is-urgent { border-color: var(--tt-accent); }
+
+@media (max-width: 640px) {
+  .tt-calc-row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+  .tt-calc-price { text-align: left; grid-row: 2; }
+  .tt-calc-stepper { justify-self: end; grid-row: 1 / 3; grid-column: 2; }
+  .tt-calc-sum { display: none; }
+  .tt-calc-grand { margin-left: 0; }
+}
+
+/* ==================================================================
+   EXPEDITION OS
+   Премиальная travel-tech оболочка Turon Tour. Нижние правила намеренно
+   переопределяют прежнюю тему, не затрагивая DOM-контракты приложения.
+   ================================================================== */
+
+:root {
+  --tt-bg: #f4f1e9;
+  --tt-surface: #fffdf8;
+  --tt-surface-2: #f9f6ef;
+  --tt-border: rgba(16, 55, 47, 0.14);
+  --tt-border-strong: rgba(16, 55, 47, 0.24);
+  --tt-text: #172923;
+  --tt-text-muted: #6b7771;
+  --tt-accent: #e9653a;
+  --tt-accent-dark: #c94925;
+  --tt-accent-soft: #fae9e2;
+  --tt-forest: #0d302a;
+  --tt-forest-deep: #08241f;
+  --tt-forest-soft: #17463c;
+  --tt-cream: #f4f1e9;
+  --tt-success: #16805f;
+  --tt-success-soft: #e6f3ed;
+  --tt-warn-bg: #fff4dc;
+  --tt-warn-border: #e9bd69;
+  --tt-warn-text: #8b5c0d;
+  --tt-danger: #c95145;
+  --tt-radius: 14px;
+  --tt-radius-lg: 22px;
+  --tt-shadow: 0 10px 34px rgba(24, 45, 38, 0.07);
+  --tt-shadow-hover: 0 18px 48px rgba(15, 48, 40, 0.13);
+  color-scheme: light;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 88% -10%, rgba(233, 101, 58, 0.08), transparent 30rem),
+    var(--tt-bg);
+  color: var(--tt-text);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select { font-family: inherit; }
+
+::selection { background: rgba(233, 101, 58, 0.22); }
+
+.tt-eyebrow {
+  display: inline-block;
+  color: var(--tt-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tt-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.tt-logo > i {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50% 50% 45% 55%;
+  color: var(--tt-accent);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.2rem;
+  font-style: normal;
+  transform: rotate(-8deg);
+}
+.tt-logo > span { color: currentColor; }
+.tt-logo-light { color: #fff9ed; }
+.tt-logo-light > i { color: #d8b977; }
+
+.tt-btn {
+  position: relative;
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 10px 18px;
+  background: var(--tt-accent);
+  box-shadow: 0 7px 18px rgba(233, 101, 58, 0.2);
+  letter-spacing: -0.01em;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.tt-btn:hover {
+  background: var(--tt-accent-dark);
+  box-shadow: 0 10px 24px rgba(201, 73, 37, 0.24);
+  transform: translateY(-1px);
+}
+.tt-btn:active { transform: translateY(0); }
+.tt-btn.secondary {
+  background: transparent;
+  border-color: var(--tt-border-strong);
+  color: var(--tt-forest);
+  box-shadow: none;
+}
+.tt-btn.secondary:hover {
+  background: rgba(13, 48, 42, 0.06);
+  border-color: var(--tt-forest);
+}
+.tt-btn-sm { min-height: 36px; padding: 8px 13px; font-size: 0.8rem; }
+
+/* ------------------------------------------------------- public shell */
+#screen-public {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(13, 48, 42, 0.035), transparent 260px),
+    var(--tt-bg);
+}
+
+.tt-header {
+  border-color: var(--tt-border);
+  box-shadow: none;
+}
+
+.tt-public-header {
+  min-height: 76px;
+  padding: 14px clamp(20px, 4vw, 64px);
+  background: rgba(255, 253, 248, 0.88);
+  backdrop-filter: blur(18px);
+}
+
+.tt-public-nav {
+  display: flex;
+  gap: clamp(18px, 3vw, 42px);
+  color: var(--tt-text-muted);
+  font-size: 0.75rem;
+}
+
+.tt-public-status {
+  color: var(--tt-success);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#screen-public > .tt-container {
+  width: min(1380px, 100%);
+  max-width: none;
+  padding: clamp(28px, 5vw, 72px) clamp(20px, 4vw, 64px) 90px;
+}
+
+/* ---------------------------------------------------------- app shell */
+.tt-app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  background: var(--tt-bg);
+}
+
+.tt-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 23px 16px 16px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 10% 62%, rgba(216, 185, 119, 0.1), transparent 17rem),
+    linear-gradient(155deg, #0e342d 0%, var(--tt-forest-deep) 72%);
+  color: rgba(255, 255, 255, 0.8);
+}
+.tt-sidebar::before {
+  content: "";
+  position: absolute;
+  right: -30px;
+  bottom: 22%;
+  width: 160px;
+  height: 260px;
+  opacity: 0.08;
+  border: 1px solid #d8b977;
+  border-radius: 70% 30% 60% 40%;
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+
+.tt-sidebar-brand {
+  position: relative;
+  z-index: 1;
+  padding: 0 8px 22px;
+}
+.tt-sidebar-brand small {
+  display: block;
+  margin: 5px 0 0 46px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tt-sidebar .tt-tabs {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  border: 0;
+}
+.tt-sidebar .tt-tab {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.8rem;
+  text-align: left;
+  transition: 0.18s ease;
+}
+.tt-sidebar .tt-tab::before {
+  content: attr(data-icon);
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  color: #d8b977;
+  font-size: 0.8rem;
+}
+.tt-sidebar .tt-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+.tt-sidebar .tt-tab.is-active {
+  color: #fff;
+  background: rgba(64, 139, 115, 0.24);
+  border-color: rgba(143, 204, 181, 0.16);
+  box-shadow: inset 3px 0 0 var(--tt-accent);
+  font-weight: 600;
+}
+.tt-sidebar .tt-tab.is-active::before {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(216, 185, 119, 0.42);
+}
+
+.tt-sidebar-route {
+  position: relative;
+  z-index: 1;
+  margin: auto 4px 18px;
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tt-sidebar-route > div {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.56rem;
+}
+.tt-sidebar-route svg { width: 100%; height: 48px; overflow: visible; }
+.tt-sidebar-route path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.tt-sidebar-route circle { fill: var(--tt-accent); }
+.tt-sidebar-route circle:first-of-type,
+.tt-sidebar-route circle:last-of-type { fill: #fff9ed; }
+.tt-sidebar-route strong {
+  display: block;
+  margin-top: 5px;
+  color: #fff9ed;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1rem;
+}
+.tt-sidebar-route small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.tt-sidebar-account {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 26px;
+  gap: 9px;
+  align-items: center;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+.tt-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(216, 185, 119, 0.16);
+  color: #e6ca8d;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.tt-sidebar-account div { min-width: 0; }
+.tt-sidebar-account strong,
+.tt-sidebar-account small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-sidebar-account strong { color: #fff; font-size: 0.68rem; }
+.tt-sidebar-account small { color: rgba(255, 255, 255, 0.4); font-size: 0.56rem; }
+.tt-sidebar-account .tt-icon-btn { color: rgba(255, 255, 255, 0.56); font-size: 1rem; }
+.tt-sidebar-account .tt-icon-btn:hover { color: #fff; }
+
+.tt-workspace { min-width: 0; }
+.tt-app-header {
+  min-height: 86px;
+  padding: 17px clamp(22px, 3vw, 42px);
+  background: rgba(244, 241, 233, 0.86);
+  backdrop-filter: blur(18px);
+}
+.tt-app-header h1 {
+  margin: 1px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.tt-live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--tt-success);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.tt-live-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tt-success);
+  box-shadow: 0 0 0 5px rgba(22, 128, 95, 0.1);
+}
+.tt-support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--tt-text-muted);
+  font-size: 0.72rem;
+}
+.tt-support-btn i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--tt-border);
+  border-radius: 50%;
+  font-style: normal;
+}
+
+.tt-app-container {
+  max-width: 1420px;
+  padding: 26px clamp(20px, 3vw, 42px) 70px;
+}
+
+.tt-section-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+.tt-section-intro h2 {
+  margin: 4px 0 2px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.tt-section-intro p { margin: 0; color: var(--tt-text-muted); font-size: 0.77rem; }
+.tt-route-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.72);
+  color: var(--tt-forest);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 0.88rem;
+}
+.tt-route-pill i { color: var(--tt-accent); font-style: normal; }
+
+/* ------------------------------------------------------------- filters */
+.tt-toolbar {
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: rgba(255, 253, 248, 0.76);
+  box-shadow: 0 8px 28px rgba(24, 45, 38, 0.04);
+}
+.tt-toolbar .tt-field { min-width: 210px; }
+.tt-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.tt-stat-grid article {
+  position: relative;
+  overflow: hidden;
+  min-height: 116px;
+  padding: 17px 18px 15px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+  box-shadow: 0 7px 24px rgba(24, 45, 38, 0.04);
+}
+.tt-stat-grid article::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: -30px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid rgba(13, 48, 42, 0.08);
+  border-radius: 50%;
+  box-shadow: 0 0 0 17px rgba(13, 48, 42, 0.025);
+}
+.tt-stat-grid span,
+.tt-stat-grid small {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+.tt-stat-grid span {
+  color: var(--tt-text-muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+.tt-stat-grid strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--tt-forest);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 0.9;
+}
+.tt-stat-grid strong.is-date { font-size: 1.35rem; line-height: 1.15; }
+.tt-stat-grid small { color: var(--tt-text-subtle); font-size: 0.58rem; }
+.tt-field label,
+.tt-field-full label,
+.tt-new-agency-grid label,
+.tt-pax-grid label {
+  color: var(--tt-text-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.tt-field input,
+.tt-field select,
+.tt-field-full input,
+.tt-field-full select,
+.tt-new-agency-grid input,
+.tt-pax-grid input,
+.tt-pax-grid select {
+  min-height: 42px;
+  border-radius: 9px;
+  border-color: var(--tt-border);
+  background: var(--tt-surface);
+  color: var(--tt-text);
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.tt-field input:focus,
+.tt-field select:focus,
+.tt-field-full input:focus,
+.tt-field-full select:focus,
+.tt-new-agency-grid input:focus,
+.tt-pax-grid input:focus,
+.tt-pax-grid select:focus {
+  border-color: rgba(233, 101, 58, 0.68);
+  box-shadow: 0 0 0 3px rgba(233, 101, 58, 0.1);
+}
+.tt-check-inline { padding: 0 0 9px; font-size: 0.72rem; }
+.tt-check-inline input { accent-color: var(--tt-accent); }
+
+/* ---------------------------------------------------------- departures */
+.tt-dep {
+  position: relative;
+  grid-template-columns: minmax(178px, 0.9fr) minmax(300px, 1.8fr) minmax(145px, 0.8fr) 140px;
+  gap: 18px;
+  min-height: 112px;
+  padding: 17px 18px;
+  border: 1px solid var(--tt-border);
+  border-left: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+  box-shadow: 0 7px 24px rgba(24, 45, 38, 0.045);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+.tt-dep:hover {
+  transform: translateY(-2px);
+  border-color: var(--tt-border-strong);
+  box-shadow: var(--tt-shadow-hover);
+}
+.tt-dep::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--tt-success);
+}
+.tt-dep-main {
+  grid-column: 1;
+  grid-row: 1;
+  margin-left: 0;
+}
+.tt-dep.is-low::before { background: var(--tt-warn-border); }
+.tt-dep.is-full::before { background: var(--tt-danger); }
+.tt-dep.is-full { opacity: 0.66; }
+.tt-dep-date strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+.tt-dep-code { margin-top: 2px; font-size: 0.62rem; letter-spacing: 0.05em; }
+.tt-badge {
+  padding: 4px 9px;
+  border: 1px solid rgba(22, 128, 95, 0.14);
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+.tt-badge-info {
+  border-color: rgba(233, 189, 105, 0.28);
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+}
+.tt-badge-off {
+  border-color: var(--tt-border);
+  background: var(--tt-surface-2);
+  color: var(--tt-text-muted);
+}
+.tt-dep-prices { gap: 7px; }
+.tt-price-chip {
+  min-width: 78px;
+  justify-content: space-between;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: var(--tt-surface-2);
+  font-size: 0.75rem;
+}
+.tt-price-chip em { font-size: 0.57rem; }
+.tt-child-prices { font-size: 0.62rem; line-height: 1.5; }
+.tt-seat-bar { height: 5px; background: rgba(13, 48, 42, 0.1); }
+.tt-seat-bar i { background: var(--tt-success); }
+.tt-dep.is-low .tt-seat-bar i { background: var(--tt-warn-border); }
+.tt-dep.is-full .tt-seat-bar i { background: var(--tt-danger); }
+.tt-seat-text { font-size: 0.66rem; }
+.tt-seat-text strong { color: var(--tt-text); font-size: 0.92rem; }
+.tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
+
+/* --------------------------------------------------------- login */
+.tt-login-screen {
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  place-items: stretch;
+  padding: 0;
+  background: var(--tt-forest-deep);
+}
+.tt-login-story {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 5vw, 74px);
+  overflow: hidden;
+  color: #fff9ed;
+  background:
+    linear-gradient(110deg, rgba(5, 31, 26, 0.25), rgba(5, 31, 26, 0.9)),
+    radial-gradient(circle at 75% 28%, rgba(233, 101, 58, 0.34), transparent 15rem),
+    linear-gradient(150deg, #1d594a, #092923 70%);
+}
+.tt-login-story::after {
+  content: "";
+  position: absolute;
+  inset: 18% -10% -20% 30%;
+  border: 1px solid rgba(216, 185, 119, 0.17);
+  border-radius: 50%;
+  transform: rotate(-17deg);
+  box-shadow:
+    0 0 0 60px rgba(216, 185, 119, 0.025),
+    0 0 0 120px rgba(216, 185, 119, 0.02);
+}
+.tt-login-story-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tt-login-story-top > span {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.tt-login-story > div:last-child { position: relative; z-index: 1; max-width: 650px; }
+.tt-login-story p {
+  margin: 0 0 9px;
+  color: #d8b977;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.1rem;
+}
+.tt-login-story h1 {
+  max-width: 620px;
+  margin: 0 0 16px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3rem, 6vw, 6.2rem);
+  font-weight: 500;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+}
+.tt-login-story > div:last-child > span {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.8rem;
+}
+.tt-login-route {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 80%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.68rem;
+}
+.tt-login-route i { flex: 1; border-top: 1px dashed rgba(255, 255, 255, 0.35); }
+.tt-login-route span:nth-of-type(2) { color: var(--tt-accent); }
+
+.tt-login-card {
+  align-self: center;
+  justify-self: center;
+  width: min(420px, calc(100% - 44px));
+  max-width: none;
+  padding: 42px;
+  border: 0;
+  border-radius: var(--tt-radius-lg);
+  background: var(--tt-surface);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  text-align: left;
+}
+.tt-login-card h2 {
+  margin: 7px 0 2px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+}
+.tt-login-card .tt-muted-note { margin: 0 0 26px; }
+.tt-login-card .tt-btn { margin-top: 5px; }
+.tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; }
+
+/* ------------------------------------------------ public catalogue */
+.tt-public-intro {
+  position: relative;
+  min-height: clamp(390px, 52vw, 610px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  margin-bottom: clamp(46px, 7vw, 88px);
+  padding: clamp(32px, 6vw, 74px);
+  border-radius: 30px;
+  color: #fffaf0;
+  background:
+    linear-gradient(90deg, rgba(5, 35, 29, 0.96) 0%, rgba(8, 49, 41, 0.84) 48%, rgba(9, 47, 40, 0.34) 100%),
+    radial-gradient(circle at 82% 25%, #db855e 0, #326e60 28%, #0d302a 68%);
+  box-shadow: 0 34px 90px rgba(8, 42, 34, 0.22);
+}
+.tt-public-intro::before {
+  content: "";
+  position: absolute;
+  inset: 8% -12% auto auto;
+  width: 62%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 54px rgba(255, 255, 255, 0.025),
+    0 0 0 108px rgba(255, 255, 255, 0.018);
+}
+.tt-public-intro > * { position: relative; z-index: 1; }
+.tt-public-intro .tt-eyebrow { color: #e5c987; }
+.tt-public-intro h1 {
+  max-width: 850px;
+  margin: 11px 0 18px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3.3rem, 8vw, 7.6rem);
+  font-weight: 500;
+  line-height: 0.82;
+  letter-spacing: -0.065em;
+}
+.tt-public-intro p {
+  max-width: 590px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: clamp(0.78rem, 1.5vw, 0.92rem);
+  line-height: 1.75;
+}
+.tt-public-route {
+  position: absolute;
+  right: clamp(24px, 5vw, 64px);
+  bottom: clamp(26px, 5vw, 70px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.7rem;
+}
+.tt-public-route i {
+  width: clamp(20px, 3vw, 48px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.34);
+}
+.tt-public-route i::after {
+  content: "";
+  float: right;
+  width: 5px;
+  height: 5px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: var(--tt-accent);
+}
+.tt-cat-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.tt-cat-heading h2 {
+  margin: 3px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.3rem, 5vw, 4.5rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+.tt-cat-heading p {
+  max-width: 330px;
+  margin: 0;
+  color: var(--tt-text-muted);
+  font-size: 0.76rem;
+}
+.tt-crumbs {
+  margin-bottom: 18px;
+  color: var(--tt-text-muted);
+  font-size: 0.68rem;
+}
+.tt-crumb { color: var(--tt-forest); font-weight: 700; }
+.tt-cat-h1 {
+  margin-bottom: 26px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+.tt-cat-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+.tt-cat-tile {
+  min-height: 300px;
+  border-radius: var(--tt-radius-lg);
+  border-color: rgba(13, 48, 42, 0.12);
+  box-shadow: var(--tt-shadow);
+}
+.tt-cat-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--tt-shadow-hover);
+}
+.tt-cat-tile-art {
+  position: relative;
+  height: 172px;
+  background:
+    radial-gradient(circle at 70% 25%, rgba(233, 101, 58, 0.36), transparent 30%),
+    linear-gradient(145deg, #1b5c4d, #0a2d26);
+}
+.tt-cat-tile-art::after {
+  content: "↗";
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 253, 248, 0.92);
+  color: var(--tt-forest);
+}
+.tt-cat-tile-body { gap: 7px; padding: 17px 19px 19px; }
+.tt-cat-tile-body strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+}
+.tt-cat-tile-foot { font-size: 0.7rem; }
+.tt-cat-tour {
+  padding: 23px 24px;
+  border-radius: var(--tt-radius-lg);
+  box-shadow: var(--tt-shadow);
+}
+.tt-cat-tour h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.tt-cat-tour p { max-width: 75ch; font-size: 0.8rem; }
+
+.tt-cat-hero {
+  position: relative;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 58px);
+  border: 0;
+  border-radius: 26px;
+  color: #fff9ed;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(233, 101, 58, 0.3), transparent 17rem),
+    linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
+  box-shadow: 0 26px 64px rgba(10, 42, 34, 0.22);
+}
+.tt-cat-hero::before {
+  content: "";
+  position: absolute;
+  width: 54%;
+  aspect-ratio: 1;
+  right: -5%;
+  top: -56%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 46px rgba(255, 255, 255, 0.025),
+    0 0 0 92px rgba(255, 255, 255, 0.02);
+}
+.tt-cat-hero::after {
+  content: "Авторский групповой маршрут";
+  position: absolute;
+  right: clamp(28px, 5vw, 58px);
+  top: clamp(25px, 4vw, 46px);
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+.tt-cat-hero > * { position: relative; z-index: 1; }
+.tt-cat-hero h1 {
+  max-width: 750px;
+  margin-bottom: 10px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.7rem, 6vw, 5.8rem);
+  font-weight: 500;
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+}
+.tt-cat-hero .tt-muted-note { color: #d8b977; font-size: 0.72rem; }
+.tt-cat-hero p { max-width: 65ch; color: rgba(255, 255, 255, 0.68); font-size: 0.8rem; }
+
+.tt-cat-block {
+  padding: clamp(20px, 3vw, 30px);
+  border-radius: var(--tt-radius-lg);
+  box-shadow: 0 8px 30px rgba(24, 45, 38, 0.045);
+}
+.tt-cat-block > h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+}
+.tt-cat-variants { margin: 18px 0 5px; }
+.tt-cat-variant {
+  border-radius: 9px;
+  background: var(--tt-surface-2);
+  font-size: 0.7rem;
+}
+.tt-cat-variant.is-active {
+  background: var(--tt-forest);
+  border-color: var(--tt-forest);
+  color: #fff;
+}
+.tt-cat-days { counter-reset: day; }
+.tt-cat-days li {
+  position: relative;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(0, 2fr);
+  padding: 18px 0 18px 42px;
+}
+.tt-cat-days li::before {
+  counter-increment: day;
+  content: counter(day);
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 101, 58, 0.28);
+  border-radius: 50%;
+  color: var(--tt-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.tt-cat-days strong { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.08rem; }
+.tt-cat-days span { font-size: 0.78rem; }
+.tt-cat-list li,
+.tt-cat-info li { font-size: 0.76rem; }
+
+.tt-cat-dep {
+  grid-template-columns: minmax(190px, 0.8fr) minmax(270px, 1.5fr) 110px auto;
+  padding: 16px;
+  border-radius: 13px;
+  background: var(--tt-surface-2);
+}
+.tt-cat-dep.is-open {
+  border-color: rgba(233, 101, 58, 0.62);
+  box-shadow: 0 12px 36px rgba(233, 101, 58, 0.08);
+}
+.tt-cat-dep-when strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.12rem;
+}
+.tt-cat-dep-seats { font-size: 0.72rem; }
+.tt-cat-calc { padding-top: 19px; }
+.tt-calc-row { padding: 10px 0; }
+.tt-calc-what strong { font-size: 0.78rem; }
+.tt-calc-price,
+.tt-calc-sum { font-size: 0.78rem; }
+.tt-cat-policy {
+  border-color: rgba(216, 185, 119, 0.35);
+  background: #fbf2df;
+}
+
+/* ------------------------------------------------ booking and admin */
+.tt-modal { background: rgba(4, 23, 19, 0.7); backdrop-filter: blur(8px); }
+.tt-modal-card {
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--tt-radius-lg);
+  box-shadow: 0 35px 90px rgba(0, 0, 0, 0.32);
+}
+.tt-modal-head {
+  grid-column: 1;
+  padding: 22px 26px 17px;
+}
+.tt-modal-head h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.7rem;
+}
+.tt-modal-body { grid-column: 1; padding: 20px 26px 30px; }
+.tt-modal-foot {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 30px 24px;
+  border: 0;
+  background:
+    radial-gradient(circle at 100% 0, rgba(233, 101, 58, 0.22), transparent 14rem),
+    var(--tt-forest);
+  color: #fff;
+}
+.tt-modal-foot::before {
+  content: "Сводка бронирования";
+  display: block;
+  margin-bottom: 20px;
+  color: #d8b977;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+}
+.tt-modal-foot > div { width: 100%; min-width: 0; }
+.tt-modal-foot .tt-sum-line { color: rgba(255, 255, 255, 0.6); }
+.tt-modal-foot .tt-sum-line strong { color: #fff; }
+.tt-modal-foot .tt-earn strong { color: #8fe0be; }
+.tt-modal-foot .tt-sum-total { margin-top: 14px; border-color: rgba(255, 255, 255, 0.15); }
+.tt-modal-foot .tt-sum-total strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.8rem;
+}
+.tt-modal-foot .tt-cat-policy {
+  color: var(--tt-text);
+  background: rgba(255, 253, 248, 0.94);
+}
+.tt-modal-foot > .tt-btn {
+  width: 100%;
+  margin-top: auto;
+  min-height: 50px;
+}
+.tt-pax {
+  padding: 16px;
+  border-color: var(--tt-border);
+  border-radius: 13px;
+  background: var(--tt-surface-2);
+}
+.tt-pax-head strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.08rem;
+}
+.tt-booking,
+.tt-tour,
+.tt-earnings,
+.tt-panel,
+.tt-table-wrap {
+  border-color: var(--tt-border);
+  background: var(--tt-surface);
+  box-shadow: 0 8px 30px rgba(24, 45, 38, 0.05);
+}
+.tt-booking,
+.tt-tour { border-radius: var(--tt-radius); }
+.tt-earnings {
+  gap: 1px;
+  padding: 0;
+  overflow: hidden;
+}
+.tt-earnings > div { padding: 18px 20px; border-right: 1px solid var(--tt-border); }
+.tt-earnings > div:last-child { border-right: 0; }
+.tt-earnings strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.6rem;
+}
+.tt-panel h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.4rem;
+}
+.tt-table th {
+  background: var(--tt-surface-2);
+  font-size: 0.62rem;
+}
+.tt-table td { font-size: 0.72rem; }
+.tt-table tbody tr:hover { background: rgba(13, 48, 42, 0.035); }
+.tt-flash {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: var(--tt-forest);
+  color: #fff;
+}
+
+/* ----------------------------------------------------------- motion */
+@keyframes tt-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tt-dep,
+.tt-cat-tile,
+.tt-cat-tour,
+.tt-cat-block,
+.tt-earnings,
+.tt-booking,
+.tt-tour { animation: tt-rise 0.36s ease both; }
+.tt-dep:nth-child(2),
+.tt-cat-tile:nth-child(2) { animation-delay: 0.04s; }
+.tt-dep:nth-child(3),
+.tt-cat-tile:nth-child(3) { animation-delay: 0.08s; }
+.tt-dep:nth-child(n+4) { animation-delay: 0.12s; }
+
+/* --------------------------------------------------------- responsive */
+@media (max-width: 1120px) {
+  .tt-app-shell { grid-template-columns: 210px minmax(0, 1fr); }
+  .tt-sidebar { padding-inline: 11px; }
+  .tt-sidebar .tt-tab { padding-inline: 10px; }
+  .tt-dep { grid-template-columns: minmax(170px, 0.8fr) minmax(250px, 1.5fr) 130px; }
+  .tt-dep-action { grid-column: 1 / -1; }
+  .tt-dep-action .tt-btn { width: auto; }
+  .tt-public-nav { display: none; }
+  .tt-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 860px) {
+  .tt-app-shell { display: block; }
+  .tt-sidebar {
+    position: sticky;
+    z-index: 30;
+    width: 100%;
+    height: auto;
+    display: block;
+    padding: 10px 14px;
+    overflow: visible;
+  }
+  .tt-sidebar-brand { display: none; }
+  .tt-sidebar .tt-tabs {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tt-sidebar .tt-tab {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  .tt-sidebar .tt-tab::before { display: none; }
+  .tt-sidebar .tt-tab.is-active { box-shadow: inset 0 -2px 0 var(--tt-accent); }
+  .tt-sidebar-route,
+  .tt-sidebar-account { display: none; }
+  .tt-app-header { top: 51px; min-height: 75px; }
+  .tt-dep {
+    grid-template-columns: 1fr 150px;
+    gap: 13px;
+  }
+  .tt-dep::before { display: none; }
+  .tt-dep-main { grid-column: 1; }
+  .tt-dep-prices { grid-column: 1 / -1; }
+  .tt-dep-seats { grid-column: 2; grid-row: 1; }
+  .tt-dep-action { grid-column: 1 / -1; }
+  .tt-modal-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .tt-modal-head,
+  .tt-modal-body,
+  .tt-modal-foot { grid-column: 1; }
+  .tt-modal-foot {
+    grid-row: 3;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  .tt-modal-foot::before { margin-bottom: 10px; font-size: 1.1rem; }
+  .tt-modal-foot > .tt-btn { margin-top: 14px; }
+}
+
+@media (max-width: 720px) {
+  .tt-public-header { min-height: 66px; padding: 12px 16px; }
+  .tt-public-header .tt-logo { font-size: 1.2rem; }
+  .tt-public-header .tt-logo > i { width: 29px; height: 29px; }
+  #screen-public > .tt-container { padding: 24px 15px 70px; }
+  .tt-app-header { padding: 13px 17px; }
+  .tt-app-header h1 { font-size: 1.7rem; }
+  .tt-live-dot,
+  .tt-support-btn span { display: none; }
+  .tt-app-container { padding: 20px 14px 60px; }
+  .tt-section-intro { display: block; }
+  .tt-route-pill { width: fit-content; margin-top: 13px; }
+  .tt-public-intro {
+    min-height: 520px;
+    padding: 38px 26px;
+    border-radius: 22px;
+  }
+  .tt-public-intro h1 { max-width: 620px; }
+  .tt-public-route {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: 27px;
+  }
+  .tt-cat-heading { display: block; }
+  .tt-cat-heading p { margin-top: 9px; }
+  .tt-toolbar { align-items: stretch; padding: 13px; }
+  .tt-toolbar .tt-field { min-width: 100%; }
+  .tt-check-inline { padding: 2px 0; }
+  .tt-dep { grid-template-columns: 1fr auto; padding: 15px; }
+  .tt-dep-prices,
+  .tt-dep-action { grid-column: 1 / -1; }
+  .tt-dep-action .tt-btn { width: 100%; }
+  .tt-login-screen { display: block; min-height: 100vh; padding: 24px 0; }
+  .tt-login-story { display: none; }
+  .tt-login-card { margin: 6vh auto 0; padding: 30px 24px; }
+  .tt-cat-hero { min-height: 330px; padding: 28px 22px; }
+  .tt-cat-hero::after { left: 22px; right: auto; }
+  .tt-cat-hero h1 { font-size: 3rem; }
+  .tt-cat-days li { grid-template-columns: 1fr; gap: 5px; }
+  .tt-cat-dep { grid-template-columns: 1fr auto; }
+  .tt-cat-dep-prices,
+  .tt-cat-dep-action,
+  .tt-cat-calc { grid-column: 1 / -1; }
+  .tt-earnings > div { border-right: 0; border-bottom: 1px solid var(--tt-border); }
+  .tt-earnings > div:last-child { border-bottom: 0; }
+}
+
+@media (max-width: 480px) {
+  .tt-header-right { gap: 7px; }
+  .tt-public-header .tt-btn { padding-inline: 12px; }
+  .tt-section-intro h2 { font-size: 1.75rem; }
+  .tt-route-pill { font-size: 0.78rem; }
+  .tt-stat-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .tt-stat-grid article { min-height: 106px; padding: 14px; }
+  .tt-stat-grid strong { font-size: 1.65rem; }
+  .tt-stat-grid strong.is-date { font-size: 1rem; }
+  .tt-public-intro { min-height: 500px; padding: 31px 22px; }
+  .tt-public-intro h1 { font-size: 3.25rem; }
+  .tt-public-route { gap: 6px; font-size: 0.62rem; }
+  .tt-dep { display: block; }
+  .tt-dep > * + * { margin-top: 13px; }
+  .tt-dep-seats { text-align: left; }
+  .tt-price-chip { flex: 1 1 72px; }
+  .tt-cat-h1 { font-size: 2.8rem; }
+  .tt-cat-grid { grid-template-columns: 1fr; }
+  .tt-cat-hero h1 { font-size: 2.55rem; }
+  .tt-modal { padding: 0; }
+  .tt-modal-card { max-height: 100vh; border-radius: 0; }
+  .tt-pax-grid { grid-template-columns: 1fr; }
+  .tt-pax-grid .tt-col-2 { grid-column: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .tt-dep,
+  .tt-cat-tile,
+  .tt-cat-tour,
+  .tt-cat-block,
+  .tt-earnings,
+  .tt-booking,
+  .tt-tour { animation: none; }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -781,11 +2413,43 @@ a { color: inherit; }
         брони сохраняются только в этом браузере.</span>
 </div>
 
+<!-- ------------------------------------------- публичный каталог (без входа) -->
+<div id="screen-public" hidden>
+  <header class="tt-header tt-public-header">
+    <div class="tt-logo"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
+    <div class="tt-public-nav">
+      <span>Авторские маршруты</span>
+      <span>Партнёрские цены</span>
+      <span>Поддержка 24/7</span>
+    </div>
+    <div class="tt-header-right">
+      <span class="tt-public-status tt-hide-sm">B2B · Каталог для партнёров</span>
+      <button class="tt-btn tt-btn-sm" id="public-login-btn">Войти в кабинет</button>
+    </div>
+  </header>
+  <main class="tt-container" id="public-catalog"></main>
+</div>
+
 <!-- ------------------------------------------------------------- вход -->
-<section id="screen-login" class="tt-login-screen">
+<section id="screen-login" class="tt-login-screen" hidden>
+  <div class="tt-login-story" aria-hidden="true">
+    <div class="tt-login-story-top">
+      <div class="tt-logo tt-logo-light"><i>T</i><span>Turon Tour</span></div>
+      <span>Expedition OS</span>
+    </div>
+    <div class="tt-login-route">
+      <span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>
+    </div>
+    <div>
+      <p>Карадениз зовёт</p>
+      <h1>Управляйте путешествием целиком.</h1>
+      <span>Заезды, бронирования, туристы и оплаты — в одной системе.</span>
+    </div>
+  </div>
   <form class="tt-login-card" id="login-form">
-    <div class="tt-logo">Turon <span>Tour</span></div>
-    <p class="tt-muted-note">Кабинет агентства</p>
+    <span class="tt-eyebrow">Партнёрский доступ</span>
+    <h2>Добро пожаловать</h2>
+    <p class="tt-muted-note">Войдите в кабинет агентства Turon Tour</p>
     <div class="tt-field-full">
       <label for="l-login">Логин</label>
       <input type="text" id="l-login" autocomplete="username" required />
@@ -796,38 +2460,76 @@ a { color: inherit; }
     </div>
     <button type="submit" class="tt-btn" id="login-btn">Войти</button>
     <div id="login-error"></div>
+    <button type="button" class="tt-link-btn" id="login-back">← В каталог</button>
     <div id="demo-hint" class="tt-muted-note" hidden></div>
   </form>
 </section>
 
 <!-- ------------------------------------------------------------ кабинет -->
-<div id="screen-app" hidden>
-  <header class="tt-header">
-    <div class="tt-logo">Turon <span>Tour</span></div>
-    <div class="tt-header-right">
-      <span id="agency-name" class="tt-agency-chip"></span>
-      <button class="tt-btn secondary tt-btn-sm" id="logout-btn">Выйти</button>
+<div id="screen-app" class="tt-app-shell" hidden>
+  <aside class="tt-sidebar">
+    <div class="tt-sidebar-brand">
+      <div class="tt-logo tt-logo-light"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
+      <small>Expedition OS</small>
     </div>
-  </header>
-
-  <main class="tt-container">
     <div class="tt-tabs">
-      <button class="tt-tab tt-tab-ag is-active" data-tab="departures">Заезды</button>
-      <button class="tt-tab tt-tab-ag" data-tab="bookings">Мои брони</button>
-      <button class="tt-tab tt-tab-ag" data-tab="tours">Туры и комиссии</button>
-      <button class="tt-tab tt-tab-op" data-tab="manifest" hidden>Списки пассажиров</button>
-      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden>Все брони</button>
-      <button class="tt-tab tt-tab-op" data-tab="agencies" hidden>Агентства</button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="departures" data-icon="⌁">Заезды</button>
+      <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◇">Каталог</button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Мои брони</button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Туры и комиссии</button>
+      <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
+      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
+      <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
     </div>
 
-    <section id="panel-departures">
+    <div class="tt-sidebar-route" aria-hidden="true">
+      <div><span>Батуми</span><span>Ризе</span><span>Трабзон</span></div>
+      <svg viewBox="0 0 220 52" role="img">
+        <path d="M8 35 C45 4 66 48 106 25 S168 2 212 28" />
+        <circle cx="8" cy="35" r="5" />
+        <circle cx="108" cy="24" r="5" />
+        <circle cx="212" cy="28" r="5" />
+      </svg>
+      <strong>Карадениз зовёт.</strong>
+      <small>Откройте красоту<br />черноморского побережья</small>
+    </div>
+
+    <div class="tt-sidebar-account">
+      <span class="tt-avatar">TT</span>
+      <div><strong id="agency-name"></strong><small>Партнёр Turon Tour</small></div>
+      <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти">↗</button>
+    </div>
+  </aside>
+
+  <div class="tt-workspace">
+    <header class="tt-header tt-app-header">
+      <div>
+        <span class="tt-eyebrow" id="workspace-kicker">Рабочее пространство</span>
+        <h1 id="workspace-title">Заезды</h1>
+      </div>
+      <div class="tt-header-right">
+        <span class="tt-live-dot">Система онлайн</span>
+        <button class="tt-support-btn" type="button"><i>?</i><span>Поддержка</span></button>
+      </div>
+    </header>
+
+    <main class="tt-container tt-app-container">
+      <section id="panel-departures">
+        <div class="tt-section-intro">
+          <div>
+            <span class="tt-eyebrow">Карадениз · сезон 2026</span>
+            <h2>Ближайшие маршруты</h2>
+            <p>Выберите заезд, проверьте остаток мест и создайте бронь.</p>
+          </div>
+          <div class="tt-route-pill"><span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span></div>
+        </div>
       <div class="tt-toolbar">
         <div class="tt-field">
-          <label for="f-transport">Транспорт</label>
+          <label for="f-transport">Аэропорт прилёта</label>
           <select id="f-transport">
             <option value="">Все</option>
-            <option value="TZX">Авиа (Трабзон)</option>
-            <option value="BUS">Автобус</option>
+            <option value="TZX">Авиа · Трабзон</option>
+            <option value="BUS">Авиа · Батуми</option>
           </select>
         </div>
         <label class="tt-check-inline">
@@ -835,7 +2537,12 @@ a { color: inherit; }
           Только со свободными местами
         </label>
       </div>
+      <div id="departure-stats" class="tt-stat-grid" aria-live="polite"></div>
       <div id="departures-list"></div>
+      </section>
+
+    <section id="panel-catalog" hidden>
+      <div id="cabinet-catalog"></div>
     </section>
 
     <section id="panel-bookings" hidden>
@@ -906,7 +2613,8 @@ a { color: inherit; }
       </form>
       <div id="adm-agencies"></div>
     </section>
-  </main>
+    </main>
+  </div>
 </div>
 
 <!-- --------------------------------------------------- окно бронирования -->
@@ -937,15 +2645,11 @@ a { color: inherit; }
 <script>
 // Настройка источника данных Turon Tour.
 //
-// Пусто ("") — сайт работает на встроенных моковых турах (см. js/data.js),
-// это состояние по умолчанию и то, что задеплоено на GitHub Pages сейчас.
+// Пусто ("") — кабинет работает в демо-режиме (localStorage, см. js/api.js).
 //
-// Чтобы подключить реальные данные из Google Sheet: задеплойте
-// worker/index.js как Cloudflare Worker (см. worker/README.md) и впишите
-// сюда его публичный адрес, например:
-//   apiBaseUrl: "https://turon-tour-api.<ваш-субдомен>.workers.dev"
+// Заполнено — кабинет обращается к боевому бэкенду на Cloudflare Workers + D1.
 window.TURON_CONFIG = {
-  apiBaseUrl: "",
+  apiBaseUrl: "https://turon-tour-api.turontour.workers.dev",
 };
 
 </script>
@@ -3411,7 +5115,113 @@ window.TURON_TOURS = [
   "destination": "Турция",
   "agency_commission": 0,
   "is_bookable": 1,
-  "note": "Еженедельные заезды, цены по типу размещения"
+  "note": "Еженедельные заезды, цены по типу размещения",
+  "description": "Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и Трабзон за 8 дней. Сопровождение узбекского гида, более 15 экскурсий, отели на первой береговой линии, трансферы на микроавтобусах Sprinter и ужин в грузинской семье.",
+  "nights": 7,
+  "included": [
+   "Авиабилеты Ташкент — Трабзон / Батуми",
+   "Проживание 7 ночей: Batumi View Luxury (Батуми) и Rhisos Gold Otel Rize (Ризе), первая береговая линия",
+   "Все трансферы на микроавтобусах Sprinter",
+   "Сопровождение русскоговорящего узбекского гида",
+   "Завтраки и часть ужинов по программе",
+   "Более 15 экскурсий по программе",
+   "Ужин в грузинской семье в Махунцети — халяльное меню, музыка, танцы",
+   "Поддержка 24/7 на протяжении поездки"
+  ],
+  "excluded": [
+   "Медицинская страховка",
+   "Обеды и ужины вне программы",
+   "Входные билеты в музеи и на платные объекты",
+   "Дельфинарий в Батуми",
+   "Зиплайн в Махунцети",
+   "Дополнительные экскурсии в Ризе: Duatepe, Ceceve Bahcesi",
+   "Личные расходы"
+  ],
+  "info": [
+   {
+    "text": "Грузия безвизовая для граждан Узбекистана — до 1 года по загранпаспорту",
+    "url": null
+   },
+   {
+    "text": "На 5-й день — сухопутный переход границы Турция–Грузия, автобус около 3–4 часов",
+    "url": null
+   },
+   {
+    "text": "Ориентир из чернового прайса — «от $690» за человека. Точная цена берётся из выбранного заезда",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": [
+   {
+    "code": "A",
+    "title": "Батуми → Ризе · прилёт в Батуми, вылет из Трабзона",
+    "days": [
+     {
+      "title": "День 1 · Батуми",
+      "text": "Ташкент → Батуми, прилёт 23:20. Встреча, трансфер, отель Batumi View Luxury. Вечерняя прогулка и ужин грузинской кухни — по желанию."
+     },
+     {
+      "title": "День 2 · Аджария",
+      "text": "Мост царицы Тамары, водопад Махунцети, крепость Гонио-Апсарос. Обед: грузинская кухня в центре Батуми или узбекская в «Caravan». По желанию зиплайн. Вечером — ужин в грузинской семье в Махунцети."
+     },
+     {
+      "title": "Дни 3–4 · Батуми",
+      "text": "Свободные дни: набережная, дельфинарий (доплата), ботанический сад, шопинг, старый город, Башня Алфавита."
+     },
+     {
+      "title": "День 5 · Батуми → Ризе",
+      "text": "Переезд на автобусе около 3–4 часов с прохождением границы. Отель, вечерняя прогулка, ужин турецкой кухни — по желанию."
+     },
+     {
+      "title": "День 6 · Узунгёль и Трабзон",
+      "text": "Озеро Узунгёль: чай и сувениры. Далее Трабзон с остановками — пещера Карача, смотровая Torul Cam Teras. Вечером шопинг Forum AVM или прогулка по городу."
+     },
+     {
+      "title": "День 7 · Айдер",
+      "text": "Айдер Яйласы через чайные плантации: крепость Zilkale, водопад Palovit, плато 1350 м. По желанию гора Хусер."
+     },
+     {
+      "title": "День 8 · Вылет",
+      "text": "Свободное утро, трансфер в аэропорт. Трабзон → Ташкент, вылет 18:45."
+     }
+    ]
+   },
+   {
+    "code": "B",
+    "title": "Ризе → Батуми · прилёт в Трабзон, вылет из Батуми",
+    "days": [
+     {
+      "title": "День 1 · Ризе",
+      "text": "Ташкент → Трабзон, прилёт 17:45. Встреча, трансфер, отель Rhisos Gold Hotel Rize. Вечерняя прогулка и ужин турецкой кухни — по желанию."
+     },
+     {
+      "title": "День 2 · Узунгёль и Трабзон",
+      "text": "Озеро Узунгёль, далее Трабзон: пещера Карача, смотровая Torul Cam Teras. Вечером шопинг Forum AVM или прогулка по городу."
+     },
+     {
+      "title": "День 3 · Айдер",
+      "text": "Айдер Яйласы: крепость Zilkale, водопад Palovit, плато 1350 м. По желанию гора Хусер."
+     },
+     {
+      "title": "День 4 · Ризе",
+      "text": "Свободный день: шопинг, набережная, кафе. Дополнительные экскурсии Duatepe и Ceceve Bahcesi — за доплату."
+     },
+     {
+      "title": "День 5 · Ризе → Батуми",
+      "text": "Переезд на автобусе около 3–4 часов с прохождением границы. Отель Batumi View Luxury, вечерняя прогулка — по желанию."
+     },
+     {
+      "title": "День 6 · Аджария",
+      "text": "Обед в Батуми или в «Caravan». Мост царицы Тамары, водопад Махунцети, крепость Гонио-Апсарос. По желанию зиплайн. Вечером — ужин в грузинской семье в Махунцети."
+     },
+     {
+      "title": "Дни 7–8 · Батуми",
+      "text": "Свободные дни: набережная, дельфинарий (доплата), ботанический сад, шопинг, старый город, Башня Алфавита. День 8 — вылет из Батуми."
+     }
+    ]
+   }
+  ]
  },
  {
   "code": "JP_CONSTRUCTOR",
@@ -3419,7 +5229,14 @@ window.TURON_TOURS = [
   "destination": "Япония",
   "agency_commission": 100,
   "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены"
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
  },
  {
   "code": "JP_TOKYO",
@@ -3427,7 +5244,14 @@ window.TURON_TOURS = [
   "destination": "Япония",
   "agency_commission": 150,
   "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены"
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
  },
  {
   "code": "JP_GOLDEN_RING",
@@ -3435,7 +5259,14 @@ window.TURON_TOURS = [
   "destination": "Япония",
   "agency_commission": 250,
   "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены"
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
  },
  {
   "code": "JP_CAMP",
@@ -3443,7 +5274,30 @@ window.TURON_TOURS = [
   "destination": "Япония",
   "agency_commission": 250,
   "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены"
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
+ }
+];
+window.TURON_DESTINATIONS = [
+ {
+  "name": "Турция",
+  "title": "Турция и Грузия",
+  "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
+  "image": null,
+  "sort": 1
+ },
+ {
+  "name": "Япония",
+  "title": "Япония",
+  "blurb": "Готовятся к запуску — ждём даты заездов и цены",
+  "image": null,
+  "sort": 2
  }
 ];
 
@@ -3552,6 +5406,132 @@ window.TURON_TOURS = [
     return null;
   }
 
+  // ------------------------------------------------ демо: каталог
+  function futureDepartures() {
+    var today = new Date().toISOString().slice(0, 10);
+    return demoState().departures
+      .filter(function (d) { return d.date_start >= today; })
+      .map(function (d) {
+        return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
+      });
+  }
+
+  function demoCatalogTours() {
+    var deps = futureDepartures();
+    return (global.TURON_TOURS || []).map(function (t) {
+      var mine = t.is_bookable
+        ? deps.filter(function (d) { return d.tour_code === t.code; })
+        : [];
+      var prices = [];
+      mine.forEach(function (d) {
+        (d.prices || []).forEach(function (p) {
+          if (p.kind === "placement") prices.push(p.price);
+        });
+      });
+      return {
+        code: t.code, name: t.name, destination: t.destination, note: t.note,
+        description: t.description, nights: t.nights, is_bookable: t.is_bookable,
+        departures_count: mine.length,
+        min_price: prices.length ? Math.min.apply(null, prices) : null,
+        next_date: mine.length
+          ? mine.map(function (d) { return d.date_start; }).sort()[0]
+          : null,
+      };
+    });
+  }
+
+  function demoDestinations() {
+    var meta = {};
+    (global.TURON_DESTINATIONS || []).forEach(function (d) { meta[d.name] = d; });
+    var grouped = {}, order = [];
+    demoCatalogTours().forEach(function (t) {
+      var g = grouped[t.destination];
+      if (!g) {
+        var m = meta[t.destination] || {};
+        g = grouped[t.destination] = {
+          name: t.destination, title: m.title || t.destination,
+          blurb: m.blurb || null, image: m.image || null,
+          sort: m.sort == null ? 999 : m.sort,
+          tours_count: 0, departures_count: 0, min_price: null, next_date: null,
+        };
+        order.push(g);
+      }
+      g.tours_count++;
+      g.departures_count += t.departures_count;
+      if (t.min_price != null && (g.min_price == null || t.min_price < g.min_price)) {
+        g.min_price = t.min_price;
+      }
+      if (t.next_date && (!g.next_date || t.next_date < g.next_date)) {
+        g.next_date = t.next_date;
+      }
+    });
+    return order.sort(function (a, b) {
+      return a.sort - b.sort || a.title.localeCompare(b.title);
+    });
+  }
+
+  function demoCatalogTour(code) {
+    var t = (global.TURON_TOURS || []).filter(function (x) { return x.code === code; })[0];
+    if (!t) return Promise.reject(new Error("Тур не найден"));
+    var deps = t.is_bookable
+      ? futureDepartures().filter(function (d) { return d.tour_code === code; })
+      : [];
+    return Promise.resolve(Object.assign({}, t, { departures: deps }));
+  }
+
+  /*
+   * Правила оплаты. Обычный порядок: 30% в течение 3 дней с момента брони,
+   * остальные 70% — не позднее чем за 20 дней до выезда. Если до выезда
+   * осталось меньше 20 дней, рассрочки нет: вся сумма в течение суток.
+   *
+   * Возвращает шаги с долей и крайним сроком, чтобы и карточка тура, и
+   * бронь считали одно и то же, а не каждый по-своему.
+   */
+  var DAY_MS = 86400000;
+
+  function paymentPolicy(departureDate, bookingDate) {
+    var dep = new Date(departureDate + "T00:00:00Z");
+    var from = bookingDate ? new Date(bookingDate) : new Date();
+    var daysLeft = Math.floor((dep - from) / DAY_MS);
+
+    if (daysLeft < 20) {
+      return {
+        urgent: true,
+        days_left: daysLeft,
+        steps: [{
+          share: 1,
+          due: new Date(from.getTime() + DAY_MS),
+          label: "в течение суток с момента брони",
+        }],
+      };
+    }
+    return {
+      urgent: false,
+      days_left: daysLeft,
+      steps: [
+        {
+          share: 0.3,
+          due: new Date(from.getTime() + 3 * DAY_MS),
+          label: "в течение 3 дней с момента брони",
+        },
+        {
+          share: 0.7,
+          due: new Date(dep.getTime() - 20 * DAY_MS),
+          label: "не позднее чем за 20 дней до выезда",
+        },
+      ],
+    };
+  }
+
+  // Дата возврата: заезд плюс столько ночей, сколько в туре. Считаем в UTC —
+  // даты в базе без времени, и местный часовой пояс не должен их сдвигать.
+  function departureEnd(dateStart, nights) {
+    if (!nights) return null;
+    var d = new Date(dateStart + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + nights);
+    return d.toISOString().slice(0, 10);
+  }
+
   function demoLogin(login, password) {
     var agency = DEMO_AGENCIES.filter(function (a) {
       return a.login === String(login).trim().toLowerCase();
@@ -3653,6 +5633,29 @@ window.TURON_TOURS = [
     tours: function () {
       if (!API_BASE) return Promise.resolve((global.TURON_TOURS || []).slice());
       return request("/api/tours");
+    },
+
+    // ------------------------------------------------- публичный каталог
+    // Работают и без входа: карточку тура агент может показать клиенту.
+    catalogDestinations: function () {
+      if (!API_BASE) return Promise.resolve(demoDestinations());
+      return request("/api/public/destinations");
+    },
+
+    catalogTours: function (destination) {
+      if (!API_BASE) {
+        var list = demoCatalogTours();
+        return Promise.resolve(destination
+          ? list.filter(function (t) { return t.destination === destination; })
+          : list);
+      }
+      return request("/api/public/tours" +
+        (destination ? "?destination=" + encodeURIComponent(destination) : ""));
+    },
+
+    catalogTour: function (code) {
+      if (!API_BASE) return demoCatalogTour(code);
+      return request("/api/public/tours/" + encodeURIComponent(code));
     },
 
     departures: function (opts) {
@@ -3896,9 +5899,619 @@ window.TURON_TOURS = [
     priceFor: priceFor,
     passportIssue: passportIssue,
     ageOn: ageOn,
+    paymentPolicy: paymentPolicy,
+    departureEnd: departureEnd,
   };
 
   global.TuronApi = Api;
+})(window);
+
+</script>
+<script>
+/*
+ * Публичный каталог: направления → туры → карточка тура.
+ *
+ * Один модуль обслуживает два экрана: гостевой (без входа, бронь
+ * недоступна) и вкладку «Каталог» внутри кабинета (бронь работает).
+ * TuronCatalog.create() возвращает независимый экземпляр со своим
+ * состоянием — иначе два каталога на одной странице делили бы одну
+ * переменную и мешали друг другу.
+ *
+ * Гостю остаток мест показывается ведром («20+ мест»), а не точным
+ * числом: сколько именно осталось — внутренняя цифра оператора. В
+ * кабинете (canBook) выводится точный остаток, агенту он нужен, чтобы
+ * планировать группу.
+ */
+(function (global) {
+  "use strict";
+
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function money(v) {
+    var whole = Math.abs(v - Math.round(v)) < 0.005;
+    return "$" + v.toLocaleString("ru-RU", {
+      minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2,
+    });
+  }
+
+  // Даты в базе без времени, поэтому форматируем в UTC: иначе местный
+  // часовой пояс сдвигает «31 июля» на «30 июля».
+  function dateLong(iso) {
+    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+      day: "numeric", month: "long", timeZone: "UTC",
+    });
+  }
+
+  function dateShort(iso) {
+    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+      day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC",
+    });
+  }
+
+  // «31 июля — 7 августа», если известна длительность тура.
+  function dateRange(dateStart, nights) {
+    var end = TuronApi.departureEnd(dateStart, nights);
+    return end ? dateLong(dateStart) + " — " + dateLong(end) : dateLong(dateStart);
+  }
+
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+    return many;
+  }
+
+  function crumbs(parts) {
+    return '<nav class="tt-crumbs">' + parts.map(function (p, i) {
+      if (i === parts.length - 1) return "<span>" + esc(p.text) + "</span>";
+      return '<button class="tt-crumb" data-go="' + esc(p.go) + '">' +
+        esc(p.text) + "</button><i>/</i>";
+    }).join("") + "</nav>";
+  }
+
+  function destinationTile(d) {
+    var closed = d.departures_count === 0;
+    return (
+      '<button class="tt-cat-tile' + (closed ? " is-soon" : "") + '" data-dest="' +
+        esc(d.name) + '">' +
+        '<span class="tt-cat-tile-art"' +
+          (d.image ? ' style="background-image:url(' + esc(d.image) + ')"' : "") +
+        "></span>" +
+        '<span class="tt-cat-tile-body">' +
+          "<strong>" + esc(d.title) + "</strong>" +
+          (d.blurb ? '<span class="tt-muted-note">' + esc(d.blurb) + "</span>" : "") +
+          '<span class="tt-cat-tile-foot">' +
+            "<span>" + d.tours_count + " " +
+              plural(d.tours_count, "тур", "тура", "туров") +
+              (closed ? "" : " · " + d.departures_count + " " +
+                plural(d.departures_count, "заезд", "заезда", "заездов")) +
+            "</span>" +
+            (closed
+              ? '<em class="tt-badge tt-badge-off">Скоро</em>'
+              : (d.min_price != null ? "<em>от " + money(d.min_price) + "</em>" : "")) +
+          "</span>" +
+        "</span>" +
+      "</button>"
+    );
+  }
+
+  function tourRow(t) {
+    var closed = !t.is_bookable || t.departures_count === 0;
+    var meta = [];
+    if (t.nights) meta.push(t.nights + " " + plural(t.nights, "ночь", "ночи", "ночей"));
+    if (!closed) {
+      meta.push(t.departures_count + " " +
+        plural(t.departures_count, "заезд", "заезда", "заездов"));
+      if (t.next_date) meta.push("ближайший " + dateLong(t.next_date));
+    }
+    return (
+      '<article class="tt-cat-tour' + (closed ? " is-soon" : "") + '">' +
+        "<div>" +
+          "<h3>" + esc(t.name) + "</h3>" +
+          (meta.length ? '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" : "") +
+          (t.description
+            ? "<p>" + esc(t.description) + "</p>"
+            : (t.note ? '<p class="tt-muted-note">' + esc(t.note) + "</p>" : "")) +
+        "</div>" +
+        '<div class="tt-cat-tour-side">' +
+          (closed
+            ? '<span class="tt-badge tt-badge-off">Скоро</span>'
+            : (t.min_price != null
+                ? '<div class="tt-cat-from"><span>от</span><strong>' +
+                  money(t.min_price) + "</strong></div>"
+                : "")) +
+          '<button class="tt-btn' + (closed ? " secondary" : "") +
+            ' tt-btn-sm" data-tour="' + esc(t.code) + '">' +
+            (closed ? "Подробнее" : "Программа и даты") +
+          "</button>" +
+        "</div>" +
+      "</article>"
+    );
+  }
+
+  function listBlock(title, items, cls) {
+    if (!items.length) return "";
+    return '<div class="tt-cat-list ' + cls + '"><h3>' + esc(title) + "</h3><ul>" +
+      items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") +
+      "</ul></div>";
+  }
+
+  /*
+   * Порядок оплаты: сроки считает TuronApi.paymentPolicy, здесь только
+   * разметка. Функция на уровне модуля, а не экземпляра, — её рисует и
+   * карточка тура, и окно брони в кабинете.
+   *
+   * total = 0 — показываем доли в процентах, иначе суммы в деньгах.
+   */
+  function policyHtml(dateStart, total) {
+    var pol = TuronApi.paymentPolicy(dateStart);
+    var rows = pol.steps.map(function (s) {
+      var sum = total > 0
+        ? money(Math.round(total * s.share * 100) / 100)
+        : Math.round(s.share * 100) + "%";
+      return "<li><strong>" + sum + "</strong> — " + esc(s.label) +
+        '<span class="tt-muted-note"> до ' +
+        dateShort(s.due.toISOString().slice(0, 10)) + "</span></li>";
+    }).join("");
+    return '<div class="tt-cat-policy' + (pol.urgent ? " is-urgent" : "") + '">' +
+      "<h4>Порядок оплаты</h4><ul>" + rows + "</ul>" +
+      (pol.urgent
+        ? '<p class="tt-muted-note">До выезда меньше 20 дней — рассрочки нет.</p>'
+        : "") +
+      "</div>";
+  }
+
+  function hashFor(v) {
+    if (v.kind === "tours") return "#/d/" + encodeURIComponent(v.destination);
+    if (v.kind === "tour") return "#/t/" + encodeURIComponent(v.code);
+    return "#/";
+  }
+
+  function viewFromHash() {
+    var h = (global.location.hash || "").replace(/^#/, "");
+    var m = h.match(/^\/d\/(.+)$/);
+    if (m) return { kind: "tours", destination: decodeURIComponent(m[1]) };
+    m = h.match(/^\/t\/(.+)$/);
+    if (m) return { kind: "tour", code: decodeURIComponent(m[1]), variant: null };
+    return { kind: "destinations" };
+  }
+
+  /*
+   * opts:
+   *   root     — контейнер для отрисовки (обязателен)
+   *   canBook  — показывать кнопку брони и точный остаток мест
+   *   onBook   — (departureCode) => void, клик по «Забронировать»
+   *   onLogin  — (departureCode) => void, гость просит войти
+   *   useHash  — держать текущий экран в адресе (#/t/KARADENIZ)
+   */
+  function create(opts) {
+    var cfg = Object.assign({ canBook: false, useHash: false }, opts);
+    var root = cfg.root;
+    var view = cfg.useHash ? viewFromHash() : { kind: "destinations" };
+    // Открытый калькулятор: код заезда и счётчики по тарифам.
+    var calc = { code: null, counts: {} };
+    // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
+    // калькуляторе перерисовывали её из памяти, а не дёргали API.
+    var loadedTour = null;
+
+    function seatsLabel(free) {
+      if (free <= 0) return { text: "мест нет", level: "is-full" };
+      if (cfg.canBook) {
+        return { text: "свободно " + free, level: free <= 10 ? "is-low" : "is-ok" };
+      }
+      if (free <= 10) return { text: "осталось " + free, level: "is-low" };
+      if (free <= 20) return { text: "10+ мест", level: "is-ok" };
+      return { text: "20+ мест", level: "is-ok" };
+    }
+
+    function errorBox(err) {
+      root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
+        '<div class="tt-muted-note">' + esc(err.message) + "</div></div>";
+    }
+
+    function loading() {
+      root.innerHTML = '<div class="tt-empty-state">Загружаем…</div>';
+    }
+
+    // Тарифы заезда для калькулятора: взрослые по размещению и детские
+    // по возрасту. Строки берутся из прайса самого заезда, а не из
+    // захардкоженных возрастных групп — иначе при смене тарифной сетки
+    // калькулятор начнёт считать не то, что посчитает сервер.
+    function tariffRows(d) {
+      var adults = d.prices.filter(function (p) { return p.kind === "placement"; })
+        .sort(function (a, b) { return a.price - b.price; })
+        .map(function (p) {
+          return {
+            code: p.code, price: p.price, occupies_seat: 1,
+            title: "Взрослый", note: p.label,
+          };
+        });
+      var kids = d.prices.filter(function (p) { return p.kind === "child"; })
+        .sort(function (a, b) { return a.age_from - b.age_from; })
+        .map(function (p) {
+          // Верхняя граница тарифа не включается (правило `age < age_to`),
+          // поэтому пишем возраст последнего подходящего года: тариф
+          // «Chd 5-10» — это 5–9 лет, а не «до 10 включительно».
+          var top = p.age_to - 1;
+          return {
+            code: p.code, price: p.price, occupies_seat: p.occupies_seat,
+            title: p.label,
+            note: p.occupies_seat
+              ? p.age_from + "–" + top + " " + plural(top, "год", "года", "лет")
+              : "младше " + p.age_to + " " + plural(p.age_to, "года", "лет", "лет") +
+                ", без места",
+          };
+        });
+      return adults.concat(kids);
+    }
+
+    function calcTotals(d, counts) {
+      var total = 0, people = 0, seats = 0;
+      tariffRows(d).forEach(function (t) {
+        var n = counts[t.code] || 0;
+        total += n * t.price;
+        people += n;
+        seats += n * (t.occupies_seat ? 1 : 0);
+      });
+      return { total: total, people: people, seats: seats };
+    }
+
+    // Калькулятор одного заезда: счётчики по тарифам, цена за человека,
+    // итог и порядок оплаты. Агент называет клиенту сумму, не заполняя
+    // паспорта; при бронировании форма открывается уже на нужное число мест.
+    function calcHtml(d) {
+      var counts = calc.counts;
+      var t = calcTotals(d, counts);
+      var available = d.seats_free;
+      var over = t.seats > available;
+
+      var rows = tariffRows(d).map(function (r) {
+        var n = counts[r.code] || 0;
+        return '<div class="tt-calc-row">' +
+          '<div class="tt-calc-what"><strong>' + esc(r.title) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(r.note) + "</span></div>" +
+          '<div class="tt-calc-price">' + money(r.price) + "</div>" +
+          '<div class="tt-calc-stepper">' +
+            '<button type="button" data-step="-1" data-tariff="' + esc(r.code) + '"' +
+              (n === 0 ? " disabled" : "") + ' aria-label="Убрать">−</button>' +
+            "<output>" + n + "</output>" +
+            '<button type="button" data-step="1" data-tariff="' + esc(r.code) +
+              '" aria-label="Добавить">+</button>' +
+          "</div>" +
+          '<div class="tt-calc-sum">' + (n ? money(n * r.price) : "") + "</div>" +
+        "</div>";
+      }).join("");
+
+      return rows +
+        '<div class="tt-calc-total">' +
+          "<div><span>Туристов</span><strong>" + t.people + "</strong></div>" +
+          "<div><span>Занимают мест</span><strong>" + t.seats + " из " +
+            available + "</strong></div>" +
+          '<div class="tt-calc-grand"><span>Итого</span><strong>' +
+            money(t.total) + "</strong></div>" +
+        "</div>" +
+        (over
+          ? '<div class="tt-error-box">Мест не хватает: нужно ' + t.seats +
+            ", свободно " + available + ".</div>"
+          : "") +
+        policyHtml(d.date_start, t.total) +
+        '<div class="tt-calc-actions">' +
+          (cfg.canBook
+            ? '<button class="tt-btn" data-book-calc="' + esc(d.code) + '"' +
+              (t.people === 0 || over ? " disabled" : "") + ">Забронировать</button>"
+            : '<button class="tt-btn secondary" data-login="' + esc(d.code) +
+              '">Войти и забронировать</button>') +
+        "</div>";
+    }
+
+    function departureRow(d) {
+      var placements = d.prices.filter(function (p) { return p.kind === "placement"; })
+        .sort(function (a, b) { return a.price - b.price; });
+      var children = d.prices.filter(function (p) { return p.kind === "child"; })
+        .sort(function (a, b) { return b.price - a.price; });
+      var seats = seatsLabel(d.seats_free);
+      var full = d.seats_free <= 0;
+      var open = calc.code === d.code;
+
+      return (
+        '<article class="tt-cat-dep' + (open ? " is-open" : "") + '">' +
+          '<div class="tt-cat-dep-when">' +
+            "<strong>" + dateRange(d.date_start, d.nights) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(d.code) + " · " +
+              (TRANSPORT[d.transport] || d.transport) +
+              (d.nights ? " · " + d.nights + " " +
+                plural(d.nights, "ночь", "ночи", "ночей") : "") + "</span>" +
+            (d.is_info_tour ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
+          "</div>" +
+          '<div class="tt-cat-dep-prices">' +
+            placements.map(function (p) {
+              return '<span class="tt-price-chip"><em>' + esc(p.code) + "</em>" +
+                money(p.price) + "</span>";
+            }).join("") +
+            (children.length
+              ? '<div class="tt-child-prices">' + children.map(function (c) {
+                  return esc(c.label) + " — " + money(c.price);
+                }).join(" · ") + "</div>"
+              : "") +
+          "</div>" +
+          '<div class="tt-cat-dep-seats ' + seats.level + '">' + seats.text + "</div>" +
+          '<div class="tt-cat-dep-action">' +
+            (full
+              ? '<span class="tt-muted-note">нет мест</span>'
+              : '<button class="tt-btn' + (open ? "" : " secondary") +
+                ' tt-btn-sm" data-calc="' + esc(d.code) + '">' +
+                (open ? "Скрыть расчёт" : "Рассчитать") + "</button>") +
+          "</div>" +
+          (open
+            ? '<div class="tt-cat-calc">' + calcHtml(d) + "</div>"
+            : "") +
+        "</article>"
+      );
+    }
+
+    function programmeBlock(tour) {
+      if (!tour.variants || !tour.variants.length) return "";
+      var active = tour.variants.filter(function (v) { return v.code === view.variant; })[0]
+        || tour.variants[0];
+      var switcher = tour.variants.length > 1
+        ? '<div class="tt-cat-variants">' + tour.variants.map(function (v) {
+            return '<button class="tt-cat-variant' +
+              (v.code === active.code ? " is-active" : "") +
+              '" data-variant="' + esc(v.code) + '">' + esc(v.title) + "</button>";
+          }).join("") + "</div>" +
+          '<p class="tt-muted-note">Это два разных маршрута с разным направлением ' +
+          "перелёта, а не два описания одного. Какой вариант у выбранного заезда — " +
+          "уточните у оператора.</p>"
+        : "";
+      if (!active.days.length) return switcher;
+      return '<section class="tt-cat-block"><h2>Программа</h2>' + switcher +
+        '<ol class="tt-cat-days">' + active.days.map(function (d) {
+          return "<li><strong>" + esc(d.title) + "</strong><span>" +
+            esc(d.text) + "</span></li>";
+        }).join("") + "</ol></section>";
+    }
+
+    function renderDestinations() {
+      loading();
+      return TuronApi.catalogDestinations().then(function (list) {
+        root.innerHTML =
+          '<section class="tt-public-intro">' +
+            '<span class="tt-eyebrow">Экспедиции Turon Tour</span>' +
+            '<h1>Маршруты, которые хочется прожить.</h1>' +
+            '<p>Авторские групповые путешествия для партнёров — с понятными ' +
+              'остатками мест, программой и условиями бронирования.</p>' +
+            '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
+              '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
+            '</div>' +
+          '</section>' +
+          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">Куда отправимся</span>' +
+            '<h2>Направления</h2></div><p>Выберите регион, чтобы увидеть программы и даты.</p></div>' +
+          (list.length
+            ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
+            : '<div class="tt-empty-state">Направления пока не заведены.</div>');
+      }).catch(errorBox);
+    }
+
+    function renderTours(destination) {
+      loading();
+      return TuronApi.catalogTours(destination).then(function (list) {
+        root.innerHTML =
+          crumbs([{ text: "Каталог", go: "root" }, { text: destination }]) +
+          '<h1 class="tt-cat-h1">' + esc(destination) + "</h1>" +
+          (list.length
+            ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
+            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>');
+      }).catch(errorBox);
+    }
+
+    function renderTour(code) {
+      loading();
+      return TuronApi.catalogTour(code).then(function (tour) {
+        loadedTour = tour;
+        paintTour(tour);
+      }).catch(errorBox);
+    }
+
+    function paintTour(tour) {
+      var meta = [];
+        if (tour.nights) {
+          meta.push((tour.nights + 1) + " " +
+            plural(tour.nights + 1, "день", "дня", "дней") + " / " +
+            tour.nights + " " + plural(tour.nights, "ночь", "ночи", "ночей"));
+        }
+        meta.push(tour.destination);
+
+        var deps = tour.departures || [];
+        var included = tour.included || [];
+        var excluded = tour.excluded || [];
+        var gallery = tour.gallery || [];
+        var info = tour.info || [];
+
+        root.innerHTML =
+          crumbs([
+            { text: "Каталог", go: "root" },
+            { text: tour.destination, go: "dest:" + tour.destination },
+            { text: tour.name },
+          ]) +
+          '<header class="tt-cat-hero">' +
+            "<h1>" + esc(tour.name) + "</h1>" +
+            '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
+            (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +
+          "</header>" +
+
+          programmeBlock(tour) +
+
+          (included.length || excluded.length
+            ? '<section class="tt-cat-block"><h2>Что входит в цену</h2>' +
+              '<div class="tt-cat-lists">' +
+                listBlock("Включено", included, "is-in") +
+                listBlock("Не включено", excluded, "is-out") +
+              "</div></section>"
+            : "") +
+
+          (gallery.length
+            ? '<section class="tt-cat-block"><h2>Фото</h2><div class="tt-cat-gallery">' +
+              gallery.map(function (g) {
+                return '<img src="' + esc(g.url) + '" alt="' + esc(g.text) +
+                  '" loading="lazy" />';
+              }).join("") + "</div></section>"
+            : "") +
+
+          (info.length
+            ? '<section class="tt-cat-block"><h2>Важно знать</h2><ul class="tt-cat-info">' +
+              info.map(function (x) {
+                return "<li>" + (x.url
+                  ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' +
+                    esc(x.text) + "</a>"
+                  : esc(x.text)) + "</li>";
+              }).join("") + "</ul></section>"
+            : "") +
+
+          '<section class="tt-cat-block"><h2>Заезды и цены</h2>' +
+            (deps.length
+              ? '<div class="tt-cat-deps">' + deps.map(function (d) {
+                  // длительность живёт на туре, а рисуется в строке заезда
+                  return departureRow(Object.assign({ nights: tour.nights }, d));
+                }).join("") + "</div>"
+              : '<div class="tt-empty-state">' +
+                (tour.is_bookable
+                  ? "Предстоящих заездов нет."
+                  : esc(tour.note || "Тур ещё не открыт для брони.")) +
+                "</div>") +
+            (deps.length && !cfg.canBook
+              ? '<p class="tt-muted-note">Цены партнёрские. Чтобы забронировать, ' +
+                "войдите под логином агентства.</p>"
+              : "") +
+          "</section>";
+    }
+
+    function draw() {
+      if (view.kind === "tours") return renderTours(view.destination);
+      if (view.kind === "tour") return renderTour(view.code);
+      return renderDestinations();
+    }
+
+    function go(next, push) {
+      view = next;
+      // уходим с карточки — расчёт и кэш тура больше не актуальны
+      calc = { code: null, counts: {} };
+      if (next.kind !== "tour") loadedTour = null;
+      if (cfg.useHash) {
+        var h = hashFor(next);
+        // Смена хеша сама поднимет hashchange, он и отрисует. Если адрес
+        // не меняется (повторный клик по тому же туру) — рисуем сразу.
+        if (push && global.location.hash !== h) {
+          global.location.hash = h;
+          return;
+        }
+        global.history.replaceState(null, "", h);
+      }
+      draw();
+    }
+
+    root.addEventListener("click", function (e) {
+      var tile = e.target.closest("[data-dest]");
+      if (tile) return go({ kind: "tours", destination: tile.dataset.dest }, true);
+
+      var tour = e.target.closest("[data-tour]");
+      if (tour) return go({ kind: "tour", code: tour.dataset.tour, variant: null }, true);
+
+      var crumb = e.target.closest("[data-go]");
+      if (crumb) {
+        var target = crumb.dataset.go;
+        if (target === "root") return go({ kind: "destinations" }, true);
+        if (target.indexOf("dest:") === 0) {
+          return go({ kind: "tours", destination: target.slice(5) }, true);
+        }
+      }
+
+      var variant = e.target.closest("[data-variant]");
+      if (variant) {
+        view.variant = variant.dataset.variant;
+        return draw();
+      }
+
+      // ------------------------------------------------- калькулятор
+      var toggle = e.target.closest("[data-calc]");
+      if (toggle) {
+        var code = toggle.dataset.calc;
+        calc = calc.code === code ? { code: null, counts: {} }
+                                  : { code: code, counts: {} };
+        return loadedTour && paintTour(loadedTour);
+      }
+
+      var step = e.target.closest("[data-step]");
+      if (step) {
+        var tariff = step.dataset.tariff;
+        var next = (calc.counts[tariff] || 0) + Number(step.dataset.step);
+        calc.counts[tariff] = Math.max(0, next);
+        return loadedTour && paintTour(loadedTour);
+      }
+
+      var bookCalc = e.target.closest("[data-book-calc]");
+      if (bookCalc && cfg.onBook) {
+        return cfg.onBook(bookCalc.dataset.bookCalc, prefillFromCalc());
+      }
+
+      var book = e.target.closest("[data-book]");
+      if (book && cfg.onBook) return cfg.onBook(book.dataset.book);
+
+      var login = e.target.closest("[data-login]");
+      if (login && cfg.onLogin) return cfg.onLogin(login.dataset.login);
+    });
+
+    /*
+     * Что передать в форму брони: по строке на каждого посчитанного
+     * туриста. Взрослым сразу подставляем размещение, детям — нет: тариф
+     * ребёнка определяется датой рождения, а её знает только агент. Форма
+     * и сервер всё равно пересчитают цену по факту, поэтому ошибка в
+     * счётчике ничего не ломает — она просто исправится при вводе даты.
+     */
+    function prefillFromCalc() {
+      if (!loadedTour || !calc.code) return null;
+      var dep = (loadedTour.departures || []).filter(function (d) {
+        return d.code === calc.code;
+      })[0];
+      if (!dep) return null;
+
+      var rows = [];
+      dep.prices.filter(function (p) { return p.kind === "placement"; })
+        .forEach(function (p) {
+          for (var i = 0; i < (calc.counts[p.code] || 0); i++) {
+            rows.push({ placement: p.code });
+          }
+        });
+      dep.prices.filter(function (p) { return p.kind === "child"; })
+        .forEach(function (p) {
+          for (var i = 0; i < (calc.counts[p.code] || 0); i++) rows.push({});
+        });
+      return rows.length ? rows : null;
+    }
+
+    if (cfg.useHash) {
+      global.addEventListener("hashchange", function () {
+        // хеш ведёт только гостевой каталог, кабинетный им не управляется
+        view = viewFromHash();
+        draw();
+      });
+    }
+
+    return {
+      render: draw,
+      reset: function () { return go({ kind: "destinations" }, false); },
+      openTour: function (code) {
+        return go({ kind: "tour", code: code, variant: null }, false);
+      },
+    };
+  }
+
+  global.TuronCatalog = { create: create, policyHtml: policyHtml };
 })(window);
 
 </script>
@@ -3917,7 +6530,7 @@ window.TURON_TOURS = [
   var $ = function (id) { return document.getElementById(id); };
   var state = { departures: [], current: null, agencies: [], loaded: [], offset: 0 };
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
   function money(v) {
     var whole = Math.abs(v - Math.round(v)) < 0.005;
@@ -4305,7 +6918,13 @@ window.TURON_TOURS = [
   var $ = function (id) { return document.getElementById(id); };
   var state = { departures: [], current: null, passengers: [], editing: null };
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+  // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
+  // Экземпляры независимы, создаются по одному разу.
+  var publicCatalog = null, cabinetCatalog = null;
+  // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
+  var pendingBooking = null;
+
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
   function money(v) {
     var whole = Math.abs(v - Math.round(v)) < 0.005;
@@ -4314,8 +6933,18 @@ window.TURON_TOURS = [
     });
   }
 
+  // Даты в базе без времени — форматируем в UTC, иначе местный часовой
+  // пояс сдвигает день назад.
   function formatDate(iso) {
-    return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "long" });
+    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+      day: "2-digit", month: "long", timeZone: "UTC",
+    });
+  }
+
+  // «31 июля — 7 августа», когда у тура известна длительность.
+  function formatRange(iso, nights) {
+    var end = TuronApi.departureEnd(iso, nights);
+    return end ? formatDate(iso) + " — " + formatDate(end) : formatDate(iso);
   }
 
   function esc(s) {
@@ -4325,12 +6954,34 @@ window.TURON_TOURS = [
   }
 
   // ------------------------------------------------------------------ вход
+  // Гостя встречает каталог, а не форма входа: тур можно показать клиенту
+  // по ссылке, логин нужен только чтобы забронировать.
+  function showPublic() {
+    $("screen-public").hidden = false;
+    $("screen-login").hidden = true;
+    $("screen-app").hidden = true;
+    if (!publicCatalog) {
+      publicCatalog = TuronCatalog.create({
+        root: $("public-catalog"),
+        canBook: false,
+        useHash: true,
+        onLogin: function (code) {
+          pendingBooking = code;
+          showLogin();
+        },
+      });
+    }
+    publicCatalog.render();
+  }
+
   function showLogin() {
+    $("screen-public").hidden = true;
     $("screen-login").hidden = false;
     $("screen-app").hidden = true;
   }
 
   function showApp(agency) {
+    $("screen-public").hidden = true;
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
@@ -4345,10 +6996,42 @@ window.TURON_TOURS = [
       switchTab("manifest");
       return;
     }
+
+    if (!cabinetCatalog) {
+      cabinetCatalog = TuronCatalog.create({
+        root: $("cabinet-catalog"),
+        canBook: true,
+        onBook: bookFromCatalog,
+      });
+    }
+
     switchTab("departures");
-    loadDepartures();
+    var ready = loadDepartures();
     loadBookings();
     loadTours();
+
+    // Гость выбрал заезд, потом вошёл — доводим его до брони, а не
+    // оставляем разбираться заново.
+    if (pendingBooking) {
+      var code = pendingBooking;
+      pendingBooking = null;
+      ready.then(function () { bookFromCatalog(code); });
+    }
+  }
+
+  // Бронь из каталога: карточка тура отдаёт код заезда, а окно брони
+  // работает с доской заездов. Если списки разошлись — говорим об этом,
+  // а не открываем пустое окно.
+  //
+  // prefill — строки от калькулятора: сколько туристов и с каким
+  // размещением. Цену форма всё равно считает сама по датам рождения.
+  function bookFromCatalog(code, prefill) {
+    var known = state.departures.some(function (d) { return d.code === code; });
+    if (!known) {
+      flash("Заезд " + code + " недоступен для брони — обновите страницу.");
+      return;
+    }
+    openBooking(code, null, prefill);
   }
 
   $("login-form").addEventListener("submit", function (e) {
@@ -4367,8 +7050,16 @@ window.TURON_TOURS = [
   $("logout-btn").addEventListener("click", function () {
     TuronApi.logout().then(function () {
       $("l-password").value = "";
-      showLogin();
+      showPublic();
     });
+  });
+
+  $("public-login-btn").addEventListener("click", function () { showLogin(); });
+
+  $("login-back").addEventListener("click", function () {
+    pendingBooking = null;
+    $("login-error").innerHTML = "";
+    showPublic();
   });
 
   // --------------------------------------------------------------- заезды
@@ -4386,8 +7077,9 @@ window.TURON_TOURS = [
       '<article class="tt-dep ' + level + '">' +
         '<div class="tt-dep-main">' +
           '<div class="tt-dep-date">' +
-            "<strong>" + formatDate(d.date_start) + "</strong>" +
-            '<span class="tt-dep-code">' + esc(d.code) + "</span>" +
+            "<strong>" + formatRange(d.date_start, d.nights) + "</strong>" +
+            '<span class="tt-dep-code">' + esc(d.code) +
+              (d.nights ? " · " + d.nights + " ноч." : "") + "</span>" +
           "</div>" +
           '<div class="tt-dep-meta">' +
             '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
@@ -4429,6 +7121,16 @@ window.TURON_TOURS = [
       if (onlyFree && d.seats_free <= 0) return false;
       return true;
     });
+    var totalFree = list.reduce(function (sum, d) { return sum + d.seats_free; }, 0);
+    var lowCount = list.filter(function (d) {
+      return d.seats_free > 0 && d.seats_free <= Math.max(4, Math.ceil(d.capacity * 0.2));
+    }).length;
+    var nextDate = list.length ? fmtDate(list[0].date_from) : "—";
+    $("departure-stats").innerHTML =
+      '<article><span>Предстоящие заезды</span><strong>' + list.length + '</strong><small>по выбранным условиям</small></article>' +
+      '<article><span>Свободные места</span><strong>' + totalFree + '</strong><small>доступно для брони</small></article>' +
+      '<article><span>Мест на исходе</span><strong>' + lowCount + '</strong><small>заездов требуют внимания</small></article>' +
+      '<article><span>Ближайший вылет</span><strong class="is-date">' + esc(nextDate) + '</strong><small>следующая экспедиция</small></article>';
     $("departures-list").innerHTML = list.length
       ? list.map(departureCardHtml).join("")
       : '<div class="tt-empty-state">Нет заездов по выбранным условиям.</div>';
@@ -4540,6 +7242,7 @@ window.TURON_TOURS = [
           money(commission) + "</strong></div>"
         : "") +
       '<div class="tt-sum-total"><span>Итого к оплате</span><strong>' + money(total) + "</strong></div>" +
+      (total > 0 ? TuronCatalog.policyHtml(d.date_start, total) : "") +
       (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
 
     $("bm-submit").disabled = !ready;
@@ -4576,14 +7279,14 @@ window.TURON_TOURS = [
 
   // Окно одно на два случая: новая бронь и правка состава существующей.
   // Различие только в том, чем заполняем форму и куда отправляем.
-  function openBooking(code, booking) {
+  function openBooking(code, booking, prefill) {
     var d = state.departures.filter(function (x) { return x.code === code; })[0];
     if (!d) return;
     state.current = d;
     state.editing = booking || null;
     state.passengers = booking && booking.passengers && booking.passengers.length
       ? booking.passengers.slice()
-      : [{}];
+      : (prefill && prefill.length ? prefill.slice() : [{}]);
     $("bm-title").textContent = booking
       ? "Правка брони " + booking.code
       : "Заезд " + formatDate(d.date_start);
@@ -4592,8 +7295,12 @@ window.TURON_TOURS = [
     $("bm-note").value = (booking && booking.note) || "";
     $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
     $("booking-modal").hidden = false;
+    // Чистим форму перед отрисовкой: renderPassengers переносит в новые
+    // строки то, что осталось в старых, и без этого данные прошлой брони
+    // всплывали бы в следующей.
+    $("bm-passengers").innerHTML = "";
     renderPassengers();
-    if (booking) prefillPassengers(booking.passengers || []);
+    prefillPassengers(state.passengers);
   }
 
   function closeBooking() {
@@ -4784,19 +7491,35 @@ window.TURON_TOURS = [
   }
 
   function switchTab(name) {
+    var labels = {
+      departures: ["Заезды", "Рабочее пространство"],
+      catalog: ["Каталог туров", "Маршруты и программы"],
+      bookings: ["Мои брони", "Продажи агентства"],
+      tours: ["Туры и комиссии", "Партнёрская программа"],
+      manifest: ["Списки пассажиров", "Операторская панель"],
+      "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
+      agencies: ["Агентства", "Партнёрская сеть"],
+    };
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["departures", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+    ["departures", "catalog", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;
       });
+    if (labels[name]) {
+      $("workspace-title").textContent = labels[name][0];
+      $("workspace-kicker").textContent = labels[name][1];
+    }
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
     var tab = e.target.closest(".tt-tab");
-    if (tab) switchTab(tab.dataset.tab);
+    if (!tab) return;
+    switchTab(tab.dataset.tab);
+    // остатки мест могли измениться после брони — перерисовываем каталог
+    if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
   });
 
   function flash(text) {
@@ -4818,9 +7541,9 @@ window.TURON_TOURS = [
   }
 
   if (TuronApi.isLoggedIn()) {
-    TuronApi.me().then(function (res) { showApp(res.agency); }).catch(showLogin);
+    TuronApi.me().then(function (res) { showApp(res.agency); }).catch(showPublic);
   } else {
-    showLogin();
+    showPublic();
   }
 })();
 
