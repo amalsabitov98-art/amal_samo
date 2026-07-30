@@ -1,4 +1,4 @@
-const BASE = 'http://127.0.0.1:8787';
+const BASE = process.env.BASE_URL || 'http://127.0.0.1:8787';
 // База для тестов наполняется с TURON_SEED_PASSWORD=turon2026 (см. test/README.md)
 const PW = process.env.TURON_SEED_PASSWORD || 'turon2026';
 let pass = 0, fail = 0;
