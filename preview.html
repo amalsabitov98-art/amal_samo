@@ -2406,6 +2406,15 @@ select { font-family: inherit; }
 }
 .tt-menu-btn { display: none; }
 .tt-notice-btn { position: relative; font-size: 1.25rem; }
+.tt-notice-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
 .tt-notice-btn i {
   position: absolute;
   right: 6px;
@@ -2443,6 +2452,13 @@ select { font-family: inherit; }
   background: rgba(62, 138, 113, .26);
   box-shadow: inset 3px 0 0 #ee6b43;
 }
+.tt-app-shell.is-builder .tt-tab-divider {
+  display: block;
+  height: 1px;
+  margin: 12px 10px;
+  background: rgba(255,255,255,.14);
+}
+.tt-app-shell.is-builder .tt-tab-static { cursor: default; }
 .tt-app-shell.is-builder .tt-app-header {
   min-height: 72px;
   padding: 10px 26px;
@@ -2644,9 +2660,9 @@ select { font-family: inherit; }
   position: relative;
   min-height: 123px;
   display: grid;
-  grid-template-columns: 105px 74px 38px 74px 62px;
+  grid-template-columns: 90px 62px 28px 62px 52px;
   align-items: end;
-  gap: 7px;
+  gap: 5px;
   padding: 31px 12px 11px;
   border: 1px solid #dedbd2;
   border-radius: 6px;
@@ -3058,8 +3074,13 @@ select { font-family: inherit; }
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
       <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Заезды</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙">Туристы</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣">Платежи</button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□">Документы</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○">Сообщения</button>
+      <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
+      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
       <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
@@ -3092,7 +3113,9 @@ select { font-family: inherit; }
         <h1 id="workspace-title">Новый тур</h1>
       </div>
       <div class="tt-header-right">
-        <button class="tt-notice-btn" type="button" aria-label="Уведомления">♧<i></i></button>
+        <button class="tt-notice-btn" type="button" aria-label="Уведомления">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg><i></i>
+        </button>
         <span class="tt-top-avatar">GW</span>
         <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name">Green Way Travel</strong></div>
         <span class="tt-top-chevron">⌄</span>
@@ -8206,7 +8229,7 @@ window.TURON_DESTINATIONS = [
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
     var tab = e.target.closest(".tt-tab");
-    if (!tab) return;
+    if (!tab || !tab.dataset.tab) return;
     switchTab(tab.dataset.tab);
     // остатки мест могли измениться после брони — перерисовываем каталог
     if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
