@@ -26,6 +26,15 @@ const markup = bodyMatch[1].replace(/<script src="[^"]+"><\/script>\s*/g, "").tr
 const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
 if (!scripts.length) throw new Error("В index.html не найдено подключённых скриптов");
 
+function bundledScript(src) {
+  const source = read(src);
+  if (src !== "js/config.js") return source;
+
+  // Превью всегда автономно: рабочий API в исходной конфигурации не должен
+  // превращать demo-снимок в форму входа от production-окружения.
+  return source.replace(/apiBaseUrl:\s*"[^"]*"/, 'apiBaseUrl: ""');
+}
+
 // Мета-теги берём из index.html: без viewport телефон отрисует превью
 // как десктоп, и проверять мобильную вёрстку на нём будет бессмысленно.
 const metaTags = [...html.matchAll(/<meta [^>]*>/g)].map((m) => m[0]).join("\n");
@@ -61,7 +70,7 @@ ${read("styles.css")}
 
 ${markup}
 
-${scripts.map((src) => `<script>\n${read(src)}\n</script>`).join("\n")}
+${scripts.map((src) => `<script>\n${bundledScript(src)}\n</script>`).join("\n")}
 `;
 
 fs.writeFileSync(path.join(ROOT, "preview.html"), out);
