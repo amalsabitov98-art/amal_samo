@@ -12,7 +12,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var state = { departures: [], current: null, agencies: [], loaded: [], offset: 0 };
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
   function money(v) {
     var whole = Math.abs(v - Math.round(v)) < 0.005;
