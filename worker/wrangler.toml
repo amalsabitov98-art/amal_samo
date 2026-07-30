@@ -15,7 +15,7 @@ ALLOWED_ORIGIN = ""
 [[d1_databases]]
 binding = "DB"
 database_name = "turon-tour"
-database_id = "СЮДА_ID_ИЗ_КОМАНДЫ_d1_create"
+database_id = "72e6c295-75e2-43cc-adc3-9ec2b38bad21"
 
 # Развёртывание:
 #   wrangler d1 execute turon-tour --remote --file=../db/schema.sql
