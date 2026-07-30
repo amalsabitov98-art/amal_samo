@@ -4,17 +4,26 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Turon Tour — кабинет агентства</title>
+<meta name="theme-color" content="#0d302a" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
 <!-- ------------------------------------------- публичный каталог (без входа) -->
 <div id="screen-public" hidden>
-  <header class="tt-header">
-    <div class="tt-logo">Turon <span>Tour</span></div>
+  <header class="tt-header tt-public-header">
+    <div class="tt-logo"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
+    <div class="tt-public-nav">
+      <span>Авторские маршруты</span>
+      <span>Партнёрские цены</span>
+      <span>Поддержка 24/7</span>
+    </div>
     <div class="tt-header-right">
-      <span class="tt-muted-note tt-hide-sm">Каталог для партнёров</span>
-      <button class="tt-btn tt-btn-sm" id="public-login-btn">Войти</button>
+      <span class="tt-public-status tt-hide-sm">B2B · Каталог для партнёров</span>
+      <button class="tt-btn tt-btn-sm" id="public-login-btn">Войти в кабинет</button>
     </div>
   </header>
   <main class="tt-container" id="public-catalog"></main>
@@ -22,9 +31,24 @@
 
 <!-- ------------------------------------------------------------- вход -->
 <section id="screen-login" class="tt-login-screen" hidden>
+  <div class="tt-login-story" aria-hidden="true">
+    <div class="tt-login-story-top">
+      <div class="tt-logo tt-logo-light"><i>T</i><span>Turon Tour</span></div>
+      <span>Expedition OS</span>
+    </div>
+    <div class="tt-login-route">
+      <span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>
+    </div>
+    <div>
+      <p>Карадениз зовёт</p>
+      <h1>Управляйте путешествием целиком.</h1>
+      <span>Заезды, бронирования, туристы и оплаты — в одной системе.</span>
+    </div>
+  </div>
   <form class="tt-login-card" id="login-form">
-    <div class="tt-logo">Turon <span>Tour</span></div>
-    <p class="tt-muted-note">Кабинет агентства</p>
+    <span class="tt-eyebrow">Партнёрский доступ</span>
+    <h2>Добро пожаловать</h2>
+    <p class="tt-muted-note">Войдите в кабинет агентства Turon Tour</p>
     <div class="tt-field-full">
       <label for="l-login">Логин</label>
       <input type="text" id="l-login" autocomplete="username" required />
@@ -41,30 +65,66 @@
 </section>
 
 <!-- ------------------------------------------------------------ кабинет -->
-<div id="screen-app" hidden>
-  <header class="tt-header">
-    <div class="tt-logo">Turon <span>Tour</span></div>
-    <div class="tt-header-right">
-      <span id="agency-name" class="tt-agency-chip"></span>
-      <button class="tt-btn secondary tt-btn-sm" id="logout-btn">Выйти</button>
+<div id="screen-app" class="tt-app-shell" hidden>
+  <aside class="tt-sidebar">
+    <div class="tt-sidebar-brand">
+      <div class="tt-logo tt-logo-light"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
+      <small>Expedition OS</small>
     </div>
-  </header>
-
-  <main class="tt-container">
     <div class="tt-tabs">
-      <button class="tt-tab tt-tab-ag is-active" data-tab="departures">Заезды</button>
-      <button class="tt-tab tt-tab-ag" data-tab="catalog">Каталог</button>
-      <button class="tt-tab tt-tab-ag" data-tab="bookings">Мои брони</button>
-      <button class="tt-tab tt-tab-ag" data-tab="tours">Туры и комиссии</button>
-      <button class="tt-tab tt-tab-op" data-tab="manifest" hidden>Списки пассажиров</button>
-      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden>Все брони</button>
-      <button class="tt-tab tt-tab-op" data-tab="agencies" hidden>Агентства</button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="departures" data-icon="⌁">Заезды</button>
+      <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◇">Каталог</button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Мои брони</button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Туры и комиссии</button>
+      <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
+      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
+      <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
     </div>
 
-    <section id="panel-departures">
+    <div class="tt-sidebar-route" aria-hidden="true">
+      <div><span>Батуми</span><span>Ризе</span><span>Трабзон</span></div>
+      <svg viewBox="0 0 220 52" role="img">
+        <path d="M8 35 C45 4 66 48 106 25 S168 2 212 28" />
+        <circle cx="8" cy="35" r="5" />
+        <circle cx="108" cy="24" r="5" />
+        <circle cx="212" cy="28" r="5" />
+      </svg>
+      <strong>Карадениз зовёт.</strong>
+      <small>Откройте красоту<br />черноморского побережья</small>
+    </div>
+
+    <div class="tt-sidebar-account">
+      <span class="tt-avatar">TT</span>
+      <div><strong id="agency-name"></strong><small>Партнёр Turon Tour</small></div>
+      <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти">↗</button>
+    </div>
+  </aside>
+
+  <div class="tt-workspace">
+    <header class="tt-header tt-app-header">
+      <div>
+        <span class="tt-eyebrow" id="workspace-kicker">Рабочее пространство</span>
+        <h1 id="workspace-title">Заезды</h1>
+      </div>
+      <div class="tt-header-right">
+        <span class="tt-live-dot">Система онлайн</span>
+        <button class="tt-support-btn" type="button"><i>?</i><span>Поддержка</span></button>
+      </div>
+    </header>
+
+    <main class="tt-container tt-app-container">
+      <section id="panel-departures">
+        <div class="tt-section-intro">
+          <div>
+            <span class="tt-eyebrow">Карадениз · сезон 2026</span>
+            <h2>Ближайшие маршруты</h2>
+            <p>Выберите заезд, проверьте остаток мест и создайте бронь.</p>
+          </div>
+          <div class="tt-route-pill"><span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span></div>
+        </div>
       <div class="tt-toolbar">
         <div class="tt-field">
-          <label for="f-transport">Транспорт</label>
+          <label for="f-transport">Аэропорт прилёта</label>
           <select id="f-transport">
             <option value="">Все</option>
             <option value="TZX">Авиа · Трабзон</option>
@@ -76,8 +136,9 @@
           Только со свободными местами
         </label>
       </div>
+      <div id="departure-stats" class="tt-stat-grid" aria-live="polite"></div>
       <div id="departures-list"></div>
-    </section>
+      </section>
 
     <section id="panel-catalog" hidden>
       <div id="cabinet-catalog"></div>
@@ -151,7 +212,8 @@
       </form>
       <div id="adm-agencies"></div>
     </section>
-  </main>
+    </main>
+  </div>
 </div>
 
 <!-- --------------------------------------------------- окно бронирования -->
