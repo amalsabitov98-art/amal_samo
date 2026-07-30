@@ -398,6 +398,10 @@ def main():
             "seats_taken": d["booked_seats"],
             "tour_code": KARADENIZ,
             "tour_name": tour_field(KARADENIZ, 1),
+            # длительность живёт на туре, но экраны читают её у заезда —
+            # так же, как отдаёт боевой /api/departures. Без этого в
+            # демо-режиме пропадала дата возврата.
+            "nights": TOUR_DETAILS.get(KARADENIZ, {}).get("nights"),
             "agency_commission": tour_field(KARADENIZ, 3),
             "prices": [
                 {"code": c, "label": lb, "kind": k, "price": pr,

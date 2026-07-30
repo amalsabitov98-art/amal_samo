@@ -88,11 +88,11 @@
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
       <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙">Туристы</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣">Платежи</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙" disabled title="Раздел ещё не сделан">Туристы<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣" disabled title="Раздел ещё не сделан">Платежи<em>скоро</em></button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□">Документы</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○">Сообщения</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□" disabled title="Раздел ещё не сделан">Документы<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○" disabled title="Раздел ещё не сделан">Сообщения<em>скоро</em></button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
       <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
@@ -113,7 +113,7 @@
     </div>
 
     <div class="tt-sidebar-account">
-      <span class="tt-avatar">TT</span>
+      <span class="tt-avatar" id="side-avatar"></span>
       <div><strong id="agency-name"></strong><small>Партнёр Turon Tour</small></div>
       <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти">↗</button>
     </div>
@@ -130,8 +130,8 @@
         <button class="tt-notice-btn" type="button" aria-label="Уведомления">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg><i></i>
         </button>
-        <span class="tt-top-avatar">GW</span>
-        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name">Green Way Travel</strong></div>
+        <span class="tt-top-avatar" id="top-avatar"></span>
+        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name"></strong></div>
         <span class="tt-top-chevron">⌄</span>
       </div>
     </header>

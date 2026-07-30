@@ -3087,6 +3087,25 @@ select.tt-outline-btn {
   color: #ffd9d0;
 }
 
+/* Пункты меню без раздела: были обычными кнопками, клик по ним молча
+   ничего не делал. Помечаем «скоро» и гасим — агент видит, что раздела
+   пока нет, а не думает, что кабинет сломался. */
+.tt-sidebar .tt-tab-static {
+  cursor: default;
+  opacity: 0.45;
+}
+.tt-sidebar .tt-tab-static:hover { background: none; }
+.tt-sidebar .tt-tab-static em {
+  margin-left: auto;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.5rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -3176,11 +3195,11 @@ select.tt-outline-btn {
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
       <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙">Туристы</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣">Платежи</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙" disabled title="Раздел ещё не сделан">Туристы<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣" disabled title="Раздел ещё не сделан">Платежи<em>скоро</em></button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□">Документы</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○">Сообщения</button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□" disabled title="Раздел ещё не сделан">Документы<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○" disabled title="Раздел ещё не сделан">Сообщения<em>скоро</em></button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
       <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
@@ -3201,7 +3220,7 @@ select.tt-outline-btn {
     </div>
 
     <div class="tt-sidebar-account">
-      <span class="tt-avatar">TT</span>
+      <span class="tt-avatar" id="side-avatar"></span>
       <div><strong id="agency-name"></strong><small>Партнёр Turon Tour</small></div>
       <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти">↗</button>
     </div>
@@ -3218,8 +3237,8 @@ select.tt-outline-btn {
         <button class="tt-notice-btn" type="button" aria-label="Уведомления">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg><i></i>
         </button>
-        <span class="tt-top-avatar">GW</span>
-        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name">Green Way Travel</strong></div>
+        <span class="tt-top-avatar" id="top-avatar"></span>
+        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name"></strong></div>
         <span class="tt-top-chevron">⌄</span>
       </div>
     </header>
@@ -3443,6 +3462,7 @@ window.TURON_SEED = [
   "seats_taken": 30,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3483,6 +3503,7 @@ window.TURON_SEED = [
   "seats_taken": 32,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3550,6 +3571,7 @@ window.TURON_SEED = [
   "seats_taken": 31,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3617,6 +3639,7 @@ window.TURON_SEED = [
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3684,6 +3707,7 @@ window.TURON_SEED = [
   "seats_taken": 56,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3760,6 +3784,7 @@ window.TURON_SEED = [
   "seats_taken": 52,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3836,6 +3861,7 @@ window.TURON_SEED = [
   "seats_taken": 54,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3903,6 +3929,7 @@ window.TURON_SEED = [
   "seats_taken": 52,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -3979,6 +4006,7 @@ window.TURON_SEED = [
   "seats_taken": 51,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4055,6 +4083,7 @@ window.TURON_SEED = [
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4131,6 +4160,7 @@ window.TURON_SEED = [
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4207,6 +4237,7 @@ window.TURON_SEED = [
   "seats_taken": 59,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4283,6 +4314,7 @@ window.TURON_SEED = [
   "seats_taken": 60,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4341,6 +4373,7 @@ window.TURON_SEED = [
   "seats_taken": 64,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4417,6 +4450,7 @@ window.TURON_SEED = [
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4493,6 +4527,7 @@ window.TURON_SEED = [
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4569,6 +4604,7 @@ window.TURON_SEED = [
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4645,6 +4681,7 @@ window.TURON_SEED = [
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4721,6 +4758,7 @@ window.TURON_SEED = [
   "seats_taken": 62,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4797,6 +4835,7 @@ window.TURON_SEED = [
   "seats_taken": 64,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4873,6 +4912,7 @@ window.TURON_SEED = [
   "seats_taken": 60,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -4949,6 +4989,7 @@ window.TURON_SEED = [
   "seats_taken": 58,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5025,6 +5066,7 @@ window.TURON_SEED = [
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5101,6 +5143,7 @@ window.TURON_SEED = [
   "seats_taken": 21,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5177,6 +5220,7 @@ window.TURON_SEED = [
   "seats_taken": 47,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5253,6 +5297,7 @@ window.TURON_SEED = [
   "seats_taken": 13,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5329,6 +5374,7 @@ window.TURON_SEED = [
   "seats_taken": 19,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5405,6 +5451,7 @@ window.TURON_SEED = [
   "seats_taken": 12,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5481,6 +5528,7 @@ window.TURON_SEED = [
   "seats_taken": 17,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5557,6 +5605,7 @@ window.TURON_SEED = [
   "seats_taken": 6,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5624,6 +5673,7 @@ window.TURON_SEED = [
   "seats_taken": 5,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5691,6 +5741,7 @@ window.TURON_SEED = [
   "seats_taken": 0,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5758,6 +5809,7 @@ window.TURON_SEED = [
   "seats_taken": 0,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -5825,6 +5877,7 @@ window.TURON_SEED = [
   "seats_taken": 0,
   "tour_code": "KARADENIZ",
   "tour_name": "Карадениз — Трабзон и Ризе",
+  "nights": 7,
   "agency_commission": 0,
   "prices": [
    {
@@ -7717,7 +7770,7 @@ window.TURON_DESTINATIONS = [
   // пояс сдвигает день назад.
   function formatDate(iso) {
     return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
-      day: "2-digit", month: "long", timeZone: "UTC",
+      day: "numeric", month: "long", timeZone: "UTC",
     });
   }
 
@@ -7766,6 +7819,14 @@ window.TURON_DESTINATIONS = [
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
     $("top-agency-name").textContent = agency.name;
+    // инициалы были захардкожены («GW», «TT») и не совпадали с агентством;
+    // из одного слова берём две первые буквы, иначе кружок с одной буквой
+    var words = agency.name.split(/\s+/).filter(Boolean);
+    var initials = (words.length > 1
+      ? words.slice(0, 2).map(function (w) { return w[0]; }).join("")
+      : (words[0] || "").slice(0, 2)).toUpperCase();
+    $("top-avatar").textContent = initials;
+    $("side-avatar").textContent = initials;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
     // и своих комиссий не имеет.

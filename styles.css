@@ -3081,3 +3081,22 @@ select.tt-outline-btn {
   background: rgba(255, 120, 90, 0.16);
   color: #ffd9d0;
 }
+
+/* Пункты меню без раздела: были обычными кнопками, клик по ним молча
+   ничего не делал. Помечаем «скоро» и гасим — агент видит, что раздела
+   пока нет, а не думает, что кабинет сломался. */
+.tt-sidebar .tt-tab-static {
+  cursor: default;
+  opacity: 0.45;
+}
+.tt-sidebar .tt-tab-static:hover { background: none; }
+.tt-sidebar .tt-tab-static em {
+  margin-left: auto;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.5rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
