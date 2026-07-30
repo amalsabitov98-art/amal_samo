@@ -174,6 +174,59 @@
     return Promise.resolve(Object.assign({}, t, { departures: deps }));
   }
 
+  /*
+   * Правила оплаты. Обычный порядок: 30% в течение 3 дней с момента брони,
+   * остальные 70% — не позднее чем за 20 дней до выезда. Если до выезда
+   * осталось меньше 20 дней, рассрочки нет: вся сумма в течение суток.
+   *
+   * Возвращает шаги с долей и крайним сроком, чтобы и карточка тура, и
+   * бронь считали одно и то же, а не каждый по-своему.
+   */
+  var DAY_MS = 86400000;
+
+  function paymentPolicy(departureDate, bookingDate) {
+    var dep = new Date(departureDate + "T00:00:00Z");
+    var from = bookingDate ? new Date(bookingDate) : new Date();
+    var daysLeft = Math.floor((dep - from) / DAY_MS);
+
+    if (daysLeft < 20) {
+      return {
+        urgent: true,
+        days_left: daysLeft,
+        steps: [{
+          share: 1,
+          due: new Date(from.getTime() + DAY_MS),
+          label: "в течение суток с момента брони",
+        }],
+      };
+    }
+    return {
+      urgent: false,
+      days_left: daysLeft,
+      steps: [
+        {
+          share: 0.3,
+          due: new Date(from.getTime() + 3 * DAY_MS),
+          label: "в течение 3 дней с момента брони",
+        },
+        {
+          share: 0.7,
+          due: new Date(dep.getTime() - 20 * DAY_MS),
+          label: "не позднее чем за 20 дней до выезда",
+        },
+      ],
+    };
+  }
+
+  // Дата возврата: заезд плюс столько ночей, сколько в туре. Считаем в UTC —
+  // даты в базе без времени, и местный часовой пояс не должен их сдвигать.
+  function departureEnd(dateStart, nights) {
+    if (!nights) return null;
+    var d = new Date(dateStart + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + nights);
+    return d.toISOString().slice(0, 10);
+  }
+
   function demoLogin(login, password) {
     var agency = DEMO_AGENCIES.filter(function (a) {
       return a.login === String(login).trim().toLowerCase();
@@ -541,6 +594,8 @@
     priceFor: priceFor,
     passportIssue: passportIssue,
     ageOn: ageOn,
+    paymentPolicy: paymentPolicy,
+    departureEnd: departureEnd,
   };
 
   global.TuronApi = Api;

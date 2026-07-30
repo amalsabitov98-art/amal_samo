@@ -19,8 +19,18 @@
     });
   }
 
+  // Даты в базе без времени — форматируем в UTC, иначе местный часовой
+  // пояс сдвигает день назад.
   function formatDate(iso) {
-    return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "long" });
+    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+      day: "2-digit", month: "long", timeZone: "UTC",
+    });
+  }
+
+  // «31 июля — 7 августа», когда у тура известна длительность.
+  function formatRange(iso, nights) {
+    var end = TuronApi.departureEnd(iso, nights);
+    return end ? formatDate(iso) + " — " + formatDate(end) : formatDate(iso);
   }
 
   function esc(s) {
@@ -98,13 +108,16 @@
   // Бронь из каталога: карточка тура отдаёт код заезда, а окно брони
   // работает с доской заездов. Если списки разошлись — говорим об этом,
   // а не открываем пустое окно.
-  function bookFromCatalog(code) {
+  //
+  // prefill — строки от калькулятора: сколько туристов и с каким
+  // размещением. Цену форма всё равно считает сама по датам рождения.
+  function bookFromCatalog(code, prefill) {
     var known = state.departures.some(function (d) { return d.code === code; });
     if (!known) {
       flash("Заезд " + code + " недоступен для брони — обновите страницу.");
       return;
     }
-    openBooking(code);
+    openBooking(code, null, prefill);
   }
 
   $("login-form").addEventListener("submit", function (e) {
@@ -150,8 +163,9 @@
       '<article class="tt-dep ' + level + '">' +
         '<div class="tt-dep-main">' +
           '<div class="tt-dep-date">' +
-            "<strong>" + formatDate(d.date_start) + "</strong>" +
-            '<span class="tt-dep-code">' + esc(d.code) + "</span>" +
+            "<strong>" + formatRange(d.date_start, d.nights) + "</strong>" +
+            '<span class="tt-dep-code">' + esc(d.code) +
+              (d.nights ? " · " + d.nights + " ноч." : "") + "</span>" +
           "</div>" +
           '<div class="tt-dep-meta">' +
             '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
@@ -304,6 +318,7 @@
           money(commission) + "</strong></div>"
         : "") +
       '<div class="tt-sum-total"><span>Итого к оплате</span><strong>' + money(total) + "</strong></div>" +
+      (total > 0 ? TuronCatalog.policyHtml(d.date_start, total) : "") +
       (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
 
     $("bm-submit").disabled = !ready;
@@ -340,14 +355,14 @@
 
   // Окно одно на два случая: новая бронь и правка состава существующей.
   // Различие только в том, чем заполняем форму и куда отправляем.
-  function openBooking(code, booking) {
+  function openBooking(code, booking, prefill) {
     var d = state.departures.filter(function (x) { return x.code === code; })[0];
     if (!d) return;
     state.current = d;
     state.editing = booking || null;
     state.passengers = booking && booking.passengers && booking.passengers.length
       ? booking.passengers.slice()
-      : [{}];
+      : (prefill && prefill.length ? prefill.slice() : [{}]);
     $("bm-title").textContent = booking
       ? "Правка брони " + booking.code
       : "Заезд " + formatDate(d.date_start);
@@ -356,8 +371,12 @@
     $("bm-note").value = (booking && booking.note) || "";
     $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
     $("booking-modal").hidden = false;
+    // Чистим форму перед отрисовкой: renderPassengers переносит в новые
+    // строки то, что осталось в старых, и без этого данные прошлой брони
+    // всплывали бы в следующей.
+    $("bm-passengers").innerHTML = "";
     renderPassengers();
-    if (booking) prefillPassengers(booking.passengers || []);
+    prefillPassengers(state.passengers);
   }
 
   function closeBooking() {

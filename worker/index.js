@@ -196,7 +196,7 @@ async function listDepartures(env, includePast) {
     `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
             d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free,
             t.code AS tour_code, t.name AS tour_name, t.destination,
-            t.agency_commission
+            t.agency_commission, t.nights
        FROM departures d JOIN tours t ON t.id = d.tour_id
       WHERE d.is_open = 1 AND t.is_bookable = 1 ${dateFilter}
       ORDER BY d.date_start, d.transport`

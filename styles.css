@@ -1016,3 +1016,112 @@ a { color: inherit; }
   .tt-cat-dep-prices { grid-column: 1 / -1; }
   .tt-cat-dep-action { grid-column: 1 / -1; justify-content: flex-start; }
 }
+
+/* --------------------------------------- калькулятор заезда и оплата */
+/* Раскрывается под строкой заезда: счётчики по тарифам, итог и сроки
+   оплаты. Агент называет клиенту сумму, не заполняя паспорта. */
+
+.tt-cat-dep.is-open {
+  border-color: var(--tt-accent);
+  background: var(--tt-surface);
+}
+.tt-cat-calc {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--tt-border);
+}
+
+.tt-calc-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 118px 90px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
+.tt-calc-row + .tt-calc-row { border-top: 1px dashed var(--tt-border); }
+.tt-calc-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tt-calc-what strong { font-size: 0.9rem; }
+.tt-calc-price,
+.tt-calc-sum {
+  font-size: 0.9rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tt-calc-price { color: var(--tt-text-muted); }
+.tt-calc-sum { font-weight: 600; }
+
+.tt-calc-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: var(--tt-bg);
+  overflow: hidden;
+}
+.tt-calc-stepper button {
+  width: 34px;
+  height: 32px;
+  border: 0;
+  background: none;
+  color: var(--tt-accent);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tt-calc-stepper button:hover:not(:disabled) { background: var(--tt-accent-soft); }
+.tt-calc-stepper button:disabled { color: var(--tt-border); cursor: default; }
+.tt-calc-stepper output {
+  min-width: 34px;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-calc-total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  align-items: baseline;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tt-border);
+  font-size: 0.85rem;
+}
+.tt-calc-total span { color: var(--tt-text-muted); margin-right: 6px; }
+.tt-calc-total strong { font-variant-numeric: tabular-nums; }
+.tt-calc-grand { margin-left: auto; font-size: 1rem; }
+.tt-calc-grand strong { color: var(--tt-accent); font-size: 1.2rem; }
+
+.tt-calc-actions { margin-top: 14px; }
+
+.tt-cat-policy {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--tt-warn-bg);
+  border: 1px solid var(--tt-warn-border);
+  border-radius: 10px;
+}
+.tt-cat-policy h4 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--tt-warn-text);
+}
+.tt-cat-policy ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tt-cat-policy li { font-size: 0.85rem; line-height: 1.45; }
+.tt-cat-policy strong { font-variant-numeric: tabular-nums; }
+.tt-cat-policy p { margin: 8px 0 0; }
+.tt-cat-policy.is-urgent { border-color: var(--tt-accent); }
+
+@media (max-width: 640px) {
+  .tt-calc-row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+  .tt-calc-price { text-align: left; grid-row: 2; }
+  .tt-calc-stepper { justify-self: end; grid-row: 1 / 3; grid-column: 2; }
+  .tt-calc-sum { display: none; }
+  .tt-calc-grand { margin-left: 0; }
+}
