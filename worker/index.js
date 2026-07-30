@@ -847,8 +847,11 @@ async function route(request, env) {
         const history = path.match(/^\/api\/admin\/bookings\/(\d+)\/history$/);
         if (history && request.method === "GET") {
           const rows = await env.DB.prepare(
-            `SELECT actor_name, action, details, created_at
-               FROM booking_events WHERE booking_id = ? ORDER BY created_at, id`
+            `SELECT e.actor_name, e.action, e.details, e.created_at,
+                    a.role AS actor_role
+               FROM booking_events e
+               LEFT JOIN agencies a ON a.id = e.actor_id
+              WHERE e.booking_id = ? ORDER BY e.created_at, e.id`
           ).bind(Number(history[1])).all();
           return json(rows.results);
         }

@@ -192,8 +192,8 @@ check('есть записи о правке', log.filter(e => e.action === 'edi
 check('есть оплата', log.some(e => e.action === 'payment'), JSON.stringify(log.map(e=>e.action)));
 check('видно, кто создал', log.find(e => e.action === 'created').actor_name === 'UMIDA',
       log.find(e => e.action === 'created').actor_name);
-check('оплату провёл оператор', log.find(e => e.action === 'payment').actor_name.includes('оператор'),
-      log.find(e => e.action === 'payment').actor_name);
+check('оплату провёл оператор', log.find(e => e.action === 'payment').actor_role === 'operator',
+      log.find(e => e.action === 'payment').actor_role);
 r = await call('/api/admin/bookings/' + editId + '/history', { token: umida });
 check('агентству журнал не отдаётся', r.status === 403, JSON.stringify(r.data));
 
