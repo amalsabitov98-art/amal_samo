@@ -207,6 +207,16 @@
       if (onlyFree && d.seats_free <= 0) return false;
       return true;
     });
+    var totalFree = list.reduce(function (sum, d) { return sum + d.seats_free; }, 0);
+    var lowCount = list.filter(function (d) {
+      return d.seats_free > 0 && d.seats_free <= Math.max(4, Math.ceil(d.capacity * 0.2));
+    }).length;
+    var nextDate = list.length ? fmtDate(list[0].date_from) : "—";
+    $("departure-stats").innerHTML =
+      '<article><span>Предстоящие заезды</span><strong>' + list.length + '</strong><small>по выбранным условиям</small></article>' +
+      '<article><span>Свободные места</span><strong>' + totalFree + '</strong><small>доступно для брони</small></article>' +
+      '<article><span>Мест на исходе</span><strong>' + lowCount + '</strong><small>заездов требуют внимания</small></article>' +
+      '<article><span>Ближайший вылет</span><strong class="is-date">' + esc(nextDate) + '</strong><small>следующая экспедиция</small></article>';
     $("departures-list").innerHTML = list.length
       ? list.map(departureCardHtml).join("")
       : '<div class="tt-empty-state">Нет заездов по выбранным условиям.</div>';
@@ -567,6 +577,15 @@
   }
 
   function switchTab(name) {
+    var labels = {
+      departures: ["Заезды", "Рабочее пространство"],
+      catalog: ["Каталог туров", "Маршруты и программы"],
+      bookings: ["Мои брони", "Продажи агентства"],
+      tours: ["Туры и комиссии", "Партнёрская программа"],
+      manifest: ["Списки пассажиров", "Операторская панель"],
+      "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
+      agencies: ["Агентства", "Партнёрская сеть"],
+    };
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
@@ -575,6 +594,10 @@
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;
       });
+    if (labels[name]) {
+      $("workspace-title").textContent = labels[name][0];
+      $("workspace-kicker").textContent = labels[name][1];
+    }
   }
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
