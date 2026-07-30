@@ -10,7 +10,7 @@
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
+  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
   function money(v) {
     var whole = Math.abs(v - Math.round(v)) < 0.005;
