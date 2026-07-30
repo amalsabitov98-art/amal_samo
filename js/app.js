@@ -605,7 +605,7 @@
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
     var tab = e.target.closest(".tt-tab");
-    if (!tab) return;
+    if (!tab || !tab.dataset.tab) return;
     switchTab(tab.dataset.tab);
     // остатки мест могли измениться после брони — перерисовываем каталог
     if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
