@@ -7125,7 +7125,7 @@ window.TURON_DESTINATIONS = [
     var lowCount = list.filter(function (d) {
       return d.seats_free > 0 && d.seats_free <= Math.max(4, Math.ceil(d.capacity * 0.2));
     }).length;
-    var nextDate = list.length ? formatDate(list[0].date_from) : "—";
+    var nextDate = list.length ? formatDate(list[0].date_start) : "—";
     $("departure-stats").innerHTML =
       '<article><span>Предстоящие заезды</span><strong>' + list.length + '</strong><small>по выбранным условиям</small></article>' +
       '<article><span>Свободные места</span><strong>' + totalFree + '</strong><small>доступно для брони</small></article>' +
