@@ -2401,6 +2401,15 @@ select { font-family: inherit; }
 }
 .tt-menu-btn { display: none; }
 .tt-notice-btn { position: relative; font-size: 1.25rem; }
+.tt-notice-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
 .tt-notice-btn i {
   position: absolute;
   right: 6px;
@@ -2438,6 +2447,13 @@ select { font-family: inherit; }
   background: rgba(62, 138, 113, .26);
   box-shadow: inset 3px 0 0 #ee6b43;
 }
+.tt-app-shell.is-builder .tt-tab-divider {
+  display: block;
+  height: 1px;
+  margin: 12px 10px;
+  background: rgba(255,255,255,.14);
+}
+.tt-app-shell.is-builder .tt-tab-static { cursor: default; }
 .tt-app-shell.is-builder .tt-app-header {
   min-height: 72px;
   padding: 10px 26px;
@@ -2639,9 +2655,9 @@ select { font-family: inherit; }
   position: relative;
   min-height: 123px;
   display: grid;
-  grid-template-columns: 105px 74px 38px 74px 62px;
+  grid-template-columns: 90px 62px 28px 62px 52px;
   align-items: end;
-  gap: 7px;
+  gap: 5px;
   padding: 31px 12px 11px;
   border: 1px solid #dedbd2;
   border-radius: 6px;
