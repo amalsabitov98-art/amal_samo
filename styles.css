@@ -3100,3 +3100,115 @@ select.tt-outline-btn {
   letter-spacing: 0.04em;
   opacity: 0.8;
 }
+
+/* ------------------- разделы «Туристы», «Платежи», «Документы» ------------------ */
+
+/* Плашка под блоками, которые построены на неподтверждённых данных
+   (см. js/provisional.js). Агент должен видеть, что цифры не финальные. */
+.tt-provisional {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--tt-warn-border);
+  border-radius: 8px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.tt-build-card .tt-provisional { margin: 10px 13px 0; }
+
+.tt-row-card {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(110px, 1fr));
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-row-card.is-cancelled { opacity: 0.55; }
+.tt-row-card span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--tt-text-muted);
+}
+.tt-row-card strong { font-size: 0.92rem; }
+.tt-row-warn {
+  grid-column: 1 / -1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.78rem;
+}
+.tt-row-actions { display: flex; justify-content: flex-end; }
+
+.tt-pay-card {
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-pay-card.is-paid { border-left: 3px solid var(--tt-success); }
+.tt-pay-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.tt-pay-money {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--tt-border);
+  font-size: 0.85rem;
+}
+.tt-pay-money span { color: var(--tt-text-muted); margin-right: 6px; }
+.tt-pay-money strong { font-variant-numeric: tabular-nums; }
+.tt-pay-steps { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.tt-pay-steps li { font-size: 0.83rem; line-height: 1.5; }
+.tt-pay-steps li em {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 0.7rem;
+}
+.tt-pay-steps li.is-done em { background: var(--tt-accent-soft); color: var(--tt-success); }
+.tt-pay-steps li.is-late em { background: var(--tt-warn-bg); color: var(--tt-warn-text); }
+.tt-pay-steps li.is-late strong { color: var(--tt-warn-text); }
+
+.tt-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.tt-contact-grid span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 3px;
+}
+.tt-contact-grid a { color: var(--tt-accent); }
+
+/* Шаги конструктора стали кнопками — убираем вид обычной кнопки */
+.tt-builder-steps button {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+@media (max-width: 720px) {
+  .tt-row-card { grid-template-columns: 1fr 1fr; }
+  .tt-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}

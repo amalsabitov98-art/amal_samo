@@ -3106,6 +3106,118 @@ select.tt-outline-btn {
   opacity: 0.8;
 }
 
+/* ------------------- разделы «Туристы», «Платежи», «Документы» ------------------ */
+
+/* Плашка под блоками, которые построены на неподтверждённых данных
+   (см. js/provisional.js). Агент должен видеть, что цифры не финальные. */
+.tt-provisional {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--tt-warn-border);
+  border-radius: 8px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.tt-build-card .tt-provisional { margin: 10px 13px 0; }
+
+.tt-row-card {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(110px, 1fr));
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-row-card.is-cancelled { opacity: 0.55; }
+.tt-row-card span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--tt-text-muted);
+}
+.tt-row-card strong { font-size: 0.92rem; }
+.tt-row-warn {
+  grid-column: 1 / -1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.78rem;
+}
+.tt-row-actions { display: flex; justify-content: flex-end; }
+
+.tt-pay-card {
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow);
+}
+.tt-pay-card.is-paid { border-left: 3px solid var(--tt-success); }
+.tt-pay-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.tt-pay-money {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--tt-border);
+  font-size: 0.85rem;
+}
+.tt-pay-money span { color: var(--tt-text-muted); margin-right: 6px; }
+.tt-pay-money strong { font-variant-numeric: tabular-nums; }
+.tt-pay-steps { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.tt-pay-steps li { font-size: 0.83rem; line-height: 1.5; }
+.tt-pay-steps li em {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 0.7rem;
+}
+.tt-pay-steps li.is-done em { background: var(--tt-accent-soft); color: var(--tt-success); }
+.tt-pay-steps li.is-late em { background: var(--tt-warn-bg); color: var(--tt-warn-text); }
+.tt-pay-steps li.is-late strong { color: var(--tt-warn-text); }
+
+.tt-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.tt-contact-grid span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 3px;
+}
+.tt-contact-grid a { color: var(--tt-accent); }
+
+/* Шаги конструктора стали кнопками — убираем вид обычной кнопки */
+.tt-builder-steps button {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+@media (max-width: 720px) {
+  .tt-row-card { grid-template-columns: 1fr 1fr; }
+  .tt-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -3195,11 +3307,11 @@ select.tt-outline-btn {
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
       <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="♙" disabled title="Раздел ещё не сделан">Туристы<em>скоро</em></button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="▣" disabled title="Раздел ещё не сделан">Платежи<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag" data-tab="travellers" data-icon="♙">Туристы</button>
+      <button class="tt-tab tt-tab-ag" data-tab="payments" data-icon="▣">Платежи</button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="□" disabled title="Раздел ещё не сделан">Документы<em>скоро</em></button>
-      <button class="tt-tab tt-tab-ag tt-tab-static" data-icon="○" disabled title="Раздел ещё не сделан">Сообщения<em>скоро</em></button>
+      <button class="tt-tab tt-tab-ag" data-tab="documents" data-icon="□">Документы</button>
+      <button class="tt-tab tt-tab-ag" data-tab="messages" data-icon="○">Сообщения</button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
       <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
@@ -3257,12 +3369,12 @@ select.tt-outline-btn {
 
         <div class="tt-builder-layout">
           <div class="tt-builder-main">
-            <nav class="tt-builder-steps" aria-label="Этапы создания тура">
-              <span class="is-active"><b>1</b>Дата и маршрут<em>✓</em></span>
-              <span><b>2</b>Рейсы</span>
-              <span><b>3</b>Отели</span>
-              <span><b>4</b>Туристы</span>
-              <span><b>5</b>Итог</span>
+            <nav class="tt-builder-steps" id="builder-steps" aria-label="Этапы создания тура">
+              <button type="button" class="is-active" data-step-to="builder-route"><b>1</b>Дата и маршрут</button>
+              <button type="button" data-step-to="builder-flights"><b>2</b>Рейсы</button>
+              <button type="button" data-step-to="builder-hotels"><b>3</b>Отели</button>
+              <button type="button" data-step-to="builder-travellers"><b>4</b>Туристы</button>
+              <button type="button" data-step-to="builder-summary"><b>5</b>Итог</button>
             </nav>
 
             <section class="tt-build-card">
@@ -3277,18 +3389,8 @@ select.tt-outline-btn {
 
             <section class="tt-build-card">
               <header><h2><i>▱</i>Отели</h2></header>
-              <div class="tt-hotels-row">
-                <article class="tt-hotel-card">
-                  <div class="tt-hotel-image is-batumi" role="img" aria-label="Batumi View Luxury"></div>
-                  <div><strong>Batumi View Luxury</strong><span class="tt-stars">★★★★★</span><small>Батуми<br />Завтраки включены</small></div>
-                </article>
-                <i class="tt-hotel-arrow">→</i>
-                <article class="tt-hotel-card">
-                  <div class="tt-hotel-image is-rize" role="img" aria-label="Rhisos Gold Hotel Rize"></div>
-                  <div><strong>Rhisos Gold Otel Rize</strong><span class="tt-stars">★★★★</span><small>Ризе<br />Завтраки включены</small></div>
-                </article>
-              </div>
-              <p class="tt-builder-hint">Распределение ночей по отелям оператор ещё не передал.</p>
+              <div class="tt-hotels-row" id="builder-hotels"></div>
+              <div id="builder-hotels-note"></div>
             </section>
 
             <section class="tt-build-card">
@@ -3347,6 +3449,29 @@ select.tt-outline-btn {
 
     <section id="panel-tours" hidden>
       <div id="tours-list"></div>
+    </section>
+
+    <section id="panel-travellers" hidden>
+      <div class="tt-toolbar">
+        <div class="tt-field" style="min-width:260px">
+          <label for="tv-query">Поиск</label>
+          <input type="search" id="tv-query" placeholder="Фамилия, паспорт или номер брони" />
+        </div>
+      </div>
+      <div id="travellers-list"></div>
+    </section>
+
+    <section id="panel-payments" hidden>
+      <div id="payments-summary"></div>
+      <div id="payments-list"></div>
+    </section>
+
+    <section id="panel-documents" hidden>
+      <div id="documents-list"></div>
+    </section>
+
+    <section id="panel-messages" hidden>
+      <div id="messages-body"></div>
     </section>
 
     <section id="panel-manifest" hidden>
@@ -6738,6 +6863,155 @@ window.TURON_DESTINATIONS = [
 </script>
 <script>
 /*
+ * ПРЕДВАРИТЕЛЬНЫЕ ДАННЫЕ — ОДИН ФАЙЛ НА ВСЕ ДОПУЩЕНИЯ
+ * ===================================================
+ *
+ * Здесь лежит всё, что интерфейс показывает, но оператор ещё не
+ * подтвердил. Собрано в одном месте намеренно: чтобы отделу не пришлось
+ * искать по коду, где именно поправить.
+ *
+ * Всё, что отсюда рисуется, помечено в интерфейсе плашкой
+ * «Предварительные данные» — агент видит, что цифры не окончательные.
+ *
+ * Что НЕ отсюда (это подтверждённые данные, менять не здесь):
+ *   - цены, места, даты заездов      → seed/departures.json (из ведомости)
+ *   - программа тура, включено/нет   → tools/build-seed.py, TOUR_CONTENT
+ *   - комиссии агентств              → tools/build-seed.py, TOURS
+ */
+(function (global) {
+  "use strict";
+
+  /*
+   * 1. РЕЙСЫ
+   * --------
+   * Основание: четыре настоящих билета Centrum Air на заезд 31.07.2026
+   * (TAS→TZX C63309, TZX→TAS C63310, TAS→BUS C6225, BUS→TAS C6226).
+   *
+   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов через тот же
+   * аэропорт. Реально расписание может меняться от даты к дате.
+   *
+   * ЧТО УТОЧНИТЬ У ОПЕРАТОРА: рейсы и время по каждому из 15 заездов.
+   * Если расписание правда одно на весь сезон — достаточно подтвердить.
+   *
+   * day_offset — на сколько суток позже даты возврата вылетает рейс.
+   * У Батуми обратный рейс в 00:20, то есть уже следующей ночью.
+   */
+  var FLIGHTS = {
+    TZX: {
+      out: {
+        code: "C63309", carrier: "Centrum Air", aircraft: "A321-251N",
+        from: "TAS", from_city: "Ташкент", to: "TZX", to_city: "Трабзон",
+        dep: "14:30", arr: "16:20", duration: "3 ч 50 мин",
+        baggage: "20 кг", day_offset: 0,
+      },
+      back: {
+        code: "C63310", carrier: "Centrum Air", aircraft: "A321-251N",
+        from: "TZX", from_city: "Трабзон", to: "TAS", to_city: "Ташкент",
+        dep: "17:20", arr: "22:20", duration: "3 ч",
+        baggage: "20 кг", day_offset: 0,
+      },
+    },
+    BUS: {
+      out: {
+        code: "C6225", carrier: "Centrum Air", aircraft: "A320-233",
+        from: "TAS", from_city: "Ташкент", to: "BUS", to_city: "Батуми",
+        dep: "20:50", arr: "23:20", duration: "3 ч 30 мин",
+        baggage: "23 кг", day_offset: 0,
+      },
+      back: {
+        code: "C6226", carrier: "Centrum Air", aircraft: "A320-233",
+        from: "BUS", from_city: "Батуми", to: "TAS", to_city: "Ташкент",
+        dep: "00:20", arr: "04:20", duration: "3 ч",
+        baggage: "23 кг", day_offset: 1,
+      },
+    },
+  };
+
+  /*
+   * 2. ОТЕЛИ И НОЧИ
+   * ---------------
+   * Основание: karadeniz-tour-info.md — Batumi View Luxury 03.07–07.07
+   * (4 ночи) и Rhisos Gold Otel Rize 07.07–10.07 (3 ночи), плюс порядок
+   * дней в программе каждого варианта маршрута.
+   *
+   * ДОПУЩЕНИЕ: у заезда через Батуми сначала Батуми (4 ночи), потом Ризе
+   * (3); у заезда через Трабзон — наоборот. Разбивка одинакова для всех
+   * заездов.
+   *
+   * ЧТО УТОЧНИТЬ: сколько ночей в каком отеле по каждому заезду и не
+   * меняется ли отель от даты к дате.
+   */
+  var HOTELS = {
+    BUS: [
+      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 4,
+        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
+      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 3,
+        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
+    ],
+    TZX: [
+      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 4,
+        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
+      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 3,
+        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
+    ],
+  };
+
+  /*
+   * 3. КОНТАКТЫ ОПЕРАТОРА
+   * ---------------------
+   * Основание: агентский блок в электронных билетах Centrum Air.
+   * ЧТО УТОЧНИТЬ: телефон и почта для агентств — те же или отдельные.
+   */
+  var OPERATOR = {
+    name: "Turon Tourism",
+    phone: "+998 71 200-09-09",
+    phone_href: "+998712000909",
+    email: "info@turontourism.uz",
+    address: "Ташкент, Алмазарский район, ул. Нурафшон, 51",
+  };
+
+  global.TuronProvisional = {
+    FLIGHTS: FLIGHTS,
+    HOTELS: HOTELS,
+    OPERATOR: OPERATOR,
+
+    // Рейсы заезда с посчитанными датами вылета и возврата.
+    flightsFor: function (departure) {
+      var set = FLIGHTS[departure.transport];
+      if (!set) return null;
+      var back = TuronApi.departureEnd(departure.date_start, departure.nights);
+      function shift(iso, days) {
+        if (!iso) return null;
+        var d = new Date(iso + "T00:00:00Z");
+        d.setUTCDate(d.getUTCDate() + days);
+        return d.toISOString().slice(0, 10);
+      }
+      return {
+        out: Object.assign({}, set.out, {
+          date: shift(departure.date_start, set.out.day_offset),
+        }),
+        back: Object.assign({}, set.back, {
+          date: shift(back, set.back.day_offset),
+        }),
+      };
+    },
+
+    hotelsFor: function (departure) {
+      return (HOTELS[departure.transport] || []).slice();
+    },
+
+    // Плашка «данные не подтверждены» — ставится рядом с такими блоками.
+    noteHtml: function (what) {
+      return '<p class="tt-provisional">Предварительные данные' +
+        (what ? ": " + what : "") +
+        ". Оператор ещё не подтвердил — уточните перед выдачей клиенту.</p>";
+    },
+  };
+})(window);
+
+</script>
+<script>
+/*
  * Публичный каталог: направления → туры → карточка тура.
  *
  * Один модуль обслуживает два экрана: гостевой (без входа, бронь
@@ -7749,6 +8023,8 @@ window.TURON_DESTINATIONS = [
     departures: [], current: null, passengers: [], editing: null,
     // выбранный в конструкторе заезд и счётчики по тарифам
     builder: { code: null, counts: {} },
+    // брони агентства: их читают разделы «Туристы», «Платежи», «Документы»
+    bookings: [],
   };
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
@@ -8043,6 +8319,23 @@ window.TURON_DESTINATIONS = [
     return { total: total, people: people, seats: seats };
   }
 
+  // Карточка рейса в оформлении конструктора.
+  function flightCard(tag, f, isReturn) {
+    return '<article class="tt-flight' + (isReturn ? " is-return" : "") + '">' +
+      '<span class="tt-flight-tag">' + esc(tag) + "</span>" +
+      '<div class="tt-airline"><b>◈</b><span>' + esc(f.carrier) + "</span></div>" +
+      '<div class="tt-airport"><strong>' + esc(f.from) + "</strong><small>" +
+        esc(f.from_city) + "</small><time>" + esc(f.dep) + "</time></div>" +
+      '<div class="tt-flight-line">→<small>' + esc(f.duration) +
+        "<br />" + esc(f.code) + "</small></div>" +
+      '<div class="tt-airport"><strong>' + esc(f.to) + "</strong><small>" +
+        esc(f.to_city) + "</small><time>" + esc(f.arr) + "</time></div>" +
+      '<div class="tt-flight-seats"><small>' +
+        (f.date ? formatDate(f.date) : "") + "</small><strong>" +
+        esc(f.baggage) + "</strong><span>багаж</span></div>" +
+    "</article>";
+  }
+
   function renderBuilder() {
     var d = builderDeparture();
     if (!d) return;
@@ -8079,11 +8372,31 @@ window.TURON_DESTINATIONS = [
       "</select>";
 
     // ------------------------------------------------------------ рейсы
-    // Рейсы по заездам оператор пока не передал. Показывать выдуманные
-    // номера и время нельзя — агент отдаст их клиенту как настоящие.
-    $("builder-flights").innerHTML =
-      '<p class="tt-builder-empty">Рейсы по этому заезду ещё не заведены — ' +
-      "уточните время вылета у оператора.</p>";
+    // Расписание предварительное — см. js/provisional.js. Плашка под
+    // блоком говорит агенту, что цифры надо подтвердить.
+    var fl = TuronProvisional.flightsFor(d);
+    $("builder-flights").innerHTML = fl
+      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
+        TuronProvisional.noteHtml("рейсы и время")
+      : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
+
+    // ------------------------------------------------------------ отели
+    // Разбивка ночей по отелям предварительная — см. js/provisional.js.
+    var hotels = TuronProvisional.hotelsFor(d);
+    $("builder-hotels").innerHTML = hotels.map(function (h, i) {
+      return (i ? '<i class="tt-hotel-arrow">→</i>' : "") +
+        '<article class="tt-hotel-card">' +
+          '<div class="tt-hotel-image" role="img" aria-label="' + esc(h.name) +
+            '" style="background-image:url(' + esc(h.image) + ')"></div>' +
+          "<div><strong>" + esc(h.name) + '</strong><span class="tt-stars">' +
+            "★".repeat(h.stars) + "</span><small>" + esc(h.city) + " · " +
+            h.nights + " " + (h.nights === 1 ? "ночь" : h.nights < 5 ? "ночи" : "ночей") +
+            "<br />" + esc(h.board) + "</small></div>" +
+        "</article>";
+    }).join("");
+    $("builder-hotels-note").innerHTML = hotels.length
+      ? TuronProvisional.noteHtml("распределение ночей по отелям")
+      : "";
 
     // --------------------------------------------------------- туристы
     $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {
@@ -8159,6 +8472,17 @@ window.TURON_DESTINATIONS = [
     if (e.target.id !== "builder-departure") return;
     state.builder = { code: e.target.value, counts: {} };
     renderBuilder();
+  });
+
+  // Шаги 1–5 были картинкой: теперь прокручивают к своему блоку.
+  $("builder-steps").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-step-to]");
+    if (!btn) return;
+    document.querySelectorAll("#builder-steps button").forEach(function (b) {
+      b.classList.toggle("is-active", b === btn);
+    });
+    var target = $(btn.dataset.stepTo);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 
   $("panel-builder").addEventListener("click", function (e) {
@@ -8426,6 +8750,7 @@ window.TURON_DESTINATIONS = [
 
   function loadBookings() {
     return TuronApi.bookings().then(function (list) {
+      state.bookings = list;
       var active = list.filter(function (b) { return b.status !== "cancelled"; });
       var earned = active.reduce(function (s, b) { return s + (b.agency_commission || 0); }, 0);
       var owed = active.reduce(function (s, b) { return s + (b.balance || 0); }, 0);
@@ -8439,7 +8764,10 @@ window.TURON_DESTINATIONS = [
         : "";
       $("bookings-list").innerHTML = list.length
         ? list.map(bookingRowHtml).join("")
-        : '<div class="tt-empty-state">Броней пока нет. Выберите заезд на вкладке «Заезды».</div>';
+        : '<div class="tt-empty-state">Броней пока нет. Выберите заезд на вкладке «Туры».</div>';
+      renderTravellers();
+      renderPayments();
+      renderDocuments();
     }).catch(function (err) {
       $("bookings-list").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить брони.<div class="tt-muted-note">' +
@@ -8510,11 +8838,233 @@ window.TURON_DESTINATIONS = [
     });
   }
 
+  /* ------------------------------------------------- туристы агентства
+   * Отдельного API не нужно: /api/bookings уже отдаёт состав каждой
+   * брони. Собираем плоский список по всем броням агентства.
+   */
+  function allTravellers() {
+    var rows = [];
+    state.bookings.forEach(function (b) {
+      (b.passengers || []).forEach(function (p) {
+        rows.push({
+          name: p.full_name, birth: p.birth_date,
+          passport: p.passport_number, expiry: p.passport_expiry,
+          tariff: p.tariff || p.price_code, price: p.price,
+          booking: b.code, status: b.status,
+          date_start: b.date_start, transport: b.transport,
+        });
+      });
+    });
+    return rows;
+  }
+
+  function renderTravellers() {
+    var q = ($("tv-query").value || "").trim().toLowerCase();
+    var rows = allTravellers().filter(function (r) {
+      if (!q) return true;
+      return (r.name || "").toLowerCase().indexOf(q) !== -1 ||
+             (r.passport || "").toLowerCase().indexOf(q) !== -1 ||
+             (r.booking || "").toLowerCase().indexOf(q) !== -1;
+    });
+
+    $("travellers-list").innerHTML = rows.length
+      ? '<div class="tt-muted-note" style="margin-bottom:12px">Всего туристов: ' +
+        rows.length + "</div>" +
+        rows.map(function (r) {
+          var issue = TuronApi.passportIssue(r.expiry, r.date_start);
+          return '<article class="tt-row-card' +
+              (r.status === "cancelled" ? " is-cancelled" : "") + '">' +
+            "<div><strong>" + esc(r.name) + "</strong>" +
+              '<div class="tt-muted-note">' + esc(r.birth || "—") +
+              " · паспорт " + esc(r.passport || "—") + "</div></div>" +
+            "<div><span>Заезд</span><strong>" + formatDate(r.date_start) + "</strong>" +
+              '<div class="tt-muted-note">' + esc(TRANSPORT[r.transport] || r.transport) +
+              "</div></div>" +
+            "<div><span>Бронь</span><strong>" + esc(r.booking) + "</strong>" +
+              (r.status === "cancelled"
+                ? '<div class="tt-muted-note">отменена</div>' : "") + "</div>" +
+            "<div><span>Тариф</span><strong>" + esc(r.tariff || "—") + "</strong>" +
+              '<div class="tt-muted-note">' + money(r.price || 0) + "</div></div>" +
+            (issue ? '<div class="tt-row-warn">' + esc(issue) + "</div>" : "") +
+          "</article>";
+        }).join("")
+      : '<div class="tt-empty-state">' +
+        (q ? "Никто не найден по запросу." : "Туристов пока нет — они появятся после первой брони.") +
+        "</div>";
+  }
+
+  /* ----------------------------------------------------------- платежи
+   * Сроки считает TuronApi.paymentPolicy от даты брони и даты выезда —
+   * та же логика, что в карточке тура и в окне брони.
+   */
+  function renderPayments() {
+    var active = state.bookings.filter(function (b) { return b.status !== "cancelled"; });
+    var total = active.reduce(function (s, b) { return s + b.total_price; }, 0);
+    var paid = active.reduce(function (s, b) { return s + b.paid; }, 0);
+    var owed = active.reduce(function (s, b) { return s + b.balance; }, 0);
+    var today = new Date().toISOString().slice(0, 10);
+
+    var overdue = 0;
+    var cards = active.map(function (b) {
+      var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
+      var steps = pol.steps.map(function (s) {
+        var due = s.due.toISOString().slice(0, 10);
+        var need = Math.round(b.total_price * s.share * 100) / 100;
+        // шаг закрыт, если оплачено уже не меньше, чем требует этот этап
+        var covered = b.paid >= need - 0.01;
+        var late = !covered && due < today;
+        if (late) overdue++;
+        return '<li class="' + (covered ? "is-done" : late ? "is-late" : "") + '">' +
+          "<strong>" + money(need) + "</strong> — " + esc(s.label) +
+          '<span class="tt-muted-note"> до ' + formatDate(due) + "</span>" +
+          (covered ? "<em>внесено</em>" : late ? "<em>просрочено</em>" : "") +
+        "</li>";
+      }).join("");
+
+      return '<article class="tt-pay-card' + (b.balance > 0 ? "" : " is-paid") + '">' +
+        "<header><strong>" + esc(b.code) + "</strong>" +
+          '<span class="tt-muted-note">' + formatDate(b.date_start) + " · " +
+          esc(TRANSPORT[b.transport] || b.transport) + " · " +
+          b.passengers_count + " чел.</span></header>" +
+        '<div class="tt-pay-money">' +
+          "<div><span>Стоимость</span><strong>" + money(b.total_price) + "</strong></div>" +
+          "<div><span>Оплачено</span><strong>" + money(b.paid) + "</strong></div>" +
+          '<div><span>Остаток</span><strong' + (b.balance > 0 ? ' class="tt-owed-value"' : "") +
+            ">" + money(b.balance) + "</strong></div>" +
+        "</div>" +
+        '<ul class="tt-pay-steps">' + steps + "</ul>" +
+      "</article>";
+    }).join("");
+
+    $("payments-summary").innerHTML = active.length
+      ? '<div class="tt-earnings">' +
+          "<div><span>К оплате всего</span><strong>" + money(total) + "</strong></div>" +
+          "<div><span>Внесено</span><strong>" + money(paid) + "</strong></div>" +
+          '<div><span>Остаток</span><strong' + (owed > 0 ? ' class="tt-owed-value"' : "") +
+            ">" + money(owed) + "</strong></div>" +
+          "<div><span>Просроченных этапов</span><strong" +
+            (overdue > 0 ? ' class="tt-owed-value"' : "") + ">" + overdue + "</strong></div>" +
+        "</div>"
+      : "";
+    $("payments-list").innerHTML = cards ||
+      '<div class="tt-empty-state">Оплачивать пока нечего — броней нет.</div>';
+  }
+
+  /* --------------------------------------------------------- документы
+   * Ваучер собирается на клиенте из данных брони и открывается в новом
+   * окне на печать. Отдельного хранилища документов нет.
+   */
+  function renderDocuments() {
+    var active = state.bookings.filter(function (b) { return b.status !== "cancelled"; });
+    $("documents-list").innerHTML = active.length
+      ? active.map(function (b) {
+          return '<article class="tt-row-card">' +
+            "<div><strong>Ваучер " + esc(b.code) + "</strong>" +
+              '<div class="tt-muted-note">' + formatDate(b.date_start) + " · " +
+              b.passengers_count + " чел. · " + money(b.total_price) + "</div></div>" +
+            '<div class="tt-row-actions">' +
+              '<button class="tt-btn secondary tt-btn-sm" data-voucher="' +
+                esc(b.code) + '">Открыть и распечатать</button>' +
+            "</div>" +
+          "</article>";
+        }).join("") + TuronProvisional.noteHtml("бланк ваучера")
+      : '<div class="tt-empty-state">Документы появятся после первой брони.</div>';
+  }
+
+  function openVoucher(code) {
+    var b = state.bookings.filter(function (x) { return x.code === code; })[0];
+    if (!b) return;
+    var op = TuronProvisional.OPERATOR;
+    // у брони нет длительности — берём её у заезда, иначе в ваучере
+    // окажется только дата вылета без даты возврата
+    var dep = state.departures.filter(function (x) {
+      return x.code === b.departure_code;
+    })[0];
+    var nights = dep ? dep.nights : null;
+    var fl = TuronProvisional.flightsFor({
+      transport: b.transport, date_start: b.date_start, nights: nights,
+    });
+    var win = window.open("", "_blank");
+    if (!win) { flash("Разрешите всплывающие окна, чтобы открыть ваучер."); return; }
+
+    win.document.write(
+      '<!doctype html><meta charset="utf-8"><title>Ваучер ' + esc(b.code) + "</title>" +
+      "<style>body{font:14px/1.5 Georgia,serif;margin:40px;color:#222}" +
+      "h1{font-size:20px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin:16px 0}" +
+      "th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;font-size:13px}" +
+      "th{background:#f2efe9}.muted{color:#666;font-size:12px}" +
+      ".head{display:flex;justify-content:space-between;align-items:flex-start;" +
+      "border-bottom:2px solid #0d302a;padding-bottom:12px}" +
+      "@media print{.no-print{display:none}}</style>" +
+      '<div class="head"><div><h1>Turon Tour</h1>' +
+        '<div class="muted">' + esc(op.address) + "<br />" +
+        esc(op.phone) + " · " + esc(op.email) + "</div></div>" +
+        "<div><strong>Ваучер " + esc(b.code) + '</strong><div class="muted">от ' +
+        esc((b.created_at || "").slice(0, 10)) + "</div></div></div>" +
+      "<p><strong>Заезд:</strong> " + formatRange(b.date_start, nights) + " · " +
+        esc(TRANSPORT[b.transport] || b.transport) + " · " + esc(b.departure_code) + "</p>" +
+      (fl
+        ? "<p><strong>Рейсы:</strong> " +
+          esc(fl.out.code) + " " + esc(fl.out.from) + "–" + esc(fl.out.to) + " " +
+          esc(fl.out.dep) + ", " + esc(fl.back.code) + " " + esc(fl.back.from) + "–" +
+          esc(fl.back.to) + " " + esc(fl.back.dep) +
+          ' <span class="muted">(предварительно, уточните у оператора)</span></p>'
+        : "") +
+      "<table><tr><th>#</th><th>Фамилия и имя</th><th>Дата рождения</th>" +
+        "<th>Паспорт</th><th>Размещение</th><th>Тариф</th></tr>" +
+      (b.passengers || []).map(function (p, i) {
+        return "<tr><td>" + (i + 1) + "</td><td>" + esc(p.full_name) + "</td><td>" +
+          esc(p.birth_date) + "</td><td>" + esc(p.passport_number) + "</td><td>" +
+          esc(p.placement) + "</td><td>" + esc(p.tariff || p.price_code) + "</td></tr>";
+      }).join("") + "</table>" +
+      "<p><strong>Стоимость:</strong> " + money(b.total_price) +
+        " · оплачено " + money(b.paid) + " · остаток " + money(b.balance) + "</p>" +
+      (b.note ? "<p><strong>Примечание:</strong> " + esc(b.note) + "</p>" : "") +
+      '<p class="muted">Документ сформирован кабинетом агентства. Бланк ' +
+      "предварительный — форму ваучера оператор ещё не утвердил.</p>" +
+      '<button class="no-print" onclick="window.print()">Печать</button>'
+    );
+    win.document.close();
+  }
+
+  $("documents-list").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-voucher]");
+    if (btn) openVoucher(btn.dataset.voucher);
+  });
+
+  $("tv-query").addEventListener("input", renderTravellers);
+
+  /* --------------------------------------------------------- сообщения
+   * Переписки с оператором в системе нет. Вместо пустого экрана —
+   * рабочие контакты, чтобы агенту было куда обратиться.
+   */
+  function renderMessages() {
+    var op = TuronProvisional.OPERATOR;
+    $("messages-body").innerHTML =
+      '<div class="tt-panel">' +
+        "<h2>Связь с оператором</h2>" +
+        '<p class="tt-muted-note">Переписка внутри кабинета пока не сделана. ' +
+        "Пишите и звоните напрямую — по броням отвечает менеджер Turon Tour.</p>" +
+        '<div class="tt-contact-grid">' +
+          "<div><span>Телефон</span><strong><a href=\"tel:" + esc(op.phone_href) +
+            '">' + esc(op.phone) + "</a></strong></div>" +
+          "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
+            '">' + esc(op.email) + "</a></strong></div>" +
+          "<div><span>Офис</span><strong>" + esc(op.address) + "</strong></div>" +
+        "</div>" +
+      "</div>" +
+      TuronProvisional.noteHtml("контакты взяты из бланка билетов");
+  }
+
   function switchTab(name) {
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
       departures: ["Заезды", "Рабочее пространство"],
       catalog: ["Каталог туров", "Маршруты и программы"],
+      travellers: ["Туристы", "Все пассажиры агентства"],
+      payments: ["Платежи", "Сроки и задолженность"],
+      documents: ["Документы", "Ваучеры по броням"],
+      messages: ["Сообщения", "Связь с оператором"],
       bookings: ["Мои брони", "Продажи агентства"],
       tours: ["Туры и комиссии", "Партнёрская программа"],
       manifest: ["Списки пассажиров", "Операторская панель"],
@@ -8524,7 +9074,8 @@ window.TURON_DESTINATIONS = [
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["builder", "departures", "catalog", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+    ["builder", "departures", "catalog", "bookings", "tours", "travellers",
+     "payments", "documents", "messages", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;
@@ -8541,8 +9092,13 @@ window.TURON_DESTINATIONS = [
     if (!tab || !tab.dataset.tab) return;
     switchTab(tab.dataset.tab);
     setNav(false);   // на телефоне меню выдвижное — закрываем после выбора
-    // остатки мест могли измениться после брони — перерисовываем каталог
-    if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
+    // данные могли измениться после брони — перерисовываем раздел
+    var t = tab.dataset.tab;
+    if (t === "catalog" && cabinetCatalog) cabinetCatalog.render();
+    if (t === "travellers") renderTravellers();
+    if (t === "payments") renderPayments();
+    if (t === "documents") renderDocuments();
+    if (t === "messages") renderMessages();
   });
 
   // Выдвижное меню на узком экране. Кнопка ☰ в шапке была, но ни к чему
