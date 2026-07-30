@@ -72,10 +72,11 @@
       <small>Expedition OS</small>
     </div>
     <div class="tt-tabs">
-      <button class="tt-tab tt-tab-ag is-active" data-tab="departures" data-icon="⌁">Заезды</button>
-      <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◇">Каталог</button>
-      <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Мои брони</button>
-      <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Туры и комиссии</button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
+      <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
+      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Заезды</button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
       <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
@@ -102,18 +103,122 @@
 
   <div class="tt-workspace">
     <header class="tt-header tt-app-header">
-      <div>
-        <span class="tt-eyebrow" id="workspace-kicker">Рабочее пространство</span>
-        <h1 id="workspace-title">Заезды</h1>
+      <button class="tt-menu-btn" type="button" aria-label="Меню">☰</button>
+      <div class="tt-workspace-heading">
+        <span class="tt-eyebrow" id="workspace-kicker">Конструктор путешествия</span>
+        <h1 id="workspace-title">Новый тур</h1>
       </div>
       <div class="tt-header-right">
-        <span class="tt-live-dot">Система онлайн</span>
-        <button class="tt-support-btn" type="button"><i>?</i><span>Поддержка</span></button>
+        <button class="tt-notice-btn" type="button" aria-label="Уведомления">♧<i></i></button>
+        <span class="tt-top-avatar">GW</span>
+        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name">Green Way Travel</strong></div>
+        <span class="tt-top-chevron">⌄</span>
       </div>
     </header>
 
     <main class="tt-container tt-app-container">
-      <section id="panel-departures">
+      <section id="panel-builder">
+        <div class="tt-builder-hero">
+          <div class="tt-builder-hero-copy">
+            <h1>Батуми <i>→</i> Ризе <i>→</i> Трабзон</h1>
+            <div class="tt-builder-meta"><span>▣</span>31 июля — 7 августа <span>♙</span>2 туриста</div>
+          </div>
+          <div class="tt-builder-map" aria-label="Маршрут Батуми — Ризе — Трабзон">
+            <span>Батуми</span><i></i><b></b><i></i><strong>Ризе</strong><i></i><b></b><i></i><span>Трабзон</span>
+          </div>
+        </div>
+
+        <div class="tt-builder-layout">
+          <div class="tt-builder-main">
+            <nav class="tt-builder-steps" aria-label="Этапы создания тура">
+              <span class="is-active"><b>1</b>Дата и маршрут<em>✓</em></span>
+              <span><b>2</b>Рейсы</span>
+              <span><b>3</b>Отели</span>
+              <span><b>4</b>Туристы</span>
+              <span><b>5</b>Итог</span>
+            </nav>
+
+            <section class="tt-build-card">
+              <header><h2><i>▣</i>Дата и маршрут</h2></header>
+              <div class="tt-route-summary">
+                <div><strong>31 июля — 7 августа</strong><small>7 ночей / 8 дней</small></div>
+                <div class="tt-route-cities"><span>Батуми<small>2 ночи</small></span><i>→</i><span>Ризе<small>2 ночи</small></span><i>→</i><span>Трабзон<small>3 ночи</small></span></div>
+                <button class="tt-outline-btn" type="button">Изменить</button>
+              </div>
+            </section>
+
+            <section class="tt-build-card">
+              <header><h2><i>✈</i>Рейсы</h2><button class="tt-outline-btn" type="button">Изменить</button></header>
+              <div class="tt-flight-grid">
+                <article class="tt-flight">
+                  <span class="tt-flight-tag">Туда</span>
+                  <div class="tt-airline"><b>◈</b><span>Centrum<br />Air</span></div>
+                  <div class="tt-airport"><strong>TAS</strong><small>Ташкент</small><time>10:30</time></div>
+                  <div class="tt-flight-line">→<small>3ч 10м<br />Прямой рейс</small></div>
+                  <div class="tt-airport"><strong>BUS</strong><small>Батуми</small><time>13:40</time></div>
+                  <div class="tt-flight-seats"><small>Места</small><strong>9/10</strong><span>Эконом</span></div>
+                </article>
+                <article class="tt-flight is-return">
+                  <span class="tt-flight-tag">Обратно</span>
+                  <div class="tt-airline"><b>◈</b><span>Centrum<br />Air</span></div>
+                  <div class="tt-airport"><strong>TZX</strong><small>Трабзон</small><time>14:20</time></div>
+                  <div class="tt-flight-line">→<small>3ч 10м<br />Прямой рейс</small></div>
+                  <div class="tt-airport"><strong>TAS</strong><small>Ташкент</small><time>18:40</time></div>
+                  <div class="tt-flight-seats"><small>Места</small><strong>7/10</strong><span>Эконом</span></div>
+                </article>
+              </div>
+            </section>
+
+            <section class="tt-build-card">
+              <header><h2><i>▱</i>Отели</h2></header>
+              <div class="tt-hotels-row">
+                <article class="tt-hotel-card">
+                  <div class="tt-hotel-image is-batumi" role="img" aria-label="Batumi View Luxury"></div>
+                  <div><strong>Batumi View Luxury</strong><span class="tt-stars">★★★★★</span><small>Батуми<br />2 ночи / Завтраки включены</small></div>
+                  <button class="tt-outline-btn" type="button">Изменить</button>
+                </article>
+                <i class="tt-hotel-arrow">→</i>
+                <article class="tt-hotel-card">
+                  <div class="tt-hotel-image is-rize" role="img" aria-label="Rhisos Gold Hotel Rize"></div>
+                  <div><strong>Rhisos Gold Hotel Rize</strong><span class="tt-stars">★★★★</span><small>Ризе<br />2 ночи / Завтраки включены</small></div>
+                  <button class="tt-outline-btn" type="button">Изменить</button>
+                </article>
+              </div>
+              <button class="tt-add-line" type="button">＋ Добавить отель в Трабзоне</button>
+            </section>
+
+            <section class="tt-build-card">
+              <header><h2><i>♙</i>Туристы</h2></header>
+              <div class="tt-traveller-list">
+                <article><b>1</b><div><strong>Иванов Иван</strong><small>19.05.1987 / Паспорт: AB1234567</small></div><span>Взрослый</span><div class="tt-qty"><button>−</button><strong>1</strong><button>＋</button></div><span>Дети (2–11)</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div><span>Младенцы</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div></article>
+                <article><b>2</b><div><strong>Иванова Анна</strong><small>23.11.1990 / Паспорт: AB7654321</small></div><span>Взрослый</span><div class="tt-qty"><button>−</button><strong>1</strong><button>＋</button></div><span>Дети (2–11)</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div><span>Младенцы</span><div class="tt-qty"><button>−</button><strong>0</strong><button>＋</button></div></article>
+              </div>
+              <button class="tt-add-line" type="button">＋ Добавить туриста</button>
+            </section>
+          </div>
+
+          <aside class="tt-build-aside">
+            <section class="tt-book-summary">
+              <h2>Сводка бронирования</h2>
+              <div><span>Рейсы (2 билета)</span><strong>$698</strong></div>
+              <div><span>Отели (4 ночи)</span><strong>$980</strong></div>
+              <div><span>Сборы и сервисы</span><strong>$156</strong></div>
+              <div><span>Комиссия агентства (10%)</span><strong class="is-accent">− $176</strong></div>
+              <footer><span>Итого<small>Все суммы в USD</small></span><strong>$1 954</strong></footer>
+            </section>
+            <section class="tt-pay-plan">
+              <h2>График платежей</h2>
+              <div><i></i><span><strong>30% предоплата</strong><small>до 24 июля 2026</small></span><b>$586</b></div>
+              <div><i></i><span><strong>70% остаток</strong><small>до 24 июня 2026</small></span><b>$1 368</b></div>
+            </section>
+            <section class="tt-commission-box"><span><strong>Комиссия агентства</strong><small>10% от суммы тура</small></span><b>$176</b></section>
+            <button class="tt-builder-book" id="builder-book" type="button">Забронировать</button>
+            <p class="tt-secure-note">♙ Безопасное бронирование и защита данных</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="panel-departures" hidden>
         <div class="tt-section-intro">
           <div>
             <span class="tt-eyebrow">Карадениз · сезон 2026</span>
