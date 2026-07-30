@@ -8,8 +8,20 @@
 </head>
 <body>
 
+<!-- ------------------------------------------- публичный каталог (без входа) -->
+<div id="screen-public" hidden>
+  <header class="tt-header">
+    <div class="tt-logo">Turon <span>Tour</span></div>
+    <div class="tt-header-right">
+      <span class="tt-muted-note tt-hide-sm">Каталог для партнёров</span>
+      <button class="tt-btn tt-btn-sm" id="public-login-btn">Войти</button>
+    </div>
+  </header>
+  <main class="tt-container" id="public-catalog"></main>
+</div>
+
 <!-- ------------------------------------------------------------- вход -->
-<section id="screen-login" class="tt-login-screen">
+<section id="screen-login" class="tt-login-screen" hidden>
   <form class="tt-login-card" id="login-form">
     <div class="tt-logo">Turon <span>Tour</span></div>
     <p class="tt-muted-note">Кабинет агентства</p>
@@ -23,6 +35,7 @@
     </div>
     <button type="submit" class="tt-btn" id="login-btn">Войти</button>
     <div id="login-error"></div>
+    <button type="button" class="tt-link-btn" id="login-back">← В каталог</button>
     <div id="demo-hint" class="tt-muted-note" hidden></div>
   </form>
 </section>
@@ -40,6 +53,7 @@
   <main class="tt-container">
     <div class="tt-tabs">
       <button class="tt-tab tt-tab-ag is-active" data-tab="departures">Заезды</button>
+      <button class="tt-tab tt-tab-ag" data-tab="catalog">Каталог</button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings">Мои брони</button>
       <button class="tt-tab tt-tab-ag" data-tab="tours">Туры и комиссии</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" hidden>Списки пассажиров</button>
@@ -63,6 +77,10 @@
         </label>
       </div>
       <div id="departures-list"></div>
+    </section>
+
+    <section id="panel-catalog" hidden>
+      <div id="cabinet-catalog"></div>
     </section>
 
     <section id="panel-bookings" hidden>
@@ -164,6 +182,7 @@
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
 <script src="js/api.js"></script>
+<script src="js/catalog.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/app.js"></script>
 </body>

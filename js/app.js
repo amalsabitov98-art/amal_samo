@@ -4,6 +4,12 @@
   var $ = function (id) { return document.getElementById(id); };
   var state = { departures: [], current: null, passengers: [], editing: null };
 
+  // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
+  // Экземпляры независимы, создаются по одному разу.
+  var publicCatalog = null, cabinetCatalog = null;
+  // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
+  var pendingBooking = null;
+
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Автобус" };
 
   function money(v) {
@@ -24,12 +30,34 @@
   }
 
   // ------------------------------------------------------------------ вход
+  // Гостя встречает каталог, а не форма входа: тур можно показать клиенту
+  // по ссылке, логин нужен только чтобы забронировать.
+  function showPublic() {
+    $("screen-public").hidden = false;
+    $("screen-login").hidden = true;
+    $("screen-app").hidden = true;
+    if (!publicCatalog) {
+      publicCatalog = TuronCatalog.create({
+        root: $("public-catalog"),
+        canBook: false,
+        useHash: true,
+        onLogin: function (code) {
+          pendingBooking = code;
+          showLogin();
+        },
+      });
+    }
+    publicCatalog.render();
+  }
+
   function showLogin() {
+    $("screen-public").hidden = true;
     $("screen-login").hidden = false;
     $("screen-app").hidden = true;
   }
 
   function showApp(agency) {
+    $("screen-public").hidden = true;
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
     $("agency-name").textContent = agency.name;
@@ -44,10 +72,39 @@
       switchTab("manifest");
       return;
     }
+
+    if (!cabinetCatalog) {
+      cabinetCatalog = TuronCatalog.create({
+        root: $("cabinet-catalog"),
+        canBook: true,
+        onBook: bookFromCatalog,
+      });
+    }
+
     switchTab("departures");
-    loadDepartures();
+    var ready = loadDepartures();
     loadBookings();
     loadTours();
+
+    // Гость выбрал заезд, потом вошёл — доводим его до брони, а не
+    // оставляем разбираться заново.
+    if (pendingBooking) {
+      var code = pendingBooking;
+      pendingBooking = null;
+      ready.then(function () { bookFromCatalog(code); });
+    }
+  }
+
+  // Бронь из каталога: карточка тура отдаёт код заезда, а окно брони
+  // работает с доской заездов. Если списки разошлись — говорим об этом,
+  // а не открываем пустое окно.
+  function bookFromCatalog(code) {
+    var known = state.departures.some(function (d) { return d.code === code; });
+    if (!known) {
+      flash("Заезд " + code + " недоступен для брони — обновите страницу.");
+      return;
+    }
+    openBooking(code);
   }
 
   $("login-form").addEventListener("submit", function (e) {
@@ -66,8 +123,16 @@
   $("logout-btn").addEventListener("click", function () {
     TuronApi.logout().then(function () {
       $("l-password").value = "";
-      showLogin();
+      showPublic();
     });
+  });
+
+  $("public-login-btn").addEventListener("click", function () { showLogin(); });
+
+  $("login-back").addEventListener("click", function () {
+    pendingBooking = null;
+    $("login-error").innerHTML = "";
+    showPublic();
   });
 
   // --------------------------------------------------------------- заезды
@@ -486,7 +551,7 @@
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["departures", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
+    ["departures", "catalog", "bookings", "tours", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;
@@ -495,7 +560,10 @@
 
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
     var tab = e.target.closest(".tt-tab");
-    if (tab) switchTab(tab.dataset.tab);
+    if (!tab) return;
+    switchTab(tab.dataset.tab);
+    // остатки мест могли измениться после брони — перерисовываем каталог
+    if (tab.dataset.tab === "catalog" && cabinetCatalog) cabinetCatalog.render();
   });
 
   function flash(text) {
@@ -517,8 +585,8 @@
   }
 
   if (TuronApi.isLoggedIn()) {
-    TuronApi.me().then(function (res) { showApp(res.agency); }).catch(showLogin);
+    TuronApi.me().then(function (res) { showApp(res.agency); }).catch(showPublic);
   } else {
-    showLogin();
+    showPublic();
   }
 })();

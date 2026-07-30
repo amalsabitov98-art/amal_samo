@@ -101,6 +101,79 @@
     return null;
   }
 
+  // ------------------------------------------------ демо: каталог
+  function futureDepartures() {
+    var today = new Date().toISOString().slice(0, 10);
+    return demoState().departures
+      .filter(function (d) { return d.date_start >= today; })
+      .map(function (d) {
+        return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
+      });
+  }
+
+  function demoCatalogTours() {
+    var deps = futureDepartures();
+    return (global.TURON_TOURS || []).map(function (t) {
+      var mine = t.is_bookable
+        ? deps.filter(function (d) { return d.tour_code === t.code; })
+        : [];
+      var prices = [];
+      mine.forEach(function (d) {
+        (d.prices || []).forEach(function (p) {
+          if (p.kind === "placement") prices.push(p.price);
+        });
+      });
+      return {
+        code: t.code, name: t.name, destination: t.destination, note: t.note,
+        description: t.description, nights: t.nights, is_bookable: t.is_bookable,
+        departures_count: mine.length,
+        min_price: prices.length ? Math.min.apply(null, prices) : null,
+        next_date: mine.length
+          ? mine.map(function (d) { return d.date_start; }).sort()[0]
+          : null,
+      };
+    });
+  }
+
+  function demoDestinations() {
+    var meta = {};
+    (global.TURON_DESTINATIONS || []).forEach(function (d) { meta[d.name] = d; });
+    var grouped = {}, order = [];
+    demoCatalogTours().forEach(function (t) {
+      var g = grouped[t.destination];
+      if (!g) {
+        var m = meta[t.destination] || {};
+        g = grouped[t.destination] = {
+          name: t.destination, title: m.title || t.destination,
+          blurb: m.blurb || null, image: m.image || null,
+          sort: m.sort == null ? 999 : m.sort,
+          tours_count: 0, departures_count: 0, min_price: null, next_date: null,
+        };
+        order.push(g);
+      }
+      g.tours_count++;
+      g.departures_count += t.departures_count;
+      if (t.min_price != null && (g.min_price == null || t.min_price < g.min_price)) {
+        g.min_price = t.min_price;
+      }
+      if (t.next_date && (!g.next_date || t.next_date < g.next_date)) {
+        g.next_date = t.next_date;
+      }
+    });
+    return order.sort(function (a, b) {
+      return a.sort - b.sort || a.title.localeCompare(b.title);
+    });
+  }
+
+  function demoCatalogTour(code) {
+    var t = (global.TURON_TOURS || []).filter(function (x) { return x.code === code; })[0];
+    if (!t) return Promise.reject(new Error("Тур не найден"));
+    var deps = t.is_bookable
+      ? futureDepartures().filter(function (d) { return d.tour_code === code; })
+      : [];
+    return Promise.resolve(Object.assign({}, t, { departures: deps }));
+  }
+
   function demoLogin(login, password) {
     var agency = DEMO_AGENCIES.filter(function (a) {
       return a.login === String(login).trim().toLowerCase();
@@ -202,6 +275,29 @@
     tours: function () {
       if (!API_BASE) return Promise.resolve((global.TURON_TOURS || []).slice());
       return request("/api/tours");
+    },
+
+    // ------------------------------------------------- публичный каталог
+    // Работают и без входа: карточку тура агент может показать клиенту.
+    catalogDestinations: function () {
+      if (!API_BASE) return Promise.resolve(demoDestinations());
+      return request("/api/public/destinations");
+    },
+
+    catalogTours: function (destination) {
+      if (!API_BASE) {
+        var list = demoCatalogTours();
+        return Promise.resolve(destination
+          ? list.filter(function (t) { return t.destination === destination; })
+          : list);
+      }
+      return request("/api/public/tours" +
+        (destination ? "?destination=" + encodeURIComponent(destination) : ""));
+    },
+
+    catalogTour: function (code) {
+      if (!API_BASE) return demoCatalogTour(code);
+      return request("/api/public/tours/" + encodeURIComponent(code));
     },
 
     departures: function (opts) {

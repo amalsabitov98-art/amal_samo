@@ -214,6 +214,137 @@ async function listDepartures(env, includePast) {
   return departures.results.map((d) => ({ ...d, prices: byDeparture[d.id] || [] }));
 }
 
+/*
+ * ------------------------------------------------------------- каталог
+ * Публичная часть: гость видит направления, туры и цены без входа —
+ * агент показывает тур клиенту по ссылке, не заводя ему учётку.
+ * Бронировать без входа нельзя, и комиссий здесь нет ни агентской, ни
+ * операторской: это внутренние B2B-цифры.
+ */
+async function catalogTours(env) {
+  const tours = await env.DB.prepare(
+    `SELECT t.code, t.name, t.destination, t.note, t.description, t.nights,
+            t.is_bookable,
+            COUNT(DISTINCT d.id) AS departures_count,
+            MIN(CASE WHEN p.kind = 'placement' THEN p.price END) AS min_price,
+            MIN(d.date_start) AS next_date
+       FROM tours t
+       LEFT JOIN departures d ON d.tour_id = t.id AND d.is_open = 1
+                             AND d.date_start >= date('now')
+       LEFT JOIN departure_prices p ON p.departure_id = d.id
+      GROUP BY t.id
+      ORDER BY t.destination, t.name`
+  ).all();
+  return tours.results;
+}
+
+// Направления собираем из туров, а оформление плитки подмешиваем из
+// destinations. Направления без строки в destinations не теряются —
+// показываются просто по названию.
+async function catalogDestinations(env) {
+  const tours = await catalogTours(env);
+  const meta = await env.DB.prepare(
+    "SELECT name, title, blurb, image, sort FROM destinations"
+  ).all();
+
+  const byName = {};
+  for (const m of meta.results) byName[m.name] = m;
+
+  const grouped = new Map();
+  for (const t of tours) {
+    let g = grouped.get(t.destination);
+    if (!g) {
+      const m = byName[t.destination] || {};
+      g = {
+        name: t.destination,
+        title: m.title || t.destination,
+        blurb: m.blurb || null,
+        image: m.image || null,
+        sort: m.sort == null ? 999 : m.sort,
+        tours_count: 0,
+        departures_count: 0,
+        min_price: null,
+        next_date: null,
+      };
+      grouped.set(t.destination, g);
+    }
+    g.tours_count++;
+    g.departures_count += t.departures_count;
+    if (t.min_price != null && (g.min_price == null || t.min_price < g.min_price)) {
+      g.min_price = t.min_price;
+    }
+    if (t.next_date && (!g.next_date || t.next_date < g.next_date)) {
+      g.next_date = t.next_date;
+    }
+  }
+  return [...grouped.values()]
+    .sort((a, b) => a.sort - b.sort || a.title.localeCompare(b.title));
+}
+
+async function catalogTour(env, code) {
+  const tour = await env.DB.prepare(
+    `SELECT code, name, destination, note, description, nights, is_bookable
+       FROM tours WHERE code = ?`
+  ).bind(code).first();
+  if (!tour) return null;
+
+  const content = await env.DB.prepare(
+    `SELECT c.kind, c.variant, c.sort, c.title, c.text, c.url
+       FROM tour_content c JOIN tours t ON t.id = c.tour_id
+      WHERE t.code = ? ORDER BY c.kind, c.sort`
+  ).bind(code).all();
+
+  const variants = await env.DB.prepare(
+    `SELECT v.code, v.title FROM tour_variants v JOIN tours t ON t.id = v.tour_id
+      WHERE t.code = ? ORDER BY v.sort`
+  ).bind(code).all();
+
+  // Закрытый тур заездов не отдаёт даже если они завелись: продавать его
+  // нельзя, и предлагать бронь в карточке тоже не нужно.
+  const departures = await env.DB.prepare(
+    `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
+            d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free
+       FROM departures d JOIN tours t ON t.id = d.tour_id
+      WHERE t.code = ? AND d.is_open = 1 AND t.is_bookable = 1
+        AND d.date_start >= date('now')
+      ORDER BY d.date_start, d.transport`
+  ).bind(code).all();
+
+  const prices = await env.DB.prepare(
+    `SELECT p.departure_id, p.code, p.label, p.kind, p.price,
+            p.age_from, p.age_to, p.occupies_seat
+       FROM departure_prices p
+       JOIN departures d ON d.id = p.departure_id
+       JOIN tours t ON t.id = d.tour_id
+      WHERE t.code = ? AND d.is_open = 1 AND t.is_bookable = 1
+        AND d.date_start >= date('now')`
+  ).bind(code).all();
+
+  const byDeparture = {};
+  for (const p of prices.results) {
+    (byDeparture[p.departure_id] = byDeparture[p.departure_id] || []).push(p);
+  }
+
+  const pick = (kind) => content.results.filter((c) => c.kind === kind);
+  return {
+    ...tour,
+    included: pick("included").map((c) => c.text),
+    excluded: pick("excluded").map((c) => c.text),
+    info: pick("info").map((c) => ({ text: c.text, url: c.url })),
+    gallery: pick("gallery").map((c) => ({ text: c.text, url: c.url })),
+    variants: variants.results.map((v) => ({
+      code: v.code,
+      title: v.title,
+      days: content.results
+        .filter((c) => c.kind === "day" && c.variant === v.code)
+        .map((c) => ({ title: c.title, text: c.text })),
+    })),
+    departures: departures.results.map((d) => ({
+      ...d, prices: byDeparture[d.id] || [],
+    })),
+  };
+}
+
 // Возраст на дату выезда — именно так тариф и определяется у оператора.
 function ageOn(birthDate, onDate) {
   const b = new Date(birthDate), o = new Date(onDate);
@@ -759,6 +890,26 @@ async function route(request, env) {
   try {
     if (path === "/api/login" && request.method === "POST") {
         return await handleLogin(request, env);
+    }
+
+    // ------------------------------------------------- публичный каталог
+    // Доступен без входа: гость смотрит направления, туры, программу и
+    // цены. Бронь остаётся за логином — она ниже, после authenticate().
+    if (path === "/api/public/destinations" && request.method === "GET") {
+      return json(await catalogDestinations(env));
+    }
+
+    if (path === "/api/public/tours" && request.method === "GET") {
+      const dest = url.searchParams.get("destination");
+      const list = await catalogTours(env);
+      return json(dest ? list.filter((t) => t.destination === dest) : list);
+    }
+
+    const pubTour = path.match(/^\/api\/public\/tours\/([A-Za-z0-9_-]+)$/);
+    if (pubTour && request.method === "GET") {
+      const tour = await catalogTour(env, pubTour[1]);
+      if (!tour) return fail("Тур не найден", 404);
+      return json(tour);
     }
 
     // всё ниже — только для вошедшего агентства

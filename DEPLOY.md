@@ -74,6 +74,21 @@ wrangler d1 execute turon-tour --remote --file=../db/schema.sql
 wrangler d1 execute turon-tour --remote --file=../db/seed.sql
 ```
 
+### Если база уже была создана раньше
+
+`schema.sql` создаёт таблицы через `CREATE TABLE IF NOT EXISTS`, поэтому в
+существующей базе новые колонки сами не появятся, и наполнение упадёт с
+`table tours has no column named description`. Сначала накатите миграции из
+`db/migrations/` — **по одному разу каждую**, в порядке номеров:
+
+```bash
+wrangler d1 execute turon-tour --remote --file=../db/migrations/001-catalog-content.sql
+```
+
+`ALTER TABLE ADD COLUMN` в SQLite не умеет `IF NOT EXISTS`: при повторном
+запуске команда упадёт с `duplicate column name`. Это ожидаемо и ничего не
+портит — значит миграция уже применена.
+
 ---
 
 ## 4. Развернуть API

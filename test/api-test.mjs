@@ -232,6 +232,62 @@ check('предупреждений ровно 2', (r.data.passport_warnings||[]
 check('истёкший паспорт назван', (r.data.passport_warnings||[]).some(w=>w.includes('ALREADY EXPIRED')));
 check('чистый паспорт не помечен', !(r.data.passport_warnings||[]).some(w=>w.includes('ALL GOOD')));
 
+console.log('\n--- публичный каталог (без входа) ---');
+const today = new Date().toISOString().slice(0, 10);
+r = await call('/api/public/destinations');
+check('направления отдаются без токена', r.status === 200 && Array.isArray(r.data),
+      JSON.stringify(r.data).slice(0, 120));
+const turkey = r.data.find(d => d.name === 'Турция');
+const japan = r.data.find(d => d.name === 'Япония');
+check('Турция есть и в ней заезды', !!turkey && turkey.departures_count > 0,
+      JSON.stringify(turkey));
+check('у Турции название плитки из destinations', turkey && turkey.title === 'Турция и Грузия',
+      turkey && turkey.title);
+check('у Турции есть цена «от»', turkey && turkey.min_price > 0, turkey && turkey.min_price);
+check('Япония есть, но без заездов', !!japan && japan.departures_count === 0,
+      JSON.stringify(japan));
+check('в направлениях нет комиссий',
+      !JSON.stringify(r.data).includes('commission'), JSON.stringify(r.data).slice(0, 200));
+
+r = await call('/api/public/tours');
+check('туры отдаются без токена', r.status === 200 && r.data.length === 5, 'получено ' + r.data.length);
+check('в списке туров нет комиссий',
+      !JSON.stringify(r.data).includes('commission'));
+r = await call('/api/public/tours?destination=Япония');
+check('фильтр по направлению работает',
+      r.data.length === 4 && r.data.every(t => t.destination === 'Япония'),
+      'получено ' + r.data.length);
+
+r = await call('/api/public/tours/KARADENIZ');
+check('карточка тура отдаётся без токена', r.status === 200 && r.data.code === 'KARADENIZ');
+const kd = r.data;
+check('есть описание и длительность', !!kd.description && kd.nights === 7, kd.nights);
+check('есть блок «включено»', kd.included.length > 0, kd.included.length);
+check('есть блок «не включено»', kd.excluded.length > 0, kd.excluded.length);
+check('есть «важно знать»', kd.info.length > 0, kd.info.length);
+check('два варианта маршрута', kd.variants.length === 2,
+      kd.variants.map(v => v.code).join(','));
+check('у каждого варианта своя программа по дням',
+      kd.variants.every(v => v.days.length === 7),
+      kd.variants.map(v => v.code + ':' + v.days.length).join(' '));
+check('программы вариантов различаются',
+      kd.variants[0].days[0].text !== kd.variants[1].days[0].text);
+check('в карточке только предстоящие заезды',
+      kd.departures.length > 0 && kd.departures.every(d => d.date_start >= today),
+      kd.departures.filter(d => d.date_start < today).map(d => d.code).join(','));
+check('у заездов карточки есть прайс', kd.departures.every(d => d.prices.length > 0));
+check('в карточке тура нет комиссий',
+      !JSON.stringify(kd).includes('commission'));
+
+r = await call('/api/public/tours/JP_TOKYO');
+check('закрытый тур отдаётся, но без заездов',
+      r.status === 200 && r.data.is_bookable === 0 && r.data.departures.length === 0,
+      JSON.stringify({ b: r.data.is_bookable, d: r.data.departures.length }));
+r = await call('/api/public/tours/NOSUCHTOUR');
+check('несуществующий тур → 404', r.status === 404, JSON.stringify(r.data));
+r = await call('/api/bookings');
+check('бронь без входа по-прежнему закрыта', r.status === 401, JSON.stringify(r.data));
+
 console.log('\n--- защита от перебора пароля ---');
 // ofotour в тестах выше нигде не логинился успешно, поэтому его счётчик чист
 let blocked = null;

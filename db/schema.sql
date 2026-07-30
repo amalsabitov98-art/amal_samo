@@ -59,8 +59,52 @@ CREATE TABLE IF NOT EXISTS tours (
   operator_commission  REAL    NOT NULL DEFAULT 0,
   -- продукт заведён, но заезды и цены ещё не проставлены
   is_bookable          INTEGER NOT NULL DEFAULT 1,
-  note                 TEXT
+  note                 TEXT,
+  -- контент карточки тура в каталоге (виден гостю без входа)
+  description          TEXT,
+  nights               INTEGER
 );
+
+-- ------------------------------------------------------------- каталог
+-- Оформление плитки направления в публичном каталоге. Ключ — название,
+-- то же, что в tours.destination: намеренно денормализовано, чтобы не
+-- переводить tours.destination в FK и не переписывать все запросы,
+-- которые уже читают его как текст. Строки здесь не обязательны —
+-- без них направление показывается просто по названию.
+CREATE TABLE IF NOT EXISTS destinations (
+  name   TEXT PRIMARY KEY,
+  title  TEXT NOT NULL,
+  blurb  TEXT,
+  image  TEXT,
+  sort   INTEGER NOT NULL DEFAULT 0
+);
+
+-- Варианты маршрута одного тура. У Карадениза их два, зеркальных
+-- (прилёт в Батуми / прилёт в Трабзон) — это физически разные маршруты,
+-- поэтому дни программы нельзя показывать одним списком.
+CREATE TABLE IF NOT EXISTS tour_variants (
+  tour_id  INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+  code     TEXT    NOT NULL,
+  title    TEXT    NOT NULL,
+  sort     INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (tour_id, code)
+);
+
+-- Контент карточки тура: что включено, что нет, дни программы, ссылки,
+-- фото. Одна таблица на все блоки — они отличаются только kind.
+CREATE TABLE IF NOT EXISTS tour_content (
+  id       INTEGER PRIMARY KEY AUTOINCREMENT,
+  tour_id  INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+  kind     TEXT    NOT NULL
+             CHECK (kind IN ('included','excluded','info','gallery','day')),
+  -- код варианта маршрута для kind='day'; NULL — блок общий для всех
+  variant  TEXT,
+  sort     INTEGER NOT NULL DEFAULT 0,
+  title    TEXT,            -- для 'day': «День 1 · Батуми»
+  text     TEXT    NOT NULL,
+  url      TEXT             -- для 'info' и 'gallery'
+);
+CREATE INDEX IF NOT EXISTS idx_tour_content ON tour_content(tour_id, kind, sort);
 
 -- ------------------------------------------------------------------ заезды
 CREATE TABLE IF NOT EXISTS departures (
