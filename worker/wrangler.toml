@@ -7,7 +7,7 @@ compatibility_date = "2024-11-01"
 # небезопасно: сторонняя страница сможет обращаться к API от имени
 # залогиненного пользователя. После деплоя указать реальный адрес,
 # например "https://amalsabitov98-art.github.io".
-ALLOWED_ORIGIN = ""
+ALLOWED_ORIGIN = "https://amalsabitov98-art.github.io"
 
 # База агентского кабинета. Создать один раз:
 #   wrangler d1 create turon-tour
