@@ -9480,6 +9480,17 @@ window.TURON_DESTINATIONS = [
     return TuronApi.departures().then(function (list) {
       state.departures = list.filter(function (d) {
         return TuronProvisional.isScheduledDate(d.date_start);
+      }).map(function (d) {
+        // Подстраховка: если в базе у тура не проставлена длительность
+        // (старый seed без nights), берём её из отелей (4 + 3 = 7),
+        // чтобы заезд не показывал «длительность уточняется».
+        if (!d.nights) {
+          var hn = TuronProvisional.hotelsFor(d).reduce(function (s, h) {
+            return s + (h.nights || 0);
+          }, 0);
+          if (hn) d.nights = hn;
+        }
+        return d;
       });
       renderDepartures();
       renderBuilder();

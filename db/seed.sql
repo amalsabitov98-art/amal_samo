@@ -9,7 +9,7 @@ INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('
 INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '37d0fae5a243d582a3b98c314b157d659a6a241fec382713477fbe718af35881', 'd887e4bf3680e8a88c015f1d7a5d8822', 'OFO TOUR', 'agency');
 INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '080229d9b1826d7964f0c9565221ed8c9a2b8f9e997b3ed3667902a871d2cbf4', 'a4cbcf9d2f1cd0ed9495b228757a05da', 'Turon Tour (оператор)', 'operator');
 
-INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения');
+INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, nights) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения', 7);
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('JP_CONSTRUCTOR', 'Тур-конструктор «Легенды и огни Токио»', 'Япония', 100, 30, 0, 'Ожидаются даты заездов и цены');
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('JP_TOKYO', 'Легенды и огни Токио', 'Япония', 150, 40, 0, 'Ожидаются даты заездов и цены');
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note) VALUES ('JP_GOLDEN_RING', 'Золотое кольцо Японии', 'Япония', 250, 50, 0, 'Ожидаются даты заездов и цены');
