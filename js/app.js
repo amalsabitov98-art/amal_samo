@@ -508,7 +508,12 @@
     $("builder-media").style.backgroundImage = "url(" + photo + ")";
 
     // --------------------------------------------- кнопки и контент
-    $("builder-program").textContent = "Программа тура · " + (nights || 7) + " ночей";
+    var prog = TuronProvisional.programFor(d);
+    var progBtn = $("builder-program");
+    progBtn.textContent = prog
+      ? "⤓ Скачать программу · " + prog.title
+      : "Программа тура · " + (nights || 7) + " ночей";
+    progBtn.dataset.url = prog ? prog.url : "";
     $("builder-book").disabled = t.people === 0 || over;
     fillBuilderContent(d.tour_code || "KARADENIZ");
   }
@@ -520,10 +525,12 @@
     renderBuilder();
   });
 
-  // Кнопка «Программа тура» открывает карточку тура в каталоге, где
-  // расписана программа по дням.
+  // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
+  // иначе открываем карточку тура в каталоге с программой по дням.
   $("builder-program").addEventListener("click", function () {
-    switchTab("catalog");
+    var url = $("builder-program").dataset.url;
+    if (url) window.open(url, "_blank", "noopener");
+    else switchTab("catalog");
   });
 
   $("panel-builder").addEventListener("click", function (e) {

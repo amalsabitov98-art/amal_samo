@@ -7765,6 +7765,21 @@ window.TURON_DESTINATIONS = [
     address: "Ташкент, Шайхантахурский район, проспект Бунёдкор 6/1",
   };
 
+  /*
+   * 4. PDF-ПРОГРАММЫ ТУРА
+   * ---------------------
+   * Две программы по направлениям (маршруты зеркальные). Файлы лежат на
+   * Google Диске оператора — их размер (55 и 39 МБ) слишком велик, чтобы
+   * держать в самом сайте. Кнопка «Программа тура» скачивает нужную.
+   * ВАЖНО: файлы должны быть открыты «для всех, у кого есть ссылка».
+   */
+  var PROGRAMS = {
+    BUS: { title: "Батуми + Ризе",
+           url: "https://drive.google.com/uc?export=download&id=17BS2w_RPpvmGLOvjyfWn2qCllEpaJWOY" },
+    TZX: { title: "Ризе + Батуми",
+           url: "https://drive.google.com/uc?export=download&id=1MQwAqPMDjkgzSLDA7nvEOnV-IC3DEOU3" },
+  };
+
   function shiftDate(iso, days) {
     if (!iso) return null;
     var d = new Date(iso + "T00:00:00Z");
@@ -7778,12 +7793,18 @@ window.TURON_DESTINATIONS = [
     ROUTES: ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
+    PROGRAMS: PROGRAMS,
 
     // «прилёт Батуми · вылет Трабзон» — чтобы зеркальность была видна
     // в интерфейсе, а не только в коде.
     routeLabel: function (transport) {
       var r = ROUTES[transport];
       return r ? r.label : null;
+    },
+
+    // PDF-программа под направление заезда (Батуми+Ризе / Ризе+Батуми).
+    programFor: function (departure) {
+      return PROGRAMS[departure.transport] || null;
     },
 
     isScheduledDate: isScheduledDate,
@@ -9956,7 +9977,12 @@ window.TURON_DESTINATIONS = [
     $("builder-media").style.backgroundImage = "url(" + photo + ")";
 
     // --------------------------------------------- кнопки и контент
-    $("builder-program").textContent = "Программа тура · " + (nights || 7) + " ночей";
+    var prog = TuronProvisional.programFor(d);
+    var progBtn = $("builder-program");
+    progBtn.textContent = prog
+      ? "⤓ Скачать программу · " + prog.title
+      : "Программа тура · " + (nights || 7) + " ночей";
+    progBtn.dataset.url = prog ? prog.url : "";
     $("builder-book").disabled = t.people === 0 || over;
     fillBuilderContent(d.tour_code || "KARADENIZ");
   }
@@ -9968,10 +9994,12 @@ window.TURON_DESTINATIONS = [
     renderBuilder();
   });
 
-  // Кнопка «Программа тура» открывает карточку тура в каталоге, где
-  // расписана программа по дням.
+  // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
+  // иначе открываем карточку тура в каталоге с программой по дням.
   $("builder-program").addEventListener("click", function () {
-    switchTab("catalog");
+    var url = $("builder-program").dataset.url;
+    if (url) window.open(url, "_blank", "noopener");
+    else switchTab("catalog");
   });
 
   $("panel-builder").addEventListener("click", function (e) {

@@ -140,6 +140,21 @@
     address: "Ташкент, Шайхантахурский район, проспект Бунёдкор 6/1",
   };
 
+  /*
+   * 4. PDF-ПРОГРАММЫ ТУРА
+   * ---------------------
+   * Две программы по направлениям (маршруты зеркальные). Файлы лежат на
+   * Google Диске оператора — их размер (55 и 39 МБ) слишком велик, чтобы
+   * держать в самом сайте. Кнопка «Программа тура» скачивает нужную.
+   * ВАЖНО: файлы должны быть открыты «для всех, у кого есть ссылка».
+   */
+  var PROGRAMS = {
+    BUS: { title: "Батуми + Ризе",
+           url: "https://drive.google.com/uc?export=download&id=17BS2w_RPpvmGLOvjyfWn2qCllEpaJWOY" },
+    TZX: { title: "Ризе + Батуми",
+           url: "https://drive.google.com/uc?export=download&id=1MQwAqPMDjkgzSLDA7nvEOnV-IC3DEOU3" },
+  };
+
   function shiftDate(iso, days) {
     if (!iso) return null;
     var d = new Date(iso + "T00:00:00Z");
@@ -153,12 +168,18 @@
     ROUTES: ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
+    PROGRAMS: PROGRAMS,
 
     // «прилёт Батуми · вылет Трабзон» — чтобы зеркальность была видна
     // в интерфейсе, а не только в коде.
     routeLabel: function (transport) {
       var r = ROUTES[transport];
       return r ? r.label : null;
+    },
+
+    // PDF-программа под направление заезда (Батуми+Ризе / Ризе+Батуми).
+    programFor: function (departure) {
+      return PROGRAMS[departure.transport] || null;
     },
 
     isScheduledDate: isScheduledDate,
