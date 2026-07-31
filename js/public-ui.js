@@ -263,12 +263,18 @@
 
   function paintRates(rates) {
     if (!rates || !rates.USD || !rates.EUR) return false;
-    var usd = document.getElementById("rate-usd");
-    var eur = document.getElementById("rate-eur");
-    var date = document.getElementById("rate-date");
-    if (usd) usd.textContent = formatRate(rates.USD);
-    if (eur) eur.textContent = formatRate(rates.EUR);
-    if (date) date.textContent = t("rate.source") + (rates.date ? " · " + rates.date : "");
+    // Курсы рисуем во ВСЕ табло сразу (публичная шапка + шапка кабинета),
+    // поэтому ищем по data-атрибуту, а не по одному id.
+    var dateText = t("rate.source") + (rates.date ? " · " + rates.date : "");
+    document.querySelectorAll('[data-rate="usd"]').forEach(function (n) {
+      n.textContent = formatRate(rates.USD);
+    });
+    document.querySelectorAll('[data-rate="eur"]').forEach(function (n) {
+      n.textContent = formatRate(rates.EUR);
+    });
+    document.querySelectorAll('[data-rate="date"]').forEach(function (n) {
+      n.textContent = dateText;
+    });
     return true;
   }
 

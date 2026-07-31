@@ -1621,10 +1621,59 @@ select { font-family: inherit; }
 
 .tt-workspace { min-width: 0; }
 .tt-app-header {
-  min-height: 86px;
-  padding: 17px clamp(22px, 3vw, 42px);
-  background: rgba(244, 241, 233, 0.86);
+  min-height: 72px;
+  padding: 12px clamp(18px, 3vw, 36px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(244, 241, 233, 0.92);
   backdrop-filter: blur(18px);
+}
+/* Постоянная верхняя панель кабинета: слева бренд, справа инструменты. */
+.tt-app-brand { display: flex; align-items: center; gap: 12px; }
+.tt-app-brandtext strong {
+  display: block;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.3rem; font-weight: 700; color: var(--tt-forest); line-height: 1;
+}
+.tt-app-brandtext small {
+  display: block; font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--tt-text-muted); margin-top: 2px;
+}
+.tt-app-tools { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.tt-app-tg {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 12px;
+  border: 1px solid rgba(13, 48, 42, 0.1); background: #fffdf8; color: #229ed9;
+}
+.tt-app-tg svg { width: 20px; height: 20px; fill: currentColor; }
+.tt-top-account {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 6px 5px 8px; border-radius: 13px;
+  border: 1px solid rgba(13, 48, 42, 0.1); background: #fffdf8;
+}
+.tt-top-account-name small,
+.tt-top-account-name strong { display: block; }
+.tt-top-account-name small { color: var(--tt-text-muted); font-size: 0.56rem;
+  letter-spacing: 0.06em; text-transform: uppercase; }
+.tt-top-account-name strong { font-size: 0.78rem; color: var(--tt-forest); }
+.tt-logout-top {
+  padding: 7px 12px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--tt-border-strong); background: var(--tt-surface-2);
+  color: var(--tt-forest); font-size: 0.72rem; font-weight: 700;
+}
+.tt-logout-top:hover { background: var(--tt-accent); color: #fff; border-color: var(--tt-accent); }
+
+/* Полоса с названием текущего раздела — под постоянной панелью. */
+.tt-workspace-subhead {
+  padding: 14px clamp(18px, 3vw, 36px) 0;
+}
+.tt-workspace-subhead .tt-eyebrow { display: block; }
+.tt-workspace-subhead h1 {
+  margin: 2px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 600;
+  letter-spacing: -0.03em; color: var(--tt-forest);
 }
 .tt-app-header h1 {
   margin: 1px 0 0;
@@ -3062,19 +3111,16 @@ select { font-family: inherit; }
   background: #ee5837;
 }
 .tt-top-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.24);
   border-radius: 50%;
+  background: var(--tt-forest);
+  color: #fff;
   font-size: .62rem;
+  font-weight: 700;
 }
-.tt-top-account small,
-.tt-top-account strong { display: block; }
-.tt-top-account small { color: rgba(255,255,255,.58); font-size: .56rem; }
-.tt-top-account strong { font-size: .7rem; font-weight: 600; }
-.tt-top-chevron { margin-left: 2px; color: rgba(255,255,255,.72); }
 
 .tt-app-shell.is-builder {
   background: #f7f4ed;
@@ -3095,15 +3141,10 @@ select { font-family: inherit; }
   background: rgba(255,255,255,.14);
 }
 .tt-app-shell.is-builder .tt-tab-static { cursor: default; }
-.tt-app-shell.is-builder .tt-app-header {
-  min-height: 72px;
-  padding: 10px 26px;
-  border-color: rgba(255,255,255,.08);
-  background: #052f28;
-  color: #fff;
-}
-.tt-app-shell.is-builder .tt-workspace-heading { visibility: hidden; }
-.tt-app-shell.is-builder .tt-app-header .tt-header-right { margin-left: auto; }
+/* Верхняя панель одинаковая на всех вкладках — не перекрашиваем её
+   на билдере (агентства просили постоянную шапку). У билдера свой
+   крупный заголовок, поэтому полосу-подзаголовок на нём прячем. */
+.tt-app-shell.is-builder .tt-workspace-subhead { display: none; }
 .tt-app-shell.is-builder .tt-app-container {
   width: 100%;
   max-width: none;
@@ -3582,9 +3623,9 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 860px) {
-  .tt-app-shell.is-builder .tt-app-header { top: 51px; }
-  .tt-app-shell.is-builder .tt-workspace-heading { display: none; }
-  .tt-menu-btn { display: grid; color: #fff; }
+  .tt-app-tools { gap: 8px; }
+  .tt-app-brandtext { display: none; }
+  .tt-menu-btn { display: grid; color: var(--tt-forest); }
   .tt-builder-hero { min-height: 270px; }
   .tt-builder-hero-copy { left: 24px; top: 46px; }
   .tt-builder-map { left: 25px; right: auto; }
@@ -3597,8 +3638,11 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 620px) {
-  .tt-top-account,
-  .tt-top-chevron { display: none; }
+  /* Узкий экран: прячем то, что не влезает, но выход и язык оставляем. */
+  .tt-app-tools .tt-currency-board,
+  .tt-app-tools .tt-app-tg,
+  .tt-top-account-name { display: none; }
+  .tt-top-account { border: 0; background: transparent; padding: 0; gap: 6px; }
   .tt-builder-hero h1 { font-size: 2.65rem; line-height: .95; }
   .tt-builder-meta { flex-wrap: wrap; }
   .tt-builder-steps { display: flex; overflow-x: auto; padding: 0 2px; }

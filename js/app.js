@@ -148,12 +148,26 @@
       .then(function () { btn.disabled = false; });
   });
 
-  $("logout-btn").addEventListener("click", function () {
+  function doLogout() {
     TuronApi.logout().then(function () {
       $("l-password").value = "";
       showPublic();
     });
-  });
+  }
+  $("logout-btn").addEventListener("click", doLogout);
+  $("logout-top").addEventListener("click", doLogout);
+
+  // Язык кабинета — тот же переключатель, что и в публичной шапке.
+  // Держим оба селекта синхронно и применяем через TuronPublicUI.
+  var appLang = $("app-language");
+  if (appLang && window.TuronPublicUi && TuronPublicUi.setLanguage) {
+    appLang.addEventListener("change", function () {
+      TuronPublicUi.setLanguage(appLang.value);
+    });
+    window.addEventListener("turon:language", function (e) {
+      if (e.detail && e.detail.language) appLang.value = e.detail.language;
+    });
+  }
 
   $("public-login-btn").addEventListener("click", function () { showLogin(); });
 

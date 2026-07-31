@@ -1626,10 +1626,59 @@ select { font-family: inherit; }
 
 .tt-workspace { min-width: 0; }
 .tt-app-header {
-  min-height: 86px;
-  padding: 17px clamp(22px, 3vw, 42px);
-  background: rgba(244, 241, 233, 0.86);
+  min-height: 72px;
+  padding: 12px clamp(18px, 3vw, 36px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(244, 241, 233, 0.92);
   backdrop-filter: blur(18px);
+}
+/* Постоянная верхняя панель кабинета: слева бренд, справа инструменты. */
+.tt-app-brand { display: flex; align-items: center; gap: 12px; }
+.tt-app-brandtext strong {
+  display: block;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.3rem; font-weight: 700; color: var(--tt-forest); line-height: 1;
+}
+.tt-app-brandtext small {
+  display: block; font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--tt-text-muted); margin-top: 2px;
+}
+.tt-app-tools { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.tt-app-tg {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 12px;
+  border: 1px solid rgba(13, 48, 42, 0.1); background: #fffdf8; color: #229ed9;
+}
+.tt-app-tg svg { width: 20px; height: 20px; fill: currentColor; }
+.tt-top-account {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 6px 5px 8px; border-radius: 13px;
+  border: 1px solid rgba(13, 48, 42, 0.1); background: #fffdf8;
+}
+.tt-top-account-name small,
+.tt-top-account-name strong { display: block; }
+.tt-top-account-name small { color: var(--tt-text-muted); font-size: 0.56rem;
+  letter-spacing: 0.06em; text-transform: uppercase; }
+.tt-top-account-name strong { font-size: 0.78rem; color: var(--tt-forest); }
+.tt-logout-top {
+  padding: 7px 12px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--tt-border-strong); background: var(--tt-surface-2);
+  color: var(--tt-forest); font-size: 0.72rem; font-weight: 700;
+}
+.tt-logout-top:hover { background: var(--tt-accent); color: #fff; border-color: var(--tt-accent); }
+
+/* Полоса с названием текущего раздела — под постоянной панелью. */
+.tt-workspace-subhead {
+  padding: 14px clamp(18px, 3vw, 36px) 0;
+}
+.tt-workspace-subhead .tt-eyebrow { display: block; }
+.tt-workspace-subhead h1 {
+  margin: 2px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 600;
+  letter-spacing: -0.03em; color: var(--tt-forest);
 }
 .tt-app-header h1 {
   margin: 1px 0 0;
@@ -3067,19 +3116,16 @@ select { font-family: inherit; }
   background: #ee5837;
 }
 .tt-top-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255,255,255,.24);
   border-radius: 50%;
+  background: var(--tt-forest);
+  color: #fff;
   font-size: .62rem;
+  font-weight: 700;
 }
-.tt-top-account small,
-.tt-top-account strong { display: block; }
-.tt-top-account small { color: rgba(255,255,255,.58); font-size: .56rem; }
-.tt-top-account strong { font-size: .7rem; font-weight: 600; }
-.tt-top-chevron { margin-left: 2px; color: rgba(255,255,255,.72); }
 
 .tt-app-shell.is-builder {
   background: #f7f4ed;
@@ -3100,15 +3146,10 @@ select { font-family: inherit; }
   background: rgba(255,255,255,.14);
 }
 .tt-app-shell.is-builder .tt-tab-static { cursor: default; }
-.tt-app-shell.is-builder .tt-app-header {
-  min-height: 72px;
-  padding: 10px 26px;
-  border-color: rgba(255,255,255,.08);
-  background: #052f28;
-  color: #fff;
-}
-.tt-app-shell.is-builder .tt-workspace-heading { visibility: hidden; }
-.tt-app-shell.is-builder .tt-app-header .tt-header-right { margin-left: auto; }
+/* Верхняя панель одинаковая на всех вкладках — не перекрашиваем её
+   на билдере (агентства просили постоянную шапку). У билдера свой
+   крупный заголовок, поэтому полосу-подзаголовок на нём прячем. */
+.tt-app-shell.is-builder .tt-workspace-subhead { display: none; }
 .tt-app-shell.is-builder .tt-app-container {
   width: 100%;
   max-width: none;
@@ -3587,9 +3628,9 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 860px) {
-  .tt-app-shell.is-builder .tt-app-header { top: 51px; }
-  .tt-app-shell.is-builder .tt-workspace-heading { display: none; }
-  .tt-menu-btn { display: grid; color: #fff; }
+  .tt-app-tools { gap: 8px; }
+  .tt-app-brandtext { display: none; }
+  .tt-menu-btn { display: grid; color: var(--tt-forest); }
   .tt-builder-hero { min-height: 270px; }
   .tt-builder-hero-copy { left: 24px; top: 46px; }
   .tt-builder-map { left: 25px; right: auto; }
@@ -3602,8 +3643,11 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 620px) {
-  .tt-top-account,
-  .tt-top-chevron { display: none; }
+  /* Узкий экран: прячем то, что не влезает, но выход и язык оставляем. */
+  .tt-app-tools .tt-currency-board,
+  .tt-app-tools .tt-app-tg,
+  .tt-top-account-name { display: none; }
+  .tt-top-account { border: 0; background: transparent; padding: 0; gap: 6px; }
   .tt-builder-hero h1 { font-size: 2.65rem; line-height: .95; }
   .tt-builder-meta { flex-wrap: wrap; }
   .tt-builder-steps { display: flex; overflow-x: auto; padding: 0 2px; }
@@ -4102,10 +4146,10 @@ select.tt-outline-btn {
     <div class="tt-public-tools">
       <div class="tt-currency-board" id="currency-board"
            title="Официальный курс Центрального банка Узбекистана">
-        <span><b>$</b> 1 = <strong id="rate-usd">12 006,39</strong></span>
+        <span><b>$</b> 1 = <strong id="rate-usd" data-rate="usd">12 006,39</strong></span>
         <i aria-hidden="true"></i>
-        <span><b>€</b> 1 = <strong id="rate-eur">13 765,33</strong></span>
-        <small id="rate-date">ЦБ РУз</small>
+        <span><b>€</b> 1 = <strong id="rate-eur" data-rate="eur">13 765,33</strong></span>
+        <small id="rate-date" data-rate="date">ЦБ РУз</small>
       </div>
       <label class="tt-language" for="public-language">
         <span class="tt-sr-only" data-i18n="header.language">Язык</span>
@@ -4229,20 +4273,44 @@ select.tt-outline-btn {
   <div class="tt-workspace">
     <header class="tt-header tt-app-header">
       <button class="tt-menu-btn" id="nav-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
-      <i class="tt-app-logo tt-logo-mark" aria-hidden="true"></i>
-      <div class="tt-workspace-heading">
-        <span class="tt-eyebrow" id="workspace-kicker">Конструктор путешествия</span>
-        <h1 id="workspace-title">Новый тур</h1>
+      <div class="tt-app-brand">
+        <i class="tt-app-logo tt-logo-mark" aria-hidden="true"></i>
+        <div class="tt-app-brandtext"><strong>Turon Tour</strong><small>кабинет партнёра</small></div>
       </div>
-      <div class="tt-header-right">
+      <div class="tt-app-tools">
+        <div class="tt-currency-board" title="Официальный курс Центрального банка Узбекистана">
+          <span><b>$</b> 1 = <strong data-rate="usd">—</strong></span>
+          <i aria-hidden="true"></i>
+          <span><b>€</b> 1 = <strong data-rate="eur">—</strong></span>
+          <small data-rate="date">ЦБ РУз</small>
+        </div>
+        <a class="tt-app-tg" href="https://t.me/+998998307711" target="_blank"
+           rel="noopener" aria-label="Telegram оператора" title="Написать в Telegram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 4.3 2.9 11.4c-.9.35-.9.9-.16 1.13l4.6 1.43 1.77 5.4c.22.6.4.6.9.6.35 0 .5-.16.7-.35l2.3-2.2 4.75 3.5c.87.48 1.5.23 1.7-.8l3.1-14.6c.3-1.26-.5-1.83-1.36-1.5Z"/></svg>
+        </a>
+        <label class="tt-language" for="app-language">
+          <span class="tt-sr-only">Язык</span>
+          <select id="app-language" aria-label="Язык кабинета">
+            <option value="ru">RU</option>
+            <option value="uz">UZ</option>
+            <option value="en">EN</option>
+            <option value="tr">TR</option>
+          </select>
+        </label>
         <button class="tt-notice-btn" type="button" aria-label="Уведомления">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg><i></i>
         </button>
-        <span class="tt-top-avatar" id="top-avatar"></span>
-        <div class="tt-top-account"><small>Агентство</small><strong id="top-agency-name"></strong></div>
-        <span class="tt-top-chevron">⌄</span>
+        <div class="tt-top-account">
+          <span class="tt-top-avatar" id="top-avatar"></span>
+          <div class="tt-top-account-name"><small>Агентство</small><strong id="top-agency-name"></strong></div>
+          <button class="tt-logout-top" id="logout-top" type="button" aria-label="Выйти" title="Выйти">Выход</button>
+        </div>
       </div>
     </header>
+    <div class="tt-workspace-subhead">
+      <span class="tt-eyebrow" id="workspace-kicker">Конструктор путешествия</span>
+      <h1 id="workspace-title">Новый тур</h1>
+    </div>
 
     <main class="tt-container tt-app-container">
       <section id="panel-builder">
@@ -8111,12 +8179,18 @@ window.TURON_DESTINATIONS = [
 
   function paintRates(rates) {
     if (!rates || !rates.USD || !rates.EUR) return false;
-    var usd = document.getElementById("rate-usd");
-    var eur = document.getElementById("rate-eur");
-    var date = document.getElementById("rate-date");
-    if (usd) usd.textContent = formatRate(rates.USD);
-    if (eur) eur.textContent = formatRate(rates.EUR);
-    if (date) date.textContent = t("rate.source") + (rates.date ? " · " + rates.date : "");
+    // Курсы рисуем во ВСЕ табло сразу (публичная шапка + шапка кабинета),
+    // поэтому ищем по data-атрибуту, а не по одному id.
+    var dateText = t("rate.source") + (rates.date ? " · " + rates.date : "");
+    document.querySelectorAll('[data-rate="usd"]').forEach(function (n) {
+      n.textContent = formatRate(rates.USD);
+    });
+    document.querySelectorAll('[data-rate="eur"]').forEach(function (n) {
+      n.textContent = formatRate(rates.EUR);
+    });
+    document.querySelectorAll('[data-rate="date"]').forEach(function (n) {
+      n.textContent = dateText;
+    });
     return true;
   }
 
@@ -9616,12 +9690,26 @@ window.TURON_DESTINATIONS = [
       .then(function () { btn.disabled = false; });
   });
 
-  $("logout-btn").addEventListener("click", function () {
+  function doLogout() {
     TuronApi.logout().then(function () {
       $("l-password").value = "";
       showPublic();
     });
-  });
+  }
+  $("logout-btn").addEventListener("click", doLogout);
+  $("logout-top").addEventListener("click", doLogout);
+
+  // Язык кабинета — тот же переключатель, что и в публичной шапке.
+  // Держим оба селекта синхронно и применяем через TuronPublicUI.
+  var appLang = $("app-language");
+  if (appLang && window.TuronPublicUi && TuronPublicUi.setLanguage) {
+    appLang.addEventListener("change", function () {
+      TuronPublicUi.setLanguage(appLang.value);
+    });
+    window.addEventListener("turon:language", function (e) {
+      if (e.detail && e.detail.language) appLang.value = e.detail.language;
+    });
+  }
 
   $("public-login-btn").addEventListener("click", function () { showLogin(); });
 
