@@ -1,6 +1,8 @@
 /*
- * Собирает preview.html — автономный однофайловый снимок кабинета для
- * быстрого просмотра (без сервера и без развёрнутого бэкенда).
+ * Собирает preview.html — автономный HTML-снимок кабинета для быстрого
+ * просмотра (без сервера и без развёрнутого бэкенда). Фотографии остаются
+ * рядом в img/: так файл не разрастается за лимиты GitHub и открывается
+ * одинаково из репозитория, ZIP и GitHub Pages.
  *
  * Файл целиком генерируется из настоящих исходников (index.html,
  * styles.css, js/*.js), поэтому разъехаться с репозиторием не может.
@@ -41,10 +43,10 @@ function bundledScript(src) {
 const metaTags = [...html.matchAll(/<meta [^>]*>/g)].map((m) => m[0]).join("\n");
 
 /*
- * В боевой сборке фотографии лежат отдельными файлами в img/ — иначе
- * styles.css весит полмегабайта и блокирует отрисовку страницы. Но
- * превью — это один файл, который открывают откуда угодно, поэтому здесь
- * картинки возвращаем обратно внутрь как data-URI.
+ * Логотип оставляем внутри HTML как data-URI: это небольшой файл и он нужен
+ * интерфейсу на каждом экране. Большие фотографии не встраиваем — они уже
+ * лежат рядом в img/, а повторное base64-кодирование добавляет к превью
+ * больше мегабайта и может обрезаться при публикации через GitHub API.
  */
 const MIME = { webp: "image/webp", png: "image/png", jpg: "image/jpeg",
                jpeg: "image/jpeg", svg: "image/svg+xml", avif: "image/avif" };
@@ -58,6 +60,7 @@ function inlineImages(css) {
     const ext = path.extname(src).slice(1).toLowerCase();
     const mime = MIME[ext];
     if (!mime) throw new Error(`неизвестный тип картинки: ${src}`);
+    if (path.basename(src) !== "turon-logo.webp") return whole;
     return `url("data:${mime};base64,${fs.readFileSync(file).toString("base64")}")`;
   });
 }
