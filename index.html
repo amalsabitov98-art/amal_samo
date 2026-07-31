@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turon Tour — кабинет агентства</title>
+<title>Turon Tour — экскурсионные и групповые туры</title>
 <meta name="theme-color" content="#0d302a" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,17 +27,48 @@
 <!-- ------------------------------------------- публичный каталог (без входа) -->
 <div id="screen-public" hidden>
   <header class="tt-header tt-public-header">
-    <div class="tt-logo"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
-    <div class="tt-public-nav">
-      <span>Авторские маршруты</span>
-      <span>Партнёрские цены</span>
-      <span>Поддержка 24/7</span>
-    </div>
-    <div class="tt-header-right">
-      <span class="tt-public-status tt-hide-sm">B2B · Каталог для партнёров</span>
-      <button class="tt-btn tt-btn-sm" id="public-login-btn">Войти в кабинет</button>
+    <button class="tt-logo tt-public-brand" id="public-home-btn" type="button"
+            aria-label="Turon Tour — на главную">
+      <i class="tt-logo-mark" aria-hidden="true"></i>
+      <span>Turon Tour<small data-i18n="brand.tagline">туроператор · Ташкент</small></span>
+    </button>
+    <div class="tt-public-tools">
+      <div class="tt-currency-board" id="currency-board"
+           title="Официальный курс Центрального банка Узбекистана">
+        <span><b>$</b> 1 = <strong id="rate-usd">12 006,39</strong></span>
+        <i aria-hidden="true"></i>
+        <span><b>€</b> 1 = <strong id="rate-eur">13 765,33</strong></span>
+        <small id="rate-date">ЦБ РУз</small>
+      </div>
+      <label class="tt-language" for="public-language">
+        <span class="tt-sr-only" data-i18n="header.language">Язык</span>
+        <select id="public-language" aria-label="Язык сайта">
+          <option value="ru">RU</option>
+          <option value="uz">UZ</option>
+          <option value="en">EN</option>
+          <option value="tr">TR</option>
+        </select>
+      </label>
+      <button class="tt-account-btn" id="public-login-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5"></circle>
+          <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6"></path>
+        </svg>
+        <span data-i18n="header.login">Войти</span>
+      </button>
     </div>
   </header>
+  <nav class="tt-public-subnav" aria-label="Основные разделы">
+    <div>
+      <button class="is-active" type="button" data-scroll-target="excursion-tours"
+              data-i18n="nav.excursions">Экскурсионные туры</button>
+      <button type="button" data-scroll-target="tour-catalog"
+              data-i18n="nav.tours">Туры</button>
+    </div>
+    <button class="tt-about-nav" type="button" data-scroll-target="about-company">
+      <span data-i18n="nav.about">О компании</span><i>↘</i>
+    </button>
+  </nav>
   <main class="tt-container" id="public-catalog"></main>
 </div>
 
@@ -45,7 +76,9 @@
 <section id="screen-login" class="tt-login-screen" hidden>
   <div class="tt-login-story" aria-hidden="true">
     <div class="tt-login-story-top">
-      <div class="tt-logo tt-logo-light"><i>T</i><span>Turon Tour</span></div>
+      <div class="tt-logo tt-logo-light">
+        <i class="tt-logo-mark"></i><span>Turon Tour</span>
+      </div>
       <span>Expedition OS</span>
     </div>
     <div class="tt-login-route">
@@ -58,20 +91,25 @@
     </div>
   </div>
   <form class="tt-login-card" id="login-form">
-    <span class="tt-eyebrow">Партнёрский доступ</span>
-    <h2>Добро пожаловать</h2>
-    <p class="tt-muted-note">Войдите в кабинет агентства Turon Tour</p>
+    <div class="tt-login-card-brand">
+      <i class="tt-logo-mark" aria-hidden="true"></i>
+      <span>Turon Tour</span>
+    </div>
+    <span class="tt-eyebrow" data-i18n="login.kicker">Партнёрский доступ</span>
+    <h2 data-i18n="login.title">Добро пожаловать</h2>
+    <p class="tt-muted-note" data-i18n="login.note">Войдите в кабинет агентства Turon Tour</p>
     <div class="tt-field-full">
-      <label for="l-login">Логин</label>
+      <label for="l-login" data-i18n="login.user">Логин</label>
       <input type="text" id="l-login" autocomplete="username" required />
     </div>
     <div class="tt-field-full">
-      <label for="l-password">Пароль</label>
+      <label for="l-password" data-i18n="login.password">Пароль</label>
       <input type="password" id="l-password" autocomplete="current-password" required />
     </div>
-    <button type="submit" class="tt-btn" id="login-btn">Войти</button>
+    <button type="submit" class="tt-btn" id="login-btn" data-i18n="header.login">Войти</button>
     <div id="login-error"></div>
-    <button type="button" class="tt-link-btn" id="login-back">← В каталог</button>
+    <button type="button" class="tt-link-btn" id="login-back"
+            data-i18n="login.back">← В каталог</button>
     <div id="demo-hint" class="tt-muted-note" hidden></div>
   </form>
 </section>
@@ -81,7 +119,9 @@
   <div class="tt-nav-scrim" id="nav-scrim" hidden></div>
   <aside class="tt-sidebar">
     <div class="tt-sidebar-brand">
-      <div class="tt-logo tt-logo-light"><i aria-hidden="true">T</i><span>Turon Tour</span></div>
+      <div class="tt-logo tt-logo-light">
+        <i class="tt-logo-mark" aria-hidden="true"></i><span>Turon Tour</span>
+      </div>
       <small>Expedition OS</small>
     </div>
     <div class="tt-tabs">
@@ -122,6 +162,7 @@
   <div class="tt-workspace">
     <header class="tt-header tt-app-header">
       <button class="tt-menu-btn" id="nav-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      <i class="tt-app-logo tt-logo-mark" aria-hidden="true"></i>
       <div class="tt-workspace-heading">
         <span class="tt-eyebrow" id="workspace-kicker">Конструктор путешествия</span>
         <h1 id="workspace-title">Новый тур</h1>
@@ -347,6 +388,7 @@
 <script src="js/seed-data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/provisional.js"></script>
+<script src="js/public-ui.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/app.js"></script>
