@@ -391,7 +391,20 @@
         }
 
         root.innerHTML =
-          '<section class="tt-public-intro" id="excursion-tours">' +
+          '<section class="tt-public-intro" id="excursion-tours" data-hero-carousel ' +
+            'role="region" aria-roledescription="carousel" aria-label="' +
+            esc(tr("slider.label")) + '" tabindex="0">' +
+            '<div class="tt-hero-slides" aria-live="off">' +
+              '<div class="tt-hero-slide tt-hero-slide-rize-batumi is-active" ' +
+                'id="hero-slide-1" role="img" aria-label="' +
+                esc(tr("slider.slide1")) + '" aria-hidden="false"></div>' +
+              '<div class="tt-hero-slide tt-hero-slide-rize-morning" ' +
+                'id="hero-slide-2" role="img" aria-label="' +
+                esc(tr("slider.slide2")) + '" aria-hidden="true"></div>' +
+              '<div class="tt-hero-slide tt-hero-slide-batumi-sunset" ' +
+                'id="hero-slide-3" role="img" aria-label="' +
+                esc(tr("slider.slide3")) + '" aria-hidden="true"></div>' +
+            "</div>" +
             '<div class="tt-public-hero-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
               '<h1>' + esc(tr("hero.title")) + " <em>" +
@@ -404,11 +417,26 @@
                   esc(tr("hero.secondary")) + "</button>" +
               "</div>" +
             "</div>" +
-            '<div class="tt-hero-identity" aria-label="Turon Tour">' +
-              '<i class="tt-hero-emblem" aria-hidden="true"></i>' +
-              '<div><span>Turon</span> <strong>Tour</strong>' +
-                '<small>Tashkent · Uzbekistan</small></div>' +
+            '<div class="tt-hero-controls" role="group" aria-label="' +
+              esc(tr("slider.controls")) + '">' +
+              '<button type="button" class="tt-hero-arrow" data-hero-prev aria-label="' +
+                esc(tr("slider.previous")) + '">←</button>' +
+              '<div class="tt-hero-dots">' +
+                '<button type="button" class="is-active" data-hero-dot="0" ' +
+                  'aria-controls="hero-slide-1" aria-current="true" aria-label="' +
+                  esc(tr("slider.goto1")) + '"><i></i></button>' +
+                '<button type="button" data-hero-dot="1" aria-controls="hero-slide-2" ' +
+                  'aria-label="' + esc(tr("slider.goto2")) + '"><i></i></button>' +
+                '<button type="button" data-hero-dot="2" aria-controls="hero-slide-3" ' +
+                  'aria-label="' + esc(tr("slider.goto3")) + '"><i></i></button>' +
+              "</div>" +
+              '<button type="button" class="tt-hero-arrow" data-hero-next aria-label="' +
+                esc(tr("slider.next")) + '">→</button>' +
+              '<button type="button" class="tt-hero-toggle" data-hero-toggle aria-pressed="false" ' +
+                'aria-label="' + esc(tr("slider.pause")) + '"><span aria-hidden="true">Ⅱ</span></button>' +
             "</div>" +
+            '<span class="tt-sr-only" data-hero-status aria-live="polite" aria-atomic="true">' +
+              esc(tr("slider.status1")) + "</span>" +
             '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
@@ -433,6 +461,9 @@
           "</section>" +
           '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
             '<span>Tashkent · Uzbekistan</span></footer>';
+        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
+          global.TuronPublicUi.enhance(root);
+        }
       }).catch(errorBox);
     }
 

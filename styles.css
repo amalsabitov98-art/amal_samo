@@ -2007,41 +2007,89 @@ select { font-family: inherit; }
 /* ------------------------------------------------ public catalogue */
 .tt-public-intro {
   position: relative;
-  min-height: clamp(560px, 68vh, 720px);
-  display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  min-height: clamp(600px, 72vh, 760px);
+  display: flex;
   align-items: center;
   overflow: hidden;
   margin-bottom: clamp(72px, 9vw, 124px);
   padding: clamp(42px, 6vw, 84px);
   border-radius: 34px;
   color: #fffaf0;
-  background:
-    linear-gradient(90deg, rgba(5, 30, 26, 0.98) 0%, rgba(7, 45, 38, 0.93) 46%, rgba(7, 42, 36, 0.56) 100%),
-    linear-gradient(180deg, rgba(7, 45, 38, 0.12), rgba(7, 45, 38, 0.42)),
-    url("img/hero-karadeniz.webp") center 50% / cover no-repeat;
+  background: #082b25;
   box-shadow: 0 38px 110px rgba(6, 35, 29, 0.26);
   isolation: isolate;
   scroll-margin-top: 150px;
+  touch-action: pan-y;
+  outline: none;
 }
 .tt-public-intro::before {
   content: "";
   position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(3, 24, 21, 0.97) 0%, rgba(4, 31, 27, 0.9) 40%, rgba(4, 30, 26, 0.44) 70%, rgba(4, 26, 23, 0.2) 100%),
+    linear-gradient(180deg, rgba(4, 29, 25, 0.08) 38%, rgba(3, 24, 21, 0.62) 100%);
+  pointer-events: none;
+}
+.tt-public-intro::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
   top: 50%;
-  right: clamp(-180px, -10vw, -60px);
-  width: clamp(470px, 54vw, 760px);
+  right: clamp(-220px, -12vw, -80px);
+  width: clamp(520px, 58vw, 800px);
   aspect-ratio: 1;
-  border: 1px solid rgba(229, 201, 135, 0.2);
+  border: 1px solid rgba(229, 201, 135, 0.15);
   border-radius: 50%;
   box-shadow:
-    0 0 0 68px rgba(255, 255, 255, 0.028),
-    0 0 0 136px rgba(255, 255, 255, 0.018);
+    0 0 0 72px rgba(255, 255, 255, 0.022),
+    0 0 0 144px rgba(255, 255, 255, 0.014);
   transform: translateY(-50%);
-  z-index: -1;
+  pointer-events: none;
 }
-.tt-public-intro > * { position: relative; z-index: 1; }
+.tt-public-intro > * { position: relative; z-index: 2; }
+.tt-public-intro:focus-visible {
+  box-shadow:
+    0 0 0 4px rgba(229, 201, 135, 0.78),
+    0 38px 110px rgba(6, 35, 29, 0.26);
+}
+.tt-hero-slides {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.tt-hero-slide {
+  position: absolute;
+  inset: -1px;
+  opacity: 0;
+  background-position: center;
+  background-size: cover;
+  transform: scale(1.035);
+  transition: opacity 0.8s ease, transform 7s cubic-bezier(0.2, 0.72, 0.28, 1);
+  will-change: opacity, transform;
+}
+.tt-hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+.tt-hero-slide-rize-batumi {
+  background-image: url("img/hero-rize-batumi.webp");
+  background-position: center 52%;
+}
+.tt-hero-slide-rize-morning {
+  background-image: url("img/hero-rize-morning.webp");
+  background-position: center 48%;
+}
+.tt-hero-slide-batumi-sunset {
+  background-image: url("img/hero-batumi-sunset.webp");
+  background-position: center 54%;
+}
 .tt-public-intro .tt-eyebrow { color: #e5c987; }
-.tt-public-hero-copy { max-width: 790px; }
+.tt-public-hero-copy { width: min(100%, 790px); }
 .tt-public-intro h1 {
   max-width: 870px;
   margin: 17px 0 22px;
@@ -2094,6 +2142,72 @@ select { font-family: inherit; }
   backdrop-filter: blur(8px);
 }
 .tt-public-actions button:hover { transform: translateY(-2px); }
+.tt-public-actions button:focus-visible,
+.tt-hero-arrow:focus-visible,
+.tt-hero-toggle:focus-visible,
+.tt-hero-dots button:focus-visible {
+  outline: 2px solid #fffaf0;
+  outline-offset: 3px;
+}
+
+.tt-hero-controls {
+  position: absolute !important;
+  left: clamp(26px, 4vw, 56px);
+  bottom: clamp(22px, 3vw, 40px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tt-hero-arrow,
+.tt-hero-toggle {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: rgba(3, 27, 23, 0.46);
+  color: #fffaf0;
+  font-size: 0.9rem;
+  line-height: 1;
+  backdrop-filter: blur(9px);
+  transition: 0.2s ease;
+}
+.tt-hero-toggle {
+  margin-left: 2px;
+  font-size: 0.7rem;
+}
+.tt-hero-arrow:hover,
+.tt-hero-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.58);
+  background: rgba(3, 27, 23, 0.72);
+}
+.tt-hero-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 3px;
+}
+.tt-hero-dots button {
+  width: 25px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.tt-hero-dots i {
+  width: 18px;
+  height: 2px;
+  display: block;
+  background: rgba(255, 255, 255, 0.38);
+  transition: width 0.25s ease, background 0.25s ease;
+}
+.tt-hero-dots button.is-active i {
+  width: 25px;
+  background: #e5c987;
+}
 
 .tt-hero-identity {
   align-self: stretch;
@@ -2600,6 +2714,17 @@ select { font-family: inherit; }
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.tt-reveal-ready {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.68s cubic-bezier(0.2, 0.72, 0.28, 1),
+    transform 0.68s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.tt-reveal-ready.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 .tt-dep,
 .tt-cat-tile,
 .tt-cat-tour,
@@ -2715,11 +2840,21 @@ select { font-family: inherit; }
   .tt-section-intro { display: block; }
   .tt-route-pill { width: fit-content; margin-top: 13px; }
   .tt-public-intro {
-    grid-template-columns: 1fr;
-    align-items: end;
-    min-height: 520px;
-    padding: 38px 26px 82px;
+    align-items: flex-end;
+    min-height: clamp(520px, 72svh, 620px);
+    padding: 94px 26px 82px;
     border-radius: 22px;
+  }
+  .tt-public-intro::before {
+    background:
+      linear-gradient(180deg, rgba(3, 24, 21, 0.22) 0%, rgba(3, 24, 21, 0.35) 34%, rgba(3, 24, 21, 0.94) 79%, rgba(3, 24, 21, 0.99) 100%),
+      linear-gradient(90deg, rgba(3, 24, 21, 0.46), rgba(3, 24, 21, 0.08));
+  }
+  .tt-public-intro::after {
+    top: 18%;
+    right: -190px;
+    width: 500px;
+    opacity: 0.7;
   }
   .tt-public-hero-copy { position: relative; z-index: 3; }
   .tt-hero-identity {
@@ -2735,8 +2870,15 @@ select { font-family: inherit; }
   .tt-public-intro h1 { max-width: 620px; }
   .tt-public-route {
     right: 22px;
-    bottom: 21px;
+    top: 22px;
+    bottom: auto;
   }
+  .tt-hero-controls { left: 22px; bottom: 20px; }
+  .tt-hero-arrow,
+  .tt-hero-toggle { width: 40px; height: 40px; }
+  .tt-hero-slide-rize-batumi { background-position: 58% center; }
+  .tt-hero-slide-rize-morning { background-position: 52% center; }
+  .tt-hero-slide-batumi-sunset { background-position: 56% center; }
   .tt-public-actions { align-items: stretch; }
   .tt-public-actions button { min-height: 45px; }
   .tt-cat-heading { display: block; }
@@ -2806,12 +2948,18 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro { min-height: 500px; padding: 31px 22px 78px; }
+  .tt-public-intro { min-height: clamp(520px, 70svh, 590px); padding: 88px 22px 76px; }
   .tt-public-intro h1 { font-size: 3.25rem; }
   .tt-public-intro p { max-width: 94%; }
   .tt-public-actions { display: grid; }
   .tt-public-actions button { justify-content: space-between; width: 100%; }
-  .tt-public-route { gap: 6px; font-size: 0.62rem; }
+  .tt-public-route { top: 18px; right: 18px; gap: 6px; font-size: 0.62rem; }
+  .tt-hero-controls { left: 18px; bottom: 18px; gap: 5px; }
+  .tt-hero-arrow,
+  .tt-hero-toggle { width: 38px; height: 38px; }
+  .tt-hero-dots button { width: 20px; }
+  .tt-hero-dots i { width: 14px; }
+  .tt-hero-dots button.is-active i { width: 20px; }
   .tt-dep { display: block; }
   .tt-dep > * + * { margin-top: 13px; }
   .tt-dep-seats { text-align: left; }
@@ -2837,6 +2985,20 @@ select { font-family: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .tt-reveal-ready,
+  .tt-reveal-ready.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .tt-hero-slide,
+  .tt-public-actions button,
+  .tt-hero-arrow,
+  .tt-hero-toggle,
+  .tt-hero-dots i {
+    transition: none;
+  }
+  .tt-hero-toggle { display: none; }
   .tt-dep,
   .tt-cat-tile,
   .tt-cat-tour,
