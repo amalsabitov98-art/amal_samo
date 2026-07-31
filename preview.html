@@ -3763,20 +3763,6 @@ select.tt-outline-btn {
 }
 .tt-build-card .tt-provisional { margin: 10px 13px 0; }
 
-/* Плашка под блоками, которые оператор подтвердил (билеты/ваучеры).
-   Отличается от жёлтой .tt-provisional: агент видит, что данные финальные. */
-.tt-confirmed {
-  margin: 10px 0 0;
-  padding: 8px 12px;
-  border: 1px solid var(--tt-success);
-  border-radius: 8px;
-  background: var(--tt-success-soft);
-  color: var(--tt-success);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-.tt-build-card .tt-confirmed { margin: 10px 13px 0; }
-
 .tt-row-card {
   display: grid;
   grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(110px, 1fr));
@@ -7584,20 +7570,6 @@ window.TURON_DESTINATIONS = [
 
     isScheduledDate: isScheduledDate,
 
-    flightNoteHtml: function () {
-      return '<p class="tt-confirmed"><strong>Подтверждено оператором:</strong> рейсы ' +
-        SCHEDULE.weekday_label + ' по ' + SCHEDULE.season_end_label +
-        ' включительно, одни и те же на весь сезон · багаж 23 кг · ' +
-        'ручная кладь 8 кг. Рейсы Centrum Air.</p>';
-    },
-
-    // Ночи по отелям подтверждены ваучерами оператора (4+3 по обоим
-    // маршрутам). Плашка зелёная, а не жёлтая — данные финальные.
-    hotelNoteHtml: function () {
-      return '<p class="tt-confirmed"><strong>Подтверждено ваучерами:</strong> ' +
-        'отели и распределение ночей (4 + 3) финальные.</p>';
-    },
-
     /*
      * Рейсы заезда с посчитанными датами. Туда — в аэропорт прилёта,
      * обратно — из аэропорта вылета, а это разные города.
@@ -9627,11 +9599,10 @@ window.TURON_DESTINATIONS = [
 
     // ------------------------------------------------------------ рейсы
     // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
-    // Зелёная плашка под блоком отмечает это агенту.
+    // Всё видно в самих карточках (перевозчик, время, багаж), плашка не нужна.
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
-      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
-        TuronProvisional.flightNoteHtml()
+      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true)
       : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
 
     // ------------------------------------------------------------ отели
@@ -9648,9 +9619,9 @@ window.TURON_DESTINATIONS = [
             "<br />" + esc(h.board) + "</small></div>" +
         "</article>";
     }).join("");
-    $("builder-hotels-note").innerHTML = hotels.length
-      ? TuronProvisional.hotelNoteHtml()
-      : "";
+    // Отели и ночи подтверждены ваучерами — всё видно в карточках,
+    // отдельной плашки не нужно.
+    $("builder-hotels-note").innerHTML = "";
 
     // --------------------------------------------------------- туристы
     $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {

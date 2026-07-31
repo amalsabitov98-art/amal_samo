@@ -369,11 +369,10 @@
 
     // ------------------------------------------------------------ рейсы
     // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
-    // Зелёная плашка под блоком отмечает это агенту.
+    // Всё видно в самих карточках (перевозчик, время, багаж), плашка не нужна.
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
-      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
-        TuronProvisional.flightNoteHtml()
+      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true)
       : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
 
     // ------------------------------------------------------------ отели
@@ -390,9 +389,9 @@
             "<br />" + esc(h.board) + "</small></div>" +
         "</article>";
     }).join("");
-    $("builder-hotels-note").innerHTML = hotels.length
-      ? TuronProvisional.hotelNoteHtml()
-      : "";
+    // Отели и ночи подтверждены ваучерами — всё видно в карточках,
+    // отдельной плашки не нужно.
+    $("builder-hotels-note").innerHTML = "";
 
     // --------------------------------------------------------- туристы
     $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {
