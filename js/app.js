@@ -340,7 +340,8 @@
         (d.nights ? d.nights + " ночей / " + (d.nights + 1) + " дней" : "длительность уточняется") +
       "</small></div>" +
       '<div class="tt-route-cities"><span>' +
-        esc(TRANSPORT[d.transport] || d.transport) +
+        esc(TuronProvisional.routeLabel(d.transport) ||
+            TRANSPORT[d.transport] || d.transport) +
         "<small>" + esc(d.code) + "</small></span><i>·</i><span>Свободно<small>" +
         d.seats_free + " из " + d.capacity + "</small></span></div>" +
       '<select class="tt-outline-btn" id="builder-departure" aria-label="Выбрать заезд">' +

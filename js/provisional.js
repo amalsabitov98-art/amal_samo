@@ -20,47 +20,67 @@
   /*
    * 1. РЕЙСЫ
    * --------
-   * Основание: четыре настоящих билета Centrum Air на заезд 31.07.2026
-   * (TAS→TZX C63309, TZX→TAS C63310, TAS→BUS C6225, BUS→TAS C6226).
+   * ВАЖНО: у Карадениза маршрут зеркальный — прилетают в один город, а
+   * улетают из другого. Код заезда (TZX.../BUS...) — это аэропорт
+   * ПРИЛЁТА; обратный рейс всегда из ВТОРОГО аэропорта:
    *
-   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов через тот же
-   * аэропорт. Реально расписание может меняться от даты к дате.
+   *   заезд BUS...  прилёт Батуми  →  обратно из Трабзона (TZX → TAS)
+   *   заезд TZX...  прилёт Трабзон →  обратно из Батуми   (BUS → TAS)
+   *
+   * Основание: четыре настоящих билета Centrum Air на заезд 31.07.2026.
+   * Если разложить их по этому правилу, всё сходится:
+   *   группа с прилётом в Батуми: TAS→BUS 31.07, обратно TZX→TAS 07.08
+   *   группа с прилётом в Трабзон: TAS→TZX 31.07, обратно BUS→TAS 08.08
+   *
+   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов сезона. Реально
+   * расписание может меняться от даты к дате.
    *
    * ЧТО УТОЧНИТЬ У ОПЕРАТОРА: рейсы и время по каждому из 15 заездов.
    * Если расписание правда одно на весь сезон — достаточно подтвердить.
    *
    * day_offset — на сколько суток позже даты возврата вылетает рейс.
-   * У Батуми обратный рейс в 00:20, то есть уже следующей ночью.
+   * Рейс из Батуми в 00:20 уходит уже следующей ночью, отсюда +1.
    */
-  var FLIGHTS = {
-    TZX: {
-      out: {
-        code: "C63309", carrier: "Centrum Air", aircraft: "A321-251N",
-        from: "TAS", from_city: "Ташкент", to: "TZX", to_city: "Трабзон",
-        dep: "14:30", arr: "16:20", duration: "3 ч 50 мин",
-        baggage: "20 кг", day_offset: 0,
-      },
-      back: {
-        code: "C63310", carrier: "Centrum Air", aircraft: "A321-251N",
-        from: "TZX", from_city: "Трабзон", to: "TAS", to_city: "Ташкент",
-        dep: "17:20", arr: "22:20", duration: "3 ч",
-        baggage: "20 кг", day_offset: 0,
-      },
+
+  // Плечи перелёта, ключ — «откуда-куда». Взяты с билетов как есть.
+  var LEGS = {
+    "TAS-TZX": {
+      code: "C63309", carrier: "Centrum Air", aircraft: "A321-251N",
+      from: "TAS", from_city: "Ташкент", to: "TZX", to_city: "Трабзон",
+      dep: "14:30", arr: "16:20", duration: "3 ч 50 мин",
+      baggage: "20 кг", day_offset: 0,
     },
-    BUS: {
-      out: {
-        code: "C6225", carrier: "Centrum Air", aircraft: "A320-233",
-        from: "TAS", from_city: "Ташкент", to: "BUS", to_city: "Батуми",
-        dep: "20:50", arr: "23:20", duration: "3 ч 30 мин",
-        baggage: "23 кг", day_offset: 0,
-      },
-      back: {
-        code: "C6226", carrier: "Centrum Air", aircraft: "A320-233",
-        from: "BUS", from_city: "Батуми", to: "TAS", to_city: "Ташкент",
-        dep: "00:20", arr: "04:20", duration: "3 ч",
-        baggage: "23 кг", day_offset: 1,
-      },
+    "TZX-TAS": {
+      code: "C63310", carrier: "Centrum Air", aircraft: "A321-251N",
+      from: "TZX", from_city: "Трабзон", to: "TAS", to_city: "Ташкент",
+      dep: "17:20", arr: "22:20", duration: "3 ч",
+      baggage: "20 кг", day_offset: 0,
     },
+    "TAS-BUS": {
+      code: "C6225", carrier: "Centrum Air", aircraft: "A320-233",
+      from: "TAS", from_city: "Ташкент", to: "BUS", to_city: "Батуми",
+      dep: "20:50", arr: "23:20", duration: "3 ч 30 мин",
+      baggage: "23 кг", day_offset: 0,
+    },
+    "BUS-TAS": {
+      code: "C6226", carrier: "Centrum Air", aircraft: "A320-233",
+      from: "BUS", from_city: "Батуми", to: "TAS", to_city: "Ташкент",
+      dep: "00:20", arr: "04:20", duration: "3 ч",
+      baggage: "23 кг", day_offset: 1,
+    },
+  };
+
+  /*
+   * Маршрут заезда: куда прилетают и откуда улетают. Ключ — transport
+   * заезда из базы. Именно здесь задаётся зеркальность: раньше код брал
+   * один и тот же аэропорт на оба перелёта, и обратный рейс уходил не
+   * из того города.
+   */
+  var ROUTES = {
+    BUS: { arrival: "BUS", departure: "TZX",
+           label: "прилёт Батуми · вылет Трабзон" },
+    TZX: { arrival: "TZX", departure: "BUS",
+           label: "прилёт Трабзон · вылет Батуми" },
   };
 
   /*
@@ -106,28 +126,44 @@
     address: "Ташкент, Алмазарский район, ул. Нурафшон, 51",
   };
 
+  function shiftDate(iso, days) {
+    if (!iso) return null;
+    var d = new Date(iso + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
   global.TuronProvisional = {
-    FLIGHTS: FLIGHTS,
+    LEGS: LEGS,
+    ROUTES: ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
 
-    // Рейсы заезда с посчитанными датами вылета и возврата.
+    // «прилёт Батуми · вылет Трабзон» — чтобы зеркальность была видна
+    // в интерфейсе, а не только в коде.
+    routeLabel: function (transport) {
+      var r = ROUTES[transport];
+      return r ? r.label : null;
+    },
+
+    /*
+     * Рейсы заезда с посчитанными датами. Туда — в аэропорт прилёта,
+     * обратно — из аэропорта вылета, а это разные города.
+     */
     flightsFor: function (departure) {
-      var set = FLIGHTS[departure.transport];
-      if (!set) return null;
-      var back = TuronApi.departureEnd(departure.date_start, departure.nights);
-      function shift(iso, days) {
-        if (!iso) return null;
-        var d = new Date(iso + "T00:00:00Z");
-        d.setUTCDate(d.getUTCDate() + days);
-        return d.toISOString().slice(0, 10);
-      }
+      var route = ROUTES[departure.transport];
+      if (!route) return null;
+      var out = LEGS["TAS-" + route.arrival];
+      var back = LEGS[route.departure + "-TAS"];
+      if (!out || !back) return null;
+
+      var endDate = TuronApi.departureEnd(departure.date_start, departure.nights);
       return {
-        out: Object.assign({}, set.out, {
-          date: shift(departure.date_start, set.out.day_offset),
+        out: Object.assign({}, out, {
+          date: shiftDate(departure.date_start, out.day_offset),
         }),
-        back: Object.assign({}, set.back, {
-          date: shift(back, set.back.day_offset),
+        back: Object.assign({}, back, {
+          date: shiftDate(endDate, back.day_offset),
         }),
       };
     },
