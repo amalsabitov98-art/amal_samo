@@ -3928,9 +3928,8 @@ select.tt-outline-btn {
   width: 22px; height: 22px; border-radius: 6px;
   background: var(--tt-success); color: #fff; font-size: 0.75rem; font-weight: 700;
 }
-.tt-mj-fl-carrier { display: flex; align-items: center; gap: 8px; }
-.tt-mj-fl-carrier b { color: var(--tt-accent); }
-.tt-mj-fl-carrier strong { display: block; font-size: 0.85rem; }
+.tt-mj-fl-carrier { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.tt-mj-airline-logo { height: 20px; width: auto; display: block; }
 .tt-mj-fl-carrier small { color: var(--tt-text-muted); font-size: 0.72rem; }
 .tt-mj-fl-time strong { display: block; font-size: 0.86rem; }
 .tt-mj-fl-time small { color: var(--tt-text-muted); font-size: 0.75rem; }

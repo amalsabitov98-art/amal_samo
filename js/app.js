@@ -329,8 +329,9 @@
   function flightRow(f) {
     return "<tr>" +
       '<td class="tt-mj-fl-check"><span class="tt-mj-tick" aria-hidden="true">✓</span></td>' +
-      '<td class="tt-mj-fl-carrier"><b aria-hidden="true">◈</b><div><strong>' +
-        esc(f.carrier) + "</strong><small>" + esc(f.code) + "</small></div></td>" +
+      '<td class="tt-mj-fl-carrier">' +
+        '<img class="tt-mj-airline-logo" src="img/centrum-air.svg" alt="' +
+          esc(f.carrier) + '" /><small>' + esc(f.code) + "</small></td>" +
       '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage) + "</td>" +
       '<td class="tt-mj-fl-time"><strong>' + esc(f.from_city) + "</strong><small>" +
         (f.date ? formatDate(f.date) + " · " : "") + esc(f.dep) + "</small></td>" +

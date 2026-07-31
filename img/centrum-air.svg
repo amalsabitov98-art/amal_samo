@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 150" role="img" aria-label="Centrum Air">
+  <style>
+    .cen { font-family: Arial, "Helvetica Neue", sans-serif; font-style: italic; font-weight: 900; font-size: 64px; letter-spacing: -3px; }
+  </style>
+  <text x="18" y="92" class="cen" fill="#111418">CENTRUM<tspan fill="#8a9099" font-weight="800">AIR</tspan></text>
+  <!-- синий росчерк-крыло -->
+  <path d="M120 104 C 210 96, 330 100, 430 108 C 420 116, 402 120, 372 121
+           C 300 122, 210 126, 150 150 C 180 130, 210 122, 250 118
+           C 205 116, 165 112, 120 104 Z" fill="#1f47e0"/>
+  <!-- магента-акцент на кончике -->
+  <circle cx="405" cy="112" r="7" fill="#e6007e"/>
+</svg>

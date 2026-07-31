@@ -3933,9 +3933,8 @@ select.tt-outline-btn {
   width: 22px; height: 22px; border-radius: 6px;
   background: var(--tt-success); color: #fff; font-size: 0.75rem; font-weight: 700;
 }
-.tt-mj-fl-carrier { display: flex; align-items: center; gap: 8px; }
-.tt-mj-fl-carrier b { color: var(--tt-accent); }
-.tt-mj-fl-carrier strong { display: block; font-size: 0.85rem; }
+.tt-mj-fl-carrier { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.tt-mj-airline-logo { height: 20px; width: auto; display: block; }
 .tt-mj-fl-carrier small { color: var(--tt-text-muted); font-size: 0.72rem; }
 .tt-mj-fl-time strong { display: block; font-size: 0.86rem; }
 .tt-mj-fl-time small { color: var(--tt-text-muted); font-size: 0.75rem; }
@@ -9798,8 +9797,9 @@ window.TURON_DESTINATIONS = [
   function flightRow(f) {
     return "<tr>" +
       '<td class="tt-mj-fl-check"><span class="tt-mj-tick" aria-hidden="true">✓</span></td>' +
-      '<td class="tt-mj-fl-carrier"><b aria-hidden="true">◈</b><div><strong>' +
-        esc(f.carrier) + "</strong><small>" + esc(f.code) + "</small></div></td>" +
+      '<td class="tt-mj-fl-carrier">' +
+        '<img class="tt-mj-airline-logo" src="img/centrum-air.svg" alt="' +
+          esc(f.carrier) + '" /><small>' + esc(f.code) + "</small></td>" +
       '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage) + "</td>" +
       '<td class="tt-mj-fl-time"><strong>' + esc(f.from_city) + "</strong><small>" +
         (f.date ? formatDate(f.date) + " · " : "") + esc(f.dep) + "</small></td>" +
