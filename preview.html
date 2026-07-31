@@ -4006,7 +4006,7 @@ select.tt-outline-btn {
       <button class="tt-tab tt-tab-ag" data-tab="payments" data-icon="▣">Платежи</button>
       <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
       <button class="tt-tab tt-tab-ag" data-tab="documents" data-icon="□">Документы</button>
-      <button class="tt-tab tt-tab-ag" data-tab="messages" data-icon="○">Сообщения</button>
+      <button class="tt-tab tt-tab-ag" data-tab="messages" data-icon="○">Контакты</button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
       <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
@@ -7547,13 +7547,16 @@ window.TURON_DESTINATIONS = [
   /*
    * 3. КОНТАКТЫ ОПЕРАТОРА
    * ---------------------
-   * Основание: агентский блок в электронных билетах Centrum Air.
-   * ЧТО УТОЧНИТЬ: телефон и почта для агентств — те же или отдельные.
+   * Подтверждено: рабочий телефон/Telegram для агентств. Связь с
+   * оператором идёт по телефону и в Telegram — переписки внутри
+   * кабинета не нужно.
    */
   var OPERATOR = {
     name: "Turon Tourism",
-    phone: "+998 71 200-09-09",
-    phone_href: "+998712000909",
+    contact_name: "Аскар",
+    phone: "+998 99 830 77 11",
+    phone_href: "+998998307711",
+    telegram_href: "https://t.me/+998998307711",
     email: "info@turontourism.uz",
     address: "Ташкент, Алмазарский район, ул. Нурафшон, 51",
   };
@@ -10286,26 +10289,30 @@ window.TURON_DESTINATIONS = [
 
   $("tv-query").addEventListener("input", renderTravellers);
 
-  /* --------------------------------------------------------- сообщения
-   * Переписки с оператором в системе нет. Вместо пустого экрана —
-   * рабочие контакты, чтобы агенту было куда обратиться.
+  /* --------------------------------------------------------- контакты
+   * Связь с оператором идёт по телефону и в Telegram — переписки внутри
+   * кабинета нет. Здесь показаны рабочие контакты менеджера.
    */
   function renderMessages() {
     var op = TuronProvisional.OPERATOR;
     $("messages-body").innerHTML =
       '<div class="tt-panel">' +
-        "<h2>Связь с оператором</h2>" +
-        '<p class="tt-muted-note">Переписка внутри кабинета пока не сделана. ' +
-        "Пишите и звоните напрямую — по броням отвечает менеджер Turon Tour.</p>" +
+        "<h2>Контакты оператора</h2>" +
+        '<p class="tt-muted-note">По броням отвечает менеджер Turon Tour. ' +
+        "Пишите в Telegram или звоните.</p>" +
         '<div class="tt-contact-grid">' +
+          (op.contact_name ? "<div><span>Менеджер</span><strong>" +
+            esc(op.contact_name) + "</strong></div>" : "") +
           "<div><span>Телефон</span><strong><a href=\"tel:" + esc(op.phone_href) +
             '">' + esc(op.phone) + "</a></strong></div>" +
+          (op.telegram_href ? "<div><span>Telegram</span><strong><a href=\"" +
+            esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
+            esc(op.phone) + "</a></strong></div>" : "") +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +
           "<div><span>Офис</span><strong>" + esc(op.address) + "</strong></div>" +
         "</div>" +
-      "</div>" +
-      TuronProvisional.noteHtml("контакты взяты из бланка билетов");
+      "</div>";
   }
 
   function switchTab(name) {
@@ -10316,7 +10323,7 @@ window.TURON_DESTINATIONS = [
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
-      messages: ["Сообщения", "Связь с оператором"],
+      messages: ["Контакты", "Связь с оператором"],
       bookings: ["Мои брони", "Продажи агентства"],
       tours: ["Туры и комиссии", "Партнёрская программа"],
       manifest: ["Списки пассажиров", "Операторская панель"],

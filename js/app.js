@@ -1031,26 +1031,30 @@
 
   $("tv-query").addEventListener("input", renderTravellers);
 
-  /* --------------------------------------------------------- сообщения
-   * Переписки с оператором в системе нет. Вместо пустого экрана —
-   * рабочие контакты, чтобы агенту было куда обратиться.
+  /* --------------------------------------------------------- контакты
+   * Связь с оператором идёт по телефону и в Telegram — переписки внутри
+   * кабинета нет. Здесь показаны рабочие контакты менеджера.
    */
   function renderMessages() {
     var op = TuronProvisional.OPERATOR;
     $("messages-body").innerHTML =
       '<div class="tt-panel">' +
-        "<h2>Связь с оператором</h2>" +
-        '<p class="tt-muted-note">Переписка внутри кабинета пока не сделана. ' +
-        "Пишите и звоните напрямую — по броням отвечает менеджер Turon Tour.</p>" +
+        "<h2>Контакты оператора</h2>" +
+        '<p class="tt-muted-note">По броням отвечает менеджер Turon Tour. ' +
+        "Пишите в Telegram или звоните.</p>" +
         '<div class="tt-contact-grid">' +
+          (op.contact_name ? "<div><span>Менеджер</span><strong>" +
+            esc(op.contact_name) + "</strong></div>" : "") +
           "<div><span>Телефон</span><strong><a href=\"tel:" + esc(op.phone_href) +
             '">' + esc(op.phone) + "</a></strong></div>" +
+          (op.telegram_href ? "<div><span>Telegram</span><strong><a href=\"" +
+            esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
+            esc(op.phone) + "</a></strong></div>" : "") +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +
           "<div><span>Офис</span><strong>" + esc(op.address) + "</strong></div>" +
         "</div>" +
-      "</div>" +
-      TuronProvisional.noteHtml("контакты взяты из бланка билетов");
+      "</div>";
   }
 
   function switchTab(name) {
@@ -1061,7 +1065,7 @@
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
-      messages: ["Сообщения", "Связь с оператором"],
+      messages: ["Контакты", "Связь с оператором"],
       bookings: ["Мои брони", "Продажи агентства"],
       tours: ["Туры и комиссии", "Партнёрская программа"],
       manifest: ["Списки пассажиров", "Операторская панель"],
