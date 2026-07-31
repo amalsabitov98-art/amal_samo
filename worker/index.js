@@ -184,6 +184,39 @@ async function handleLogin(request, env) {
   });
 }
 
+// -------------------------------------------------------------------- курсы
+/*
+ * Курс ЦБ РУз. Браузер не может дёрнуть cbu.uz напрямую — сайт ЦБ не отдаёт
+ * CORS-заголовки, поэтому запрос с чужого домена блокируется, и кабинет
+ * показывал бы замороженную заглушку. Тянем на стороне воркера (server-to-
+ * server, без CORS) и кэшируем на час, чтобы не долбить ЦБ на каждый заход.
+ */
+let ratesCache = null;
+async function cbuRates() {
+  const now = Date.now();
+  if (ratesCache && now - ratesCache.at < 3600000) return ratesCache.data;
+  try {
+    const resp = await fetch("https://cbu.uz/ru/arkhiv-kursov-valyut/json/", {
+      cf: { cacheTtl: 1800, cacheEverything: true },
+    });
+    if (!resp.ok) throw new Error("CBU " + resp.status);
+    const rows = await resp.json();
+    const out = {};
+    for (const row of rows) {
+      if (row.Ccy === "USD" || row.Ccy === "EUR") {
+        out[row.Ccy] = row.Rate;
+        out.date = row.Date;
+      }
+    }
+    if (!out.USD || !out.EUR) throw new Error("CBU data incomplete");
+    ratesCache = { at: now, data: out };
+    return out;
+  } catch (_) {
+    // если ЦБ недоступен — отдаём последнее, что было (или пусто)
+    return ratesCache ? ratesCache.data : {};
+  }
+}
+
 // --------------------------------------------------------------- справочник
 /*
  * По умолчанию отдаём только предстоящие заезды: продавать место в рейс,
@@ -895,6 +928,10 @@ async function route(request, env) {
     // ------------------------------------------------- публичный каталог
     // Доступен без входа: гость смотрит направления, туры, программу и
     // цены. Бронь остаётся за логином — она ниже, после authenticate().
+    if (path === "/api/public/rates" && request.method === "GET") {
+      return json(await cbuRates());
+    }
+
     if (path === "/api/public/destinations" && request.method === "GET") {
       return json(await catalogDestinations(env));
     }

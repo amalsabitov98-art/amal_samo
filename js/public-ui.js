@@ -247,9 +247,11 @@
     var locale = language === "uz" ? "uz-UZ" :
       language === "tr" ? "tr-TR" :
       language === "en" ? "en-US" : "ru-RU";
+    // ЦБ отдаёт курс с копейками, но в табло показываем целыми — как у
+    // операторского кабинета: «$ 1 = 11 976», без дробной части.
     return numeric.toLocaleString(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   }
 
@@ -282,28 +284,56 @@
     return paintRates(readStoredRates());
   }
 
+  // Наш воркер отдаёт уже разобранный {USD, EUR, date}; прямой запрос к ЦБ —
+  // резерв для демо без бэкенда (в браузере он часто падает из-за CORS).
+  function apiBase() {
+    var cfg = global.TURON_CONFIG;
+    return cfg && cfg.apiBaseUrl ? String(cfg.apiBaseUrl).replace(/\/$/, "") : "";
+  }
+
+  function fromCbuRows(rows) {
+    var result = {};
+    rows.forEach(function (row) {
+      if (row.Ccy === "USD" || row.Ccy === "EUR") {
+        result[row.Ccy] = row.Rate;
+        result.date = row.Date;
+      }
+    });
+    return result;
+  }
+
   function loadRates() {
     paintStoredRates();
-    global.fetch(CBU_ENDPOINT, { cache: "no-store" })
-      .then(function (response) {
-        if (!response.ok) throw new Error("CBU " + response.status);
-        return response.json();
+    var base = apiBase();
+    var viaWorker = base
+      ? global.fetch(base + "/api/public/rates", { cache: "no-store" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("rates " + r.status);
+            return r.json();
+          })
+      : Promise.reject(new Error("no-api"));
+
+    viaWorker
+      .catch(function () {
+        // демо/резерв: пробуем ЦБ напрямую (в браузере может не пройти CORS)
+        return global.fetch(CBU_ENDPOINT, { cache: "no-store" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("CBU " + r.status);
+            return r.json();
+          })
+          .then(fromCbuRows);
       })
-      .then(function (rows) {
-        var result = {};
-        rows.forEach(function (row) {
-          if (row.Ccy === "USD" || row.Ccy === "EUR") {
-            result[row.Ccy] = row.Rate;
-            result.date = row.Date;
-          }
-        });
-        if (!result.USD || !result.EUR) throw new Error("CBU data incomplete");
+      .then(function (result) {
+        if (!result || !result.USD || !result.EUR) {
+          throw new Error("rates incomplete");
+        }
         try { global.localStorage.setItem(STORAGE_RATES, JSON.stringify(result)); } catch (_) {}
         paintRates(result);
       })
       .catch(function () {
-        var date = document.getElementById("rate-date");
-        if (date && !readStoredRates()) date.textContent = t("rate.unavailable");
+        document.querySelectorAll('[data-rate="date"]').forEach(function (n) {
+          if (!readStoredRates()) n.textContent = t("rate.unavailable");
+        });
       });
   }
 
