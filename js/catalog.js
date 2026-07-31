@@ -17,6 +17,10 @@
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
+  function tr(key) {
+    return global.TuronPublicUi ? global.TuronPublicUi.t(key) : key;
+  }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -370,21 +374,65 @@
     function renderDestinations() {
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
+        var catalogue =
+          '<section class="tt-public-catalogue" id="tour-catalog">' +
+            '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+              esc(tr("catalog.kicker")) + "</span><h2>" +
+              esc(tr("catalog.title")) + "</h2></div><p>" +
+              esc(tr("catalog.text")) + "</p></div>" +
+            (list.length
+              ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
+              : '<div class="tt-empty-state">Направления пока не заведены.</div>') +
+          "</section>";
+
+        if (cfg.canBook) {
+          root.innerHTML = catalogue;
+          return;
+        }
+
         root.innerHTML =
-          '<section class="tt-public-intro">' +
-            '<span class="tt-eyebrow">Экспедиции Turon Tour</span>' +
-            '<h1>Маршруты, которые хочется прожить.</h1>' +
-            '<p>Авторские групповые путешествия для партнёров — с понятными ' +
-              'остатками мест, программой и условиями бронирования.</p>' +
+          '<section class="tt-public-intro" id="excursion-tours">' +
+            '<div class="tt-public-hero-copy">' +
+              '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
+              '<h1>' + esc(tr("hero.title")) + " <em>" +
+                esc(tr("hero.accent")) + "</em></h1>" +
+              "<p>" + esc(tr("hero.text")) + "</p>" +
+              '<div class="tt-public-actions">' +
+                '<button class="tt-hero-primary" type="button" data-scroll-target="tour-catalog">' +
+                  esc(tr("hero.primary")) + "<i>↘</i></button>" +
+                '<button class="tt-hero-secondary" type="button" data-scroll-target="tour-catalog">' +
+                  esc(tr("hero.secondary")) + "</button>" +
+              "</div>" +
+            "</div>" +
+            '<div class="tt-hero-identity" aria-label="Turon Tour">' +
+              '<i class="tt-hero-emblem" aria-hidden="true"></i>' +
+              '<div><span>Turon</span><strong>Tour</strong>' +
+                '<small>Tashkent · Uzbekistan</small></div>' +
+            "</div>" +
             '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
-            '</div>' +
-          '</section>' +
-          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">Куда отправимся</span>' +
-            '<h2>Направления</h2></div><p>Выберите регион, чтобы увидеть программы и даты.</p></div>' +
-          (list.length
-            ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
-            : '<div class="tt-empty-state">Направления пока не заведены.</div>');
+            "</div>" +
+          "</section>" +
+          catalogue +
+          '<section class="tt-about-company" id="about-company">' +
+            '<div class="tt-about-brand">' +
+              '<i class="tt-about-emblem" aria-hidden="true"></i>' +
+              '<span>Turon Tour<small>Tashkent · Uzbekistan</small></span>' +
+            "</div>" +
+            '<div class="tt-about-copy">' +
+              '<span class="tt-eyebrow">' + esc(tr("about.kicker")) + "</span>" +
+              "<h2>" + esc(tr("about.title")) + "</h2>" +
+              "<p>" + esc(tr("about.text")) + "</p>" +
+              '<div class="tt-about-points">' +
+                "<span><i>01</i>" + esc(tr("about.operator")) + "</span>" +
+                "<span><i>02</i>" + esc(tr("about.partners")) + "</span>" +
+                "<span><i>03</i>" + esc(tr("about.support")) + "</span>" +
+              "</div>" +
+            "</div>" +
+            '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
+          "</section>" +
+          '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
+            '<span>Tashkent · Uzbekistan</span></footer>';
       }).catch(errorBox);
     }
 
