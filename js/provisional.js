@@ -106,19 +106,21 @@
    * Разбивка 4 + 3 одинакова для всех заездов сезона. Номеров с видом
    * подороже оператор не предлагает — тип размещения один.
    */
+  var HOTEL_BATUMI = {
+    name: "Batumi View Luxury", city: "Батуми", stars: 5,
+    board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp",
+    url: "https://www.booking.com/hotel/ge/batumi-view-luxury.ru.html",
+  };
+  var HOTEL_RIZE = {
+    name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4,
+    board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp",
+    url: "https://www.booking.com/hotel/tr/rhisos-gold-otel-rize.ru.html",
+  };
+  function nights(hotel, n) { return Object.assign({}, hotel, { nights: n }); }
+
   var HOTELS = {
-    BUS: [
-      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 4,
-        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
-      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 3,
-        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
-    ],
-    TZX: [
-      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 4,
-        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
-      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 3,
-        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
-    ],
+    BUS: [nights(HOTEL_BATUMI, 4), nights(HOTEL_RIZE, 3)],
+    TZX: [nights(HOTEL_RIZE, 4), nights(HOTEL_BATUMI, 3)],
   };
 
   /*

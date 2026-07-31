@@ -6862,8 +6862,8 @@ window.TURON_TOURS = [
     "url": null
    },
    {
-    "text": "Ориентир из чернового прайса — «от $690» за человека. Точная цена берётся из выбранного заезда",
-    "url": null
+    "text": "Видео о маршруте: Трабзон и Чёрное море (Traveling Faze)",
+    "url": "https://www.youtube.com/watch?v=hGk2LxB4d60&t=105s"
    }
   ],
   "gallery": [],
@@ -7731,19 +7731,21 @@ window.TURON_DESTINATIONS = [
    * Разбивка 4 + 3 одинакова для всех заездов сезона. Номеров с видом
    * подороже оператор не предлагает — тип размещения один.
    */
+  var HOTEL_BATUMI = {
+    name: "Batumi View Luxury", city: "Батуми", stars: 5,
+    board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp",
+    url: "https://www.booking.com/hotel/ge/batumi-view-luxury.ru.html",
+  };
+  var HOTEL_RIZE = {
+    name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4,
+    board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp",
+    url: "https://www.booking.com/hotel/tr/rhisos-gold-otel-rize.ru.html",
+  };
+  function nights(hotel, n) { return Object.assign({}, hotel, { nights: n }); }
+
   var HOTELS = {
-    BUS: [
-      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 4,
-        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
-      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 3,
-        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
-    ],
-    TZX: [
-      { name: "Rhisos Gold Otel Rize", city: "Ризе", stars: 4, nights: 4,
-        board: "Завтраки включены", image: "img/hotel-rhisos-gold-rize.webp" },
-      { name: "Batumi View Luxury", city: "Батуми", stars: 5, nights: 3,
-        board: "Завтраки включены", image: "img/hotel-batumi-view-luxury.webp" },
-    ],
+    BUS: [nights(HOTEL_BATUMI, 4), nights(HOTEL_RIZE, 3)],
+    TZX: [nights(HOTEL_RIZE, 4), nights(HOTEL_BATUMI, 3)],
   };
 
   /*
@@ -9804,7 +9806,11 @@ window.TURON_DESTINATIONS = [
       });
       $("builder-notes").innerHTML = li(c.info, function (x) {
         var text = typeof x === "string" ? x : x.text;
-        return "<li>" + esc(text) + "</li>";
+        var url = typeof x === "string" ? null : x.url;
+        return "<li>" + (url
+          ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' +
+            esc(text) + "</a>"
+          : esc(text)) + "</li>";
       });
     }
     if (builderContentCache[code]) { render(builderContentCache[code]); return; }
@@ -9843,10 +9849,14 @@ window.TURON_DESTINATIONS = [
     var hotels = TuronProvisional.hotelsFor(d);
     $("builder-hotelfield").innerHTML = hotels.length
       ? hotels.map(function (h) {
-          return "<div><strong>" + esc(h.name) + " " +
-            '<span class="tt-mj-stars">' + "★".repeat(h.stars) + "</span></strong>" +
-            "<small>" + esc(h.city) + " · " + h.nights + " ноч. · " + esc(h.board) +
-            "</small></div>";
+          var name = esc(h.name) + ' <span class="tt-mj-stars">' +
+            "★".repeat(h.stars) + "</span>";
+          var title = h.url
+            ? '<a href="' + esc(h.url) + '" target="_blank" rel="noopener">' +
+              name + "</a>"
+            : name;
+          return "<div><strong>" + title + "</strong><small>" + esc(h.city) +
+            " · " + h.nights + " ноч. · " + esc(h.board) + "</small></div>";
         }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
       : "<div><small>Отель уточняется</small></div>";
 

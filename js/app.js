@@ -358,7 +358,11 @@
       });
       $("builder-notes").innerHTML = li(c.info, function (x) {
         var text = typeof x === "string" ? x : x.text;
-        return "<li>" + esc(text) + "</li>";
+        var url = typeof x === "string" ? null : x.url;
+        return "<li>" + (url
+          ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' +
+            esc(text) + "</a>"
+          : esc(text)) + "</li>";
       });
     }
     if (builderContentCache[code]) { render(builderContentCache[code]); return; }
@@ -397,10 +401,14 @@
     var hotels = TuronProvisional.hotelsFor(d);
     $("builder-hotelfield").innerHTML = hotels.length
       ? hotels.map(function (h) {
-          return "<div><strong>" + esc(h.name) + " " +
-            '<span class="tt-mj-stars">' + "★".repeat(h.stars) + "</span></strong>" +
-            "<small>" + esc(h.city) + " · " + h.nights + " ноч. · " + esc(h.board) +
-            "</small></div>";
+          var name = esc(h.name) + ' <span class="tt-mj-stars">' +
+            "★".repeat(h.stars) + "</span>";
+          var title = h.url
+            ? '<a href="' + esc(h.url) + '" target="_blank" rel="noopener">' +
+              name + "</a>"
+            : name;
+          return "<div><strong>" + title + "</strong><small>" + esc(h.city) +
+            " · " + h.nights + " ноч. · " + esc(h.board) + "</small></div>";
         }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
       : "<div><small>Отель уточняется</small></div>";
 

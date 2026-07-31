@@ -2388,8 +2388,8 @@ window.TURON_TOURS = [
     "url": null
    },
    {
-    "text": "Ориентир из чернового прайса — «от $690» за человека. Точная цена берётся из выбранного заезда",
-    "url": null
+    "text": "Видео о маршруте: Трабзон и Чёрное море (Traveling Faze)",
+    "url": "https://www.youtube.com/watch?v=hGk2LxB4d60&t=105s"
    }
   ],
   "gallery": [],
