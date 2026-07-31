@@ -32,11 +32,11 @@
    *   группа с прилётом в Батуми: TAS→BUS 31.07, обратно TZX→TAS 07.08
    *   группа с прилётом в Трабзон: TAS→TZX 31.07, обратно BUS→TAS 08.08
    *
-   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов сезона. Реально
-   * расписание может меняться от даты к дате.
+   * ПОДТВЕРЖДЕНО ОПЕРАТОРОМ: вылеты каждую пятницу по 11.09.2026
+   * включительно. В обоих направлениях: багаж 23 кг и ручная кладь 8 кг.
    *
-   * ЧТО УТОЧНИТЬ У ОПЕРАТОРА: рейсы и время по каждому из 15 заездов.
-   * Если расписание правда одно на весь сезон — достаточно подтвердить.
+   * ДОПУЩЕНИЕ: номера рейсов и время одинаковы для всех дат сезона.
+   * ЧТО УТОЧНИТЬ: номера рейсов и время по каждому заезду.
    *
    * day_offset — на сколько суток позже даты возврата вылетает рейс.
    * Рейс из Батуми в 00:20 уходит уже следующей ночью, отсюда +1.
@@ -48,27 +48,40 @@
       code: "C63309", carrier: "Centrum Air", aircraft: "A321-251N",
       from: "TAS", from_city: "Ташкент", to: "TZX", to_city: "Трабзон",
       dep: "14:30", arr: "16:20", duration: "3 ч 50 мин",
-      baggage: "20 кг", day_offset: 0,
+      baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0,
     },
     "TZX-TAS": {
       code: "C63310", carrier: "Centrum Air", aircraft: "A321-251N",
       from: "TZX", from_city: "Трабзон", to: "TAS", to_city: "Ташкент",
       dep: "17:20", arr: "22:20", duration: "3 ч",
-      baggage: "20 кг", day_offset: 0,
+      baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0,
     },
     "TAS-BUS": {
       code: "C6225", carrier: "Centrum Air", aircraft: "A320-233",
       from: "TAS", from_city: "Ташкент", to: "BUS", to_city: "Батуми",
       dep: "20:50", arr: "23:20", duration: "3 ч 30 мин",
-      baggage: "23 кг", day_offset: 0,
+      baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0,
     },
     "BUS-TAS": {
       code: "C6226", carrier: "Centrum Air", aircraft: "A320-233",
       from: "BUS", from_city: "Батуми", to: "TAS", to_city: "Ташкент",
       dep: "00:20", arr: "04:20", duration: "3 ч",
-      baggage: "23 кг", day_offset: 1,
+      baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 1,
     },
   };
+
+  // Подтверждённое окно полётной программы: еженедельно по пятницам.
+  var SCHEDULE = {
+    weekday: 5,
+    weekday_label: "каждую пятницу",
+    season_end: "2026-09-11",
+    season_end_label: "11 сентября 2026",
+  };
+
+  function isScheduledDate(iso) {
+    if (!iso || iso > SCHEDULE.season_end) return false;
+    return new Date(iso + "T00:00:00Z").getUTCDay() === SCHEDULE.weekday;
+  }
 
   /*
    * Маршрут заезда: куда прилетают и откуда улетают. Ключ — transport
@@ -135,6 +148,7 @@
 
   global.TuronProvisional = {
     LEGS: LEGS,
+    SCHEDULE: SCHEDULE,
     ROUTES: ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
@@ -146,11 +160,21 @@
       return r ? r.label : null;
     },
 
+    isScheduledDate: isScheduledDate,
+
+    flightNoteHtml: function () {
+      return '<p class="tt-provisional"><strong>Подтверждено:</strong> рейсы ' +
+        SCHEDULE.weekday_label + ' по ' + SCHEDULE.season_end_label +
+        ' включительно · багаж 23 кг · ручная кладь 8 кг. ' +
+        'Номера и время рейсов пока предварительные.</p>';
+    },
+
     /*
      * Рейсы заезда с посчитанными датами. Туда — в аэропорт прилёта,
      * обратно — из аэропорта вылета, а это разные города.
      */
     flightsFor: function (departure) {
+      if (!isScheduledDate(departure.date_start)) return null;
       var route = ROUTES[departure.transport];
       if (!route) return null;
       var out = LEGS["TAS-" + route.arrival];
