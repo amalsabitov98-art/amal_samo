@@ -23,8 +23,8 @@
    * Основание: четыре настоящих билета Centrum Air на заезд 31.07.2026
    * (TAS→TZX C63309, TZX→TAS C63310, TAS→BUS C6225, BUS→TAS C6226).
    *
-   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов через тот же
-   * аэропорт. Реально расписание может меняться от даты к дате.
+   * ДОПУЩЕНИЕ: рейсы и время одинаковы для всех заездов с тем же
+   * вариантом маршрута. Реально расписание может меняться от даты к дате.
    *
    * ЧТО УТОЧНИТЬ У ОПЕРАТОРА: рейсы и время по каждому из 15 заездов.
    * Если расписание правда одно на весь сезон — достаточно подтвердить.
@@ -61,6 +61,16 @@
         baggage: "23 кг", day_offset: 1,
       },
     },
+  };
+
+  /*
+   * Варианты маршрута кольцевые: аэропорт прилёта и аэропорт вылета
+   * различаются. Ключ совпадает с transport заезда и обозначает первый
+   * город маршрута, а не аэропорт обратного рейса.
+   */
+  var FLIGHT_ROUTES = {
+    BUS: { out: "BUS", back: "TZX" },
+    TZX: { out: "TZX", back: "BUS" },
   };
 
   /*
@@ -108,13 +118,16 @@
 
   global.TuronProvisional = {
     FLIGHTS: FLIGHTS,
+    FLIGHT_ROUTES: FLIGHT_ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
 
     // Рейсы заезда с посчитанными датами вылета и возврата.
     flightsFor: function (departure) {
-      var set = FLIGHTS[departure.transport];
-      if (!set) return null;
+      var route = FLIGHT_ROUTES[departure.transport];
+      if (!route) return null;
+      var outbound = FLIGHTS[route.out].out;
+      var inbound = FLIGHTS[route.back].back;
       var back = TuronApi.departureEnd(departure.date_start, departure.nights);
       function shift(iso, days) {
         if (!iso) return null;
@@ -123,11 +136,11 @@
         return d.toISOString().slice(0, 10);
       }
       return {
-        out: Object.assign({}, set.out, {
-          date: shift(departure.date_start, set.out.day_offset),
+        out: Object.assign({}, outbound, {
+          date: shift(departure.date_start, outbound.day_offset),
         }),
-        back: Object.assign({}, set.back, {
-          date: shift(back, set.back.day_offset),
+        back: Object.assign({}, inbound, {
+          date: shift(back, inbound.day_offset),
         }),
       };
     },
