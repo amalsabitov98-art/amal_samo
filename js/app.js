@@ -157,17 +157,30 @@
   $("logout-btn").addEventListener("click", doLogout);
   $("logout-top").addEventListener("click", doLogout);
 
-  // Язык кабинета — тот же переключатель, что и в публичной шапке.
-  // Держим оба селекта синхронно и применяем через TuronPublicUI.
-  var appLang = $("app-language");
-  if (appLang && window.TuronPublicUi && TuronPublicUi.setLanguage) {
-    appLang.addEventListener("change", function () {
-      TuronPublicUi.setLanguage(appLang.value);
-    });
-    window.addEventListener("turon:language", function (e) {
-      if (e.detail && e.detail.language) appLang.value = e.detail.language;
-    });
+  /* Колокольчик: открытие панели, закрытие по клику вне и по Esc.
+   * Содержимое собирает renderNotices() из загруженных броней. */
+  function setNotices(open) {
+    $("notice-panel").hidden = !open;
+    $("notice-btn").setAttribute("aria-expanded", open ? "true" : "false");
   }
+  $("notice-btn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    var willOpen = $("notice-panel").hidden;
+    if (willOpen) renderNotices();
+    setNotices(willOpen);
+  });
+  $("notice-panel").addEventListener("click", function (e) {
+    e.stopPropagation();
+    var go = e.target.closest("[data-goto]");
+    if (!go) return;
+    setNotices(false);
+    switchTab(go.dataset.goto);
+    renderPayments();
+  });
+  document.addEventListener("click", function () { setNotices(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setNotices(false);
+  });
 
   $("public-login-btn").addEventListener("click", function () { showLogin(); });
 
@@ -853,6 +866,7 @@
       renderTravellers();
       renderPayments();
       renderDocuments();
+      renderNotices();   // колокольчик считается по тем же броням
     }).catch(function (err) {
       $("bookings-list").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить брони.<div class="tt-muted-note">' +
@@ -982,6 +996,80 @@
    * Сроки считает TuronApi.paymentPolicy от даты брони и даты выезда —
    * та же логика, что в карточке тура и в окне брони.
    */
+  /* ------------------------------------------------------- уведомления
+   * Колокольчик раньше был просто иконкой. Теперь собирает то, что
+   * агенту важно не пропустить, из уже загруженных броней:
+   * просроченные платежи, ближайшие выезды и проблемы с паспортами.
+   * Отдельного запроса нет — считаем по state.bookings.
+   */
+  function collectNotices() {
+    var out = [];
+    var today = new Date().toISOString().slice(0, 10);
+    var soon = new Date();
+    soon.setDate(soon.getDate() + 7);
+    var soonIso = soon.toISOString().slice(0, 10);
+
+    state.bookings.filter(function (b) { return b.status !== "cancelled"; })
+      .forEach(function (b) {
+        // 1. просроченные этапы оплаты
+        var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
+        var lateSum = 0;
+        pol.steps.forEach(function (s) {
+          var due = s.due.toISOString().slice(0, 10);
+          var need = Math.round(b.total_price * s.share * 100) / 100;
+          if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
+        });
+        if (lateSum > 0) {
+          out.push({ kind: "late", code: b.code,
+            text: "Просрочен платёж по брони " + b.code + " — " + money(lateSum) });
+        }
+
+        // 2. выезд на этой неделе
+        if (b.date_start >= today && b.date_start <= soonIso) {
+          out.push({ kind: "soon", code: b.code,
+            text: "Выезд " + formatDate(b.date_start) + " · бронь " + b.code +
+                  (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
+        }
+
+        // 3. паспорта: истекающие и незаполненные
+        (b.passengers || []).forEach(function (p) {
+          if (!p.passport_number || !p.passport_expiry) {
+            out.push({ kind: "pass", code: b.code,
+              text: "Не заполнен паспорт: " + (p.full_name || "пассажир") +
+                    " · бронь " + b.code });
+            return;
+          }
+          var issue = TuronApi.passportIssue(p.passport_expiry, b.date_start);
+          if (issue) {
+            out.push({ kind: "pass", code: b.code,
+              text: (p.full_name || "Пассажир") + " — " + issue + " · бронь " + b.code });
+          }
+        });
+      });
+
+    // сначала просрочки, затем ближайшие выезды, затем паспорта
+    var order = { late: 0, soon: 1, pass: 2 };
+    return out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
+  }
+
+  function renderNotices() {
+    var list = collectNotices();
+    var dot = $("notice-dot");
+    if (dot) dot.hidden = list.length === 0;
+
+    var icons = { late: "!", soon: "✈", pass: "▣" };
+    $("notice-panel").innerHTML = list.length
+      ? '<div class="tt-notice-head">Уведомления<span>' + list.length + "</span></div>" +
+        '<ul class="tt-notice-list">' + list.map(function (n) {
+          return '<li class="is-' + n.kind + '"><b>' + icons[n.kind] + "</b>" +
+            esc(n.text) + "</li>";
+        }).join("") + "</ul>" +
+        '<button type="button" class="tt-notice-go" data-goto="payments">Перейти к платежам</button>'
+      : '<div class="tt-notice-head">Уведомления</div>' +
+        '<p class="tt-notice-empty">Всё в порядке: просрочек нет, ' +
+        "ближайших выездов на этой неделе тоже.</p>";
+  }
+
   function renderPayments() {
     var active = state.bookings.filter(function (b) { return b.status !== "cancelled"; });
     var total = active.reduce(function (s, b) { return s + b.total_price; }, 0);

@@ -125,22 +125,6 @@ a { color: inherit; }
   font-weight: 600;
 }
 
-.tt-search-panel {
-  background: var(--tt-surface);
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius);
-  box-shadow: var(--tt-shadow);
-  padding: 20px;
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr auto;
-  gap: 14px;
-  margin-bottom: 28px;
-}
-
-@media (max-width: 720px) {
-  .tt-search-panel { grid-template-columns: 1fr; }
-}
-
 .tt-field label {
   display: block;
   font-size: 0.78rem;
@@ -179,46 +163,6 @@ a { color: inherit; }
 .tt-btn.secondary:hover { background: var(--tt-accent-soft); }
 .tt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.tt-search-panel .tt-btn { align-self: end; }
-
-.tt-results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
-}
-
-.tt-card {
-  background: var(--tt-surface);
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius);
-  box-shadow: var(--tt-shadow);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.tt-card-cover {
-  height: 150px;
-  background: linear-gradient(135deg, var(--tt-accent-soft), var(--tt-border));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--tt-accent-dark);
-  font-size: 0.85rem;
-}
-
-.tt-card-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-}
-
-.tt-card-title { font-size: 1.05rem; font-weight: 700; }
-.tt-card-meta { font-size: 0.85rem; color: var(--tt-text-muted); }
-.tt-card-desc { font-size: 0.88rem; color: var(--tt-text-muted); flex: 1; }
-
 .tt-badge {
   display: inline-block;
   font-size: 0.72rem;
@@ -229,42 +173,15 @@ a { color: inherit; }
   width: fit-content;
 }
 
-.tt-card-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--tt-accent-dark);
-}
-.tt-card-price small {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--tt-text-muted);
-}
-
-.tt-card-footer {
-  padding: 14px 16px;
-  border-top: 1px solid var(--tt-border);
-}
-
 .tt-empty-state {
   text-align: center;
   color: var(--tt-text-muted);
   padding: 60px 20px;
 }
 
-
 /* ======================= Кабинет агентства ======================= */
 
 .tt-btn-sm { padding: 7px 14px; font-size: 0.85rem; }
-
-.tt-header-right { display: flex; align-items: center; gap: 12px; }
-.tt-agency-chip {
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--tt-accent-soft);
-  color: var(--tt-accent-dark);
-}
 
 .tt-muted-note { font-size: 0.8rem; color: var(--tt-text-muted); }
 
@@ -683,12 +600,6 @@ a { color: inherit; }
   font-size: 0.95rem;
 }
 
-.tt-manifest-meta {
-  font-size: 0.88rem;
-  color: var(--tt-text-muted);
-  margin-bottom: 12px;
-}
-
 /* Таблица широкая — прокручиваем её саму, страница вбок не едет */
 .tt-table-wrap {
   overflow-x: auto;
@@ -767,10 +678,6 @@ a { color: inherit; }
   text-align: center;
 }
 .tt-link-btn:hover { color: var(--tt-accent); }
-
-@media (max-width: 640px) {
-  .tt-hide-sm { display: none; }
-}
 
 .tt-crumbs {
   display: flex;
@@ -1426,14 +1333,6 @@ select { font-family: inherit; }
   font-style: normal;
 }
 
-.tt-public-status {
-  color: var(--tt-success);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 #screen-public > .tt-container {
   width: min(1380px, 100%);
   max-width: none;
@@ -1681,40 +1580,6 @@ select { font-family: inherit; }
   font-size: clamp(1.8rem, 3vw, 2.35rem);
   font-weight: 600;
   letter-spacing: -0.035em;
-}
-.tt-live-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--tt-success);
-  font-size: 0.68rem;
-  font-weight: 600;
-}
-.tt-live-dot::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--tt-success);
-  box-shadow: 0 0 0 5px rgba(22, 128, 95, 0.1);
-}
-.tt-support-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 0;
-  background: transparent;
-  color: var(--tt-text-muted);
-  font-size: 0.72rem;
-}
-.tt-support-btn i {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--tt-border);
-  border-radius: 50%;
-  font-style: normal;
 }
 
 .tt-app-container {
@@ -2259,45 +2124,6 @@ select { font-family: inherit; }
 .tt-hero-dots button.is-active i {
   width: 25px;
   background: #e5c987;
-}
-
-.tt-hero-identity {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 40px;
-  text-align: center;
-}
-.tt-hero-emblem {
-  width: min(29vw, 330px);
-  height: min(32vw, 365px);
-  display: block;
-  background:
-    url("img/turon-logo.webp") center / contain no-repeat;
-  filter: drop-shadow(0 24px 32px rgba(0, 0, 0, 0.32));
-}
-.tt-hero-identity > div {
-  margin-top: -19px;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.5rem, 4vw, 4.2rem);
-  line-height: 0.78;
-  letter-spacing: -0.04em;
-}
-.tt-hero-identity > div strong {
-  color: #e5c987;
-  font-weight: 500;
-}
-.tt-hero-identity > div small {
-  display: block;
-  margin-top: 16px;
-  color: rgba(255, 255, 255, 0.5);
-  font-family: "Manrope", "Segoe UI", sans-serif;
-  font-size: 0.48rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
 }
 .tt-public-route {
   position: absolute;
@@ -2886,8 +2712,6 @@ select { font-family: inherit; }
   #screen-public > .tt-container { padding: 24px 15px 70px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
-  .tt-live-dot,
-  .tt-support-btn span { display: none; }
   .tt-app-container { padding: 20px 14px 60px; }
   .tt-section-intro { display: block; }
   .tt-route-pill { width: fit-content; margin-top: 13px; }
@@ -2909,16 +2733,6 @@ select { font-family: inherit; }
     opacity: 0.7;
   }
   .tt-public-hero-copy { position: relative; z-index: 3; }
-  .tt-hero-identity {
-    position: absolute;
-    z-index: 0;
-    top: 12px;
-    right: -30px;
-    opacity: 0.28;
-    pointer-events: none;
-  }
-  .tt-hero-emblem { width: 260px; height: 288px; }
-  .tt-hero-identity > div { display: none; }
   .tt-public-intro h1 { max-width: 620px; }
   .tt-public-route {
     right: 22px;
@@ -2974,7 +2788,6 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 480px) {
-  .tt-header-right { gap: 7px; }
   .tt-public-header .tt-btn { padding-inline: 12px; }
   .tt-public-header { align-items: flex-start; }
   .tt-public-brand { margin-top: 2px; }
@@ -3140,7 +2953,6 @@ select { font-family: inherit; }
   margin: 12px 10px;
   background: rgba(255,255,255,.14);
 }
-.tt-app-shell.is-builder .tt-tab-static { cursor: default; }
 /* Верхняя панель одинаковая на всех вкладках — не перекрашиваем её
    на билдере (агентства просили постоянную шапку). У билдера свой
    крупный заголовок, поэтому полосу-подзаголовок на нём прячем. */
@@ -3151,490 +2963,10 @@ select { font-family: inherit; }
   padding: 0;
 }
 
-.tt-builder-hero {
-  position: relative;
-  min-height: 205px;
-  overflow: hidden;
-  color: #fff;
-  background:
-    linear-gradient(90deg, rgba(3,35,30,.68), rgba(3,35,30,.08) 62%, rgba(3,35,30,.4)),
-    linear-gradient(0deg, rgba(2,38,32,.42), transparent 55%),
-    url("img/hero-karadeniz.webp") center 55% / cover no-repeat;
-}
-.tt-builder-hero-copy {
-  position: absolute;
-  left: clamp(38px, 5vw, 72px);
-  top: 45px;
-}
-.tt-builder-hero h1 {
-  margin: 0 0 18px;
-  color: #fffdf7;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.7rem, 4.2vw, 4.5rem);
-  font-weight: 500;
-  letter-spacing: -.035em;
-  text-shadow: 0 2px 24px rgba(0,0,0,.28);
-}
-.tt-builder-hero h1 i { color: rgba(255,255,255,.72); font-style: normal; }
-.tt-builder-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: .72rem;
-  text-shadow: 0 1px 10px rgba(0,0,0,.5);
-}
-.tt-builder-meta span { font-size: 1rem; }
-.tt-builder-meta span + span { margin-left: 18px; }
-.tt-builder-map {
-  position: absolute;
-  right: 30px;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  color: #fff;
-  font-size: .66rem;
-  text-shadow: 0 1px 8px rgba(0,0,0,.65);
-}
-.tt-builder-map i {
-  width: 30px;
-  border-top: 1px dashed rgba(255,255,255,.86);
-  transform: rotate(8deg);
-}
-.tt-builder-map i:nth-of-type(even) { transform: rotate(-8deg); }
-.tt-builder-map b {
-  width: 10px;
-  height: 10px;
-  border: 2px solid rgba(255,255,255,.9);
-  border-radius: 50%;
-  background: #fff;
-}
-.tt-builder-map strong { color: #ff7650; font-weight: 600; }
-
-.tt-builder-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 20px;
-  padding: 0 20px 40px;
-  background:
-    linear-gradient(rgba(250,248,243,.94), rgba(250,248,243,.97)),
-    repeating-linear-gradient(0deg, rgba(11,55,46,.018) 0 1px, transparent 1px 4px);
-}
-.tt-builder-main { min-width: 0; }
-.tt-builder-steps {
-  min-height: 62px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0,1fr));
-  align-items: center;
-  gap: 12px;
-}
-.tt-builder-steps span {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #464b47;
-  font-size: .7rem;
-  white-space: nowrap;
-}
-.tt-builder-steps span:not(:last-child)::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  min-width: 18px;
-  margin-left: 6px;
-  background: #dedbd2;
-}
-.tt-builder-steps b {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  background: #ebe9e2;
-  font-size: .66rem;
-}
-.tt-builder-steps .is-active { color: #132c27; font-weight: 700; }
-.tt-builder-steps .is-active b {
-  border: 2px solid rgba(255,255,255,.65);
-  background: #0d594b;
-  color: #fff;
-  box-shadow: 0 0 0 1px #0d594b;
-}
-.tt-builder-steps em { color: #0d594b; font-style: normal; }
-
-.tt-build-card {
-  margin-bottom: 9px;
-  overflow: hidden;
-  border: 1px solid #dedbd3;
-  border-radius: 7px;
-  background: rgba(255,255,255,.62);
-}
-.tt-build-card > header {
-  min-height: 43px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  border-bottom: 1px solid #e4e1d9;
-}
-.tt-build-card h2 {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0;
-  font-family: Manrope, sans-serif;
-  font-size: .83rem;
-  font-weight: 700;
-}
-.tt-build-card h2 i {
-  color: #0d594b;
-  font-size: 1.05rem;
-  font-style: normal;
-}
-.tt-outline-btn {
-  min-height: 30px;
-  padding: 5px 11px;
-  border: 1px solid #428272;
-  border-radius: 5px;
-  background: transparent;
-  color: #276657;
-  font-size: .61rem;
-}
-.tt-outline-btn:hover { background: #e8f1ed; }
-.tt-route-summary {
-  display: grid;
-  grid-template-columns: 225px 1fr auto;
-  align-items: center;
-  gap: 22px;
-  padding: 13px 18px;
-}
-.tt-route-summary > div:first-child {
-  padding-left: 27px;
-  border-right: 1px solid #e4e1d8;
-}
-.tt-route-summary strong,
-.tt-route-summary small,
-.tt-route-cities span { display: block; }
-.tt-route-summary strong { font-size: .69rem; }
-.tt-route-summary small { margin-top: 3px; color: #6c716d; font-size: .56rem; }
-.tt-route-cities {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 13px;
-}
-.tt-route-cities span { color: #111; font-size: .68rem; }
-.tt-route-cities i { color: #7f8581; font-style: normal; }
-
-.tt-flight-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 0 13px 13px;
-}
-.tt-flight {
-  position: relative;
-  min-height: 123px;
-  display: grid;
-  grid-template-columns: 90px 62px 28px 62px 52px;
-  align-items: end;
-  gap: 5px;
-  padding: 31px 12px 11px;
-  border: 1px solid #dedbd2;
-  border-radius: 6px;
-  background: rgba(255,255,255,.72);
-}
-.tt-flight-tag {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: 4px 12px;
-  border-radius: 5px 0 5px 0;
-  background: #17624f;
-  color: #fff;
-  font-size: .49rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.tt-flight.is-return .tt-flight-tag { background: #ed6840; }
-.tt-airline {
-  align-self: center;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .55rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  line-height: 1;
-}
-.tt-airline b { font-size: 1.2rem; }
-.tt-airport strong,
-.tt-airport small,
-.tt-airport time { display: block; }
-.tt-airport strong { font-size: 1rem; }
-.tt-airport small { color: #686d69; font-size: .52rem; }
-.tt-airport time { margin-top: 11px; color: #121713; font-size: 1rem; font-weight: 700; }
-.tt-flight-line {
-  align-self: center;
-  color: #173c34;
-  text-align: center;
-}
-.tt-flight-line small {
-  display: block;
-  margin-top: 13px;
-  color: #6b706c;
-  font-size: .48rem;
-  line-height: 1.7;
-}
-.tt-flight-seats {
-  align-self: end;
-  padding-left: 10px;
-  border-left: 1px solid #e3e0d7;
-  text-align: center;
-}
-.tt-flight-seats small,
-.tt-flight-seats strong,
-.tt-flight-seats span { display: block; }
-.tt-flight-seats small,
-.tt-flight-seats span { color: #686d69; font-size: .5rem; }
-.tt-flight-seats strong { color: #0d594b; font-size: 1rem; }
-.tt-flight.is-return .tt-flight-seats strong { color: #ed6840; }
-
-.tt-hotels-row {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 0 13px 8px;
-}
-.tt-hotel-card {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 135px minmax(0,1fr) auto;
-  align-items: center;
-  overflow: hidden;
-  border: 1px solid #dedbd2;
-  border-radius: 6px;
-  background: #fff;
-}
-.tt-hotel-image {
-  width: 135px;
-  height: 92px;
-  align-self: stretch;
-  background-position: center;
-  background-size: cover;
-}
-.tt-hotel-image.is-batumi {
-  background-image: url("img/hotel-batumi-view-luxury.webp");
-}
-.tt-hotel-image.is-rize {
-  background-image: url("img/hotel-rhisos-gold-rize.webp");
-}
-.tt-hotel-card > div { min-width: 0; padding: 8px 10px; }
-.tt-hotel-card strong,
-.tt-hotel-card span,
-.tt-hotel-card small { display: block; }
-.tt-hotel-card strong { overflow: hidden; font-size: .67rem; text-overflow: ellipsis; white-space: nowrap; }
-.tt-hotel-card .tt-stars { margin: 3px 0 8px; color: #ee6b43; font-size: .56rem; letter-spacing: 2px; }
-.tt-hotel-card small { color: #555c57; font-size: .51rem; line-height: 1.6; }
-.tt-hotel-card .tt-outline-btn { margin-right: 9px; }
-.tt-hotel-arrow { color: #31534b; font-style: normal; text-align: center; }
-.tt-add-line {
-  min-height: 29px;
-  margin: 0 13px 10px;
-  padding: 4px 18px;
-  border: 1px dashed #8cac9f;
-  border-radius: 4px;
-  background: transparent;
-  color: #397464;
-  font-size: .58rem;
-}
-
-.tt-traveller-list { padding: 0 13px; }
-.tt-traveller-list article {
-  display: grid;
-  grid-template-columns: 28px minmax(180px,1fr) auto 82px auto 82px auto 82px;
-  align-items: center;
-  gap: 9px;
-  min-height: 43px;
-  border-bottom: 1px solid #e5e2da;
-}
-.tt-traveller-list article > b {
-  width: 25px;
-  height: 25px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #e9e7e1;
-  font-size: .58rem;
-}
-.tt-traveller-list article > div:nth-child(2) strong,
-.tt-traveller-list article > div:nth-child(2) small { display: block; }
-.tt-traveller-list article > div:nth-child(2) strong { font-size: .62rem; }
-.tt-traveller-list article > div:nth-child(2) small { color: #6d726e; font-size: .47rem; }
-.tt-traveller-list article > span { color: #555b57; font-size: .48rem; white-space: nowrap; }
-.tt-qty {
-  height: 27px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: center;
-  border: 1px solid #d7d4cc;
-  border-radius: 4px;
-  text-align: center;
-}
-.tt-qty button { border: 0; background: transparent; color: #46504c; font-size: .7rem; }
-.tt-qty strong { font-size: .56rem; }
-
-.tt-build-aside {
-  position: sticky;
-  top: 90px;
-  align-self: start;
-  padding-top: 22px;
-}
-.tt-book-summary {
-  padding: 18px;
-  border-radius: 7px;
-  background:
-    radial-gradient(circle at 100% 0, rgba(41,120,98,.22), transparent 14rem),
-    #073c33;
-  color: #fff;
-  box-shadow: 0 13px 35px rgba(4,44,37,.16);
-}
-.tt-book-summary h2,
-.tt-pay-plan h2 {
-  margin: 0 0 18px;
-  font-family: Manrope, sans-serif;
-  font-size: .78rem;
-}
-.tt-book-summary > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 11px 0;
-  color: rgba(255,255,255,.78);
-  font-size: .61rem;
-}
-.tt-book-summary > div strong { color: #fff; font-size: .65rem; }
-.tt-book-summary .is-accent { color: #ff7148; }
-.tt-book-summary footer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-top: 15px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,.16);
-}
-.tt-book-summary footer span { font-size: .85rem; font-weight: 700; }
-.tt-book-summary footer span small {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255,255,255,.52);
-  font-size: .48rem;
-  font-weight: 400;
-}
-.tt-book-summary footer > strong { font-size: 1.65rem; letter-spacing: .03em; }
-.tt-pay-plan,
-.tt-commission-box {
-  margin-top: 10px;
-  padding: 16px 18px;
-  border: 1px solid #dedbd3;
-  border-radius: 7px;
-  background: rgba(255,255,255,.72);
-}
-.tt-pay-plan > div {
-  position: relative;
-  display: grid;
-  grid-template-columns: 14px 1fr auto;
-  gap: 10px;
-  align-items: start;
-  min-height: 54px;
-}
-.tt-pay-plan > div:first-of-type::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 12px;
-  height: 43px;
-  border-left: 1px solid #cad1cd;
-}
-.tt-pay-plan i {
-  position: relative;
-  z-index: 1;
-  width: 10px;
-  height: 10px;
-  margin-top: 3px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background: #073c33;
-  box-shadow: 0 0 0 1px #073c33;
-}
-.tt-pay-plan span strong,
-.tt-pay-plan span small { display: block; }
-.tt-pay-plan span strong,
-.tt-pay-plan b { font-size: .6rem; }
-.tt-pay-plan span small { margin-top: 4px; color: #6c726e; font-size: .5rem; }
-.tt-commission-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.tt-commission-box strong,
-.tt-commission-box small { display: block; }
-.tt-commission-box strong { font-size: .63rem; }
-.tt-commission-box small { margin-top: 5px; color: #6a706c; font-size: .5rem; }
-.tt-commission-box b { color: #ed6840; font-size: .72rem; }
-.tt-builder-book {
-  width: 100%;
-  min-height: 57px;
-  margin-top: 13px;
-  border: 0;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #f27a49, #ee5631);
-  color: #fff;
-  box-shadow: 0 12px 25px rgba(238,86,49,.2);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-}
-.tt-builder-book:hover { filter: brightness(.96); }
-.tt-secure-note { color: #a8aaa6; font-size: .5rem; text-align: center; }
-
-@media (max-width: 1240px) {
-  .tt-builder-layout { grid-template-columns: 1fr 280px; }
-  .tt-flight { grid-template-columns: 85px 64px 28px 64px 52px; }
-  .tt-airline { font-size: .48rem; }
-  .tt-hotel-card { grid-template-columns: 105px minmax(0,1fr); }
-  .tt-hotel-image { width: 105px; }
-  .tt-hotel-card .tt-outline-btn { grid-column: 2; width: fit-content; margin: 0 0 8px 10px; }
-  .tt-traveller-list article {
-    grid-template-columns: 28px minmax(170px,1fr) auto 76px auto 76px;
-  }
-  .tt-traveller-list article > span:nth-of-type(3),
-  .tt-traveller-list article > .tt-qty:last-child { display: none; }
-}
-
-@media (max-width: 1020px) {
-  .tt-builder-layout { display: block; }
-  .tt-build-aside { position: static; padding: 4px 0 30px; }
-  .tt-flight-grid { grid-template-columns: 1fr; }
-  .tt-flight { grid-template-columns: 105px 1fr 44px 1fr 74px; }
-  .tt-builder-steps span { font-size: .58rem; }
-}
-
 @media (max-width: 860px) {
   .tt-app-tools { gap: 8px; }
   .tt-app-brandtext { display: none; }
   .tt-menu-btn { display: grid; color: var(--tt-forest); }
-  .tt-builder-hero { min-height: 270px; }
-  .tt-builder-hero-copy { left: 24px; top: 46px; }
-  .tt-builder-map { left: 25px; right: auto; }
-  .tt-builder-layout { padding-inline: 13px; }
-  .tt-route-summary { grid-template-columns: 1fr auto; }
-  .tt-route-summary > div:first-child { padding-left: 0; border-right: 0; }
-  .tt-route-cities { grid-column: 1 / -1; grid-row: 2; }
-  .tt-hotels-row { grid-template-columns: 1fr; }
-  .tt-hotel-arrow { transform: rotate(90deg); }
 }
 
 @media (max-width: 620px) {
@@ -3643,89 +2975,13 @@ select { font-family: inherit; }
   .tt-app-tools .tt-app-tg,
   .tt-top-account-name { display: none; }
   .tt-top-account { border: 0; background: transparent; padding: 0; gap: 6px; }
-  .tt-builder-hero h1 { font-size: 2.65rem; line-height: .95; }
-  .tt-builder-meta { flex-wrap: wrap; }
-  .tt-builder-steps { display: flex; overflow-x: auto; padding: 0 2px; }
-  .tt-builder-steps span { flex: 0 0 auto; }
-  .tt-builder-steps span::after { width: 24px; }
-  .tt-flight {
-    grid-template-columns: 1fr 1fr 35px 1fr;
-    padding-top: 38px;
-  }
-  .tt-airline { grid-column: 1 / -1; }
-  .tt-flight-seats { display: none; }
-  .tt-hotel-card { grid-template-columns: 96px minmax(0,1fr); }
-  .tt-hotel-image { width: 96px; height: 104px; }
-  .tt-traveller-list article {
-    grid-template-columns: 28px 1fr 82px;
-    padding: 8px 0;
-  }
-  .tt-traveller-list article > span { display: none; }
-  .tt-traveller-list article > .tt-qty:nth-of-type(n+2) { display: none; }
-  .tt-route-summary { display: flex; flex-wrap: wrap; }
-  .tt-route-cities { width: 100%; overflow-x: auto; justify-content: space-between; }
 }
-
-/* --------------------- конструктор на реальных данных --------------------- */
-/* Строка тарифа в блоке «Туристы»: своя сетка вместо восьмиколоночной —
-   счётчики теперь по тарифам заезда, а не по выдуманным пассажирам. */
-.tt-traveller-list article.tt-tariff-row {
-  grid-template-columns: 28px minmax(150px, 1fr) 70px 82px 70px;
-  gap: 10px;
-}
-.tt-tariff-row > span {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.tt-tariff-row > div:nth-child(2) strong { font-size: .62rem; }
-.tt-tariff-row > div:nth-child(2) small { color: #6d726e; font-size: .47rem; }
-.tt-qty button:disabled { opacity: .35; cursor: default; }
-
-.tt-builder-hint {
-  margin: 10px 13px 0;
-  color: #6c726e;
-  font-size: .5rem;
-  line-height: 1.6;
-}
-.tt-builder-empty {
-  margin: 0;
-  padding: 14px 16px;
-  border: 1px dashed #d7d4cc;
-  border-radius: 6px;
-  color: #6c726e;
-  font-size: .55rem;
-  line-height: 1.6;
-}
-
-/* Выбор заезда там, где была кнопка «Изменить» */
-select.tt-outline-btn {
-  max-width: 100%;
-  font: inherit;
-  font-size: .55rem;
-  cursor: pointer;
-}
-
-.tt-book-summary .tt-error-box { margin-top: 12px; }
 
 /* На телефоне конструктор ехал вбок: колонки фиксированной ширины и
    липкая колонка сводки не помещались в 390px. */
 @media (max-width: 900px) {
   .tt-builder-layout { grid-template-columns: 1fr; }
   .tt-build-aside { position: static; }
-}
-@media (max-width: 640px) {
-  .tt-traveller-list article.tt-tariff-row {
-    grid-template-columns: 24px 1fr auto;
-    gap: 6px 8px;
-    padding: 10px 0;
-  }
-  .tt-tariff-row > span:nth-child(3) { grid-column: 2; text-align: left; }
-  .tt-tariff-row .tt-qty { grid-row: 1 / 3; grid-column: 3; }
-  .tt-tariff-row > span:last-child { display: none; }
-  .tt-route-summary { grid-template-columns: 1fr; gap: 10px; }
-  .tt-hotels-row { grid-template-columns: 1fr; }
-  .tt-hotel-arrow { display: none; }
-  .tt-builder-steps { overflow-x: auto; }
 }
 
 /* Боковое меню на телефоне: было 248px в сетке при экране 390px, из-за
@@ -3759,33 +3015,6 @@ select.tt-outline-btn {
   .tt-sidebar { transition: none; }
 }
 
-/* Предупреждение внутри тёмной сводки: базовый .tt-error-box рассчитан
-   на светлый фон и на зелёной панели почти не читался. */
-.tt-book-summary .tt-error-box {
-  border-color: rgba(255, 170, 150, 0.55);
-  background: rgba(255, 120, 90, 0.16);
-  color: #ffd9d0;
-}
-
-/* Пункты меню без раздела: были обычными кнопками, клик по ним молча
-   ничего не делал. Помечаем «скоро» и гасим — агент видит, что раздела
-   пока нет, а не думает, что кабинет сломался. */
-.tt-sidebar .tt-tab-static {
-  cursor: default;
-  opacity: 0.45;
-}
-.tt-sidebar .tt-tab-static:hover { background: none; }
-.tt-sidebar .tt-tab-static em {
-  margin-left: auto;
-  padding: 2px 6px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  font-size: 0.5rem;
-  font-style: normal;
-  letter-spacing: 0.04em;
-  opacity: 0.8;
-}
-
 /* ------------------- разделы «Туристы», «Платежи», «Документы» ------------------ */
 
 /* Плашка под блоками, которые построены на неподтверждённых данных
@@ -3800,7 +3029,6 @@ select.tt-outline-btn {
   font-size: 0.75rem;
   line-height: 1.5;
 }
-.tt-build-card .tt-provisional { margin: 10px 13px 0; }
 
 .tt-row-card {
   display: grid;
@@ -3883,15 +3111,6 @@ select.tt-outline-btn {
   margin-bottom: 3px;
 }
 .tt-contact-grid a { color: var(--tt-accent); }
-
-/* Шаги конструктора стали кнопками — убираем вид обычной кнопки */
-.tt-builder-steps button {
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  color: inherit;
-}
 
 @media (max-width: 720px) {
   .tt-row-card { grid-template-columns: 1fr 1fr; }
@@ -4108,3 +3327,46 @@ select.tt-outline-btn {
   .tt-mj-fltable td { border: 0; padding: 4px 8px; }
   .tt-mj-fl-carrier { display: flex; }
 }
+
+/* ------------------- колокольчик: панель уведомлений ------------------- */
+/* Считается из уже загруженных броней (js/app.js → collectNotices):
+   просроченные платежи, ближайшие выезды, проблемы с паспортами. */
+.tt-notice-wrap { position: relative; }
+.tt-notice-panel {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
+  width: min(360px, calc(100vw - 32px));
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: 14px; box-shadow: 0 18px 48px rgba(13, 48, 42, 0.18);
+  overflow: hidden;
+}
+.tt-notice-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--tt-border);
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--tt-forest);
+}
+.tt-notice-head span {
+  min-width: 20px; padding: 1px 7px; border-radius: 999px;
+  background: var(--tt-accent); color: #fff; font-size: 0.7rem; text-align: center;
+}
+.tt-notice-list { margin: 0; padding: 6px; list-style: none;
+  max-height: 340px; overflow-y: auto; }
+.tt-notice-list li {
+  display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start;
+  padding: 10px; border-radius: 10px; font-size: 0.82rem; line-height: 1.4;
+}
+.tt-notice-list li + li { border-top: 1px solid var(--tt-border); border-radius: 0; }
+.tt-notice-list b {
+  display: grid; place-items: center; width: 22px; height: 22px;
+  border-radius: 7px; font-size: 0.72rem; color: #fff;
+}
+.tt-notice-list .is-late b { background: var(--tt-danger); }
+.tt-notice-list .is-soon b { background: var(--tt-accent); }
+.tt-notice-list .is-pass b { background: var(--tt-warn-border); color: var(--tt-warn-text); }
+.tt-notice-empty { margin: 0; padding: 16px; color: var(--tt-text-muted); font-size: 0.82rem; }
+.tt-notice-go {
+  width: 100%; padding: 11px; border: 0; border-top: 1px solid var(--tt-border);
+  background: var(--tt-surface-2); color: var(--tt-forest);
+  font-size: 0.8rem; font-weight: 700; cursor: pointer;
+}
+.tt-notice-go:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
