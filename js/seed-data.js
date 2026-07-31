@@ -18,7 +18,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 600.0,
+    "price": 600,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -27,7 +27,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 790.0,
+    "price": 790,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -36,7 +36,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 600.0,
+    "price": 600,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -59,7 +59,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 830.0,
+    "price": 830,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -68,7 +68,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 790.0,
+    "price": 790,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -77,7 +77,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 830.0,
+    "price": 830,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -86,7 +86,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 600.0,
+    "price": 600,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -95,7 +95,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 480.0,
+    "price": 480,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -104,7 +104,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -127,7 +127,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 830.0,
+    "price": 830,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -136,7 +136,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 790.0,
+    "price": 790,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -145,7 +145,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 830.0,
+    "price": 830,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -154,7 +154,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 600.0,
+    "price": 600,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -163,7 +163,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 480.0,
+    "price": 480,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -172,7 +172,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -195,7 +195,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -204,7 +204,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -213,7 +213,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -222,7 +222,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 630.0,
+    "price": 630,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -231,7 +231,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 510.0,
+    "price": 510,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -240,7 +240,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -263,7 +263,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -272,7 +272,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -281,7 +281,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -290,7 +290,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -299,7 +299,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 600.0,
+    "price": 600,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -308,7 +308,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 480.0,
+    "price": 480,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -317,7 +317,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -340,7 +340,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -349,7 +349,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -358,7 +358,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -367,7 +367,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -376,7 +376,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 650.0,
+    "price": 650,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -385,7 +385,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -394,7 +394,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -417,7 +417,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -426,7 +426,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -435,7 +435,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -444,7 +444,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 600.0,
+    "price": 600,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -453,7 +453,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 480.0,
+    "price": 480,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -462,7 +462,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -485,7 +485,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -494,7 +494,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -503,7 +503,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -512,7 +512,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -521,7 +521,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 650.0,
+    "price": 650,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -530,7 +530,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -539,7 +539,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -562,7 +562,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -571,7 +571,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -580,7 +580,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -589,7 +589,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -598,7 +598,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 650.0,
+    "price": 650,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -607,7 +607,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -616,7 +616,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -639,7 +639,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -648,7 +648,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -657,7 +657,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -666,7 +666,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -675,7 +675,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 650.0,
+    "price": 650,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -684,7 +684,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -693,7 +693,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -716,7 +716,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -725,7 +725,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1095.0,
+    "price": 1095,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -734,7 +734,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 875.0,
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -743,7 +743,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -752,7 +752,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 650.0,
+    "price": 650,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -761,7 +761,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -770,7 +770,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -793,7 +793,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -802,7 +802,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -811,7 +811,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -820,7 +820,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -829,7 +829,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -838,7 +838,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -847,7 +847,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -870,7 +870,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -879,7 +879,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -888,7 +888,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -897,7 +897,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -906,7 +906,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -929,7 +929,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -938,7 +938,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -947,7 +947,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -956,7 +956,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -965,7 +965,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -974,7 +974,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -983,7 +983,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1006,7 +1006,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1015,7 +1015,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1024,7 +1024,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1033,7 +1033,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1042,7 +1042,7 @@ window.TURON_SEED = [
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 11,
     "occupies_seat": 1
@@ -1051,7 +1051,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1060,7 +1060,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1083,7 +1083,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1092,7 +1092,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1101,7 +1101,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1110,7 +1110,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1119,7 +1119,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1128,7 +1128,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1137,7 +1137,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1160,7 +1160,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1169,7 +1169,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1178,7 +1178,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1187,7 +1187,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1196,7 +1196,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1205,7 +1205,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1214,7 +1214,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1237,7 +1237,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1246,7 +1246,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1255,7 +1255,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1264,7 +1264,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1273,7 +1273,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1282,7 +1282,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1291,7 +1291,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1314,7 +1314,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1323,7 +1323,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1332,7 +1332,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1341,7 +1341,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1350,7 +1350,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1359,7 +1359,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1368,7 +1368,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1391,7 +1391,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1400,7 +1400,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1409,7 +1409,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1418,7 +1418,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1427,7 +1427,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1436,7 +1436,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1445,7 +1445,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1468,7 +1468,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1477,7 +1477,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1486,7 +1486,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1495,7 +1495,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1504,7 +1504,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1513,7 +1513,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1522,7 +1522,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1545,7 +1545,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1554,7 +1554,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1563,7 +1563,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1572,7 +1572,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1581,7 +1581,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1590,7 +1590,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1599,7 +1599,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1622,7 +1622,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1631,7 +1631,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1640,7 +1640,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1649,7 +1649,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1658,7 +1658,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1667,7 +1667,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1676,7 +1676,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1699,7 +1699,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1708,7 +1708,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1717,7 +1717,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1726,7 +1726,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1735,7 +1735,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1744,7 +1744,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1753,7 +1753,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1776,7 +1776,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1785,7 +1785,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1794,7 +1794,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1803,7 +1803,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1812,7 +1812,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1821,7 +1821,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1830,7 +1830,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1853,7 +1853,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1862,7 +1862,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1871,7 +1871,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1880,7 +1880,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1889,7 +1889,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1898,7 +1898,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1907,7 +1907,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -1930,7 +1930,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1939,7 +1939,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1948,7 +1948,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1957,7 +1957,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1966,7 +1966,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -1975,7 +1975,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -1984,7 +1984,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -2007,7 +2007,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2016,7 +2016,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2025,7 +2025,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2034,7 +2034,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2043,7 +2043,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -2052,7 +2052,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -2061,7 +2061,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -2084,7 +2084,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2093,7 +2093,7 @@ window.TURON_SEED = [
     "code": "SNG",
     "label": "Одноместный (SNG)",
     "kind": "placement",
-    "price": 1145.0,
+    "price": 1145,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2102,7 +2102,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 930.0,
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2111,7 +2111,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 970.0,
+    "price": 970,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2120,7 +2120,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -2129,7 +2129,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -2138,7 +2138,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -2161,7 +2161,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2170,7 +2170,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 880.0,
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2179,7 +2179,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2188,7 +2188,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -2197,7 +2197,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -2206,7 +2206,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -2229,7 +2229,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2238,7 +2238,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 880.0,
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2247,7 +2247,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2256,7 +2256,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -2265,7 +2265,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -2274,7 +2274,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
@@ -2297,7 +2297,7 @@ window.TURON_SEED = [
     "code": "DBL",
     "label": "Двухместный (DBL)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2306,7 +2306,7 @@ window.TURON_SEED = [
     "code": "TRPL",
     "label": "Трёхместный (TRPL)",
     "kind": "placement",
-    "price": 880.0,
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2315,7 +2315,7 @@ window.TURON_SEED = [
     "code": "TWIN",
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
-    "price": 925.0,
+    "price": 925,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2324,7 +2324,7 @@ window.TURON_SEED = [
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
-    "price": 700.0,
+    "price": 700,
     "age_from": 5,
     "age_to": 10,
     "occupies_seat": 1
@@ -2333,7 +2333,7 @@ window.TURON_SEED = [
     "code": "CHD_2_5",
     "label": "Chd 2-5",
     "kind": "child",
-    "price": 550.0,
+    "price": 550,
     "age_from": 2,
     "age_to": 5,
     "occupies_seat": 1
@@ -2342,143 +2342,7 @@ window.TURON_SEED = [
     "code": "INF",
     "label": "inf 0-2",
     "kind": "child",
-    "price": 100.0,
-    "age_from": 0,
-    "age_to": 2,
-    "occupies_seat": 0
-   }
-  ]
- },
- {
-  "code": "BUS1809",
-  "date_start": "2026-09-18",
-  "transport": "BUS",
-  "is_info_tour": 0,
-  "capacity": 65,
-  "seats_taken": 0,
-  "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
-  "nights": 7,
-  "agency_commission": 0,
-  "prices": [
-   {
-    "code": "DBL",
-    "label": "Двухместный (DBL)",
-    "kind": "placement",
-    "price": 925.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "TRPL",
-    "label": "Трёхместный (TRPL)",
-    "kind": "placement",
-    "price": 880.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "TWIN",
-    "label": "Двухместный раздельный (TWIN)",
-    "kind": "placement",
-    "price": 925.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "CHD_5_10",
-    "label": "Chd 5-10",
-    "kind": "child",
-    "price": 700.0,
-    "age_from": 5,
-    "age_to": 10,
-    "occupies_seat": 1
-   },
-   {
-    "code": "CHD_2_5",
-    "label": "Chd 2-5",
-    "kind": "child",
-    "price": 550.0,
-    "age_from": 2,
-    "age_to": 5,
-    "occupies_seat": 1
-   },
-   {
-    "code": "INF",
-    "label": "inf 0-2",
-    "kind": "child",
-    "price": 100.0,
-    "age_from": 0,
-    "age_to": 2,
-    "occupies_seat": 0
-   }
-  ]
- },
- {
-  "code": "BUS2509",
-  "date_start": "2026-09-25",
-  "transport": "BUS",
-  "is_info_tour": 0,
-  "capacity": 65,
-  "seats_taken": 0,
-  "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
-  "nights": 7,
-  "agency_commission": 0,
-  "prices": [
-   {
-    "code": "DBL",
-    "label": "Двухместный (DBL)",
-    "kind": "placement",
-    "price": 925.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "TRPL",
-    "label": "Трёхместный (TRPL)",
-    "kind": "placement",
-    "price": 880.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "TWIN",
-    "label": "Двухместный раздельный (TWIN)",
-    "kind": "placement",
-    "price": 925.0,
-    "age_from": null,
-    "age_to": null,
-    "occupies_seat": 1
-   },
-   {
-    "code": "CHD_5_10",
-    "label": "Chd 5-10",
-    "kind": "child",
-    "price": 700.0,
-    "age_from": 5,
-    "age_to": 10,
-    "occupies_seat": 1
-   },
-   {
-    "code": "CHD_2_5",
-    "label": "Chd 2-5",
-    "kind": "child",
-    "price": 550.0,
-    "age_from": 2,
-    "age_to": 5,
-    "occupies_seat": 1
-   },
-   {
-    "code": "INF",
-    "label": "inf 0-2",
-    "kind": "child",
-    "price": 100.0,
+    "price": 100,
     "age_from": 0,
     "age_to": 2,
     "occupies_seat": 0
