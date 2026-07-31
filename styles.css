@@ -2007,7 +2007,10 @@ select { font-family: inherit; }
 /* ------------------------------------------------ public catalogue */
 .tt-public-intro {
   position: relative;
-  min-height: clamp(600px, 72vh, 760px);
+  /* было 72vh — на большом мониторе выглядело «на пол-экрана».
+     Растим почти на весь экран, потолок 940px чтобы на очень высоких
+     мониторах не зияло пустотой. */
+  min-height: clamp(620px, 88vh, 940px);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -2948,7 +2951,7 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro { min-height: clamp(520px, 70svh, 590px); padding: 88px 22px 76px; }
+  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 88px 22px 76px; }
   .tt-public-intro h1 { font-size: 3.25rem; }
   .tt-public-intro p { max-width: 94%; }
   .tt-public-actions { display: grid; }
