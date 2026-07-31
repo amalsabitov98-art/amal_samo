@@ -2089,6 +2089,7 @@ select { font-family: inherit; }
 .tt-hero-primary i { font-size: 1rem; font-style: normal; }
 .tt-hero-secondary {
   border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(4, 30, 25, 0.38);
   color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
 }
