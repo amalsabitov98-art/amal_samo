@@ -239,7 +239,9 @@
 
   function loadDepartures() {
     return TuronApi.departures().then(function (list) {
-      state.departures = list;
+      state.departures = list.filter(function (d) {
+        return TuronProvisional.isScheduledDate(d.date_start);
+      });
       renderDepartures();
       renderBuilder();
     }).catch(function (err) {
@@ -315,7 +317,8 @@
         esc(f.to_city) + "</small><time>" + esc(f.arr) + "</time></div>" +
       '<div class="tt-flight-seats"><small>' +
         (f.date ? formatDate(f.date) : "") + "</small><strong>" +
-        esc(f.baggage) + "</strong><span>багаж</span></div>" +
+        esc(f.baggage) + "</strong><span>багаж · ручная " +
+        esc(f.cabin_baggage) + "</span></div>" +
     "</article>";
   }
 
@@ -361,7 +364,7 @@
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
       ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
-        TuronProvisional.noteHtml("рейсы и время")
+        TuronProvisional.flightNoteHtml()
       : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
 
     // ------------------------------------------------------------ отели
@@ -992,7 +995,9 @@
           esc(fl.out.code) + " " + esc(fl.out.from) + "–" + esc(fl.out.to) + " " +
           esc(fl.out.dep) + ", " + esc(fl.back.code) + " " + esc(fl.back.from) + "–" +
           esc(fl.back.to) + " " + esc(fl.back.dep) +
-          ' <span class="muted">(предварительно, уточните у оператора)</span></p>'
+          ". Багаж " + esc(fl.out.baggage) + ", ручная кладь " +
+          esc(fl.out.cabin_baggage) +
+          ' <span class="muted">(номера и время предварительные)</span></p>'
         : "") +
       "<table><tr><th>#</th><th>Фамилия и имя</th><th>Дата рождения</th>" +
         "<th>Паспорт</th><th>Размещение</th><th>Тариф</th></tr>" +
