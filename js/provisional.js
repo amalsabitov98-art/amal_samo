@@ -135,7 +135,7 @@
     phone_href: "+998998307711",
     telegram_href: "https://t.me/+998998307711",
     email: "info@turontourism.uz",
-    address: "Ташкент, Алмазарский район, ул. Нурафшон, 51",
+    address: "Ташкент, Шайхантахурский район, проспект Бунёдкор 6/1",
   };
 
   function shiftDate(iso, days) {
