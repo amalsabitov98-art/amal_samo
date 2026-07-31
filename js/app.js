@@ -157,6 +157,15 @@
 
   $("public-login-btn").addEventListener("click", function () { showLogin(); });
 
+  $("public-home-btn").addEventListener("click", function () {
+    if (publicCatalog) publicCatalog.reset();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  window.addEventListener("turon:language", function () {
+    if (publicCatalog && !$("screen-public").hidden) publicCatalog.render();
+  });
+
   $("login-back").addEventListener("click", function () {
     pendingBooking = null;
     $("login-error").innerHTML = "";
