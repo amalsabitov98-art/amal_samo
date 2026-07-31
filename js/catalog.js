@@ -437,7 +437,7 @@
             "</div>" +
             '<span class="tt-sr-only" data-hero-status aria-live="polite" aria-atomic="true">' +
               esc(tr("slider.status1")) + "</span>" +
-            '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
+            '<div class="tt-public-route" aria-label="' + esc(tr("hero.route")) + '">' +
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
           "</section>" +
