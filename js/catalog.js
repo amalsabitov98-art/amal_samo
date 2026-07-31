@@ -406,7 +406,7 @@
             "</div>" +
             '<div class="tt-hero-identity" aria-label="Turon Tour">' +
               '<i class="tt-hero-emblem" aria-hidden="true"></i>' +
-              '<div><span>Turon</span><strong>Tour</strong>' +
+              '<div><span>Turon</span> <strong>Tour</strong>' +
                 '<small>Tashkent · Uzbekistan</small></div>' +
             "</div>" +
             '<div class="tt-public-route" aria-label="Маршрут Карадениз">' +
