@@ -4089,6 +4089,10 @@ select.tt-outline-btn {
 /* --- три информационных столбца снизу --- */
 .tt-mj-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .tt-mj-info h3 { margin: 0 0 12px; font-size: 0.95rem; color: var(--tt-forest); }
+/* Заголовки трёх столбцов различаем цветом, как в привычном кабинете. */
+.tt-mj-inc-h { border-bottom: 2px solid var(--tt-success); padding-bottom: 6px; }
+.tt-mj-exc-h { border-bottom: 2px solid var(--tt-danger); padding-bottom: 6px; }
+.tt-mj-notes-h { border-bottom: 2px solid var(--tt-accent); padding-bottom: 6px; }
 .tt-mj-info ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .tt-mj-info li { position: relative; padding-left: 22px; font-size: 0.82rem; line-height: 1.45; color: var(--tt-text); }
 .tt-mj-inc li::before { content: "✓"; position: absolute; left: 0; color: var(--tt-success); font-weight: 700; }
@@ -9834,9 +9838,11 @@ window.TURON_DESTINATIONS = [
 
   function loadDepartures() {
     return TuronApi.departures().then(function (list) {
-      state.departures = list.filter(function (d) {
-        return TuronProvisional.isScheduledDate(d.date_start);
-      }).map(function (d) {
+      // Заезды НЕ фильтруем по полётной программе: если оператор заведёт
+      // заезд на новый сезон или не на пятницу, он всё равно должен
+      // продаваться. От расписания зависит только блок рейсов — там, где
+      // рейс неизвестен, честно пишем об этом.
+      state.departures = list.map(function (d) {
         // Подстраховка: если в базе у тура не проставлена длительность
         // (старый seed без nights), берём её из отелей (4 + 3 = 7),
         // чтобы заезд не показывал «длительность уточняется».
@@ -9960,7 +9966,21 @@ window.TURON_DESTINATIONS = [
 
   function renderBuilder() {
     var d = builderDeparture();
-    if (!d) return;
+    if (!d) {
+      // Заездов нет вообще (все закрыты или сезон кончился) — раньше экран
+      // навсегда замирал на «Загрузка…», агент не понимал, что случилось.
+      $("builder-title").textContent = "Нет доступных заездов";
+      $("builder-route").innerHTML = "";
+      $("builder-flights").innerHTML =
+        '<p class="tt-mj-empty">Оператор пока не открыл заезды для продажи. ' +
+        "Уточните расписание у менеджера.</p>";
+      $("builder-departure").innerHTML = "";
+      $("builder-hotelfield").innerHTML = "<div><small>—</small></div>";
+      $("builder-travellers").innerHTML = "";
+      $("builder-paxhead").innerHTML = "";
+      $("builder-book").disabled = true;
+      return;
+    }
     state.builder.code = d.code;
 
     var t = builderTotals(d);
@@ -10007,7 +10027,10 @@ window.TURON_DESTINATIONS = [
           "<th>Отправление</th><th>Прибытие</th><th>Длительность</th>" +
         "</tr></thead><tbody>" + flightRow(fl.out) + flightRow(fl.back) +
         "</tbody></table>"
-      : '<p class="tt-mj-empty">Для этого заезда рейс не задан.</p>';
+      : '<p class="tt-mj-empty">Рейсы на этот заезд ещё не опубликованы: ' +
+        'подтверждённая полётная программа — ' + TuronProvisional.SCHEDULE.weekday_label +
+        " по " + TuronProvisional.SCHEDULE.season_end_label +
+        ". Уточните рейсы у оператора.</p>";
 
     // -------------------------------------- шапка карточки туристов
     $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
@@ -10116,8 +10139,11 @@ window.TURON_DESTINATIONS = [
   // иначе открываем карточку тура в каталоге с программой по дням.
   $("builder-program").addEventListener("click", function () {
     var url = $("builder-program").dataset.url;
-    if (url) window.open(url, "_blank", "noopener");
-    else switchTab("catalog");
+    if (url) { window.open(url, "_blank", "noopener"); return; }
+    // Резерв без PDF: открываем каталог и обязательно перерисовываем его —
+    // сам по себе switchTab содержимое вкладки не строит.
+    switchTab("catalog");
+    if (cabinetCatalog) cabinetCatalog.render();
   });
 
   $("panel-builder").addEventListener("click", function (e) {
@@ -10699,14 +10725,14 @@ window.TURON_DESTINATIONS = [
   function switchTab(name) {
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
-      departures: ["Заезды", "Рабочее пространство"],
+      departures: ["Направления", "Заезды и свободные места"],
       catalog: ["Каталог туров", "Маршруты и программы"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
       messages: ["Контакты", "Связь с оператором"],
-      bookings: ["Мои брони", "Продажи агентства"],
-      tours: ["Туры и комиссии", "Партнёрская программа"],
+      bookings: ["Бронирования", "Продажи агентства"],
+      tours: ["Комиссии", "Партнёрская программа"],
       manifest: ["Списки пассажиров", "Операторская панель"],
       "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
       agencies: ["Агентства", "Партнёрская сеть"],

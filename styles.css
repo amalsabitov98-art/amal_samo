@@ -4084,6 +4084,10 @@ select.tt-outline-btn {
 /* --- три информационных столбца снизу --- */
 .tt-mj-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .tt-mj-info h3 { margin: 0 0 12px; font-size: 0.95rem; color: var(--tt-forest); }
+/* Заголовки трёх столбцов различаем цветом, как в привычном кабинете. */
+.tt-mj-inc-h { border-bottom: 2px solid var(--tt-success); padding-bottom: 6px; }
+.tt-mj-exc-h { border-bottom: 2px solid var(--tt-danger); padding-bottom: 6px; }
+.tt-mj-notes-h { border-bottom: 2px solid var(--tt-accent); padding-bottom: 6px; }
 .tt-mj-info ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .tt-mj-info li { position: relative; padding-left: 22px; font-size: 0.82rem; line-height: 1.45; color: var(--tt-text); }
 .tt-mj-inc li::before { content: "✓"; position: absolute; left: 0; color: var(--tt-success); font-weight: 700; }

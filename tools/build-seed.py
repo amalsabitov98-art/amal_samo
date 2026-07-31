@@ -294,6 +294,12 @@ def main():
     departures = json.load(open(ROOT / "seed" / "departures.json", encoding="utf-8"))
     out = []
     out.append("-- Сгенерировано tools/build-seed.py. Не редактировать вручную.")
+    out.append("--")
+    out.append("-- ВНИМАНИЕ: это файл ПЕРВОГО наполнения ПУСТОЙ базы.")
+    out.append("-- Он удаляет агентства, туры и заезды целиком, поэтому на")
+    out.append("-- работающей базе его запускать НЕЛЬЗЯ — слетят пароли")
+    out.append("-- агентств, а брони останутся без своих заездов.")
+    out.append("-- Для правок работающей базы используйте db/migrations/.")
     # Порядок важен: сначала то, что ссылается на tours. На ON DELETE CASCADE
     # не полагаемся — в D1 внешние ключи включены не всегда.
     out.append("DELETE FROM departure_prices;")

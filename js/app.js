@@ -262,9 +262,11 @@
 
   function loadDepartures() {
     return TuronApi.departures().then(function (list) {
-      state.departures = list.filter(function (d) {
-        return TuronProvisional.isScheduledDate(d.date_start);
-      }).map(function (d) {
+      // Заезды НЕ фильтруем по полётной программе: если оператор заведёт
+      // заезд на новый сезон или не на пятницу, он всё равно должен
+      // продаваться. От расписания зависит только блок рейсов — там, где
+      // рейс неизвестен, честно пишем об этом.
+      state.departures = list.map(function (d) {
         // Подстраховка: если в базе у тура не проставлена длительность
         // (старый seed без nights), берём её из отелей (4 + 3 = 7),
         // чтобы заезд не показывал «длительность уточняется».
@@ -388,7 +390,21 @@
 
   function renderBuilder() {
     var d = builderDeparture();
-    if (!d) return;
+    if (!d) {
+      // Заездов нет вообще (все закрыты или сезон кончился) — раньше экран
+      // навсегда замирал на «Загрузка…», агент не понимал, что случилось.
+      $("builder-title").textContent = "Нет доступных заездов";
+      $("builder-route").innerHTML = "";
+      $("builder-flights").innerHTML =
+        '<p class="tt-mj-empty">Оператор пока не открыл заезды для продажи. ' +
+        "Уточните расписание у менеджера.</p>";
+      $("builder-departure").innerHTML = "";
+      $("builder-hotelfield").innerHTML = "<div><small>—</small></div>";
+      $("builder-travellers").innerHTML = "";
+      $("builder-paxhead").innerHTML = "";
+      $("builder-book").disabled = true;
+      return;
+    }
     state.builder.code = d.code;
 
     var t = builderTotals(d);
@@ -435,7 +451,10 @@
           "<th>Отправление</th><th>Прибытие</th><th>Длительность</th>" +
         "</tr></thead><tbody>" + flightRow(fl.out) + flightRow(fl.back) +
         "</tbody></table>"
-      : '<p class="tt-mj-empty">Для этого заезда рейс не задан.</p>';
+      : '<p class="tt-mj-empty">Рейсы на этот заезд ещё не опубликованы: ' +
+        'подтверждённая полётная программа — ' + TuronProvisional.SCHEDULE.weekday_label +
+        " по " + TuronProvisional.SCHEDULE.season_end_label +
+        ". Уточните рейсы у оператора.</p>";
 
     // -------------------------------------- шапка карточки туристов
     $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
@@ -544,8 +563,11 @@
   // иначе открываем карточку тура в каталоге с программой по дням.
   $("builder-program").addEventListener("click", function () {
     var url = $("builder-program").dataset.url;
-    if (url) window.open(url, "_blank", "noopener");
-    else switchTab("catalog");
+    if (url) { window.open(url, "_blank", "noopener"); return; }
+    // Резерв без PDF: открываем каталог и обязательно перерисовываем его —
+    // сам по себе switchTab содержимое вкладки не строит.
+    switchTab("catalog");
+    if (cabinetCatalog) cabinetCatalog.render();
   });
 
   $("panel-builder").addEventListener("click", function (e) {
@@ -1127,14 +1149,14 @@
   function switchTab(name) {
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
-      departures: ["Заезды", "Рабочее пространство"],
+      departures: ["Направления", "Заезды и свободные места"],
       catalog: ["Каталог туров", "Маршруты и программы"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
       messages: ["Контакты", "Связь с оператором"],
-      bookings: ["Мои брони", "Продажи агентства"],
-      tours: ["Туры и комиссии", "Партнёрская программа"],
+      bookings: ["Бронирования", "Продажи агентства"],
+      tours: ["Комиссии", "Партнёрская программа"],
       manifest: ["Списки пассажиров", "Операторская панель"],
       "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
       agencies: ["Агентства", "Партнёрская сеть"],
