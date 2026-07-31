@@ -3853,3 +3853,211 @@ select.tt-outline-btn {
   .tt-row-card { grid-template-columns: 1fr 1fr; }
   .tt-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
 }
+
+/* ============================================================
+   КОНСТРУКТОР «Новый тур» — раскладка, привычная агентствам
+   (референс mir-jahon / TURON TOURISM), но в нашей теме.
+   ============================================================ */
+.tt-mj { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+.tt-mj-titlebar {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  border-bottom: 2px solid var(--tt-border); padding-bottom: 12px;
+}
+.tt-mj-titlebar h1 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.3rem); color: var(--tt-forest); margin: 0;
+}
+.tt-mj-year {
+  font-family: "Manrope", sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--tt-text-muted);
+  background: var(--tt-surface-2); border: 1px solid var(--tt-border);
+  border-radius: 999px; padding: 3px 10px; margin-left: 6px; white-space: nowrap;
+}
+.tt-mj-route { display: flex; align-items: center; gap: 8px; color: var(--tt-text-muted);
+  font-weight: 600; font-size: 0.85rem; }
+.tt-mj-route i { color: var(--tt-accent); font-style: normal; }
+
+/* --- два селектора: период + отель --- */
+.tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
+.tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }
+.tt-mj-field > span b { color: var(--tt-danger); }
+.tt-mj-field select {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--tt-border-strong);
+  border-radius: 10px; background: var(--tt-surface); color: var(--tt-text);
+  font-size: 0.92rem; font-weight: 600;
+}
+.tt-mj-hotelfield {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; min-height: 46px;
+  border: 1px solid var(--tt-border-strong); border-radius: 10px;
+  background: var(--tt-surface);
+}
+.tt-mj-hotelfield strong { display: block; font-size: 0.9rem; color: var(--tt-text); }
+.tt-mj-hotelfield small { color: var(--tt-text-muted); font-size: 0.76rem; }
+.tt-mj-stars { color: #e6a817; letter-spacing: -1px; }
+.tt-mj-plus { color: var(--tt-text-muted); font-style: normal; font-weight: 700; }
+
+/* --- блоки-секции --- */
+.tt-mj-block {
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius); padding: 16px 18px;
+}
+.tt-mj-blocktitle {
+  margin: 0 0 12px; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--tt-accent-dark); font-weight: 700; text-align: center;
+}
+.tt-mj-card {
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius); padding: 16px 18px;
+}
+
+/* --- таблица авиабилетов --- */
+.tt-mj-fltable { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.tt-mj-fltable th {
+  font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--tt-text-muted); font-weight: 600; text-align: left;
+  padding: 6px 10px; border-bottom: 1px solid var(--tt-border);
+}
+.tt-mj-fltable td { padding: 12px 10px; border-bottom: 1px solid var(--tt-border); vertical-align: middle; }
+.tt-mj-fltable tr:last-child td { border-bottom: 0; }
+.tt-mj-tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--tt-success); color: #fff; font-size: 0.75rem; font-weight: 700;
+}
+.tt-mj-fl-carrier { display: flex; align-items: center; gap: 8px; }
+.tt-mj-fl-carrier b { color: var(--tt-accent); }
+.tt-mj-fl-carrier strong { display: block; font-size: 0.85rem; }
+.tt-mj-fl-carrier small { color: var(--tt-text-muted); font-size: 0.72rem; }
+.tt-mj-fl-time strong { display: block; font-size: 0.86rem; }
+.tt-mj-fl-time small { color: var(--tt-text-muted); font-size: 0.75rem; }
+.tt-mj-fl-bag, .tt-mj-fl-dur { color: var(--tt-text-muted); white-space: nowrap; }
+.tt-mj-empty, .tt-mj-muted { color: var(--tt-text-muted); font-size: 0.85rem; }
+
+/* --- три колонки: туристы+оплата | опции+сумма | фото --- */
+.tt-mj-grid { display: grid; grid-template-columns: 1.15fr 1fr 0.9fr; gap: 16px; align-items: start; }
+
+.tt-mj-cardhead { margin-bottom: 12px; }
+.tt-mj-cardhead strong { display: block; font-size: 0.95rem; color: var(--tt-forest); }
+.tt-mj-cardhead small { color: var(--tt-text-muted); font-size: 0.78rem; }
+
+.tt-mj-paxrow {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+  padding: 10px 0; border-bottom: 1px dashed var(--tt-border);
+}
+.tt-mj-paxlabel strong { display: block; font-size: 0.88rem; }
+.tt-mj-paxlabel small { color: var(--tt-text-muted); font-size: 0.74rem; }
+.tt-mj-qty { display: inline-flex; align-items: center; gap: 8px; }
+.tt-mj-qty button {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--tt-border-strong);
+  background: var(--tt-surface-2); color: var(--tt-text); font-size: 1.1rem;
+  line-height: 1; cursor: pointer;
+}
+.tt-mj-qty button:disabled { opacity: 0.4; cursor: default; }
+.tt-mj-qty b { min-width: 20px; text-align: center; font-size: 0.95rem; }
+.tt-mj-paxprice { text-align: right; min-width: 92px; }
+.tt-mj-paxprice strong { display: block; font-size: 0.82rem; color: var(--tt-accent-dark); }
+.tt-mj-paxprice small { color: var(--tt-text-muted); font-size: 0.74rem; }
+
+/* --- правила оплаты (жёлтый блок как у референса) --- */
+.tt-mj-policy {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  background: var(--tt-warn-bg); border: 1px solid var(--tt-warn-border);
+}
+.tt-mj-rules { margin: 0; padding-left: 18px; color: var(--tt-warn-text); font-size: 0.78rem; line-height: 1.55; }
+.tt-mj-rules b { color: var(--tt-warn-text); }
+.tt-mj-schedule { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.tt-mj-schedule div { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.tt-mj-schedule span { color: var(--tt-text-muted); }
+.tt-mj-schedule b { color: var(--tt-text); }
+
+/* --- опции: билет / питание / номер --- */
+.tt-mj-ticket-opts { display: flex; gap: 10px; margin-bottom: 6px; }
+.tt-mj-ticket-opts label {
+  flex: 1; display: flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 8px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+  border: 1px solid var(--tt-border-strong); cursor: default;
+}
+.tt-mj-ticket-opts .is-on { background: var(--tt-accent-soft); border-color: var(--tt-accent); color: var(--tt-accent-dark); }
+.tt-mj-ticket-opts .is-off { color: var(--tt-text-muted); opacity: 0.7; }
+.tt-mj-ticket > small { color: var(--tt-text-muted); font-size: 0.74rem; }
+.tt-mj-room { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.tt-mj-roomrow { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.82rem; padding-bottom: 6px; border-bottom: 1px dashed var(--tt-border); }
+.tt-mj-roomrow span { color: var(--tt-text-muted); }
+.tt-mj-roomrow b { color: var(--tt-text); text-align: right; }
+
+/* --- «Общий» --- */
+.tt-mj-total { margin-top: 14px; }
+.tt-mj-total-lines { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.tt-mj-total-lines div { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--tt-text-muted); }
+.tt-mj-total-lines b { color: var(--tt-text); }
+.tt-mj-total-grand {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest); color: #fff;
+}
+.tt-mj-total-grand span { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; }
+.tt-mj-total-grand strong { font-size: 1.5rem; }
+.tt-mj-error { margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+  background: rgba(201,81,69,0.12); color: var(--tt-danger); font-size: 0.8rem; }
+.tt-mj-commission {
+  margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--tt-success);
+  color: var(--tt-success); font-size: 0.82rem;
+}
+.tt-mj-commission b { font-size: 0.95rem; }
+.tt-mj-b2b {
+  display: inline-block; margin-top: 12px; padding: 4px 12px; border-radius: 999px;
+  background: var(--tt-accent-soft); color: var(--tt-accent-dark);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+}
+
+/* --- фото --- */
+.tt-mj-media {
+  border-radius: var(--tt-radius); min-height: 340px;
+  background-size: cover; background-position: center;
+  border: 1px solid var(--tt-border);
+}
+
+/* --- кнопки действий --- */
+.tt-mj-actions { display: flex; flex-direction: column; gap: 10px; }
+.tt-mj-book {
+  width: 100%; padding: 15px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--tt-accent); color: #fff; font-size: 1rem; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.tt-mj-book:hover { background: var(--tt-accent-dark); }
+.tt-mj-book:disabled { opacity: 0.5; cursor: default; }
+.tt-mj-program {
+  width: 100%; padding: 12px; border-radius: 12px; cursor: pointer;
+  background: var(--tt-surface); border: 1px solid var(--tt-border-strong);
+  color: var(--tt-forest); font-size: 0.9rem; font-weight: 600;
+}
+.tt-mj-program:hover { background: var(--tt-surface-2); }
+
+/* --- три информационных столбца снизу --- */
+.tt-mj-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tt-mj-info h3 { margin: 0 0 12px; font-size: 0.95rem; color: var(--tt-forest); }
+.tt-mj-info ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.tt-mj-info li { position: relative; padding-left: 22px; font-size: 0.82rem; line-height: 1.45; color: var(--tt-text); }
+.tt-mj-inc li::before { content: "✓"; position: absolute; left: 0; color: var(--tt-success); font-weight: 700; }
+.tt-mj-exc li::before { content: "✕"; position: absolute; left: 0; color: var(--tt-danger); font-weight: 700; }
+.tt-mj-notes li::before { content: "ⓘ"; position: absolute; left: 0; color: var(--tt-accent); }
+
+@media (max-width: 900px) {
+  .tt-mj-grid { grid-template-columns: 1fr; }
+  .tt-mj-media { min-height: 220px; order: -1; }
+  .tt-mj-info { grid-template-columns: 1fr; }
+  .tt-mj-selectors { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .tt-mj-fltable, .tt-mj-fltable thead, .tt-mj-fltable tbody,
+  .tt-mj-fltable tr, .tt-mj-fltable td { display: block; }
+  .tt-mj-fltable thead { display: none; }
+  .tt-mj-fltable tr { border: 1px solid var(--tt-border); border-radius: 10px; margin-bottom: 10px; padding: 6px; }
+  .tt-mj-fltable td { border: 0; padding: 4px 8px; }
+  .tt-mj-fl-carrier { display: flex; }
+}

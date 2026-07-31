@@ -3859,6 +3859,214 @@ select.tt-outline-btn {
   .tt-row-actions { grid-column: 1 / -1; justify-content: flex-start; }
 }
 
+/* ============================================================
+   КОНСТРУКТОР «Новый тур» — раскладка, привычная агентствам
+   (референс mir-jahon / TURON TOURISM), но в нашей теме.
+   ============================================================ */
+.tt-mj { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+.tt-mj-titlebar {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  border-bottom: 2px solid var(--tt-border); padding-bottom: 12px;
+}
+.tt-mj-titlebar h1 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.3rem); color: var(--tt-forest); margin: 0;
+}
+.tt-mj-year {
+  font-family: "Manrope", sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--tt-text-muted);
+  background: var(--tt-surface-2); border: 1px solid var(--tt-border);
+  border-radius: 999px; padding: 3px 10px; margin-left: 6px; white-space: nowrap;
+}
+.tt-mj-route { display: flex; align-items: center; gap: 8px; color: var(--tt-text-muted);
+  font-weight: 600; font-size: 0.85rem; }
+.tt-mj-route i { color: var(--tt-accent); font-style: normal; }
+
+/* --- два селектора: период + отель --- */
+.tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
+.tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }
+.tt-mj-field > span b { color: var(--tt-danger); }
+.tt-mj-field select {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--tt-border-strong);
+  border-radius: 10px; background: var(--tt-surface); color: var(--tt-text);
+  font-size: 0.92rem; font-weight: 600;
+}
+.tt-mj-hotelfield {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; min-height: 46px;
+  border: 1px solid var(--tt-border-strong); border-radius: 10px;
+  background: var(--tt-surface);
+}
+.tt-mj-hotelfield strong { display: block; font-size: 0.9rem; color: var(--tt-text); }
+.tt-mj-hotelfield small { color: var(--tt-text-muted); font-size: 0.76rem; }
+.tt-mj-stars { color: #e6a817; letter-spacing: -1px; }
+.tt-mj-plus { color: var(--tt-text-muted); font-style: normal; font-weight: 700; }
+
+/* --- блоки-секции --- */
+.tt-mj-block {
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius); padding: 16px 18px;
+}
+.tt-mj-blocktitle {
+  margin: 0 0 12px; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--tt-accent-dark); font-weight: 700; text-align: center;
+}
+.tt-mj-card {
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius); padding: 16px 18px;
+}
+
+/* --- таблица авиабилетов --- */
+.tt-mj-fltable { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.tt-mj-fltable th {
+  font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--tt-text-muted); font-weight: 600; text-align: left;
+  padding: 6px 10px; border-bottom: 1px solid var(--tt-border);
+}
+.tt-mj-fltable td { padding: 12px 10px; border-bottom: 1px solid var(--tt-border); vertical-align: middle; }
+.tt-mj-fltable tr:last-child td { border-bottom: 0; }
+.tt-mj-tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--tt-success); color: #fff; font-size: 0.75rem; font-weight: 700;
+}
+.tt-mj-fl-carrier { display: flex; align-items: center; gap: 8px; }
+.tt-mj-fl-carrier b { color: var(--tt-accent); }
+.tt-mj-fl-carrier strong { display: block; font-size: 0.85rem; }
+.tt-mj-fl-carrier small { color: var(--tt-text-muted); font-size: 0.72rem; }
+.tt-mj-fl-time strong { display: block; font-size: 0.86rem; }
+.tt-mj-fl-time small { color: var(--tt-text-muted); font-size: 0.75rem; }
+.tt-mj-fl-bag, .tt-mj-fl-dur { color: var(--tt-text-muted); white-space: nowrap; }
+.tt-mj-empty, .tt-mj-muted { color: var(--tt-text-muted); font-size: 0.85rem; }
+
+/* --- три колонки: туристы+оплата | опции+сумма | фото --- */
+.tt-mj-grid { display: grid; grid-template-columns: 1.15fr 1fr 0.9fr; gap: 16px; align-items: start; }
+
+.tt-mj-cardhead { margin-bottom: 12px; }
+.tt-mj-cardhead strong { display: block; font-size: 0.95rem; color: var(--tt-forest); }
+.tt-mj-cardhead small { color: var(--tt-text-muted); font-size: 0.78rem; }
+
+.tt-mj-paxrow {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+  padding: 10px 0; border-bottom: 1px dashed var(--tt-border);
+}
+.tt-mj-paxlabel strong { display: block; font-size: 0.88rem; }
+.tt-mj-paxlabel small { color: var(--tt-text-muted); font-size: 0.74rem; }
+.tt-mj-qty { display: inline-flex; align-items: center; gap: 8px; }
+.tt-mj-qty button {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--tt-border-strong);
+  background: var(--tt-surface-2); color: var(--tt-text); font-size: 1.1rem;
+  line-height: 1; cursor: pointer;
+}
+.tt-mj-qty button:disabled { opacity: 0.4; cursor: default; }
+.tt-mj-qty b { min-width: 20px; text-align: center; font-size: 0.95rem; }
+.tt-mj-paxprice { text-align: right; min-width: 92px; }
+.tt-mj-paxprice strong { display: block; font-size: 0.82rem; color: var(--tt-accent-dark); }
+.tt-mj-paxprice small { color: var(--tt-text-muted); font-size: 0.74rem; }
+
+/* --- правила оплаты (жёлтый блок как у референса) --- */
+.tt-mj-policy {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  background: var(--tt-warn-bg); border: 1px solid var(--tt-warn-border);
+}
+.tt-mj-rules { margin: 0; padding-left: 18px; color: var(--tt-warn-text); font-size: 0.78rem; line-height: 1.55; }
+.tt-mj-rules b { color: var(--tt-warn-text); }
+.tt-mj-schedule { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.tt-mj-schedule div { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.tt-mj-schedule span { color: var(--tt-text-muted); }
+.tt-mj-schedule b { color: var(--tt-text); }
+
+/* --- опции: билет / питание / номер --- */
+.tt-mj-ticket-opts { display: flex; gap: 10px; margin-bottom: 6px; }
+.tt-mj-ticket-opts label {
+  flex: 1; display: flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 8px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+  border: 1px solid var(--tt-border-strong); cursor: default;
+}
+.tt-mj-ticket-opts .is-on { background: var(--tt-accent-soft); border-color: var(--tt-accent); color: var(--tt-accent-dark); }
+.tt-mj-ticket-opts .is-off { color: var(--tt-text-muted); opacity: 0.7; }
+.tt-mj-ticket > small { color: var(--tt-text-muted); font-size: 0.74rem; }
+.tt-mj-room { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.tt-mj-roomrow { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.82rem; padding-bottom: 6px; border-bottom: 1px dashed var(--tt-border); }
+.tt-mj-roomrow span { color: var(--tt-text-muted); }
+.tt-mj-roomrow b { color: var(--tt-text); text-align: right; }
+
+/* --- «Общий» --- */
+.tt-mj-total { margin-top: 14px; }
+.tt-mj-total-lines { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.tt-mj-total-lines div { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--tt-text-muted); }
+.tt-mj-total-lines b { color: var(--tt-text); }
+.tt-mj-total-grand {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest); color: #fff;
+}
+.tt-mj-total-grand span { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; }
+.tt-mj-total-grand strong { font-size: 1.5rem; }
+.tt-mj-error { margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+  background: rgba(201,81,69,0.12); color: var(--tt-danger); font-size: 0.8rem; }
+.tt-mj-commission {
+  margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: 8px; border: 1px dashed var(--tt-success);
+  color: var(--tt-success); font-size: 0.82rem;
+}
+.tt-mj-commission b { font-size: 0.95rem; }
+.tt-mj-b2b {
+  display: inline-block; margin-top: 12px; padding: 4px 12px; border-radius: 999px;
+  background: var(--tt-accent-soft); color: var(--tt-accent-dark);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+}
+
+/* --- фото --- */
+.tt-mj-media {
+  border-radius: var(--tt-radius); min-height: 340px;
+  background-size: cover; background-position: center;
+  border: 1px solid var(--tt-border);
+}
+
+/* --- кнопки действий --- */
+.tt-mj-actions { display: flex; flex-direction: column; gap: 10px; }
+.tt-mj-book {
+  width: 100%; padding: 15px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--tt-accent); color: #fff; font-size: 1rem; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.tt-mj-book:hover { background: var(--tt-accent-dark); }
+.tt-mj-book:disabled { opacity: 0.5; cursor: default; }
+.tt-mj-program {
+  width: 100%; padding: 12px; border-radius: 12px; cursor: pointer;
+  background: var(--tt-surface); border: 1px solid var(--tt-border-strong);
+  color: var(--tt-forest); font-size: 0.9rem; font-weight: 600;
+}
+.tt-mj-program:hover { background: var(--tt-surface-2); }
+
+/* --- три информационных столбца снизу --- */
+.tt-mj-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tt-mj-info h3 { margin: 0 0 12px; font-size: 0.95rem; color: var(--tt-forest); }
+.tt-mj-info ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.tt-mj-info li { position: relative; padding-left: 22px; font-size: 0.82rem; line-height: 1.45; color: var(--tt-text); }
+.tt-mj-inc li::before { content: "✓"; position: absolute; left: 0; color: var(--tt-success); font-weight: 700; }
+.tt-mj-exc li::before { content: "✕"; position: absolute; left: 0; color: var(--tt-danger); font-weight: 700; }
+.tt-mj-notes li::before { content: "ⓘ"; position: absolute; left: 0; color: var(--tt-accent); }
+
+@media (max-width: 900px) {
+  .tt-mj-grid { grid-template-columns: 1fr; }
+  .tt-mj-media { min-height: 220px; order: -1; }
+  .tt-mj-info { grid-template-columns: 1fr; }
+  .tt-mj-selectors { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .tt-mj-fltable, .tt-mj-fltable thead, .tt-mj-fltable tbody,
+  .tt-mj-fltable tr, .tt-mj-fltable td { display: block; }
+  .tt-mj-fltable thead { display: none; }
+  .tt-mj-fltable tr { border: 1px solid var(--tt-border); border-radius: 10px; margin-bottom: 10px; padding: 6px; }
+  .tt-mj-fltable td { border: 0; padding: 4px 8px; }
+  .tt-mj-fl-carrier { display: flex; }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -4039,57 +4247,65 @@ select.tt-outline-btn {
 
     <main class="tt-container tt-app-container">
       <section id="panel-builder">
-        <div class="tt-builder-hero">
-          <div class="tt-builder-hero-copy">
+        <div class="tt-mj">
+          <div class="tt-mj-titlebar">
             <h1 id="builder-title">Загрузка…</h1>
-            <div class="tt-builder-meta" id="builder-meta"></div>
-          </div>
-          <div class="tt-builder-map" aria-label="Маршрут Батуми — Ризе — Трабзон">
-            <span>Батуми</span><i></i><b></b><i></i><strong>Ризе</strong><i></i><b></b><i></i><span>Трабзон</span>
-          </div>
-        </div>
-
-        <div class="tt-builder-layout">
-          <div class="tt-builder-main">
-            <nav class="tt-builder-steps" id="builder-steps" aria-label="Этапы создания тура">
-              <button type="button" class="is-active" data-step-to="builder-route"><b>1</b>Дата и маршрут</button>
-              <button type="button" data-step-to="builder-flights"><b>2</b>Рейсы</button>
-              <button type="button" data-step-to="builder-hotels"><b>3</b>Отели</button>
-              <button type="button" data-step-to="builder-travellers"><b>4</b>Туристы</button>
-              <button type="button" data-step-to="builder-summary"><b>5</b>Итог</button>
-            </nav>
-
-            <section class="tt-build-card">
-              <header><h2><i>▣</i>Дата и маршрут</h2></header>
-              <div class="tt-route-summary" id="builder-route"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>✈</i>Рейсы</h2></header>
-              <div class="tt-flight-grid" id="builder-flights"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>▱</i>Отели</h2></header>
-              <div class="tt-hotels-row" id="builder-hotels"></div>
-              <div id="builder-hotels-note"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>♙</i>Туристы</h2></header>
-              <div class="tt-traveller-list" id="builder-travellers"></div>
-              <p class="tt-builder-hint">Тарифы взяты из прайса выбранного заезда. ФИО и паспорта
-                заполняются на следующем шаге — от даты рождения зависит детский тариф.</p>
-            </section>
+            <div class="tt-mj-route" id="builder-route"></div>
           </div>
 
-          <aside class="tt-build-aside">
-            <section class="tt-book-summary" id="builder-summary"></section>
-            <section class="tt-pay-plan" id="builder-payplan"></section>
-            <section class="tt-commission-box" id="builder-commission" hidden></section>
-            <button class="tt-builder-book" id="builder-book" type="button">Забронировать</button>
-            <p class="tt-secure-note">♙ Безопасное бронирование и защита данных</p>
-          </aside>
+          <div class="tt-mj-selectors">
+            <label class="tt-mj-field">
+              <span>Период путешествия <b>*</b></span>
+              <select id="builder-departure" aria-label="Выбрать заезд"></select>
+            </label>
+            <label class="tt-mj-field">
+              <span>Отель <b>*</b></span>
+              <div class="tt-mj-hotelfield" id="builder-hotelfield"></div>
+            </label>
+          </div>
+
+          <section class="tt-mj-block">
+            <h2 class="tt-mj-blocktitle">Авиабилеты</h2>
+            <div class="tt-mj-flights" id="builder-flights"></div>
+          </section>
+
+          <div class="tt-mj-grid">
+            <section class="tt-mj-card tt-mj-paxcard">
+              <div class="tt-mj-cardhead" id="builder-paxhead"></div>
+              <div class="tt-mj-travellers" id="builder-travellers"></div>
+              <div class="tt-mj-policy" id="builder-payplan"></div>
+            </section>
+
+            <section class="tt-mj-card tt-mj-optcard">
+              <div class="tt-mj-ticket" id="builder-ticket"></div>
+              <div class="tt-mj-room" id="builder-room"></div>
+              <div class="tt-mj-total" id="builder-summary"></div>
+              <div class="tt-mj-commission" id="builder-commission" hidden></div>
+              <span class="tt-mj-b2b">B2B</span>
+            </section>
+
+            <aside class="tt-mj-media" id="builder-media"></aside>
+          </div>
+
+          <div class="tt-mj-actions">
+            <button class="tt-mj-book" id="builder-book" type="button">Бронирование</button>
+            <button class="tt-mj-program" id="builder-program" type="button"></button>
+          </div>
+
+          <div class="tt-mj-info">
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-inc-h">В стоимость включено</h3>
+              <ul class="tt-mj-inc" id="builder-included"></ul>
+            </section>
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-exc-h">Дополнительные расходы</h3>
+              <ul class="tt-mj-exc" id="builder-excluded"></ul>
+            </section>
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-notes-h">Информация</h3>
+              <ul class="tt-mj-notes" id="builder-notes"></ul>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -9554,22 +9770,47 @@ window.TURON_DESTINATIONS = [
     return { total: total, people: people, seats: seats };
   }
 
-  // Карточка рейса в оформлении конструктора.
-  function flightCard(tag, f, isReturn) {
-    return '<article class="tt-flight' + (isReturn ? " is-return" : "") + '">' +
-      '<span class="tt-flight-tag">' + esc(tag) + "</span>" +
-      '<div class="tt-airline"><b>◈</b><span>' + esc(f.carrier) + "</span></div>" +
-      '<div class="tt-airport"><strong>' + esc(f.from) + "</strong><small>" +
-        esc(f.from_city) + "</small><time>" + esc(f.dep) + "</time></div>" +
-      '<div class="tt-flight-line">→<small>' + esc(f.duration) +
-        "<br />" + esc(f.code) + "</small></div>" +
-      '<div class="tt-airport"><strong>' + esc(f.to) + "</strong><small>" +
-        esc(f.to_city) + "</small><time>" + esc(f.arr) + "</time></div>" +
-      '<div class="tt-flight-seats"><small>' +
-        (f.date ? formatDate(f.date) : "") + "</small><strong>" +
-        esc(f.baggage) + "</strong><span>багаж · ручная " +
-        esc(f.cabin_baggage) + "</span></div>" +
-    "</article>";
+  // Один ряд таблицы «Авиабилеты» — раскладка как в привычном агентствам
+  // кабинете: перевозчик, багаж, отправление, прибытие, длительность.
+  function flightRow(f) {
+    return "<tr>" +
+      '<td class="tt-mj-fl-check"><span class="tt-mj-tick" aria-hidden="true">✓</span></td>' +
+      '<td class="tt-mj-fl-carrier"><b aria-hidden="true">◈</b><div><strong>' +
+        esc(f.carrier) + "</strong><small>" + esc(f.code) + "</small></div></td>" +
+      '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage) + "</td>" +
+      '<td class="tt-mj-fl-time"><strong>' + esc(f.from_city) + "</strong><small>" +
+        (f.date ? formatDate(f.date) + " · " : "") + esc(f.dep) + "</small></td>" +
+      '<td class="tt-mj-fl-time"><strong>' + esc(f.to_city) + "</strong><small>" +
+        (f.date ? formatDate(f.date) + " · " : "") + esc(f.arr) + "</small></td>" +
+      '<td class="tt-mj-fl-dur"><span aria-hidden="true">🕐</span> ' + esc(f.duration) + "</td>" +
+    "</tr>";
+  }
+
+  // Контент карточки (включено / доп. расходы / информация) грузим один раз
+  // на тур и кэшируем — это подтверждённые данные из каталога, не выдуманные.
+  var builderContentCache = {};
+  function fillBuilderContent(code) {
+    function li(items, map) {
+      return (items && items.length
+        ? items.map(map).join("")
+        : "<li class=\"tt-mj-muted\">—</li>");
+    }
+    function render(c) {
+      $("builder-included").innerHTML = li(c.included, function (x) {
+        return "<li>" + esc(x) + "</li>";
+      });
+      $("builder-excluded").innerHTML = li(c.excluded, function (x) {
+        return "<li>" + esc(x) + "</li>";
+      });
+      $("builder-notes").innerHTML = li(c.info, function (x) {
+        var text = typeof x === "string" ? x : x.text;
+        return "<li>" + esc(text) + "</li>";
+      });
+    }
+    if (builderContentCache[code]) { render(builderContentCache[code]); return; }
+    TuronApi.catalogTour(code)
+      .then(function (c) { builderContentCache[code] = c || {}; render(c || {}); })
+      .catch(function () { render({}); });
   }
 
   function renderBuilder() {
@@ -9579,128 +9820,135 @@ window.TURON_DESTINATIONS = [
 
     var t = builderTotals(d);
     var over = t.seats > d.seats_free;
-    var end = TuronApi.departureEnd(d.date_start, d.nights);
+    var nights = d.nights || 0;
 
-    $("builder-title").innerHTML = esc(d.tour_name || "Заезд");
-    $("builder-meta").innerHTML =
-      "<span>▣</span>" + formatRange(d.date_start, d.nights) +
-      " <span>♙</span>" + t.people + " " +
-      (t.people === 1 ? "турист" : t.people >= 2 && t.people <= 4 ? "туриста" : "туристов");
-
-    // ------------------------------------------------- дата и маршрут
+    // ----------------------------------------------- заголовок + маршрут
+    $("builder-title").innerHTML = esc(d.tour_name || "Заезд") +
+      ' <span class="tt-mj-year">Турция · 2026</span>';
     $("builder-route").innerHTML =
-      "<div><strong>" + formatRange(d.date_start, d.nights) + "</strong><small>" +
-        (d.nights ? d.nights + " ночей / " + (d.nights + 1) + " дней" : "длительность уточняется") +
-      "</small></div>" +
-      '<div class="tt-route-cities"><span>' +
-        esc(TuronProvisional.routeLabel(d.transport) ||
-            TRANSPORT[d.transport] || d.transport) +
-        "<small>" + esc(d.code) + "</small></span><i>·</i><span>Свободно<small>" +
-        d.seats_free + " из " + d.capacity + "</small></span></div>" +
-      '<select class="tt-outline-btn" id="builder-departure" aria-label="Выбрать заезд">' +
-        state.departures.map(function (x) {
-          return '<option value="' + esc(x.code) + '"' +
-            (x.code === d.code ? " selected" : "") +
-            (x.seats_free <= 0 ? " disabled" : "") + ">" +
-            formatRange(x.date_start, x.nights) + " · " + esc(x.code) +
-            (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
-          "</option>";
-        }).join("") +
-      "</select>";
+      "<span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span>";
 
-    // ------------------------------------------------------------ рейсы
-    // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
-    // Всё видно в самих карточках (перевозчик, время, багаж), плашка не нужна.
+    // ---------------------------------------------- селектор «Период»
+    $("builder-departure").innerHTML = state.departures.map(function (x) {
+      return '<option value="' + esc(x.code) + '"' +
+        (x.code === d.code ? " selected" : "") +
+        (x.seats_free <= 0 ? " disabled" : "") + ">" +
+        formatRange(x.date_start, x.nights) +
+        (x.nights ? " · " + x.nights + " ночей" : "") +
+        (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
+      "</option>";
+    }).join("");
+
+    // ------------------------------------------- поле «Отель» (пакет)
+    var hotels = TuronProvisional.hotelsFor(d);
+    $("builder-hotelfield").innerHTML = hotels.length
+      ? hotels.map(function (h) {
+          return "<div><strong>" + esc(h.name) + " " +
+            '<span class="tt-mj-stars">' + "★".repeat(h.stars) + "</span></strong>" +
+            "<small>" + esc(h.city) + " · " + h.nights + " ноч. · " + esc(h.board) +
+            "</small></div>";
+        }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
+      : "<div><small>Отель уточняется</small></div>";
+
+    // -------------------------------------------------- авиабилеты
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
-      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true)
-      : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
+      ? '<table class="tt-mj-fltable"><thead><tr>' +
+          "<th>Выбрать</th><th>Перевозчик</th><th>Багаж</th>" +
+          "<th>Отправление</th><th>Прибытие</th><th>Длительность</th>" +
+        "</tr></thead><tbody>" + flightRow(fl.out) + flightRow(fl.back) +
+        "</tbody></table>"
+      : '<p class="tt-mj-empty">Для этого заезда рейс не задан.</p>';
 
-    // ------------------------------------------------------------ отели
-    // Разбивка ночей по отелям подтверждена ваучерами — см. js/provisional.js.
-    var hotels = TuronProvisional.hotelsFor(d);
-    $("builder-hotels").innerHTML = hotels.map(function (h, i) {
-      return (i ? '<i class="tt-hotel-arrow">→</i>' : "") +
-        '<article class="tt-hotel-card">' +
-          '<div class="tt-hotel-image" role="img" aria-label="' + esc(h.name) +
-            '" style="background-image:url(' + esc(h.image) + ')"></div>' +
-          "<div><strong>" + esc(h.name) + '</strong><span class="tt-stars">' +
-            "★".repeat(h.stars) + "</span><small>" + esc(h.city) + " · " +
-            h.nights + " " + (h.nights === 1 ? "ночь" : h.nights < 5 ? "ночи" : "ночей") +
-            "<br />" + esc(h.board) + "</small></div>" +
-        "</article>";
-    }).join("");
-    // Отели и ночи подтверждены ваучерами — всё видно в карточках,
-    // отдельной плашки не нужно.
-    $("builder-hotels-note").innerHTML = "";
+    // -------------------------------------- шапка карточки туристов
+    $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
+      "</strong><small>" + (nights ? nights + " ночей / " + (nights + 1) + " дней · " : "") +
+      "свободно " + d.seats_free + " из " + d.capacity + "</small>";
 
-    // --------------------------------------------------------- туристы
-    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {
+    // --------------------------------------------- счётчики туристов
+    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r) {
       var n = state.builder.counts[r.code] || 0;
-      return '<article class="tt-tariff-row">' +
-        "<b>" + (i + 1) + "</b>" +
-        "<div><strong>" + esc(r.title) + "</strong><small>" + esc(r.note) + "</small></div>" +
-        "<span>" + money(r.price) + "</span>" +
-        '<div class="tt-qty">' +
+      return '<div class="tt-mj-paxrow">' +
+        '<div class="tt-mj-paxlabel"><strong>' + esc(r.title) + "</strong><small>" +
+          esc(r.note) + "</small></div>" +
+        '<div class="tt-mj-qty">' +
           '<button type="button" data-bstep="-1" data-tariff="' + esc(r.code) + '"' +
             (n === 0 ? " disabled" : "") + ">−</button>" +
-          "<strong>" + n + "</strong>" +
-          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">＋</button>' +
+          "<b>" + n + "</b>" +
+          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">+</button>' +
         "</div>" +
-        "<span>" + (n ? money(n * r.price) : "") + "</span>" +
-      "</article>";
+        '<div class="tt-mj-paxprice">' +
+          (n ? "<strong>" + n + " × " + money(r.price) + "</strong><small>" +
+                money(n * r.price) + "</small>"
+             : "<small>" + money(r.price) + "</small>") +
+        "</div>" +
+      "</div>";
     }).join("");
 
-    // ------------------------------------------------------------ сводка
+    // ------------------------------------------------- правила оплаты
+    var pol = TuronApi.paymentPolicy(d.date_start);
+    $("builder-payplan").innerHTML =
+      '<ul class="tt-mj-rules">' +
+        "<li><b>30%</b> стоимости — в течение <b>3 дней</b> с брони, оставшиеся " +
+          "<b>70%</b> — не позднее чем за <b>20 дней</b> до выезда.</li>" +
+        "<li>Если до выезда меньше <b>20 дней</b> — <b>100%</b> в течение <b>суток</b>.</li>" +
+      "</ul>" +
+      (t.total > 0
+        ? '<div class="tt-mj-schedule">' + pol.steps.map(function (s) {
+            return "<div><span>" + Math.round(s.share * 100) + "% · до " +
+              formatDate(s.due.toISOString().slice(0, 10)) + "</span><b>" +
+              money(Math.round(t.total * s.share * 100) / 100) + "</b></div>";
+          }).join("") + "</div>"
+        : "");
+
+    // --------------------------------------------- с билетом / без
+    $("builder-ticket").innerHTML =
+      '<div class="tt-mj-ticket-opts">' +
+        '<label class="is-on"><input type="radio" name="tk" checked disabled /> С билетом</label>' +
+        '<label class="is-off"><input type="radio" name="tk" disabled /> Без билетов</label>' +
+      "</div>" +
+      "<small>Авиаперелёт Ташкент — Трабзон / Батуми включён в цену.</small>";
+
+    // ----------------------------------------- питание / вид / номер
+    var placements = d.prices.filter(function (p) { return p.kind === "placement"; })
+      .map(function (p) { return p.label; }).join(" · ");
+    $("builder-room").innerHTML =
+      '<div class="tt-mj-roomrow"><span>Виды еды</span><b>BB · завтраки</b></div>' +
+      '<div class="tt-mj-roomrow"><span>Вид из комнаты</span><b>без гарантии вида</b></div>' +
+      '<div class="tt-mj-roomrow"><span>Типы номеров</span><b>' + esc(placements) + "</b></div>";
+
+    // --------------------------------------------------- «Общий»
+    var commission = (d.agency_commission || 0) * t.seats;
     var lines = builderTariffs(d).filter(function (r) {
       return (state.builder.counts[r.code] || 0) > 0;
     }).map(function (r) {
       var n = state.builder.counts[r.code];
       return "<div><span>" + esc(r.title) + " · " + esc(r.note) + " × " + n +
-        "</span><strong>" + money(n * r.price) + "</strong></div>";
+        "</span><b>" + money(n * r.price) + "</b></div>";
     }).join("");
-
-    // Комиссия у нас в долларах за проданного туриста, а не процентом,
-    // и младенцы без места продажей не считаются.
-    var commission = (d.agency_commission || 0) * t.seats;
-
     $("builder-summary").innerHTML =
-      "<h2>Сводка бронирования</h2>" +
-      (lines || '<div><span>Выберите туристов</span><strong>—</strong></div>') +
-      (commission > 0
-        ? '<div><span>Комиссия агентства</span><strong class="is-accent">− ' +
-          money(commission) + "</strong></div>"
-        : "") +
-      "<footer><span>Итого<small>Все суммы в USD</small></span><strong>" +
-        money(t.total) + "</strong></footer>" +
+      '<div class="tt-mj-total-lines">' + lines + "</div>" +
+      '<div class="tt-mj-total-grand"><span>Общий</span><strong>' + money(t.total) +
+        "</strong></div>" +
       (over
-        ? '<div class="tt-error-box">Мест не хватает: нужно ' + t.seats +
+        ? '<div class="tt-mj-error">Мест не хватает: нужно ' + t.seats +
           ", свободно " + d.seats_free + ".</div>"
         : "");
 
-    // ---------------------------------------------------- график платежей
-    var pol = TuronApi.paymentPolicy(d.date_start);
-    $("builder-payplan").innerHTML = "<h2>График платежей</h2>" +
-      pol.steps.map(function (s) {
-        return "<div><i></i><span><strong>" + Math.round(s.share * 100) + "% " +
-          esc(s.label) + "</strong><small>до " +
-          formatDate(s.due.toISOString().slice(0, 10)) + "</small></span><b>" +
-          (t.total > 0 ? money(Math.round(t.total * s.share * 100) / 100) : "—") +
-        "</b></div>";
-      }).join("") +
-      (pol.urgent
-        ? '<p class="tt-builder-hint">До выезда меньше 20 дней — рассрочки нет.</p>'
-        : "");
-
-    var box = $("builder-commission");
-    box.hidden = commission <= 0;
+    var cbox = $("builder-commission");
+    cbox.hidden = commission <= 0;
     if (commission > 0) {
-      box.innerHTML = "<span><strong>Комиссия агентства</strong><small>" +
-        money(d.agency_commission) + " за проданного туриста</small></span><b>" +
-        money(commission) + "</b>";
+      cbox.innerHTML = "<span>Комиссия агентства</span><b>" + money(commission) + "</b>";
     }
 
+    // ------------------------------------------------------ фото
+    var photo = (hotels[0] && hotels[0].image) || "img/hotel-batumi-view-luxury.webp";
+    $("builder-media").style.backgroundImage = "url(" + photo + ")";
+
+    // --------------------------------------------- кнопки и контент
+    $("builder-program").textContent = "Программа тура · " + (nights || 7) + " ночей";
     $("builder-book").disabled = t.people === 0 || over;
+    fillBuilderContent(d.tour_code || "KARADENIZ");
   }
 
   // смена заезда и счётчиков
@@ -9710,15 +9958,10 @@ window.TURON_DESTINATIONS = [
     renderBuilder();
   });
 
-  // Шаги 1–5 были картинкой: теперь прокручивают к своему блоку.
-  $("builder-steps").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-step-to]");
-    if (!btn) return;
-    document.querySelectorAll("#builder-steps button").forEach(function (b) {
-      b.classList.toggle("is-active", b === btn);
-    });
-    var target = $(btn.dataset.stepTo);
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Кнопка «Программа тура» открывает карточку тура в каталоге, где
+  // расписана программа по дням.
+  $("builder-program").addEventListener("click", function () {
+    switchTab("catalog");
   });
 
   $("panel-builder").addEventListener("click", function (e) {

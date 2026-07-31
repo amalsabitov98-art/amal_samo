@@ -324,22 +324,47 @@
     return { total: total, people: people, seats: seats };
   }
 
-  // Карточка рейса в оформлении конструктора.
-  function flightCard(tag, f, isReturn) {
-    return '<article class="tt-flight' + (isReturn ? " is-return" : "") + '">' +
-      '<span class="tt-flight-tag">' + esc(tag) + "</span>" +
-      '<div class="tt-airline"><b>◈</b><span>' + esc(f.carrier) + "</span></div>" +
-      '<div class="tt-airport"><strong>' + esc(f.from) + "</strong><small>" +
-        esc(f.from_city) + "</small><time>" + esc(f.dep) + "</time></div>" +
-      '<div class="tt-flight-line">→<small>' + esc(f.duration) +
-        "<br />" + esc(f.code) + "</small></div>" +
-      '<div class="tt-airport"><strong>' + esc(f.to) + "</strong><small>" +
-        esc(f.to_city) + "</small><time>" + esc(f.arr) + "</time></div>" +
-      '<div class="tt-flight-seats"><small>' +
-        (f.date ? formatDate(f.date) : "") + "</small><strong>" +
-        esc(f.baggage) + "</strong><span>багаж · ручная " +
-        esc(f.cabin_baggage) + "</span></div>" +
-    "</article>";
+  // Один ряд таблицы «Авиабилеты» — раскладка как в привычном агентствам
+  // кабинете: перевозчик, багаж, отправление, прибытие, длительность.
+  function flightRow(f) {
+    return "<tr>" +
+      '<td class="tt-mj-fl-check"><span class="tt-mj-tick" aria-hidden="true">✓</span></td>' +
+      '<td class="tt-mj-fl-carrier"><b aria-hidden="true">◈</b><div><strong>' +
+        esc(f.carrier) + "</strong><small>" + esc(f.code) + "</small></div></td>" +
+      '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage) + "</td>" +
+      '<td class="tt-mj-fl-time"><strong>' + esc(f.from_city) + "</strong><small>" +
+        (f.date ? formatDate(f.date) + " · " : "") + esc(f.dep) + "</small></td>" +
+      '<td class="tt-mj-fl-time"><strong>' + esc(f.to_city) + "</strong><small>" +
+        (f.date ? formatDate(f.date) + " · " : "") + esc(f.arr) + "</small></td>" +
+      '<td class="tt-mj-fl-dur"><span aria-hidden="true">🕐</span> ' + esc(f.duration) + "</td>" +
+    "</tr>";
+  }
+
+  // Контент карточки (включено / доп. расходы / информация) грузим один раз
+  // на тур и кэшируем — это подтверждённые данные из каталога, не выдуманные.
+  var builderContentCache = {};
+  function fillBuilderContent(code) {
+    function li(items, map) {
+      return (items && items.length
+        ? items.map(map).join("")
+        : "<li class=\"tt-mj-muted\">—</li>");
+    }
+    function render(c) {
+      $("builder-included").innerHTML = li(c.included, function (x) {
+        return "<li>" + esc(x) + "</li>";
+      });
+      $("builder-excluded").innerHTML = li(c.excluded, function (x) {
+        return "<li>" + esc(x) + "</li>";
+      });
+      $("builder-notes").innerHTML = li(c.info, function (x) {
+        var text = typeof x === "string" ? x : x.text;
+        return "<li>" + esc(text) + "</li>";
+      });
+    }
+    if (builderContentCache[code]) { render(builderContentCache[code]); return; }
+    TuronApi.catalogTour(code)
+      .then(function (c) { builderContentCache[code] = c || {}; render(c || {}); })
+      .catch(function () { render({}); });
   }
 
   function renderBuilder() {
@@ -349,128 +374,135 @@
 
     var t = builderTotals(d);
     var over = t.seats > d.seats_free;
-    var end = TuronApi.departureEnd(d.date_start, d.nights);
+    var nights = d.nights || 0;
 
-    $("builder-title").innerHTML = esc(d.tour_name || "Заезд");
-    $("builder-meta").innerHTML =
-      "<span>▣</span>" + formatRange(d.date_start, d.nights) +
-      " <span>♙</span>" + t.people + " " +
-      (t.people === 1 ? "турист" : t.people >= 2 && t.people <= 4 ? "туриста" : "туристов");
-
-    // ------------------------------------------------- дата и маршрут
+    // ----------------------------------------------- заголовок + маршрут
+    $("builder-title").innerHTML = esc(d.tour_name || "Заезд") +
+      ' <span class="tt-mj-year">Турция · 2026</span>';
     $("builder-route").innerHTML =
-      "<div><strong>" + formatRange(d.date_start, d.nights) + "</strong><small>" +
-        (d.nights ? d.nights + " ночей / " + (d.nights + 1) + " дней" : "длительность уточняется") +
-      "</small></div>" +
-      '<div class="tt-route-cities"><span>' +
-        esc(TuronProvisional.routeLabel(d.transport) ||
-            TRANSPORT[d.transport] || d.transport) +
-        "<small>" + esc(d.code) + "</small></span><i>·</i><span>Свободно<small>" +
-        d.seats_free + " из " + d.capacity + "</small></span></div>" +
-      '<select class="tt-outline-btn" id="builder-departure" aria-label="Выбрать заезд">' +
-        state.departures.map(function (x) {
-          return '<option value="' + esc(x.code) + '"' +
-            (x.code === d.code ? " selected" : "") +
-            (x.seats_free <= 0 ? " disabled" : "") + ">" +
-            formatRange(x.date_start, x.nights) + " · " + esc(x.code) +
-            (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
-          "</option>";
-        }).join("") +
-      "</select>";
+      "<span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span>";
 
-    // ------------------------------------------------------------ рейсы
-    // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
-    // Всё видно в самих карточках (перевозчик, время, багаж), плашка не нужна.
+    // ---------------------------------------------- селектор «Период»
+    $("builder-departure").innerHTML = state.departures.map(function (x) {
+      return '<option value="' + esc(x.code) + '"' +
+        (x.code === d.code ? " selected" : "") +
+        (x.seats_free <= 0 ? " disabled" : "") + ">" +
+        formatRange(x.date_start, x.nights) +
+        (x.nights ? " · " + x.nights + " ночей" : "") +
+        (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
+      "</option>";
+    }).join("");
+
+    // ------------------------------------------- поле «Отель» (пакет)
+    var hotels = TuronProvisional.hotelsFor(d);
+    $("builder-hotelfield").innerHTML = hotels.length
+      ? hotels.map(function (h) {
+          return "<div><strong>" + esc(h.name) + " " +
+            '<span class="tt-mj-stars">' + "★".repeat(h.stars) + "</span></strong>" +
+            "<small>" + esc(h.city) + " · " + h.nights + " ноч. · " + esc(h.board) +
+            "</small></div>";
+        }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
+      : "<div><small>Отель уточняется</small></div>";
+
+    // -------------------------------------------------- авиабилеты
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
-      ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true)
-      : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
+      ? '<table class="tt-mj-fltable"><thead><tr>' +
+          "<th>Выбрать</th><th>Перевозчик</th><th>Багаж</th>" +
+          "<th>Отправление</th><th>Прибытие</th><th>Длительность</th>" +
+        "</tr></thead><tbody>" + flightRow(fl.out) + flightRow(fl.back) +
+        "</tbody></table>"
+      : '<p class="tt-mj-empty">Для этого заезда рейс не задан.</p>';
 
-    // ------------------------------------------------------------ отели
-    // Разбивка ночей по отелям подтверждена ваучерами — см. js/provisional.js.
-    var hotels = TuronProvisional.hotelsFor(d);
-    $("builder-hotels").innerHTML = hotels.map(function (h, i) {
-      return (i ? '<i class="tt-hotel-arrow">→</i>' : "") +
-        '<article class="tt-hotel-card">' +
-          '<div class="tt-hotel-image" role="img" aria-label="' + esc(h.name) +
-            '" style="background-image:url(' + esc(h.image) + ')"></div>' +
-          "<div><strong>" + esc(h.name) + '</strong><span class="tt-stars">' +
-            "★".repeat(h.stars) + "</span><small>" + esc(h.city) + " · " +
-            h.nights + " " + (h.nights === 1 ? "ночь" : h.nights < 5 ? "ночи" : "ночей") +
-            "<br />" + esc(h.board) + "</small></div>" +
-        "</article>";
-    }).join("");
-    // Отели и ночи подтверждены ваучерами — всё видно в карточках,
-    // отдельной плашки не нужно.
-    $("builder-hotels-note").innerHTML = "";
+    // -------------------------------------- шапка карточки туристов
+    $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
+      "</strong><small>" + (nights ? nights + " ночей / " + (nights + 1) + " дней · " : "") +
+      "свободно " + d.seats_free + " из " + d.capacity + "</small>";
 
-    // --------------------------------------------------------- туристы
-    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r, i) {
+    // --------------------------------------------- счётчики туристов
+    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r) {
       var n = state.builder.counts[r.code] || 0;
-      return '<article class="tt-tariff-row">' +
-        "<b>" + (i + 1) + "</b>" +
-        "<div><strong>" + esc(r.title) + "</strong><small>" + esc(r.note) + "</small></div>" +
-        "<span>" + money(r.price) + "</span>" +
-        '<div class="tt-qty">' +
+      return '<div class="tt-mj-paxrow">' +
+        '<div class="tt-mj-paxlabel"><strong>' + esc(r.title) + "</strong><small>" +
+          esc(r.note) + "</small></div>" +
+        '<div class="tt-mj-qty">' +
           '<button type="button" data-bstep="-1" data-tariff="' + esc(r.code) + '"' +
             (n === 0 ? " disabled" : "") + ">−</button>" +
-          "<strong>" + n + "</strong>" +
-          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">＋</button>' +
+          "<b>" + n + "</b>" +
+          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">+</button>' +
         "</div>" +
-        "<span>" + (n ? money(n * r.price) : "") + "</span>" +
-      "</article>";
+        '<div class="tt-mj-paxprice">' +
+          (n ? "<strong>" + n + " × " + money(r.price) + "</strong><small>" +
+                money(n * r.price) + "</small>"
+             : "<small>" + money(r.price) + "</small>") +
+        "</div>" +
+      "</div>";
     }).join("");
 
-    // ------------------------------------------------------------ сводка
+    // ------------------------------------------------- правила оплаты
+    var pol = TuronApi.paymentPolicy(d.date_start);
+    $("builder-payplan").innerHTML =
+      '<ul class="tt-mj-rules">' +
+        "<li><b>30%</b> стоимости — в течение <b>3 дней</b> с брони, оставшиеся " +
+          "<b>70%</b> — не позднее чем за <b>20 дней</b> до выезда.</li>" +
+        "<li>Если до выезда меньше <b>20 дней</b> — <b>100%</b> в течение <b>суток</b>.</li>" +
+      "</ul>" +
+      (t.total > 0
+        ? '<div class="tt-mj-schedule">' + pol.steps.map(function (s) {
+            return "<div><span>" + Math.round(s.share * 100) + "% · до " +
+              formatDate(s.due.toISOString().slice(0, 10)) + "</span><b>" +
+              money(Math.round(t.total * s.share * 100) / 100) + "</b></div>";
+          }).join("") + "</div>"
+        : "");
+
+    // --------------------------------------------- с билетом / без
+    $("builder-ticket").innerHTML =
+      '<div class="tt-mj-ticket-opts">' +
+        '<label class="is-on"><input type="radio" name="tk" checked disabled /> С билетом</label>' +
+        '<label class="is-off"><input type="radio" name="tk" disabled /> Без билетов</label>' +
+      "</div>" +
+      "<small>Авиаперелёт Ташкент — Трабзон / Батуми включён в цену.</small>";
+
+    // ----------------------------------------- питание / вид / номер
+    var placements = d.prices.filter(function (p) { return p.kind === "placement"; })
+      .map(function (p) { return p.label; }).join(" · ");
+    $("builder-room").innerHTML =
+      '<div class="tt-mj-roomrow"><span>Виды еды</span><b>BB · завтраки</b></div>' +
+      '<div class="tt-mj-roomrow"><span>Вид из комнаты</span><b>без гарантии вида</b></div>' +
+      '<div class="tt-mj-roomrow"><span>Типы номеров</span><b>' + esc(placements) + "</b></div>";
+
+    // --------------------------------------------------- «Общий»
+    var commission = (d.agency_commission || 0) * t.seats;
     var lines = builderTariffs(d).filter(function (r) {
       return (state.builder.counts[r.code] || 0) > 0;
     }).map(function (r) {
       var n = state.builder.counts[r.code];
       return "<div><span>" + esc(r.title) + " · " + esc(r.note) + " × " + n +
-        "</span><strong>" + money(n * r.price) + "</strong></div>";
+        "</span><b>" + money(n * r.price) + "</b></div>";
     }).join("");
-
-    // Комиссия у нас в долларах за проданного туриста, а не процентом,
-    // и младенцы без места продажей не считаются.
-    var commission = (d.agency_commission || 0) * t.seats;
-
     $("builder-summary").innerHTML =
-      "<h2>Сводка бронирования</h2>" +
-      (lines || '<div><span>Выберите туристов</span><strong>—</strong></div>') +
-      (commission > 0
-        ? '<div><span>Комиссия агентства</span><strong class="is-accent">− ' +
-          money(commission) + "</strong></div>"
-        : "") +
-      "<footer><span>Итого<small>Все суммы в USD</small></span><strong>" +
-        money(t.total) + "</strong></footer>" +
+      '<div class="tt-mj-total-lines">' + lines + "</div>" +
+      '<div class="tt-mj-total-grand"><span>Общий</span><strong>' + money(t.total) +
+        "</strong></div>" +
       (over
-        ? '<div class="tt-error-box">Мест не хватает: нужно ' + t.seats +
+        ? '<div class="tt-mj-error">Мест не хватает: нужно ' + t.seats +
           ", свободно " + d.seats_free + ".</div>"
         : "");
 
-    // ---------------------------------------------------- график платежей
-    var pol = TuronApi.paymentPolicy(d.date_start);
-    $("builder-payplan").innerHTML = "<h2>График платежей</h2>" +
-      pol.steps.map(function (s) {
-        return "<div><i></i><span><strong>" + Math.round(s.share * 100) + "% " +
-          esc(s.label) + "</strong><small>до " +
-          formatDate(s.due.toISOString().slice(0, 10)) + "</small></span><b>" +
-          (t.total > 0 ? money(Math.round(t.total * s.share * 100) / 100) : "—") +
-        "</b></div>";
-      }).join("") +
-      (pol.urgent
-        ? '<p class="tt-builder-hint">До выезда меньше 20 дней — рассрочки нет.</p>'
-        : "");
-
-    var box = $("builder-commission");
-    box.hidden = commission <= 0;
+    var cbox = $("builder-commission");
+    cbox.hidden = commission <= 0;
     if (commission > 0) {
-      box.innerHTML = "<span><strong>Комиссия агентства</strong><small>" +
-        money(d.agency_commission) + " за проданного туриста</small></span><b>" +
-        money(commission) + "</b>";
+      cbox.innerHTML = "<span>Комиссия агентства</span><b>" + money(commission) + "</b>";
     }
 
+    // ------------------------------------------------------ фото
+    var photo = (hotels[0] && hotels[0].image) || "img/hotel-batumi-view-luxury.webp";
+    $("builder-media").style.backgroundImage = "url(" + photo + ")";
+
+    // --------------------------------------------- кнопки и контент
+    $("builder-program").textContent = "Программа тура · " + (nights || 7) + " ночей";
     $("builder-book").disabled = t.people === 0 || over;
+    fillBuilderContent(d.tour_code || "KARADENIZ");
   }
 
   // смена заезда и счётчиков
@@ -480,15 +512,10 @@
     renderBuilder();
   });
 
-  // Шаги 1–5 были картинкой: теперь прокручивают к своему блоку.
-  $("builder-steps").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-step-to]");
-    if (!btn) return;
-    document.querySelectorAll("#builder-steps button").forEach(function (b) {
-      b.classList.toggle("is-active", b === btn);
-    });
-    var target = $(btn.dataset.stepTo);
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Кнопка «Программа тура» открывает карточку тура в каталоге, где
+  // расписана программа по дням.
+  $("builder-program").addEventListener("click", function () {
+    switchTab("catalog");
   });
 
   $("panel-builder").addEventListener("click", function (e) {

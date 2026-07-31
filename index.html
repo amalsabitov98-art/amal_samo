@@ -20,7 +20,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260731-8" />
+<link rel="stylesheet" href="styles.css?v=20260731-10" />
 </head>
 <body>
 
@@ -179,57 +179,65 @@
 
     <main class="tt-container tt-app-container">
       <section id="panel-builder">
-        <div class="tt-builder-hero">
-          <div class="tt-builder-hero-copy">
+        <div class="tt-mj">
+          <div class="tt-mj-titlebar">
             <h1 id="builder-title">Загрузка…</h1>
-            <div class="tt-builder-meta" id="builder-meta"></div>
-          </div>
-          <div class="tt-builder-map" aria-label="Маршрут Батуми — Ризе — Трабзон">
-            <span>Батуми</span><i></i><b></b><i></i><strong>Ризе</strong><i></i><b></b><i></i><span>Трабзон</span>
-          </div>
-        </div>
-
-        <div class="tt-builder-layout">
-          <div class="tt-builder-main">
-            <nav class="tt-builder-steps" id="builder-steps" aria-label="Этапы создания тура">
-              <button type="button" class="is-active" data-step-to="builder-route"><b>1</b>Дата и маршрут</button>
-              <button type="button" data-step-to="builder-flights"><b>2</b>Рейсы</button>
-              <button type="button" data-step-to="builder-hotels"><b>3</b>Отели</button>
-              <button type="button" data-step-to="builder-travellers"><b>4</b>Туристы</button>
-              <button type="button" data-step-to="builder-summary"><b>5</b>Итог</button>
-            </nav>
-
-            <section class="tt-build-card">
-              <header><h2><i>▣</i>Дата и маршрут</h2></header>
-              <div class="tt-route-summary" id="builder-route"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>✈</i>Рейсы</h2></header>
-              <div class="tt-flight-grid" id="builder-flights"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>▱</i>Отели</h2></header>
-              <div class="tt-hotels-row" id="builder-hotels"></div>
-              <div id="builder-hotels-note"></div>
-            </section>
-
-            <section class="tt-build-card">
-              <header><h2><i>♙</i>Туристы</h2></header>
-              <div class="tt-traveller-list" id="builder-travellers"></div>
-              <p class="tt-builder-hint">Тарифы взяты из прайса выбранного заезда. ФИО и паспорта
-                заполняются на следующем шаге — от даты рождения зависит детский тариф.</p>
-            </section>
+            <div class="tt-mj-route" id="builder-route"></div>
           </div>
 
-          <aside class="tt-build-aside">
-            <section class="tt-book-summary" id="builder-summary"></section>
-            <section class="tt-pay-plan" id="builder-payplan"></section>
-            <section class="tt-commission-box" id="builder-commission" hidden></section>
-            <button class="tt-builder-book" id="builder-book" type="button">Забронировать</button>
-            <p class="tt-secure-note">♙ Безопасное бронирование и защита данных</p>
-          </aside>
+          <div class="tt-mj-selectors">
+            <label class="tt-mj-field">
+              <span>Период путешествия <b>*</b></span>
+              <select id="builder-departure" aria-label="Выбрать заезд"></select>
+            </label>
+            <label class="tt-mj-field">
+              <span>Отель <b>*</b></span>
+              <div class="tt-mj-hotelfield" id="builder-hotelfield"></div>
+            </label>
+          </div>
+
+          <section class="tt-mj-block">
+            <h2 class="tt-mj-blocktitle">Авиабилеты</h2>
+            <div class="tt-mj-flights" id="builder-flights"></div>
+          </section>
+
+          <div class="tt-mj-grid">
+            <section class="tt-mj-card tt-mj-paxcard">
+              <div class="tt-mj-cardhead" id="builder-paxhead"></div>
+              <div class="tt-mj-travellers" id="builder-travellers"></div>
+              <div class="tt-mj-policy" id="builder-payplan"></div>
+            </section>
+
+            <section class="tt-mj-card tt-mj-optcard">
+              <div class="tt-mj-ticket" id="builder-ticket"></div>
+              <div class="tt-mj-room" id="builder-room"></div>
+              <div class="tt-mj-total" id="builder-summary"></div>
+              <div class="tt-mj-commission" id="builder-commission" hidden></div>
+              <span class="tt-mj-b2b">B2B</span>
+            </section>
+
+            <aside class="tt-mj-media" id="builder-media"></aside>
+          </div>
+
+          <div class="tt-mj-actions">
+            <button class="tt-mj-book" id="builder-book" type="button">Бронирование</button>
+            <button class="tt-mj-program" id="builder-program" type="button"></button>
+          </div>
+
+          <div class="tt-mj-info">
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-inc-h">В стоимость включено</h3>
+              <ul class="tt-mj-inc" id="builder-included"></ul>
+            </section>
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-exc-h">Дополнительные расходы</h3>
+              <ul class="tt-mj-exc" id="builder-excluded"></ul>
+            </section>
+            <section class="tt-mj-card">
+              <h3 class="tt-mj-notes-h">Информация</h3>
+              <ul class="tt-mj-notes" id="builder-notes"></ul>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -391,6 +399,6 @@
 <script src="js/public-ui.js?v=20260731-4"></script>
 <script src="js/catalog.js?v=20260731-4"></script>
 <script src="js/admin.js"></script>
-<script src="js/app.js?v=20260731-9"></script>
+<script src="js/app.js?v=20260731-10"></script>
 </body>
 </html>
