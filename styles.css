@@ -3758,6 +3758,20 @@ select.tt-outline-btn {
 }
 .tt-build-card .tt-provisional { margin: 10px 13px 0; }
 
+/* Плашка под блоками, которые оператор подтвердил (билеты/ваучеры).
+   Отличается от жёлтой .tt-provisional: агент видит, что данные финальные. */
+.tt-confirmed {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px solid var(--tt-success);
+  border-radius: 8px;
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.tt-build-card .tt-confirmed { margin: 10px 13px 0; }
+
 .tt-row-card {
   display: grid;
   grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(110px, 1fr));

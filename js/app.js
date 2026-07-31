@@ -368,8 +368,8 @@
       "</select>";
 
     // ------------------------------------------------------------ рейсы
-    // Расписание предварительное — см. js/provisional.js. Плашка под
-    // блоком говорит агенту, что цифры надо подтвердить.
+    // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
+    // Зелёная плашка под блоком отмечает это агенту.
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
       ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
@@ -377,7 +377,7 @@
       : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
 
     // ------------------------------------------------------------ отели
-    // Разбивка ночей по отелям предварительная — см. js/provisional.js.
+    // Разбивка ночей по отелям подтверждена ваучерами — см. js/provisional.js.
     var hotels = TuronProvisional.hotelsFor(d);
     $("builder-hotels").innerHTML = hotels.map(function (h, i) {
       return (i ? '<i class="tt-hotel-arrow">→</i>' : "") +
@@ -391,7 +391,7 @@
         "</article>";
     }).join("");
     $("builder-hotels-note").innerHTML = hotels.length
-      ? TuronProvisional.noteHtml("распределение ночей по отелям")
+      ? TuronProvisional.hotelNoteHtml()
       : "";
 
     // --------------------------------------------------------- туристы
@@ -1005,8 +1005,7 @@
           esc(fl.out.dep) + ", " + esc(fl.back.code) + " " + esc(fl.back.from) + "–" +
           esc(fl.back.to) + " " + esc(fl.back.dep) +
           ". Багаж " + esc(fl.out.baggage) + ", ручная кладь " +
-          esc(fl.out.cabin_baggage) +
-          ' <span class="muted">(номера и время предварительные)</span></p>'
+          esc(fl.out.cabin_baggage) + "</p>"
         : "") +
       "<table><tr><th>#</th><th>Фамилия и имя</th><th>Дата рождения</th>" +
         "<th>Паспорт</th><th>Размещение</th><th>Тариф</th></tr>" +

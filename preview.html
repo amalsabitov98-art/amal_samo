@@ -3763,6 +3763,20 @@ select.tt-outline-btn {
 }
 .tt-build-card .tt-provisional { margin: 10px 13px 0; }
 
+/* Плашка под блоками, которые оператор подтвердил (билеты/ваучеры).
+   Отличается от жёлтой .tt-provisional: агент видит, что данные финальные. */
+.tt-confirmed {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px solid var(--tt-success);
+  border-radius: 8px;
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.tt-build-card .tt-confirmed { margin: 10px 13px 0; }
+
 .tt-row-card {
   display: grid;
   grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(110px, 1fr));
@@ -7443,9 +7457,9 @@ window.TURON_DESTINATIONS = [
    *
    * ПОДТВЕРЖДЕНО ОПЕРАТОРОМ: вылеты каждую пятницу по 11.09.2026
    * включительно. В обоих направлениях: багаж 23 кг и ручная кладь 8 кг.
-   *
-   * ДОПУЩЕНИЕ: номера рейсов и время одинаковы для всех дат сезона.
-   * ЧТО УТОЧНИТЬ: номера рейсов и время по каждому заезду.
+   * Номера рейсов и время — с настоящих билетов Centrum Air (несколько
+   * билетов на разные даты сходятся, поэтому берём их как рабочие для
+   * всего сезона).
    *
    * day_offset — на сколько суток позже даты возврата вылетает рейс.
    * Рейс из Батуми в 00:20 уходит уже следующей ночью, отсюда +1.
@@ -7508,16 +7522,15 @@ window.TURON_DESTINATIONS = [
   /*
    * 2. ОТЕЛИ И НОЧИ
    * ---------------
-   * Основание: karadeniz-tour-info.md — Batumi View Luxury 03.07–07.07
-   * (4 ночи) и Rhisos Gold Otel Rize 07.07–10.07 (3 ночи), плюс порядок
-   * дней в программе каждого варианта маршрута.
+   * ПОДТВЕРЖДЕНО ВАУЧЕРАМИ ОПЕРАТОРА (Centrum Air / Turon Tourism):
+   *   заезд через Батуми (BUS): Batumi View Luxury 4 ночи → Rhisos Gold
+   *     Otel Rize 3 ночи;
+   *   заезд через Трабзон (TZX): Rhisos Gold Otel Rize 4 ночи → Batumi
+   *     View Luxury 3 ночи.
+   * Разбивка 4 + 3 одинакова для всех заездов сезона.
    *
-   * ДОПУЩЕНИЕ: у заезда через Батуми сначала Батуми (4 ночи), потом Ризе
-   * (3); у заезда через Трабзон — наоборот. Разбивка одинакова для всех
-   * заездов.
-   *
-   * ЧТО УТОЧНИТЬ: сколько ночей в каком отеле по каждому заезду и не
-   * меняется ли отель от даты к дате.
+   * ЧТО УТОЧНИТЬ: только категория и вид номера (море/балкон) — их в
+   * ваучерах нет, определяются при бронировании.
    */
   var HOTELS = {
     BUS: [
@@ -7572,10 +7585,18 @@ window.TURON_DESTINATIONS = [
     isScheduledDate: isScheduledDate,
 
     flightNoteHtml: function () {
-      return '<p class="tt-provisional"><strong>Подтверждено:</strong> рейсы ' +
+      return '<p class="tt-confirmed"><strong>Подтверждено оператором:</strong> рейсы ' +
         SCHEDULE.weekday_label + ' по ' + SCHEDULE.season_end_label +
         ' включительно · багаж 23 кг · ручная кладь 8 кг. ' +
-        'Номера и время рейсов пока предварительные.</p>';
+        'Номера и время рейсов — по билетам Centrum Air.</p>';
+    },
+
+    // Ночи по отелям подтверждены ваучерами оператора (4+3 по обоим
+    // маршрутам). Плашка зелёная, а не жёлтая — данные финальные.
+    hotelNoteHtml: function () {
+      return '<p class="tt-confirmed"><strong>Подтверждено ваучерами:</strong> ' +
+        'распределение ночей по отелям (4 + 3). Категории номеров и ' +
+        'вид уточняются при бронировании.</p>';
     },
 
     /*
@@ -9606,8 +9627,8 @@ window.TURON_DESTINATIONS = [
       "</select>";
 
     // ------------------------------------------------------------ рейсы
-    // Расписание предварительное — см. js/provisional.js. Плашка под
-    // блоком говорит агенту, что цифры надо подтвердить.
+    // Рейсы подтверждены оператором и билетами — см. js/provisional.js.
+    // Зелёная плашка под блоком отмечает это агенту.
     var fl = TuronProvisional.flightsFor(d);
     $("builder-flights").innerHTML = fl
       ? flightCard("Туда", fl.out) + flightCard("Обратно", fl.back, true) +
@@ -9615,7 +9636,7 @@ window.TURON_DESTINATIONS = [
       : '<p class="tt-builder-empty">Для этого заезда рейс не задан.</p>';
 
     // ------------------------------------------------------------ отели
-    // Разбивка ночей по отелям предварительная — см. js/provisional.js.
+    // Разбивка ночей по отелям подтверждена ваучерами — см. js/provisional.js.
     var hotels = TuronProvisional.hotelsFor(d);
     $("builder-hotels").innerHTML = hotels.map(function (h, i) {
       return (i ? '<i class="tt-hotel-arrow">→</i>' : "") +
@@ -9629,7 +9650,7 @@ window.TURON_DESTINATIONS = [
         "</article>";
     }).join("");
     $("builder-hotels-note").innerHTML = hotels.length
-      ? TuronProvisional.noteHtml("распределение ночей по отелям")
+      ? TuronProvisional.hotelNoteHtml()
       : "";
 
     // --------------------------------------------------------- туристы
@@ -10243,8 +10264,7 @@ window.TURON_DESTINATIONS = [
           esc(fl.out.dep) + ", " + esc(fl.back.code) + " " + esc(fl.back.from) + "–" +
           esc(fl.back.to) + " " + esc(fl.back.dep) +
           ". Багаж " + esc(fl.out.baggage) + ", ручная кладь " +
-          esc(fl.out.cabin_baggage) +
-          ' <span class="muted">(номера и время предварительные)</span></p>'
+          esc(fl.out.cabin_baggage) + "</p>"
         : "") +
       "<table><tr><th>#</th><th>Фамилия и имя</th><th>Дата рождения</th>" +
         "<th>Паспорт</th><th>Размещение</th><th>Тариф</th></tr>" +
