@@ -27,8 +27,9 @@ const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) 
 if (!scripts.length) throw new Error("В index.html не найдено подключённых скриптов");
 
 function bundledScript(src) {
-  const source = read(src);
-  if (src !== "js/config.js") return source;
+  const sourcePath = src.split("?")[0];
+  const source = read(sourcePath);
+  if (sourcePath !== "js/config.js") return source;
 
   // Превью всегда автономно: рабочий API в исходной конфигурации не должен
   // превращать demo-снимок в форму входа от production-окружения.
