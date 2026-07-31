@@ -335,8 +335,10 @@
     var index = 0;
     var timer = null;
     var pointerStart = null;
-    var manuallyPaused = reducedQuery.matches;
-    var pointerInside = false;
+    // Автопрокрутка включена по умолчанию — оператор хочет, чтобы кадры
+    // менялись сами. При системном «уменьшить движение» кадры всё равно
+    // сменяются, но мгновенно (fade убирается в CSS), а не замирают.
+    var manuallyPaused = false;
     var focusInside = false;
 
     function updateToggle() {
@@ -373,8 +375,10 @@
 
     function startTimer() {
       stopTimer();
-      if (slides.length < 2 || manuallyPaused || reducedQuery.matches ||
-          pointerInside || focusInside || document.hidden) return;
+      // Наведение мыши больше не ставит на паузу: hero теперь во весь
+      // экран, курсор почти всегда над ним — иначе карусель стояла бы.
+      // Пауза остаётся ручной (кнопка) и при скрытой вкладке.
+      if (slides.length < 2 || manuallyPaused || focusInside || document.hidden) return;
       timer = global.setInterval(function () {
         setSlide(index + 1, false);
       }, 6500);
@@ -427,12 +431,9 @@
       if (document.hidden) stopTimer();
       else startTimer();
     }
-    function onMotionChange(event) {
-      if (event.matches) {
-        manuallyPaused = true;
-        updateToggle();
-        stopTimer();
-      }
+    function onMotionChange() {
+      // «Уменьшить движение» больше не выключает автопрокрутку — только
+      // убирает плавность перехода (это делает CSS). Кадры идут дальше.
     }
 
     if (previous) previous.addEventListener("click", onPrevious);
@@ -447,14 +448,6 @@
     hero.addEventListener("pointerdown", onPointerDown, { passive: true });
     hero.addEventListener("pointerup", onPointerUp, { passive: true });
     hero.addEventListener("pointercancel", function () { pointerStart = null; });
-    hero.addEventListener("mouseenter", function () {
-      pointerInside = true;
-      stopTimer();
-    });
-    hero.addEventListener("mouseleave", function () {
-      pointerInside = false;
-      startTimer();
-    });
     hero.addEventListener("focusin", function () {
       focusInside = true;
       stopTimer();

@@ -3013,7 +3013,8 @@ select { font-family: inherit; }
   .tt-hero-dots i {
     transition: none;
   }
-  .tt-hero-toggle { display: none; }
+  /* кнопку паузы оставляем: автопрокрутка идёт и при reduce-motion
+     (мгновенной сменой), значит должна быть возможность её остановить */
   .tt-dep,
   .tt-cat-tile,
   .tt-cat-tour,
