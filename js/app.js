@@ -1055,7 +1055,10 @@
     var list = collectNotices();
     var dot = $("notice-dot");
     var button = $("notice-btn");
-    if (dot) dot.hidden = list.length === 0;
+    if (dot) {
+      dot.hidden = list.length === 0;
+      dot.textContent = list.length > 9 ? "9+" : String(list.length);
+    }
     if (button) {
       button.classList.toggle("has-notices", list.length > 0);
       button.setAttribute("aria-label", list.length
