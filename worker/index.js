@@ -54,6 +54,16 @@ function cors(env, request) {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin",
+    // Ответы API — только JSON: nosniff не даёт браузеру угадать тип и
+    // исполнить ответ как скрипт. Referrer-Policy прячет адрес кабинета
+    // при переходах наружу.
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    // Ответы под токеном содержат брони и паспорта — их нельзя оставлять
+    // в общих кэшах. Публичный каталог кэшировать по-прежнему можно.
+    ...(request && request.headers.get("Authorization")
+      ? { "Cache-Control": "no-store" }
+      : {}),
   };
 }
 
@@ -372,9 +382,19 @@ async function catalogTour(env, code) {
         .filter((c) => c.kind === "day" && c.variant === v.code)
         .map((c) => ({ title: c.title, text: c.text })),
     })),
-    departures: departures.results.map((d) => ({
-      ...d, prices: byDeparture[d.id] || [],
-    })),
+    // Публичный ответ: точную загрузку заезда наружу не отдаём. capacity и
+    // seats_taken — это «сколько мы продали», коммерческая информация, а
+    // раньше они уходили любому гостю (ведро «20+ мест» рисовалось только
+    // на клиенте). Оставляем остаток и обрезаем его на 21: каталогу хватает
+    // (≤10 — точно, ≤20 — «10+», выше — «20+»), а объём продаж не виден.
+    departures: departures.results.map((d) => {
+      const { capacity, seats_taken, seats_free, ...open } = d;
+      return {
+        ...open,
+        seats_free: Math.max(0, Math.min(seats_free, 21)),
+        prices: byDeparture[d.id] || [],
+      };
+    }),
   };
 }
 
@@ -1058,7 +1078,11 @@ async function route(request, env) {
 
     return fail("Not found", 404);
   } catch (err) {
-    return fail(err.message, 500);
+    // Наружу текст внутренней ошибки не отдаём: в сообщениях SQLite видны
+    // имена таблиц и ограничений, а это подсказка для атакующего. Подробности
+    // остаются в логах воркера (wrangler tail).
+    console.error("route error:", err && err.stack ? err.stack : err);
+    return fail("Внутренняя ошибка сервера", 500);
   }
 }
 

@@ -3790,6 +3790,14 @@ select { font-family: inherit; }
 </div>
 
 <script>
+/* Защита от кликджекинга. GitHub Pages не позволяет отдать заголовок
+   X-Frame-Options, поэтому проверяем сами: если кабинет открыли внутри
+   чужого iframe, выламываемся наружу. Иначе поверх нашей формы входа
+   можно наложить прозрачный слой и собирать пароли агентств. */
+if (window.top !== window.self) { window.top.location = window.self.location; }
+</script>
+
+<script>
 // Настройка источника данных Turon Tour.
 //
 // Пусто ("") — кабинет работает в демо-режиме (localStorage, см. js/api.js).
