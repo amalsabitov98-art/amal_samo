@@ -1401,15 +1401,22 @@ select { font-family: inherit; }
   margin: 0;
   border: 0;
 }
+/* «Полное стекло» (Liquid Glass) на тёмном фоне: каждый пункт — стеклянная
+   пилюля. На тёмном эффект строится не тенями (как в светлом Apple-рефе),
+   а полупрозрачной белой подсветкой + бликом по верхней кромке + мягким
+   затемнением снизу. Активный пункт — стекло заметно плотнее и ярче, чтобы
+   не терялся среди одинаковых пилюль. */
 .tt-sidebar .tt-tab {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 11px 13px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.8rem;
   text-align: left;
   transition: 0.18s ease;
@@ -1421,24 +1428,33 @@ select { font-family: inherit; }
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
   color: #d8b977;
   font-size: 0.8rem;
+  flex: 0 0 auto;
 }
 .tt-sidebar .tt-tab:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05));
+  border-color: rgba(255, 255, 255, 0.2);
 }
 .tt-sidebar .tt-tab.is-active {
   color: #fff;
-  background: rgba(64, 139, 115, 0.24);
-  border-color: rgba(143, 204, 181, 0.16);
-  box-shadow: inset 3px 0 0 var(--tt-accent);
   font-weight: 600;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+  border-color: rgba(255, 255, 255, 0.3);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 10px 26px rgba(0, 0, 0, 0.3);
 }
 .tt-sidebar .tt-tab.is-active::before {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(216, 185, 119, 0.42);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .tt-sidebar-route {
@@ -2659,7 +2675,13 @@ select { font-family: inherit; }
     white-space: nowrap;
   }
   .tt-sidebar .tt-tab::before { display: none; }
-  .tt-sidebar .tt-tab.is-active { box-shadow: inset 0 -2px 0 var(--tt-accent); }
+  /* На телефоне пилюли идут строкой — нижняя полоска на скруглении смотрелась
+     бы криво, поэтому активный просто ярче остальных (то же стекло). */
+  .tt-sidebar .tt-tab.is-active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.1));
+    border-color: rgba(255, 255, 255, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
   .tt-sidebar-route,
   .tt-sidebar-account { display: none; }
   .tt-app-header { top: 51px; min-height: 75px; }
@@ -2954,10 +2976,8 @@ select { font-family: inherit; }
     radial-gradient(circle at 20% 0, rgba(35,106,88,.2), transparent 38%),
     linear-gradient(180deg, #073b32 0%, #032a24 100%);
 }
-.tt-app-shell.is-builder .tt-sidebar .tt-tab.is-active {
-  background: rgba(62, 138, 113, .26);
-  box-shadow: inset 3px 0 0 #ee6b43;
-}
+/* На билдере активный пункт больше не перекрашиваем в зелёный с полоской —
+   стеклянная пилюля одинакова на всех вкладках. */
 .tt-app-shell.is-builder .tt-tab-divider {
   display: block;
   height: 1px;
