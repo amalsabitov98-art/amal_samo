@@ -3408,6 +3408,81 @@ select { font-family: inherit; }
 .tt-notice-go:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
 
 
+/* Login brand lockup — clean editorial treatment over video.
+   The emblem is shown directly, without an app-icon tile. */
+.tt-login-brand {
+  top: clamp(30px, 4vw, 52px);
+  left: clamp(28px, 4.2vw, 58px);
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+.tt-login-emblem {
+  width: 62px;
+  height: 53px;
+  flex: 0 0 auto;
+  background-color: transparent;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter:
+    drop-shadow(0 9px 18px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 0 1px rgba(255, 248, 226, 0.72));
+}
+.tt-login-wordmark {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 47px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(225, 191, 122, 0.58);
+  line-height: 1;
+}
+.tt-login-wordmark strong {
+  color: #fff9ed;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.68rem, 2vw, 1.92rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
+}
+.tt-login-brand .tt-login-wordmark small {
+  margin-top: 7px;
+  color: #e1bf7a;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.38);
+}
+
+@media (max-width: 640px) {
+  .tt-login-brand {
+    top: 18px;
+    left: 18px;
+    gap: 12px;
+  }
+  .tt-login-emblem {
+    width: 48px;
+    height: 41px;
+  }
+  .tt-login-wordmark {
+    min-height: 38px;
+    padding-left: 12px;
+  }
+  .tt-login-wordmark strong {
+    font-size: 1.45rem;
+  }
+  .tt-login-brand .tt-login-wordmark small {
+    margin-top: 5px;
+    font-size: 0.46rem;
+    letter-spacing: 0.2em;
+  }
+}
+
+
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
   background: var(--tt-accent-soft);
@@ -3489,11 +3564,12 @@ select { font-family: inherit; }
     <source src="img/login-flight.mp4" type="video/mp4" />
   </video>
 
-  <div class="tt-login-brand">
-    <div class="tt-logo tt-logo-light">
-      <i class="tt-logo-mark"></i><span>Turon Tour</span>
-    </div>
-    <small data-i18n="login.hub">Partner Hub</small>
+  <div class="tt-login-brand" aria-label="Turon Tour Partner Hub">
+    <i class="tt-login-emblem tt-logo-mark" aria-hidden="true"></i>
+    <span class="tt-login-wordmark">
+      <strong>Turon Tour</strong>
+      <small data-i18n="login.hub">Partner Hub</small>
+    </span>
   </div>
 
   <div class="tt-login-route" aria-hidden="true">
