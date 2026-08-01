@@ -84,7 +84,6 @@
     var initials = (words.length > 1
       ? words.slice(0, 2).map(function (w) { return w[0]; }).join("")
       : (words[0] || "").slice(0, 2)).toUpperCase();
-    $("top-avatar").textContent = initials;
     $("side-avatar").textContent = initials;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
