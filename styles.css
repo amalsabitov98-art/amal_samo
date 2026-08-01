@@ -1109,9 +1109,14 @@ select { font-family: inherit; }
   background: url("img/turon-logo.webp") center / contain no-repeat;
 }
 .tt-logo > .tt-logo-mark {
-  width: 42px;
-  height: 46px;
-  border-radius: 14px;
+  /* img/turon-logo.webp обрезан по контуру эмблемы (было ~30% пустого
+     поля сверху/снизу в исходнике — на 42px значка это читалось как
+     маленькая иконка, плавающая в пустой рамке). Бокс landscape под
+     реальные пропорции герба (333×281), чтобы contain заполнял почти
+     весь квадрат, а не оставлял поля. */
+  width: 46px;
+  height: 40px;
+  border-radius: 12px;
   background-color: rgba(255, 252, 244, 0.92);
   box-shadow: 0 7px 22px rgba(5, 35, 29, 0.13);
 }
@@ -1381,9 +1386,9 @@ select { font-family: inherit; }
 }
 
 .tt-app-logo {
-  width: 36px;
-  height: 40px;
-  border-radius: 11px;
+  width: 38px;
+  height: 33px;
+  border-radius: 10px;
   background-color: #fffaf0;
   box-shadow: 0 7px 20px rgba(13, 48, 42, 0.11);
 }
@@ -1871,9 +1876,6 @@ select { font-family: inherit; }
   text-transform: uppercase;
   opacity: 0.85;
 }
-.tt-login-route i { font-style: normal; opacity: 0.6; }
-.tt-login-route b { color: #e1bf7a; font-weight: 700; }
-
 .tt-login-card {
   --tt-surface: #fffdf8;
   --tt-bg: #f5f1e9;
