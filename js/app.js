@@ -76,8 +76,12 @@
     $("screen-public").hidden = true;
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
-    $("agency-name").textContent = agency.name;
-    $("top-agency-name").textContent = agency.name;
+    // Нижняя карточка агентства удалена из бокового меню. Обновляем имя
+    // только там, где соответствующий элемент действительно существует.
+    var agencyName = $("agency-name");
+    if (agencyName) agencyName.textContent = agency.name;
+    var topAgencyName = $("top-agency-name");
+    if (topAgencyName) topAgencyName.textContent = agency.name;
     // инициалы были захардкожены («GW», «TT») и не совпадали с агентством;
     // из одного слова берём две первые буквы, иначе кружок с одной буквой
     var words = agency.name.split(/\s+/).filter(Boolean);
@@ -1347,12 +1351,19 @@
   // Теперь: 401 (токен протух) — честный выход; нет связи — держим токен и
   // показываем «нет связи» с кнопкой «Повторить».
   function restoreSession() {
-    TuronApi.me()
-      .then(function (res) { hideOffline(); showApp(res.agency); })
-      .catch(function (err) {
+    TuronApi.me().then(
+      function (res) {
+        hideOffline();
+        showApp(res.agency);
+      },
+      function (err) {
+        // Обрабатываем здесь только отказ самого запроса /api/me.
+        // Ошибка интерфейса после успешного ответа больше не маскируется
+        // под отсутствие связи с сервером.
         if (err && err.status) { showPublic(); }   // сервер ответил (401 и т.п.) — выходим
-        else { showOffline(); }                     // сеть недоступна — сессию не трогаем
-      });
+        else { showOffline(); }                    // сеть недоступна — сессию не трогаем
+      }
+    );
   }
 
   function showOffline() {
