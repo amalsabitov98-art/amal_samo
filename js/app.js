@@ -1335,8 +1335,38 @@
       "</strong> · пароль <strong>" + TuronApi.demoPassword + "</strong>";
   }
 
+  // При загрузке восстанавливаем сессию. Раньше ЛЮБАЯ ошибка /api/me роняла
+  // в публичный экран — и мигание сети выглядело как «выкинуло из кабинета».
+  // Теперь: 401 (токен протух) — честный выход; нет связи — держим токен и
+  // показываем «нет связи» с кнопкой «Повторить».
+  function restoreSession() {
+    TuronApi.me()
+      .then(function (res) { hideOffline(); showApp(res.agency); })
+      .catch(function (err) {
+        if (err && err.status) { showPublic(); }   // сервер ответил (401 и т.п.) — выходим
+        else { showOffline(); }                     // сеть недоступна — сессию не трогаем
+      });
+  }
+
+  function showOffline() {
+    var el = $("offline-screen");
+    el.hidden = false;
+    $("screen-public").hidden = true;
+    $("screen-login").hidden = true;
+    $("screen-app").hidden = true;
+  }
+  function hideOffline() { $("offline-screen").hidden = true; }
+
+  $("offline-retry").addEventListener("click", function () {
+    var btn = $("offline-retry");
+    btn.disabled = true;
+    btn.textContent = "Проверяем…";
+    restoreSession();
+    setTimeout(function () { btn.disabled = false; btn.textContent = "Повторить"; }, 1500);
+  });
+
   if (TuronApi.isLoggedIn()) {
-    TuronApi.me().then(function (res) { showApp(res.agency); }).catch(showPublic);
+    restoreSession();
   } else {
     showPublic();
   }

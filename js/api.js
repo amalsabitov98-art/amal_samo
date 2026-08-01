@@ -28,7 +28,14 @@
       body: options.body ? JSON.stringify(options.body) : undefined,
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (data) {
-        if (!r.ok) throw new Error(data.error || "Ошибка запроса (" + r.status + ")");
+        if (!r.ok) {
+          // Помечаем статусом, чтобы вызвавший отличал «токен протух» (401)
+          // от прочих ошибок. Сбой сети сюда не доходит — там fetch
+          // отклоняется TypeError без .status, это и есть «нет связи».
+          var err = new Error(data.error || "Ошибка запроса (" + r.status + ")");
+          err.status = r.status;
+          throw err;
+        }
         return data;
       });
     });
