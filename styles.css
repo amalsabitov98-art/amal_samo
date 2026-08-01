@@ -1793,10 +1793,32 @@ select { font-family: inherit; }
 
 /* --------------------------------------------------------- login */
 .tt-login-screen {
-  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1.28fr) minmax(390px, 0.72fr);
   place-items: stretch;
   padding: 0;
-  background: var(--tt-forest-deep);
+  overflow: hidden;
+  background: #071d1a;
+}
+.tt-login-screen::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 26, 23, 0.88) 0%, rgba(5, 26, 23, 0.55) 49%, rgba(5, 26, 23, 0.28) 72%, rgba(5, 26, 23, 0.5) 100%),
+    linear-gradient(180deg, rgba(5, 26, 23, 0.22), rgba(5, 26, 23, 0.54));
+  pointer-events: none;
+}
+.tt-login-video {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 .tt-login-story {
   position: relative;
@@ -1805,72 +1827,74 @@ select { font-family: inherit; }
   flex-direction: column;
   justify-content: space-between;
   padding: clamp(28px, 5vw, 74px);
-  overflow: hidden;
   color: #fff9ed;
-  background:
-    linear-gradient(110deg, rgba(5, 31, 26, 0.25), rgba(5, 31, 26, 0.9)),
-    radial-gradient(circle at 75% 28%, rgba(233, 101, 58, 0.34), transparent 15rem),
-    linear-gradient(150deg, #1d594a, #092923 70%);
-}
-.tt-login-story::after {
-  content: "";
-  position: absolute;
-  inset: 18% -10% -20% 30%;
-  border: 1px solid rgba(216, 185, 119, 0.17);
-  border-radius: 50%;
-  transform: rotate(-17deg);
-  box-shadow:
-    0 0 0 60px rgba(216, 185, 119, 0.025),
-    0 0 0 120px rgba(216, 185, 119, 0.02);
+  background: transparent;
 }
 .tt-login-story-top {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .tt-login-story-top > span {
-  color: rgba(255, 255, 255, 0.48);
+  color: #9fb8a7;
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.tt-login-story > div:last-child { position: relative; z-index: 1; max-width: 650px; }
+.tt-login-story .tt-logo-light span { color: #e1bf7a; }
+.tt-login-story-copy { max-width: 680px; }
 .tt-login-story p {
   margin: 0 0 9px;
-  color: #d8b977;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.1rem;
+  color: #d9bc80;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 .tt-login-story h1 {
-  max-width: 620px;
-  margin: 0 0 16px;
+  max-width: 680px;
+  margin: 0 0 22px;
+  color: #fff8e8;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(3rem, 6vw, 6.2rem);
-  font-weight: 500;
-  line-height: 0.88;
-  letter-spacing: -0.055em;
+  font-size: clamp(3rem, 5.4vw, 5.8rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.045em;
 }
-.tt-login-story > div:last-child > span {
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 0.8rem;
+.tt-login-story-copy > span {
+  display: block;
+  max-width: 590px;
+  color: rgba(235, 241, 232, 0.78);
+  font-size: clamp(0.82rem, 1.1vw, 0.98rem);
+  line-height: 1.7;
 }
-.tt-login-route {
-  position: relative;
-  z-index: 1;
-  width: min(520px, 80%);
+.tt-login-benefits {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 0.68rem;
+  gap: 10px 24px;
+  margin-top: 34px;
 }
-.tt-login-route i { flex: 1; border-top: 1px dashed rgba(255, 255, 255, 0.35); }
-.tt-login-route span:nth-of-type(2) { color: var(--tt-accent); }
+.tt-login-benefits b {
+  color: #b6c9ba;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tt-login-benefits b:nth-child(2) { color: #e2c37e; }
+.tt-login-benefits b:nth-child(3) { color: #dce8df; }
 
 .tt-login-card {
+  --tt-surface: #fffdf8;
+  --tt-bg: #f5f1e9;
+  --tt-border: #ddd5c7;
+  --tt-text: #22201b;
+  --tt-text-muted: #6b6558;
+  --tt-accent: #b5722e;
+  --tt-accent-dark: #8f5a24;
   align-self: center;
   justify-self: center;
   width: min(420px, calc(100% - 44px));
@@ -1878,8 +1902,12 @@ select { font-family: inherit; }
   padding: 42px;
   border: 0;
   border-radius: var(--tt-radius-lg);
-  background: var(--tt-surface);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(255, 252, 245, 0.92);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(20px) saturate(115%);
+  -webkit-backdrop-filter: blur(20px) saturate(115%);
+  color: var(--tt-text);
   text-align: left;
 }
 .tt-login-card h2 {
@@ -2746,9 +2774,41 @@ select { font-family: inherit; }
   .tt-dep-prices,
   .tt-dep-action { grid-column: 1 / -1; }
   .tt-dep-action .tt-btn { width: 100%; }
-  .tt-login-screen { display: block; min-height: 100vh; padding: 24px 0; }
-  .tt-login-story { display: none; }
-  .tt-login-card { margin: 6vh auto 0; padding: 30px 24px; }
+  .tt-login-screen {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    min-height: 100svh;
+    padding: 0 18px 28px;
+    overflow-y: auto;
+  }
+  .tt-login-screen::before {
+    background: linear-gradient(180deg, rgba(5, 26, 23, 0.44) 0%, rgba(5, 26, 23, 0.74) 45%, rgba(5, 26, 23, 0.9) 100%);
+  }
+  .tt-login-video { position: fixed; object-position: 62% center; }
+  .tt-login-story {
+    min-height: auto;
+    padding: 22px 4px 24px;
+  }
+  .tt-login-story-top > span { font-size: 0.54rem; }
+  .tt-login-story-copy { margin-top: 88px; }
+  .tt-login-story p { font-size: 0.6rem; }
+  .tt-login-story h1 {
+    max-width: 430px;
+    margin-bottom: 12px;
+    font-size: clamp(2.65rem, 13vw, 4rem);
+    line-height: 0.92;
+  }
+  .tt-login-story-copy > span { font-size: 0.78rem; line-height: 1.55; }
+  .tt-login-benefits { gap: 8px 14px; margin-top: 18px; }
+  .tt-login-benefits b { font-size: 0.56rem; }
+  .tt-login-card {
+    align-self: start;
+    width: 100%;
+    margin: 0 auto;
+    padding: 28px 24px;
+    background: rgba(255, 252, 245, 0.95);
+  }
   .tt-cat-hero { min-height: 330px; padding: 28px 22px; }
   .tt-cat-hero::after { left: 22px; right: auto; }
   .tt-cat-hero h1 { font-size: 3rem; }
