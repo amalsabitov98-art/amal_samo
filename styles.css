@@ -3952,8 +3952,15 @@ select { font-family: inherit; }
   top: 4px;
   width: 15px;
   height: 15px;
+  display: grid;
+  place-items: center;
   border: 2px solid #fffaf0;
   background: linear-gradient(145deg, #d9b46a, #aa7926);
+  color: #fffdf7;
+  font-size: .48rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
   box-shadow: 0 3px 7px rgba(95, 62, 13, .25);
 }
 .tt-notice-btn.has-notices::after {
