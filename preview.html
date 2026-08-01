@@ -1039,7 +1039,7 @@ a { color: inherit; }
 }
 
 /* ==================================================================
-   EXPEDITION OS
+   PARTNER HUB
    Премиальная travel-tech оболочка Turon Tour. Нижние правила намеренно
    переопределяют прежнюю тему, не затрагивая DOM-контракты приложения.
    ================================================================== */
@@ -2925,7 +2925,7 @@ select { font-family: inherit; }
 }
 
 /* ================================================================
-   EXPEDITION OS / TOUR BUILDER
+   PARTNER HUB / TOUR BUILDER
    The primary agency flow mirrors the approved full-screen concept:
    panorama → five steps → editable itinerary → sticky financial rail.
    ================================================================ */
@@ -3407,7 +3407,6 @@ select { font-family: inherit; }
 }
 .tt-notice-go:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
 
-
 /* Login brand lockup — clean editorial treatment over video.
    The emblem is shown directly, without an app-icon tile. */
 .tt-login-brand {
@@ -3479,6 +3478,476 @@ select { font-family: inherit; }
     margin-top: 5px;
     font-size: 0.46rem;
     letter-spacing: 0.2em;
+  }
+}
+
+/* ========================================================================
+   PARTNER CABINET POLISH
+   Фирменная навигация, осмысленные пиктограммы и единая верхняя панель.
+   ======================================================================== */
+.tt-app-shell { grid-template-columns: 258px minmax(0, 1fr); }
+.tt-sidebar { padding: 22px 16px 16px; }
+
+.tt-sidebar-brand { padding: 0 7px 24px; }
+.tt-sidebar-brandlock {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 54px;
+}
+.tt-sidebar-emblem {
+  width: 47px;
+  height: 52px;
+  flex: 0 0 auto;
+  background-color: transparent;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.28));
+}
+.tt-brand-rule {
+  width: 1px;
+  height: 31px;
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, transparent, rgba(195, 153, 83, 0.72), transparent);
+}
+.tt-sidebar-brandlock strong {
+  display: block;
+  color: #fff8e9;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.tt-sidebar-brand .tt-sidebar-brandlock small {
+  display: block;
+  margin: 5px 0 0;
+  color: rgba(232, 213, 174, 0.6);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.tt-app-logo {
+  width: 43px;
+  height: 47px;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 7px 8px rgba(13, 48, 42, 0.16));
+}
+
+.tt-sidebar .tt-tab {
+  gap: 11px;
+  padding: 9px 10px;
+}
+.tt-sidebar .tt-tab::before { content: none; display: none; }
+.tt-tab-icon {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: #dfbe79;
+  background: rgba(255, 255, 255, 0.025);
+  transition: 0.18s ease;
+}
+.tt-tab-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-sidebar .tt-tab.is-active .tt-tab-icon {
+  color: #f2d18b;
+  border-color: rgba(216, 185, 119, 0.42);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tt-sidebar-route {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 8px);
+  margin: auto 4px 14px;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 190, 121, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 92% 2%, rgba(226, 195, 128, 0.16), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,0.065), rgba(255,255,255,0.025));
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.tt-sidebar-route:hover {
+  transform: translateY(-1px);
+  border-color: rgba(223, 190, 121, 0.38);
+  background:
+    radial-gradient(circle at 92% 2%, rgba(226, 195, 128, 0.22), transparent 44%),
+    linear-gradient(145deg, rgba(255,255,255,0.085), rgba(255,255,255,0.03));
+}
+.tt-route-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #e0bd74;
+  font-size: .5rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tt-sidebar-route strong {
+  display: block;
+  margin: 0;
+  color: #fff9ed;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.05;
+}
+.tt-sidebar-route small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+.tt-route-cities {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  gap: 8px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tt-route-cities::before {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 15px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(224,189,116,.2), rgba(224,189,116,.62), rgba(224,189,116,.2));
+}
+.tt-route-cities > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.tt-route-cities i {
+  width: 6px;
+  height: 6px;
+  border: 1px solid #e0bd74;
+  border-radius: 50%;
+  background: #0a382f;
+  box-shadow: 0 0 0 3px rgba(224,189,116,.08);
+}
+.tt-route-cities b {
+  color: rgba(255, 255, 255, 0.67);
+  font-size: .5rem;
+  font-weight: 600;
+}
+.tt-route-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 13px;
+  color: #fff6e3;
+  font-size: .63rem;
+  font-weight: 700;
+}
+.tt-route-cta i {
+  color: #e0bd74;
+  font-size: .9rem;
+  font-style: normal;
+}
+
+.tt-sidebar-account {
+  grid-template-columns: 38px minmax(0, 1fr) 30px;
+  padding: 10px;
+  border-color: rgba(223, 190, 121, 0.17);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+}
+.tt-avatar {
+  position: relative;
+  width: 38px;
+  height: 38px;
+}
+.tt-avatar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  width: 7px;
+  height: 7px;
+  border: 2px solid #0a382f;
+  border-radius: 50%;
+  background: #68bd84;
+}
+.tt-sidebar-account strong,
+.tt-sidebar-account small,
+.tt-sidebar-account div > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-sidebar-account small {
+  color: rgba(224, 189, 116, 0.6);
+  font-size: .43rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.tt-sidebar-account strong { margin-top: 2px; color: #fff; font-size: 0.7rem; }
+.tt-sidebar-account div > span { margin-top: 1px; color: rgba(255, 255, 255, 0.4); font-size: 0.5rem; }
+.tt-sidebar-account .tt-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: rgba(255, 255, 255, 0.56);
+}
+.tt-sidebar-account .tt-icon-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tt-app-header {
+  min-height: 78px;
+  padding: 12px clamp(18px, 3vw, 38px);
+  background: rgba(247, 244, 237, 0.94);
+  border-bottom-color: rgba(13, 48, 42, 0.08);
+}
+.tt-app-brand { gap: 11px; }
+.tt-app-brand .tt-brand-rule { height: 34px; }
+.tt-app-brandtext strong { font-size: 1.42rem; font-weight: 600; }
+.tt-app-tools { gap: 10px; }
+.tt-app-currency,
+.tt-app-tg,
+.tt-notice-btn,
+.tt-top-account {
+  border: 1px solid rgba(13, 48, 42, 0.095);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 8px 24px rgba(13, 48, 42, 0.055), inset 0 1px 0 rgba(255,255,255,.85);
+}
+.tt-app-currency {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 30px auto;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 13px 6px 8px;
+  border-radius: 15px;
+}
+.tt-app-currency .tt-tool-icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #a96a2e;
+  background: #f5e9d8;
+}
+.tt-tool-icon svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-app-currency .tt-tool-copy { display: block; }
+.tt-app-currency .tt-tool-copy > small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--tt-text-muted);
+  font-size: .49rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.tt-rate-row { display: flex; align-items: center; gap: 5px; }
+.tt-rate-row > i {
+  width: 1px;
+  height: 12px;
+  margin: 0 3px;
+  background: var(--tt-border);
+}
+.tt-app-tg {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 15px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.tt-app-tg:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 136, 204, .16), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.tt-app-tg img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+.tt-top-account {
+  min-height: 48px;
+  gap: 9px;
+  padding: 5px 6px 5px 7px;
+  border-radius: 15px;
+}
+.tt-logout-top {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 10px;
+}
+.tt-logout-top svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tt-notice-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+  border-radius: 15px;
+  color: #0b4439;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.tt-notice-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(13, 48, 42, .11), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.tt-bell-core {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #f7ecd8, #efe0c3);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 10px rgba(111,76,28,.12);
+  transform-origin: 50% 10%;
+}
+.tt-notice-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: rgba(191, 132, 54, .08);
+  stroke: #9d672a;
+  stroke-width: 1.55;
+}
+.tt-notice-btn i {
+  right: 3px;
+  top: 3px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #fffdf8;
+  background: #ee6240;
+  box-shadow: 0 0 0 2px rgba(238,98,64,.12);
+}
+.tt-notice-btn.has-notices::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgba(238,98,64,.32);
+  border-radius: 16px;
+  animation: tt-notice-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+.tt-notice-btn.has-notices .tt-bell-core {
+  animation: tt-bell-alert 4.8s ease-in-out infinite;
+}
+@keyframes tt-bell-alert {
+  0%, 4%, 8%, 12%, 100% { transform: rotate(0); }
+  2%, 10% { transform: rotate(8deg); }
+  6% { transform: rotate(-8deg); }
+}
+@keyframes tt-notice-pulse {
+  0% { opacity: .7; transform: scale(.92); }
+  68%, 100% { opacity: 0; transform: scale(1.14); }
+}
+
+@media (max-width: 1120px) {
+  .tt-app-shell { grid-template-columns: 222px minmax(0, 1fr); }
+  .tt-sidebar { padding-inline: 11px; }
+  .tt-sidebar-brandlock { gap: 8px; }
+  .tt-sidebar-emblem { width: 40px; height: 45px; }
+  .tt-sidebar-brandlock strong { font-size: 1.18rem; }
+  .tt-sidebar-brand .tt-sidebar-brandlock small { letter-spacing: .13em; }
+  .tt-route-cities { gap: 3px; }
+  .tt-route-cities b { font-size: .46rem; }
+}
+@media (max-width: 860px) {
+  .tt-sidebar { width: 258px; padding: 18px 14px 14px; }
+  .tt-sidebar-brand { display: block; }
+  .tt-sidebar .tt-tabs { display: grid; overflow: visible; }
+  .tt-sidebar .tt-tab { width: 100%; padding: 9px 10px; }
+  .tt-tab-icon { display: grid; }
+  .tt-sidebar-route,
+  .tt-sidebar-account { display: grid; }
+  .tt-sidebar-route { display: block; }
+  .tt-app-header { min-height: 70px; }
+  .tt-sidebar [hidden] { display: none !important; }
+}
+@media (max-width: 700px) {
+  .tt-app-currency { display: none; }
+  .tt-app-tools .tt-app-tg { display: inline-flex; }
+}
+@media (max-width: 520px) {
+  .tt-app-header { padding-inline: 12px; gap: 7px; }
+  .tt-app-brand .tt-brand-rule,
+  .tt-app-brandtext { display: none; }
+  .tt-app-logo { width: 36px; height: 40px; }
+  .tt-app-tools { gap: 6px; }
+  .tt-app-tg,
+  .tt-notice-btn { width: 42px; height: 42px; border-radius: 13px; }
+  .tt-app-tg img { width: 40px; height: 40px; }
+  .tt-bell-core { width: 29px; height: 29px; border-radius: 10px; }
+  .tt-top-account { min-height: 42px; padding: 4px; }
+  .tt-top-avatar { width: 32px; height: 32px; }
+  .tt-logout-top { width: 32px; min-height: 32px; padding: 0; justify-content: center; }
+  .tt-logout-top span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-sidebar-route,
+  .tt-app-tg,
+  .tt-notice-btn,
+  .tt-notice-btn.has-notices .tt-bell-core,
+  .tt-notice-btn.has-notices::after {
+    animation: none;
+    transition: none;
   }
 }
 
@@ -3613,43 +4082,47 @@ select { font-family: inherit; }
   <div class="tt-nav-scrim" id="nav-scrim" hidden></div>
   <aside class="tt-sidebar">
     <div class="tt-sidebar-brand">
-      <div class="tt-logo tt-logo-light">
-        <i class="tt-logo-mark" aria-hidden="true"></i><span>Turon Tour</span>
+      <div class="tt-sidebar-brandlock" aria-label="Turon Tour — кабинет партнёра">
+        <i class="tt-sidebar-emblem tt-logo-mark" aria-hidden="true"></i>
+        <span class="tt-brand-rule" aria-hidden="true"></span>
+        <div>
+          <strong>Turon Tour</strong>
+          <small>Кабинет партнёра</small>
+        </div>
       </div>
-      <small>Expedition OS</small>
     </div>
     <div class="tt-tabs">
-      <button class="tt-tab tt-tab-ag is-active" data-tab="builder" data-icon="+">Новый тур</button>
-      <button class="tt-tab tt-tab-ag" data-tab="bookings" data-icon="▣">Бронирования</button>
-      <button class="tt-tab tt-tab-ag" data-tab="catalog" data-icon="◎">Туры</button>
-      <button class="tt-tab tt-tab-ag" data-tab="travellers" data-icon="♙">Туристы</button>
-      <button class="tt-tab tt-tab-ag" data-tab="payments" data-icon="▣">Платежи</button>
-      <button class="tt-tab tt-tab-ag" data-tab="tours" data-icon="$">Комиссии</button>
-      <button class="tt-tab tt-tab-ag" data-tab="documents" data-icon="□">Документы</button>
-      <button class="tt-tab tt-tab-ag" data-tab="messages" data-icon="○">Контакты</button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span>Новый тур</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span>Бронирования</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="catalog"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2" /><path d="M9 7V5h6v2M4 12h16M10 12v2h4v-2" /></svg></span><span>Туры</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="travellers"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.5-3.5 2.3-5 5.5-5s5 1.5 5.5 5M15 6.5a2.6 2.6 0 0 1 0 5M16.5 14c2.5.3 3.7 1.8 4 5" /></svg></span><span>Туристы</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="payments"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></svg></span><span>Платежи</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8M16 7h4v4" /><circle cx="7" cy="7" r="2.5" /><path d="M7 5.5v3" /></svg></span><span>Комиссии</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="documents"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" /></svg></span><span>Документы</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="messages"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4z" /><path d="M8 9h8M8 13h5" /></svg></span><span>Контакты</span></button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
-      <button class="tt-tab tt-tab-ag" data-tab="departures" data-icon="⌁">Направления</button>
-      <button class="tt-tab tt-tab-op" data-tab="manifest" data-icon="≡" hidden>Списки пассажиров</button>
-      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" data-icon="▣" hidden>Все брони</button>
-      <button class="tt-tab tt-tab-op" data-tab="agencies" data-icon="◎" hidden>Агентства</button>
+      <button class="tt-tab tt-tab-ag" data-tab="departures"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18c2-4 4-6 7-6s5-2 7-6" /><circle cx="5" cy="18" r="2" /><circle cx="19" cy="6" r="2" /><path d="M10 5l2-2 2 2M12 3v6" /></svg></span><span>Направления</span></button>
+      <button class="tt-tab tt-tab-op" data-tab="manifest" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" /></svg></span><span>Списки пассажиров</span></button>
+      <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3" /></svg></span><span>Все брони</span></button>
+      <button class="tt-tab tt-tab-op" data-tab="agencies" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14M8 10h2M14 10h2M8 14h2M14 14h2M10 21v-3h4v3" /></svg></span><span>Агентства</span></button>
     </div>
 
-    <div class="tt-sidebar-route" aria-hidden="true">
-      <div><span>Батуми</span><span>Ризе</span><span>Трабзон</span></div>
-      <svg viewBox="0 0 220 52" role="img">
-        <path d="M8 35 C45 4 66 48 106 25 S168 2 212 28" />
-        <circle cx="8" cy="35" r="5" />
-        <circle cx="108" cy="24" r="5" />
-        <circle cx="212" cy="28" r="5" />
-      </svg>
-      <strong>Карадениз зовёт.</strong>
-      <small>Откройте красоту<br />черноморского побережья</small>
-    </div>
+    <button class="tt-sidebar-route tt-tab-ag" id="featured-tour-btn" type="button">
+      <span class="tt-route-label">Авторский маршрут</span>
+      <strong>Ризе + Батуми</strong>
+      <small>Karadeniz · 8 дней / 7 ночей</small>
+      <span class="tt-route-cities" aria-label="Трабзон, Ризе, Батуми">
+        <span><i></i><b>Трабзон</b></span>
+        <span><i></i><b>Ризе</b></span>
+        <span><i></i><b>Батуми</b></span>
+      </span>
+      <span class="tt-route-cta">Открыть тур <i aria-hidden="true">↗</i></span>
+    </button>
 
     <div class="tt-sidebar-account">
       <span class="tt-avatar" id="side-avatar"></span>
-      <div><strong id="agency-name"></strong><small>Партнёр Turon Tour</small></div>
-      <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти">↗</button>
+      <div><small>Аккаунт агентства</small><strong id="agency-name"></strong><span>Партнёрский доступ</span></div>
+      <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" /></svg></button>
     </div>
   </aside>
 
@@ -3658,22 +4131,22 @@ select { font-family: inherit; }
       <button class="tt-menu-btn" id="nav-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
       <div class="tt-app-brand">
         <i class="tt-app-logo tt-logo-mark" aria-hidden="true"></i>
-        <div class="tt-app-brandtext"><strong>Turon Tour</strong><small>кабинет партнёра</small></div>
+        <span class="tt-brand-rule" aria-hidden="true"></span>
+        <div class="tt-app-brandtext"><strong>Turon Tour</strong><small>партнёрский кабинет</small></div>
       </div>
       <div class="tt-app-tools">
-        <div class="tt-currency-board" title="Официальный курс Центрального банка Узбекистана">
-          <span><b>$</b> 1 = <strong data-rate="usd">—</strong></span>
-          <i aria-hidden="true"></i>
-          <span><b>€</b> 1 = <strong data-rate="eur">—</strong></span>
+        <div class="tt-currency-board tt-app-currency" title="Официальный курс Центрального банка Узбекистана">
+          <span class="tt-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3M18 7l-3 3M6 17l3-3" /></svg></span>
+          <span class="tt-tool-copy"><small>Курс ЦБ</small><span class="tt-rate-row"><b>$</b> 1 = <strong data-rate="usd">—</strong><i></i><b>€</b> 1 = <strong data-rate="eur">—</strong></span></span>
         </div>
         <a class="tt-app-tg" href="https://t.me/+998998307711" target="_blank"
            rel="noopener" aria-label="Telegram оператора" title="Написать в Telegram">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 4.3 2.9 11.4c-.9.35-.9.9-.16 1.13l4.6 1.43 1.77 5.4c.22.6.4.6.9.6.35 0 .5-.16.7-.35l2.3-2.2 4.75 3.5c.87.48 1.5.23 1.7-.8l3.1-14.6c.3-1.26-.5-1.83-1.36-1.5Z"/></svg>
+          <img src="img/telegram-plush-icon.png" alt="" />
         </a>
         <div class="tt-notice-wrap">
           <button class="tt-notice-btn" id="notice-btn" type="button"
                   aria-label="Уведомления" aria-expanded="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0c0 6 2 6 2 7H5c0-1 2-1 2-7Zm3 10h4" /></svg>
+            <span class="tt-bell-core" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10a5 5 0 0 1 10 0c0 5.5 2 6 2 7H5c0-1 2-1.5 2-7Z" /><path d="M10 20h4" /></svg></span>
             <i id="notice-dot" hidden></i>
           </button>
           <div class="tt-notice-panel" id="notice-panel" hidden></div>
@@ -3681,7 +4154,7 @@ select { font-family: inherit; }
         <div class="tt-top-account">
           <span class="tt-top-avatar" id="top-avatar"></span>
           <div class="tt-top-account-name"><small>Агентство</small><strong id="top-agency-name"></strong></div>
-          <button class="tt-logout-top" id="logout-top" type="button" aria-label="Выйти" title="Выйти">Выход</button>
+          <button class="tt-logout-top" id="logout-top" type="button" aria-label="Выйти" title="Выйти"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" /></svg><span>Выход</span></button>
         </div>
       </div>
     </header>
@@ -10028,7 +10501,14 @@ window.TURON_DESTINATIONS = [
   function renderNotices() {
     var list = collectNotices();
     var dot = $("notice-dot");
+    var button = $("notice-btn");
     if (dot) dot.hidden = list.length === 0;
+    if (button) {
+      button.classList.toggle("has-notices", list.length > 0);
+      button.setAttribute("aria-label", list.length
+        ? "Уведомления: " + list.length + " новых"
+        : "Уведомлений нет");
+    }
 
     var icons = { late: "!", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
@@ -10265,6 +10745,10 @@ window.TURON_DESTINATIONS = [
     setNav(!$("screen-app").classList.contains("is-nav-open"));
   });
   $("nav-scrim").addEventListener("click", function () { setNav(false); });
+  $("featured-tour-btn").addEventListener("click", function () {
+    switchTab("catalog");
+    setNav(false);
+  });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNav(false);
   });

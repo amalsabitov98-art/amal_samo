@@ -1055,7 +1055,14 @@
   function renderNotices() {
     var list = collectNotices();
     var dot = $("notice-dot");
+    var button = $("notice-btn");
     if (dot) dot.hidden = list.length === 0;
+    if (button) {
+      button.classList.toggle("has-notices", list.length > 0);
+      button.setAttribute("aria-label", list.length
+        ? "Уведомления: " + list.length + " новых"
+        : "Уведомлений нет");
+    }
 
     var icons = { late: "!", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
@@ -1292,6 +1299,10 @@
     setNav(!$("screen-app").classList.contains("is-nav-open"));
   });
   $("nav-scrim").addEventListener("click", function () { setNav(false); });
+  $("featured-tour-btn").addEventListener("click", function () {
+    switchTab("catalog");
+    setNav(false);
+  });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNav(false);
   });

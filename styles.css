@@ -1034,7 +1034,7 @@ a { color: inherit; }
 }
 
 /* ==================================================================
-   EXPEDITION OS
+   PARTNER HUB
    Премиальная travel-tech оболочка Turon Tour. Нижние правила намеренно
    переопределяют прежнюю тему, не затрагивая DOM-контракты приложения.
    ================================================================== */
@@ -2920,7 +2920,7 @@ select { font-family: inherit; }
 }
 
 /* ================================================================
-   EXPEDITION OS / TOUR BUILDER
+   PARTNER HUB / TOUR BUILDER
    The primary agency flow mirrors the approved full-screen concept:
    panorama → five steps → editable itinerary → sticky financial rail.
    ================================================================ */
@@ -3402,7 +3402,6 @@ select { font-family: inherit; }
 }
 .tt-notice-go:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
 
-
 /* Login brand lockup — clean editorial treatment over video.
    The emblem is shown directly, without an app-icon tile. */
 .tt-login-brand {
@@ -3474,5 +3473,475 @@ select { font-family: inherit; }
     margin-top: 5px;
     font-size: 0.46rem;
     letter-spacing: 0.2em;
+  }
+}
+
+/* ========================================================================
+   PARTNER CABINET POLISH
+   Фирменная навигация, осмысленные пиктограммы и единая верхняя панель.
+   ======================================================================== */
+.tt-app-shell { grid-template-columns: 258px minmax(0, 1fr); }
+.tt-sidebar { padding: 22px 16px 16px; }
+
+.tt-sidebar-brand { padding: 0 7px 24px; }
+.tt-sidebar-brandlock {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 54px;
+}
+.tt-sidebar-emblem {
+  width: 47px;
+  height: 52px;
+  flex: 0 0 auto;
+  background-color: transparent;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.28));
+}
+.tt-brand-rule {
+  width: 1px;
+  height: 31px;
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, transparent, rgba(195, 153, 83, 0.72), transparent);
+}
+.tt-sidebar-brandlock strong {
+  display: block;
+  color: #fff8e9;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.tt-sidebar-brand .tt-sidebar-brandlock small {
+  display: block;
+  margin: 5px 0 0;
+  color: rgba(232, 213, 174, 0.6);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.tt-app-logo {
+  width: 43px;
+  height: 47px;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 7px 8px rgba(13, 48, 42, 0.16));
+}
+
+.tt-sidebar .tt-tab {
+  gap: 11px;
+  padding: 9px 10px;
+}
+.tt-sidebar .tt-tab::before { content: none; display: none; }
+.tt-tab-icon {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: #dfbe79;
+  background: rgba(255, 255, 255, 0.025);
+  transition: 0.18s ease;
+}
+.tt-tab-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-sidebar .tt-tab.is-active .tt-tab-icon {
+  color: #f2d18b;
+  border-color: rgba(216, 185, 119, 0.42);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tt-sidebar-route {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 8px);
+  margin: auto 4px 14px;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 190, 121, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 92% 2%, rgba(226, 195, 128, 0.16), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,0.065), rgba(255,255,255,0.025));
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.tt-sidebar-route:hover {
+  transform: translateY(-1px);
+  border-color: rgba(223, 190, 121, 0.38);
+  background:
+    radial-gradient(circle at 92% 2%, rgba(226, 195, 128, 0.22), transparent 44%),
+    linear-gradient(145deg, rgba(255,255,255,0.085), rgba(255,255,255,0.03));
+}
+.tt-route-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #e0bd74;
+  font-size: .5rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tt-sidebar-route strong {
+  display: block;
+  margin: 0;
+  color: #fff9ed;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.05;
+}
+.tt-sidebar-route small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+.tt-route-cities {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  gap: 8px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tt-route-cities::before {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 15px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(224,189,116,.2), rgba(224,189,116,.62), rgba(224,189,116,.2));
+}
+.tt-route-cities > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.tt-route-cities i {
+  width: 6px;
+  height: 6px;
+  border: 1px solid #e0bd74;
+  border-radius: 50%;
+  background: #0a382f;
+  box-shadow: 0 0 0 3px rgba(224,189,116,.08);
+}
+.tt-route-cities b {
+  color: rgba(255, 255, 255, 0.67);
+  font-size: .5rem;
+  font-weight: 600;
+}
+.tt-route-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 13px;
+  color: #fff6e3;
+  font-size: .63rem;
+  font-weight: 700;
+}
+.tt-route-cta i {
+  color: #e0bd74;
+  font-size: .9rem;
+  font-style: normal;
+}
+
+.tt-sidebar-account {
+  grid-template-columns: 38px minmax(0, 1fr) 30px;
+  padding: 10px;
+  border-color: rgba(223, 190, 121, 0.17);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+}
+.tt-avatar {
+  position: relative;
+  width: 38px;
+  height: 38px;
+}
+.tt-avatar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  width: 7px;
+  height: 7px;
+  border: 2px solid #0a382f;
+  border-radius: 50%;
+  background: #68bd84;
+}
+.tt-sidebar-account strong,
+.tt-sidebar-account small,
+.tt-sidebar-account div > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-sidebar-account small {
+  color: rgba(224, 189, 116, 0.6);
+  font-size: .43rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.tt-sidebar-account strong { margin-top: 2px; color: #fff; font-size: 0.7rem; }
+.tt-sidebar-account div > span { margin-top: 1px; color: rgba(255, 255, 255, 0.4); font-size: 0.5rem; }
+.tt-sidebar-account .tt-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: rgba(255, 255, 255, 0.56);
+}
+.tt-sidebar-account .tt-icon-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tt-app-header {
+  min-height: 78px;
+  padding: 12px clamp(18px, 3vw, 38px);
+  background: rgba(247, 244, 237, 0.94);
+  border-bottom-color: rgba(13, 48, 42, 0.08);
+}
+.tt-app-brand { gap: 11px; }
+.tt-app-brand .tt-brand-rule { height: 34px; }
+.tt-app-brandtext strong { font-size: 1.42rem; font-weight: 600; }
+.tt-app-tools { gap: 10px; }
+.tt-app-currency,
+.tt-app-tg,
+.tt-notice-btn,
+.tt-top-account {
+  border: 1px solid rgba(13, 48, 42, 0.095);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 8px 24px rgba(13, 48, 42, 0.055), inset 0 1px 0 rgba(255,255,255,.85);
+}
+.tt-app-currency {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 30px auto;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 13px 6px 8px;
+  border-radius: 15px;
+}
+.tt-app-currency .tt-tool-icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #a96a2e;
+  background: #f5e9d8;
+}
+.tt-tool-icon svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-app-currency .tt-tool-copy { display: block; }
+.tt-app-currency .tt-tool-copy > small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--tt-text-muted);
+  font-size: .49rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.tt-rate-row { display: flex; align-items: center; gap: 5px; }
+.tt-rate-row > i {
+  width: 1px;
+  height: 12px;
+  margin: 0 3px;
+  background: var(--tt-border);
+}
+.tt-app-tg {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 15px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.tt-app-tg:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 136, 204, .16), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.tt-app-tg img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+.tt-top-account {
+  min-height: 48px;
+  gap: 9px;
+  padding: 5px 6px 5px 7px;
+  border-radius: 15px;
+}
+.tt-logout-top {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 10px;
+}
+.tt-logout-top svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tt-notice-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+  border-radius: 15px;
+  color: #0b4439;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.tt-notice-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(13, 48, 42, .11), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.tt-bell-core {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #f7ecd8, #efe0c3);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 10px rgba(111,76,28,.12);
+  transform-origin: 50% 10%;
+}
+.tt-notice-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: rgba(191, 132, 54, .08);
+  stroke: #9d672a;
+  stroke-width: 1.55;
+}
+.tt-notice-btn i {
+  right: 3px;
+  top: 3px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #fffdf8;
+  background: #ee6240;
+  box-shadow: 0 0 0 2px rgba(238,98,64,.12);
+}
+.tt-notice-btn.has-notices::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgba(238,98,64,.32);
+  border-radius: 16px;
+  animation: tt-notice-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+.tt-notice-btn.has-notices .tt-bell-core {
+  animation: tt-bell-alert 4.8s ease-in-out infinite;
+}
+@keyframes tt-bell-alert {
+  0%, 4%, 8%, 12%, 100% { transform: rotate(0); }
+  2%, 10% { transform: rotate(8deg); }
+  6% { transform: rotate(-8deg); }
+}
+@keyframes tt-notice-pulse {
+  0% { opacity: .7; transform: scale(.92); }
+  68%, 100% { opacity: 0; transform: scale(1.14); }
+}
+
+@media (max-width: 1120px) {
+  .tt-app-shell { grid-template-columns: 222px minmax(0, 1fr); }
+  .tt-sidebar { padding-inline: 11px; }
+  .tt-sidebar-brandlock { gap: 8px; }
+  .tt-sidebar-emblem { width: 40px; height: 45px; }
+  .tt-sidebar-brandlock strong { font-size: 1.18rem; }
+  .tt-sidebar-brand .tt-sidebar-brandlock small { letter-spacing: .13em; }
+  .tt-route-cities { gap: 3px; }
+  .tt-route-cities b { font-size: .46rem; }
+}
+@media (max-width: 860px) {
+  .tt-sidebar { width: 258px; padding: 18px 14px 14px; }
+  .tt-sidebar-brand { display: block; }
+  .tt-sidebar .tt-tabs { display: grid; overflow: visible; }
+  .tt-sidebar .tt-tab { width: 100%; padding: 9px 10px; }
+  .tt-tab-icon { display: grid; }
+  .tt-sidebar-route,
+  .tt-sidebar-account { display: grid; }
+  .tt-sidebar-route { display: block; }
+  .tt-app-header { min-height: 70px; }
+  .tt-sidebar [hidden] { display: none !important; }
+}
+@media (max-width: 700px) {
+  .tt-app-currency { display: none; }
+  .tt-app-tools .tt-app-tg { display: inline-flex; }
+}
+@media (max-width: 520px) {
+  .tt-app-header { padding-inline: 12px; gap: 7px; }
+  .tt-app-brand .tt-brand-rule,
+  .tt-app-brandtext { display: none; }
+  .tt-app-logo { width: 36px; height: 40px; }
+  .tt-app-tools { gap: 6px; }
+  .tt-app-tg,
+  .tt-notice-btn { width: 42px; height: 42px; border-radius: 13px; }
+  .tt-app-tg img { width: 40px; height: 40px; }
+  .tt-bell-core { width: 29px; height: 29px; border-radius: 10px; }
+  .tt-top-account { min-height: 42px; padding: 4px; }
+  .tt-top-avatar { width: 32px; height: 32px; }
+  .tt-logout-top { width: 32px; min-height: 32px; padding: 0; justify-content: center; }
+  .tt-logout-top span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-sidebar-route,
+  .tt-app-tg,
+  .tt-notice-btn,
+  .tt-notice-btn.has-notices .tt-bell-core,
+  .tt-notice-btn.has-notices::after {
+    animation: none;
+    transition: none;
   }
 }
