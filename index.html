@@ -20,7 +20,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260801-4" />
+<link rel="stylesheet" href="styles.css?v=20260801-5" />
 </head>
 <body>
 
@@ -72,34 +72,29 @@
 </div>
 
 <!-- ------------------------------------------------------------- вход -->
+<!-- Вариант A: видео открыто целиком (без плотного затемнения), одна
+     стеклянная карточка по центру. Бренд и полоса-маршрут — поверх видео,
+     но не перекрывают его; см. CLAUDE.md «Экран входа». -->
 <section id="screen-login" class="tt-login-screen" hidden>
   <video class="tt-login-video" autoplay muted loop playsinline preload="metadata"
          poster="img/login-flight-poster.jpg" aria-hidden="true" tabindex="-1">
     <source src="img/login-flight.mp4" type="video/mp4" />
   </video>
-  <div class="tt-login-story">
-    <div class="tt-login-story-top">
-      <div class="tt-logo tt-logo-light">
-        <i class="tt-logo-mark"></i><span>Turon Tour</span>
-      </div>
-      <span data-i18n="login.hub">Turon Partner Hub</span>
+
+  <div class="tt-login-brand">
+    <div class="tt-logo tt-logo-light">
+      <i class="tt-logo-mark"></i><span>Turon Tour</span>
     </div>
-    <div class="tt-login-story-copy">
-      <p data-i18n="login.storyKicker">B2B для туристических агентств</p>
-      <h1 data-i18n="login.storyTitle">Авторские туры для вашего агентства</h1>
-      <span data-i18n="login.storyText">Партнёрские условия, программы и бронирование эксклюзивных маршрутов Turon Tour.</span>
-      <div class="tt-login-benefits" aria-label="Возможности партнёрского кабинета">
-        <b data-i18n="login.benefitTerms">Партнёрские условия</b>
-        <b data-i18n="login.benefitMaterials">Готовые материалы</b>
-        <b data-i18n="login.benefitBooking">Онлайн-бронирование</b>
-      </div>
-    </div>
+    <small data-i18n="login.hub">Partner Hub</small>
   </div>
+
+  <div class="tt-login-route" aria-hidden="true">
+    <span data-i18n="login.storyKicker">B2B для агентств</span>
+    <i>·</i>
+    <b data-i18n="hero.route">Маршрут Карадениз</b>
+  </div>
+
   <form class="tt-login-card" id="login-form">
-    <div class="tt-login-card-brand">
-      <i class="tt-logo-mark" aria-hidden="true"></i>
-      <span>Turon Tour</span>
-    </div>
     <span class="tt-eyebrow" data-i18n="login.kicker">Партнёрский доступ</span>
     <h2 data-i18n="login.title">Добро пожаловать</h2>
     <p class="tt-muted-note" data-i18n="login.note">Войдите в кабинет агентства Turon Tour</p>
@@ -439,7 +434,7 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 <script src="js/seed-data.js"></script>
 <script src="js/api.js"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
-<script src="js/public-ui.js?v=20260801-16"></script>
+<script src="js/public-ui.js?v=20260801-17"></script>
 <script src="js/catalog.js?v=20260731-4"></script>
 <script src="js/admin.js"></script>
 <script src="js/app.js?v=20260801-3"></script>

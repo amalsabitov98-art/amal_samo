@@ -1792,11 +1792,20 @@ select { font-family: inherit; }
 .tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
 
 /* --------------------------------------------------------- login */
+/*
+ * Экран входа — «стекло по центру» (вариант A из трёх обсуждённых).
+ * Видео открыто целиком: только мягкая виньетка по краям, БЕЗ плотного
+ * затемнения слева, как было раньше — иначе от видео остаётся еле видная
+ * подложка. Карточка — полупрозрачное стекло, а не глухая панель:
+ * пропускает видео сквозь себя, это и даёт «премиальный» вид.
+ * На телефоне схлопывается сама — карточка по центру, видео дышит
+ * сверху и снизу, никакой отдельной мобильной раскладки не нужно.
+ */
 .tt-login-screen {
   position: relative;
   isolation: isolate;
-  grid-template-columns: minmax(0, 1.28fr) minmax(390px, 0.72fr);
-  place-items: stretch;
+  display: grid;
+  place-items: center;
   padding: 0;
   overflow: hidden;
   background: #071d1a;
@@ -1807,8 +1816,9 @@ select { font-family: inherit; }
   z-index: -1;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(5, 26, 23, 0.88) 0%, rgba(5, 26, 23, 0.55) 49%, rgba(5, 26, 23, 0.28) 72%, rgba(5, 26, 23, 0.5) 100%),
-    linear-gradient(180deg, rgba(5, 26, 23, 0.22), rgba(5, 26, 23, 0.54));
+    radial-gradient(120% 90% at 50% 100%, rgba(5, 20, 17, 0.55) 0%, rgba(5, 20, 17, 0) 55%),
+    radial-gradient(120% 90% at 50% 0%, rgba(5, 20, 17, 0.4) 0%, rgba(5, 20, 17, 0) 45%),
+    linear-gradient(180deg, rgba(5, 20, 17, 0.18), rgba(5, 20, 17, 0.28));
   pointer-events: none;
 }
 .tt-login-video {
@@ -1820,72 +1830,49 @@ select { font-family: inherit; }
   object-fit: cover;
   object-position: center;
 }
-.tt-login-story {
-  position: relative;
-  min-height: 100vh;
+
+.tt-login-brand {
+  position: absolute;
+  top: clamp(20px, 3.4vw, 34px);
+  left: clamp(20px, 3.4vw, 40px);
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(28px, 5vw, 74px);
-  color: #fff9ed;
-  background: transparent;
-}
-.tt-login-story-top {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  z-index: 2;
 }
-.tt-login-story-top > span {
-  color: #9fb8a7;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.tt-login-story .tt-logo-light span { color: #e1bf7a; }
-.tt-login-story-copy { max-width: 680px; }
-.tt-login-story p {
-  margin: 0 0 9px;
-  color: #d9bc80;
-  font-family: "Manrope", "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.tt-login-story h1 {
-  max-width: 680px;
-  margin: 0 0 22px;
-  color: #fff8e8;
+.tt-login-brand .tt-logo-light span {
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(3rem, 5.4vw, 5.8rem);
-  font-weight: 600;
-  line-height: 0.9;
-  letter-spacing: -0.045em;
-}
-.tt-login-story-copy > span {
-  display: block;
-  max-width: 590px;
-  color: rgba(235, 241, 232, 0.78);
-  font-size: clamp(0.82rem, 1.1vw, 0.98rem);
-  line-height: 1.7;
-}
-.tt-login-benefits {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 24px;
-  margin-top: 34px;
-}
-.tt-login-benefits b {
-  color: #b6c9ba;
-  font-size: 0.66rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  color: #fff9ed;
+}
+.tt-login-brand small {
+  display: block;
+  margin-top: 1px;
+  color: #cddbd3;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.tt-login-benefits b:nth-child(2) { color: #e2c37e; }
-.tt-login-benefits b:nth-child(3) { color: #dce8df; }
+
+.tt-login-route {
+  position: absolute;
+  bottom: clamp(18px, 3vw, 32px);
+  left: clamp(20px, 3.4vw, 40px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e7ded0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.tt-login-route i { font-style: normal; opacity: 0.6; }
+.tt-login-route b { color: #e1bf7a; font-weight: 700; }
 
 .tt-login-card {
   --tt-surface: #fffdf8;
@@ -1895,47 +1882,43 @@ select { font-family: inherit; }
   --tt-text-muted: #6b6558;
   --tt-accent: #b5722e;
   --tt-accent-dark: #8f5a24;
-  align-self: center;
-  justify-self: center;
-  width: min(420px, calc(100% - 44px));
+  position: relative;
+  z-index: 2;
+  width: min(392px, calc(100% - 40px));
   max-width: none;
-  padding: 42px;
-  border: 0;
-  border-radius: var(--tt-radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  background: rgba(255, 252, 245, 0.92);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
-  backdrop-filter: blur(20px) saturate(115%);
-  -webkit-backdrop-filter: blur(20px) saturate(115%);
-  color: var(--tt-text);
+  padding: 38px 36px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(20, 30, 27, 0.32);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff9ed;
   text-align: left;
 }
+.tt-login-card .tt-eyebrow { color: #e1bf7a; }
 .tt-login-card h2 {
   margin: 7px 0 2px;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 600;
+  color: #fff9ed;
 }
-.tt-login-card .tt-muted-note { margin: 0 0 26px; }
-.tt-login-card .tt-btn { margin-top: 5px; }
-.tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; }
-.tt-login-card-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
-  color: var(--tt-forest);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.42rem;
-  font-weight: 600;
+.tt-login-card .tt-muted-note { margin: 0 0 26px; color: #d7cfc0; }
+.tt-login-card label { color: #cddbd3; }
+.tt-login-card input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff9ed;
 }
-.tt-login-card-brand .tt-logo-mark {
-  width: 45px;
-  height: 50px;
-  border-radius: 14px;
-  background-color: #fffaf0;
-  box-shadow: 0 8px 24px rgba(13, 48, 42, 0.11);
+.tt-login-card input::placeholder { color: rgba(255, 249, 237, 0.4); }
+.tt-login-card input:focus { border-color: #e1bf7a; background: rgba(255, 255, 255, 0.13); }
+.tt-login-card .tt-btn {
+  margin-top: 5px;
+  background: linear-gradient(135deg, #e1bf7a, #b5722e);
+  color: #1b1610;
 }
+.tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; color: #cddbd3; }
 
 /* ------------------------------------------------ public catalogue */
 .tt-public-intro {
@@ -2774,41 +2757,17 @@ select { font-family: inherit; }
   .tt-dep-prices,
   .tt-dep-action { grid-column: 1 / -1; }
   .tt-dep-action .tt-btn { width: 100%; }
+  /* Раскладка A уже центрируется сама (display:grid; place-items:center),
+     отдельная колонка на телефоне не нужна — только запас высоты и
+     чуть меньше воздуха, если контент выше экрана (например, книжная
+     ориентация с открытой клавиатурой). */
   .tt-login-screen {
-    display: grid;
-    grid-template-columns: 1fr;
-    align-content: start;
     min-height: 100svh;
-    padding: 0 18px 28px;
+    padding: 84px 16px;
     overflow-y: auto;
   }
-  .tt-login-screen::before {
-    background: linear-gradient(180deg, rgba(5, 26, 23, 0.44) 0%, rgba(5, 26, 23, 0.74) 45%, rgba(5, 26, 23, 0.9) 100%);
-  }
   .tt-login-video { position: fixed; object-position: 62% center; }
-  .tt-login-story {
-    min-height: auto;
-    padding: 22px 4px 24px;
-  }
-  .tt-login-story-top > span { font-size: 0.54rem; }
-  .tt-login-story-copy { margin-top: 88px; }
-  .tt-login-story p { font-size: 0.6rem; }
-  .tt-login-story h1 {
-    max-width: 430px;
-    margin-bottom: 12px;
-    font-size: clamp(2.65rem, 13vw, 4rem);
-    line-height: 0.92;
-  }
-  .tt-login-story-copy > span { font-size: 0.78rem; line-height: 1.55; }
-  .tt-login-benefits { gap: 8px 14px; margin-top: 18px; }
-  .tt-login-benefits b { font-size: 0.56rem; }
-  .tt-login-card {
-    align-self: start;
-    width: 100%;
-    margin: 0 auto;
-    padding: 28px 24px;
-    background: rgba(255, 252, 245, 0.95);
-  }
+  .tt-login-card { padding: 30px 26px; }
   .tt-cat-hero { min-height: 330px; padding: 28px 22px; }
   .tt-cat-hero::after { left: 22px; right: auto; }
   .tt-cat-hero h1 { font-size: 3rem; }

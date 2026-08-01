@@ -1797,122 +1797,133 @@ select { font-family: inherit; }
 .tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
 
 /* --------------------------------------------------------- login */
+/*
+ * Экран входа — «стекло по центру» (вариант A из трёх обсуждённых).
+ * Видео открыто целиком: только мягкая виньетка по краям, БЕЗ плотного
+ * затемнения слева, как было раньше — иначе от видео остаётся еле видная
+ * подложка. Карточка — полупрозрачное стекло, а не глухая панель:
+ * пропускает видео сквозь себя, это и даёт «премиальный» вид.
+ * На телефоне схлопывается сама — карточка по центру, видео дышит
+ * сверху и снизу, никакой отдельной мобильной раскладки не нужно.
+ */
 .tt-login-screen {
-  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
-  place-items: stretch;
-  padding: 0;
-  background: var(--tt-forest-deep);
-}
-.tt-login-story {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(28px, 5vw, 74px);
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  padding: 0;
   overflow: hidden;
-  color: #fff9ed;
-  background:
-    linear-gradient(110deg, rgba(5, 31, 26, 0.25), rgba(5, 31, 26, 0.9)),
-    radial-gradient(circle at 75% 28%, rgba(233, 101, 58, 0.34), transparent 15rem),
-    linear-gradient(150deg, #1d594a, #092923 70%);
+  background: #071d1a;
 }
-.tt-login-story::after {
+.tt-login-screen::before {
   content: "";
   position: absolute;
-  inset: 18% -10% -20% 30%;
-  border: 1px solid rgba(216, 185, 119, 0.17);
-  border-radius: 50%;
-  transform: rotate(-17deg);
-  box-shadow:
-    0 0 0 60px rgba(216, 185, 119, 0.025),
-    0 0 0 120px rgba(216, 185, 119, 0.02);
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 100%, rgba(5, 20, 17, 0.55) 0%, rgba(5, 20, 17, 0) 55%),
+    radial-gradient(120% 90% at 50% 0%, rgba(5, 20, 17, 0.4) 0%, rgba(5, 20, 17, 0) 45%),
+    linear-gradient(180deg, rgba(5, 20, 17, 0.18), rgba(5, 20, 17, 0.28));
+  pointer-events: none;
 }
-.tt-login-story-top {
-  position: relative;
-  z-index: 1;
+.tt-login-video {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.tt-login-brand {
+  position: absolute;
+  top: clamp(20px, 3.4vw, 34px);
+  left: clamp(20px, 3.4vw, 40px);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  z-index: 2;
 }
-.tt-login-story-top > span {
-  color: rgba(255, 255, 255, 0.48);
-  font-size: 0.62rem;
+.tt-login-brand .tt-logo-light span {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  color: #fff9ed;
+}
+.tt-login-brand small {
+  display: block;
+  margin-top: 1px;
+  color: #cddbd3;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.tt-login-story > div:last-child { position: relative; z-index: 1; max-width: 650px; }
-.tt-login-story p {
-  margin: 0 0 9px;
-  color: #d8b977;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.1rem;
-}
-.tt-login-story h1 {
-  max-width: 620px;
-  margin: 0 0 16px;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(3rem, 6vw, 6.2rem);
-  font-weight: 500;
-  line-height: 0.88;
-  letter-spacing: -0.055em;
-}
-.tt-login-story > div:last-child > span {
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 0.8rem;
-}
+
 .tt-login-route {
-  position: relative;
-  z-index: 1;
-  width: min(520px, 80%);
+  position: absolute;
+  bottom: clamp(18px, 3vw, 32px);
+  left: clamp(20px, 3.4vw, 40px);
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.64);
+  gap: 8px;
+  color: #e7ded0;
   font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
-.tt-login-route i { flex: 1; border-top: 1px dashed rgba(255, 255, 255, 0.35); }
-.tt-login-route span:nth-of-type(2) { color: var(--tt-accent); }
+.tt-login-route i { font-style: normal; opacity: 0.6; }
+.tt-login-route b { color: #e1bf7a; font-weight: 700; }
 
 .tt-login-card {
-  align-self: center;
-  justify-self: center;
-  width: min(420px, calc(100% - 44px));
+  --tt-surface: #fffdf8;
+  --tt-bg: #f5f1e9;
+  --tt-border: #ddd5c7;
+  --tt-text: #22201b;
+  --tt-text-muted: #6b6558;
+  --tt-accent: #b5722e;
+  --tt-accent-dark: #8f5a24;
+  position: relative;
+  z-index: 2;
+  width: min(392px, calc(100% - 40px));
   max-width: none;
-  padding: 42px;
-  border: 0;
-  border-radius: var(--tt-radius-lg);
-  background: var(--tt-surface);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  padding: 38px 36px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(20, 30, 27, 0.32);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff9ed;
   text-align: left;
 }
+.tt-login-card .tt-eyebrow { color: #e1bf7a; }
 .tt-login-card h2 {
   margin: 7px 0 2px;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 600;
+  color: #fff9ed;
 }
-.tt-login-card .tt-muted-note { margin: 0 0 26px; }
-.tt-login-card .tt-btn { margin-top: 5px; }
-.tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; }
-.tt-login-card-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
-  color: var(--tt-forest);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.42rem;
-  font-weight: 600;
+.tt-login-card .tt-muted-note { margin: 0 0 26px; color: #d7cfc0; }
+.tt-login-card label { color: #cddbd3; }
+.tt-login-card input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff9ed;
 }
-.tt-login-card-brand .tt-logo-mark {
-  width: 45px;
-  height: 50px;
-  border-radius: 14px;
-  background-color: #fffaf0;
-  box-shadow: 0 8px 24px rgba(13, 48, 42, 0.11);
+.tt-login-card input::placeholder { color: rgba(255, 249, 237, 0.4); }
+.tt-login-card input:focus { border-color: #e1bf7a; background: rgba(255, 255, 255, 0.13); }
+.tt-login-card .tt-btn {
+  margin-top: 5px;
+  background: linear-gradient(135deg, #e1bf7a, #b5722e);
+  color: #1b1610;
 }
+.tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; color: #cddbd3; }
 
 /* ------------------------------------------------ public catalogue */
 .tt-public-intro {
@@ -2751,9 +2762,17 @@ select { font-family: inherit; }
   .tt-dep-prices,
   .tt-dep-action { grid-column: 1 / -1; }
   .tt-dep-action .tt-btn { width: 100%; }
-  .tt-login-screen { display: block; min-height: 100vh; padding: 24px 0; }
-  .tt-login-story { display: none; }
-  .tt-login-card { margin: 6vh auto 0; padding: 30px 24px; }
+  /* Раскладка A уже центрируется сама (display:grid; place-items:center),
+     отдельная колонка на телефоне не нужна — только запас высоты и
+     чуть меньше воздуха, если контент выше экрана (например, книжная
+     ориентация с открытой клавиатурой). */
+  .tt-login-screen {
+    min-height: 100svh;
+    padding: 84px 16px;
+    overflow-y: auto;
+  }
+  .tt-login-video { position: fixed; object-position: 62% center; }
+  .tt-login-card { padding: 30px 26px; }
   .tt-cat-hero { min-height: 330px; padding: 28px 22px; }
   .tt-cat-hero::after { left: 22px; right: auto; }
   .tt-cat-hero h1 { font-size: 3rem; }
@@ -3439,28 +3458,29 @@ select { font-family: inherit; }
 </div>
 
 <!-- ------------------------------------------------------------- вход -->
+<!-- Вариант A: видео открыто целиком (без плотного затемнения), одна
+     стеклянная карточка по центру. Бренд и полоса-маршрут — поверх видео,
+     но не перекрывают его; см. CLAUDE.md «Экран входа». -->
 <section id="screen-login" class="tt-login-screen" hidden>
-  <div class="tt-login-story" aria-hidden="true">
-    <div class="tt-login-story-top">
-      <div class="tt-logo tt-logo-light">
-        <i class="tt-logo-mark"></i><span>Turon Tour</span>
-      </div>
-      <span>Expedition OS</span>
+  <video class="tt-login-video" autoplay muted loop playsinline preload="metadata"
+         poster="img/login-flight-poster.jpg" aria-hidden="true" tabindex="-1">
+    <source src="img/login-flight.mp4" type="video/mp4" />
+  </video>
+
+  <div class="tt-login-brand">
+    <div class="tt-logo tt-logo-light">
+      <i class="tt-logo-mark"></i><span>Turon Tour</span>
     </div>
-    <div class="tt-login-route">
-      <span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>
-    </div>
-    <div>
-      <p>Карадениз зовёт</p>
-      <h1>Управляйте путешествием целиком.</h1>
-      <span>Заезды, бронирования, туристы и оплаты — в одной системе.</span>
-    </div>
+    <small data-i18n="login.hub">Partner Hub</small>
   </div>
+
+  <div class="tt-login-route" aria-hidden="true">
+    <span data-i18n="login.storyKicker">B2B для агентств</span>
+    <i>·</i>
+    <b data-i18n="hero.route">Маршрут Карадениз</b>
+  </div>
+
   <form class="tt-login-card" id="login-form">
-    <div class="tt-login-card-brand">
-      <i class="tt-logo-mark" aria-hidden="true"></i>
-      <span>Turon Tour</span>
-    </div>
     <span class="tt-eyebrow" data-i18n="login.kicker">Партнёрский доступ</span>
     <h2 data-i18n="login.title">Добро пожаловать</h2>
     <p class="tt-muted-note" data-i18n="login.note">Войдите в кабинет агентства Turon Tour</p>
@@ -7217,6 +7237,8 @@ window.TURON_DESTINATIONS = [
       "login.user": "Логин",
       "login.password": "Пароль",
       "login.back": "← В каталог",
+      "login.hub": "Partner Hub",
+      "login.storyKicker": "B2B для туристических агентств",
       "hero.kicker": "Туроператор из Ташкента · Узбекистан",
       "hero.title": "Путешествия,",
       "hero.accent": "которые остаются с вами.",
@@ -7265,6 +7287,8 @@ window.TURON_DESTINATIONS = [
       "login.user": "Login",
       "login.password": "Parol",
       "login.back": "← Katalogga",
+      "login.hub": "Partner Hub",
+      "login.storyKicker": "Turagentliklar uchun B2B",
       "hero.kicker": "Toshkentdagi turoperator · O‘zbekiston",
       "hero.title": "Siz bilan qoladigan",
       "hero.accent": "sayohatlar.",
@@ -7313,6 +7337,8 @@ window.TURON_DESTINATIONS = [
       "login.user": "Login",
       "login.password": "Password",
       "login.back": "← Back to catalogue",
+      "login.hub": "Partner Hub",
+      "login.storyKicker": "B2B for travel agencies",
       "hero.kicker": "Tour operator from Tashkent · Uzbekistan",
       "hero.title": "Journeys that",
       "hero.accent": "stay with you.",
@@ -7361,6 +7387,8 @@ window.TURON_DESTINATIONS = [
       "login.user": "Kullanıcı adı",
       "login.password": "Şifre",
       "login.back": "← Kataloğa dön",
+      "login.hub": "Partner Hub",
+      "login.storyKicker": "Seyahat acenteleri için B2B",
       "hero.kicker": "Taşkent merkezli tur operatörü · Özbekistan",
       "hero.title": "Sizinle kalan",
       "hero.accent": "yolculuklar.",
