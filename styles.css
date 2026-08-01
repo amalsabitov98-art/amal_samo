@@ -1246,15 +1246,6 @@ select { font-family: inherit; }
   height: 18px;
   background: var(--tt-border);
 }
-.tt-currency-board small {
-  position: absolute;
-  right: 12px;
-  bottom: -17px;
-  color: rgba(13, 48, 42, 0.46);
-  font-size: 0.48rem;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
 
 .tt-language select {
   min-width: 62px;
@@ -2704,7 +2695,6 @@ select { font-family: inherit; }
     gap: 8px;
     padding: 6px 9px;
   }
-  .tt-currency-board small { display: none; }
   .tt-language select { min-width: 56px; min-height: 40px; }
   .tt-account-btn { min-height: 40px; padding: 7px 10px; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
