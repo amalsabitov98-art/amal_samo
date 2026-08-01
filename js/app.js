@@ -84,7 +84,6 @@
     var initials = (words.length > 1
       ? words.slice(0, 2).map(function (w) { return w[0]; }).join("")
       : (words[0] || "").slice(0, 2)).toUpperCase();
-    $("side-avatar").textContent = initials;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
     // и своих комиссий не имеет.
@@ -153,7 +152,6 @@
       showPublic();
     });
   }
-  $("logout-btn").addEventListener("click", doLogout);
   $("logout-top").addEventListener("click", doLogout);
 
   /* Колокольчик: открытие панели, закрытие по клику вне и по Esc.
@@ -1301,10 +1299,6 @@
     setNav(!$("screen-app").classList.contains("is-nav-open"));
   });
   $("nav-scrim").addEventListener("click", function () { setNav(false); });
-  $("featured-tour-btn").addEventListener("click", function () {
-    switchTab("catalog");
-    setNav(false);
-  });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNav(false);
   });
