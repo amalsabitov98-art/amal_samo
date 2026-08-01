@@ -8,6 +8,7 @@
     builder: { code: null, counts: {} },
     // брони агентства: их читают разделы «Туристы», «Платежи», «Документы»
     bookings: [],
+    mediaIndex: 0,
   };
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
@@ -550,10 +551,6 @@
     if (commission > 0) {
       cbox.innerHTML = "<span>Комиссия агентства</span><b>" + money(commission) + "</b>";
     }
-
-    // ------------------------------------------------------ фото
-    var photo = (hotels[0] && hotels[0].image) || "img/hotel-batumi-view-luxury.webp";
-    $("builder-media").style.backgroundImage = "url(" + photo + ")";
 
     // --------------------------------------------- кнопки и контент
     var prog = TuronProvisional.programFor(d);
@@ -1303,8 +1300,156 @@
     setNav(!$("screen-app").classList.contains("is-nav-open"));
   });
   $("nav-scrim").addEventListener("click", function () { setNav(false); });
+
+  // На широком экране меню можно оставить полноценным или свернуть до
+  // вертикальной полосы иконок. Выбор агентства запоминается на устройстве.
+  var sidebarStorageKey = "turon.sidebar.compact";
+  var sidebarBtn = $("sidebar-collapse");
+
+  document.querySelectorAll(".tt-sidebar .tt-tab").forEach(function (tab) {
+    var label = tab.querySelector("span:last-child");
+    if (!label) return;
+    tab.dataset.tooltip = label.textContent.trim();
+    tab.setAttribute("aria-label", label.textContent.trim());
+  });
+
+  function applySidebarMode(compact, remember) {
+    $("screen-app").classList.toggle("is-sidebar-collapsed", compact);
+    sidebarBtn.setAttribute("aria-pressed", compact ? "true" : "false");
+    sidebarBtn.setAttribute("aria-label", compact
+      ? "Развернуть боковую панель"
+      : "Свернуть боковую панель");
+    sidebarBtn.title = compact ? "Развернуть меню" : "Свернуть меню";
+    if (remember) {
+      try { localStorage.setItem(sidebarStorageKey, compact ? "1" : "0"); } catch (_) {}
+    }
+  }
+
+  var savedSidebar = false;
+  try { savedSidebar = localStorage.getItem(sidebarStorageKey) === "1"; } catch (_) {}
+  applySidebarMode(savedSidebar, false);
+  sidebarBtn.addEventListener("click", function () {
+    applySidebarMode(!$("screen-app").classList.contains("is-sidebar-collapsed"), true);
+  });
+
+  // Слайдер тура: ручные стрелки, точки, клавиатура, свайп, спокойная
+  // автопрокрутка и полноэкранный просмотр. При reduced-motion автоплей
+  // отключён, а CSS убирает переходы.
+  var media = $("builder-media");
+  var mediaSlides = Array.from(media.querySelectorAll("[data-media-slide]"));
+  var mediaDots = Array.from(media.querySelectorAll("[data-media-dot]"));
+  var mediaCaptions = [
+    ["Ризе", "Чайные долины"],
+    ["Трабзон", "Черноморское побережье"],
+    ["Батуми", "Приморский бульвар"],
+    ["Батуми", "Отель у моря"],
+  ];
+  var mediaTimer = null;
+  var mediaPointerX = null;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function showMedia(index, announce) {
+    state.mediaIndex = (index + mediaSlides.length) % mediaSlides.length;
+    mediaSlides.forEach(function (slide, i) {
+      var active = i === state.mediaIndex;
+      slide.classList.toggle("is-active", active);
+      slide.setAttribute("aria-hidden", active ? "false" : "true");
+    });
+    mediaDots.forEach(function (dot, i) {
+      var active = i === state.mediaIndex;
+      dot.classList.toggle("is-active", active);
+      if (active) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    });
+    var caption = mediaCaptions[state.mediaIndex];
+    $("builder-media-caption").innerHTML = "<small>" + esc(caption[0]) +
+      "</small><strong>" + esc(caption[1]) + "</strong>";
+    if (announce) {
+      $("builder-media-status").textContent = "Фото " + (state.mediaIndex + 1) +
+        " из " + mediaSlides.length + ": " + caption[0] + ", " + caption[1];
+    }
+  }
+
+  function stopMediaAuto() {
+    if (mediaTimer) window.clearInterval(mediaTimer);
+    mediaTimer = null;
+  }
+  function startMediaAuto() {
+    stopMediaAuto();
+    if (reduceMotion || document.hidden) return;
+    mediaTimer = window.setInterval(function () {
+      showMedia(state.mediaIndex + 1, false);
+    }, 6500);
+  }
+  function moveMedia(step) {
+    showMedia(state.mediaIndex + step, true);
+    startMediaAuto();
+  }
+
+  $("builder-media-prev").addEventListener("click", function () { moveMedia(-1); });
+  $("builder-media-next").addEventListener("click", function () { moveMedia(1); });
+  $("builder-media-dots").addEventListener("click", function (e) {
+    var dot = e.target.closest("[data-media-dot]");
+    if (!dot) return;
+    showMedia(Number(dot.dataset.mediaDot), true);
+    startMediaAuto();
+  });
+  media.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft") { e.preventDefault(); moveMedia(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); moveMedia(1); }
+  });
+  media.addEventListener("pointerdown", function (e) { mediaPointerX = e.clientX; });
+  media.addEventListener("pointerup", function (e) {
+    if (mediaPointerX == null) return;
+    var delta = e.clientX - mediaPointerX;
+    mediaPointerX = null;
+    if (Math.abs(delta) > 45) moveMedia(delta > 0 ? -1 : 1);
+  });
+  media.addEventListener("pointercancel", function () { mediaPointerX = null; });
+  media.addEventListener("mouseenter", stopMediaAuto);
+  media.addEventListener("mouseleave", startMediaAuto);
+  media.addEventListener("focusin", stopMediaAuto);
+  media.addEventListener("focusout", startMediaAuto);
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopMediaAuto(); else startMediaAuto();
+  });
+
+  function setMediaFullscreen(open) {
+    media.classList.toggle("is-fullscreen", open);
+    $("builder-media-full").setAttribute("aria-pressed", open ? "true" : "false");
+    $("builder-media-full").setAttribute("aria-label", open
+      ? "Закрыть полноэкранный просмотр"
+      : "Открыть фотографию на весь экран");
+    $("builder-media-full").title = open ? "Закрыть" : "На весь экран";
+    document.body.style.overflow = open ? "hidden" : "";
+  }
+
+  $("builder-media-full").addEventListener("click", function () {
+    if (document.fullscreenElement === media) {
+      document.exitFullscreen().catch(function () { setMediaFullscreen(false); });
+      return;
+    }
+    if (media.classList.contains("is-fullscreen")) {
+      setMediaFullscreen(false);
+      return;
+    }
+    if (media.requestFullscreen) {
+      media.requestFullscreen().catch(function () { setMediaFullscreen(true); });
+    } else {
+      setMediaFullscreen(true);
+    }
+  });
+  document.addEventListener("fullscreenchange", function () {
+    setMediaFullscreen(document.fullscreenElement === media);
+  });
+  showMedia(0, false);
+  startMediaAuto();
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNav(false);
+    if (e.key === "Escape" && media.classList.contains("is-fullscreen") && !document.fullscreenElement) {
+      setMediaFullscreen(false);
+    }
   });
 
   $("builder-book").addEventListener("click", function () {

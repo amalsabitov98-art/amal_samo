@@ -64,6 +64,16 @@ console.log("\nКабинет агентства");
   check("переключателя языка в кабинете нет (кабинет только на русском)",
         (await page.locator("#app-language").count()) === 0);
 
+  // широкий режим: сайдбар сворачивается до иконок и возвращается обратно
+  await page.click("#sidebar-collapse");
+  await page.waitForTimeout(350);
+  check("боковая панель сворачивается",
+        await page.locator("#screen-app").evaluate((el) => el.classList.contains("is-sidebar-collapsed")));
+  check("компактный режим запоминается",
+        await page.evaluate(() => localStorage.getItem("turon.sidebar.compact")) === "1");
+  await page.click("#sidebar-collapse");
+  await page.waitForTimeout(350);
+
   // все вкладки открываются и наполняются
   for (const t of await page.locator(".tt-tab:not([hidden])").all()) {
     const name = await t.getAttribute("data-tab");
@@ -95,6 +105,14 @@ console.log("\nКабинет агентства");
         !!(await page.locator("#builder-program").getAttribute("data-url")));
   check("блок «включено» заполнен",
         (await page.locator("#builder-included li").count()) > 3);
+  check("в слайдере четыре фотографии тура",
+        (await page.locator("#builder-media [data-media-slide]").count()) === 4);
+  const firstMedia = await page.locator("#builder-media .is-active img").getAttribute("src");
+  await page.click("#builder-media-next");
+  await page.waitForTimeout(850);
+  const secondMedia = await page.locator("#builder-media .is-active img").getAttribute("src");
+  check("слайдер переключает фотографии", firstMedia !== secondMedia,
+        `${firstMedia} → ${secondMedia}`);
 
   // счёт и бронирование. Берём заезд с запасом мест: на ближайшем их может
   // остаться одно, и кнопка справедливо заблокируется по нехватке мест.

@@ -20,7 +20,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260801-11" />
+<link rel="stylesheet" href="styles.css?v=20260801-14" />
 </head>
 <body>
 
@@ -139,6 +139,10 @@
         </div>
       </div>
     </div>
+    <button class="tt-sidebar-collapse" id="sidebar-collapse" type="button"
+            aria-label="Свернуть боковую панель" aria-pressed="false" title="Свернуть меню">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+    </button>
     <div class="tt-tabs">
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span>Новый тур</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span>Бронирования</span></button>
@@ -233,7 +237,47 @@
               <span class="tt-mj-b2b">B2B</span>
             </section>
 
-            <aside class="tt-mj-media" id="builder-media"></aside>
+            <aside class="tt-mj-media" id="builder-media" tabindex="0"
+                   role="region" aria-roledescription="carousel"
+                   aria-label="Фотографии тура Ризе, Трабзон и Батуми">
+              <div class="tt-mj-media-slides" id="builder-media-slides" aria-live="off">
+                <figure class="tt-mj-media-slide is-active" data-media-slide aria-hidden="false">
+                  <img src="img/tour-rize-tea-valley.webp" alt="Чайные долины Ризе среди зелёных гор" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/hero-karadeniz.webp" alt="Черноморское побережье рядом с Трабзоном" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/tour-batumi-boulevard.webp" alt="Приморский бульвар Батуми на закате" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/hotel-batumi-view-luxury.webp" alt="Отель у моря в Батуми" />
+                </figure>
+              </div>
+              <div class="tt-mj-media-top">
+                <span class="tt-mj-media-caption" id="builder-media-caption">
+                  <small>Ризе</small><strong>Чайные долины</strong>
+                </span>
+                <button class="tt-mj-media-full" id="builder-media-full" type="button"
+                        aria-label="Открыть фотографию на весь экран" aria-pressed="false"
+                        title="На весь экран">
+                  <svg class="tt-media-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" /></svg>
+                  <svg class="tt-media-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+                </button>
+              </div>
+              <button class="tt-mj-media-arrow is-prev" id="builder-media-prev" type="button"
+                      aria-label="Предыдущая фотография">←</button>
+              <button class="tt-mj-media-arrow is-next" id="builder-media-next" type="button"
+                      aria-label="Следующая фотография">→</button>
+              <div class="tt-mj-media-dots" id="builder-media-dots" role="group"
+                   aria-label="Выбрать фотографию">
+                <button class="is-active" type="button" data-media-dot="0" aria-label="Ризе — чайные долины" aria-current="true"></button>
+                <button type="button" data-media-dot="1" aria-label="Трабзон — побережье"></button>
+                <button type="button" data-media-dot="2" aria-label="Батуми — бульвар"></button>
+                <button type="button" data-media-dot="3" aria-label="Батуми — отель"></button>
+              </div>
+              <span class="tt-sr-only" id="builder-media-status" aria-live="polite">Фото 1 из 4: Ризе, чайные долины</span>
+            </aside>
           </div>
 
           <div class="tt-mj-actions">
@@ -423,6 +467,6 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 <script src="js/public-ui.js?v=20260801-17"></script>
 <script src="js/catalog.js?v=20260731-4"></script>
 <script src="js/admin.js"></script>
-<script src="js/app.js?v=20260801-13"></script>
+<script src="js/app.js?v=20260801-14"></script>
 </body>
 </html>

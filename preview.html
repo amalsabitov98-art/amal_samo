@@ -3790,11 +3790,11 @@ select { font-family: inherit; }
   color: var(--tt-tool-gold-deep);
 }
 .tt-tool-icon svg {
-  width: 27px;
-  height: 27px;
+  width: 25px;
+  height: 25px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.25;
+  stroke-width: 1.45;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -3821,10 +3821,11 @@ select { font-family: inherit; }
 .tt-rate-row b { color: #0b342e; font-size: .9rem; font-weight: 600; }
 .tt-rate-row strong {
   color: #082f29;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.05rem;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: .98rem;
   font-weight: 700;
-  letter-spacing: .025em;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
 }
 .tt-rate-row > i {
   width: 1px;
@@ -4044,6 +4045,333 @@ select { font-family: inherit; }
   }
 }
 
+/* ========================================================================
+   WIDE VIEW MODE + BUILDER GALLERY
+   На десктопе навигация сворачивается до иконок, а фотографии тура можно
+   листать и открывать на весь экран. Мобильное выезжающее меню не меняем.
+   ======================================================================== */
+@media (min-width: 861px) {
+  .tt-app-shell,
+  .tt-sidebar,
+  .tt-sidebar-brandlock,
+  .tt-sidebar .tt-tab,
+  .tt-mj {
+    transition: grid-template-columns .28s ease, width .28s ease,
+      padding .28s ease, max-width .28s ease, gap .28s ease;
+  }
+
+  .tt-sidebar-collapse {
+    position: absolute;
+    z-index: 4;
+    top: 86px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(199, 163, 90, .7);
+    border-radius: 10px;
+    background: linear-gradient(145deg, #fffdf7, #f0e8d8);
+    color: #8c6828;
+    box-shadow: 0 8px 20px rgba(3, 42, 36, .2), inset 0 1px 0 #fff;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .tt-sidebar .tt-tabs { padding-top: 15px; }
+  .tt-sidebar-collapse:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 11px 24px rgba(3, 42, 36, .25), inset 0 1px 0 #fff;
+  }
+  .tt-sidebar-collapse svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .28s ease;
+  }
+
+  .tt-app-shell.is-sidebar-collapsed {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar {
+    padding-inline: 11px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-collapse svg {
+    transform: rotate(180deg);
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-brand {
+    padding-inline: 0;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-brandlock {
+    justify-content: center;
+    gap: 0;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-brandlock .tt-brand-rule,
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-brandlock > div,
+  .tt-app-shell.is-sidebar-collapsed .tt-tab > span:last-child {
+    display: none;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar-emblem {
+    width: 45px;
+    height: 50px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar .tt-tabs {
+    overflow: visible;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-sidebar .tt-tab {
+    position: relative;
+    justify-content: center;
+    width: 100%;
+    padding: 7px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-tab-icon {
+    width: 38px;
+    height: 38px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-tab-divider {
+    margin-inline: 8px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-tab::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: 80;
+    left: calc(100% + 13px);
+    top: 50%;
+    width: max-content;
+    max-width: 210px;
+    padding: 7px 10px;
+    border: 1px solid rgba(199, 163, 90, .45);
+    border-radius: 9px;
+    background: #fffaf0;
+    color: #0a372f;
+    box-shadow: 0 10px 25px rgba(3, 42, 36, .18);
+    font-size: .68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(6px, -50%);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-tab:hover::after,
+  .tt-app-shell.is-sidebar-collapsed .tt-tab:focus-visible::after {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-mj {
+    max-width: 1480px;
+  }
+  .tt-app-shell.is-sidebar-collapsed .tt-mj-grid {
+    grid-template-columns: 1.05fr .95fr 1.2fr;
+  }
+}
+
+.tt-sidebar-collapse { display: none; }
+@media (min-width: 861px) {
+  .tt-sidebar-collapse { display: grid; }
+}
+
+.tt-mj-media {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #082f29;
+  box-shadow: 0 16px 35px rgba(7, 44, 37, .14);
+  outline: none;
+}
+.tt-mj-media:focus-visible {
+  box-shadow: 0 0 0 3px rgba(199, 163, 90, .3), 0 16px 35px rgba(7, 44, 37, .18);
+}
+.tt-mj-media-slides,
+.tt-mj-media-slide,
+.tt-mj-media-slide img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.tt-mj-media-slide {
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(1.025);
+  transition: opacity .7s ease, transform 1.1s ease, visibility .7s;
+}
+.tt-mj-media-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+.tt-mj-media-slide img {
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+.tt-mj-media::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 28, 24, .3), transparent 35%, transparent 56%, rgba(3, 28, 24, .72));
+  pointer-events: none;
+}
+.tt-mj-media-top {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tt-mj-media-caption {
+  display: grid;
+  gap: 2px;
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 248, 233, .22);
+  border-radius: 11px;
+  background: rgba(3, 38, 32, .48);
+  color: #fff9ed;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.tt-mj-media-caption small {
+  color: #e1bf7a;
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tt-mj-media-caption strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.05;
+}
+.tt-mj-media-full,
+.tt-mj-media-arrow {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 233, .36);
+  background: rgba(3, 38, 32, .52);
+  color: #fff9ed;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease, border-color .18s ease;
+}
+.tt-mj-media-full:hover,
+.tt-mj-media-arrow:hover {
+  border-color: rgba(225, 191, 122, .8);
+  background: rgba(3, 38, 32, .76);
+}
+.tt-mj-media-full {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+}
+.tt-mj-media-full svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-mj-media-full .tt-media-close { display: none; }
+.tt-mj-media.is-fullscreen .tt-media-expand,
+.tt-mj-media:fullscreen .tt-media-expand { display: none; }
+.tt-mj-media.is-fullscreen .tt-media-close,
+.tt-mj-media:fullscreen .tt-media-close { display: block; }
+.tt-mj-media-arrow {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1rem;
+  transform: translateY(-50%);
+}
+.tt-mj-media-arrow:hover { transform: translateY(-50%) scale(1.05); }
+.tt-mj-media-arrow.is-prev { left: 14px; }
+.tt-mj-media-arrow.is-next { right: 14px; }
+.tt-mj-media-dots {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 17px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transform: translateX(-50%);
+}
+.tt-mj-media-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 1px solid rgba(255, 249, 237, .8);
+  border-radius: 99px;
+  background: rgba(255, 249, 237, .25);
+  cursor: pointer;
+  transition: width .25s ease, background .25s ease;
+}
+.tt-mj-media-dots button.is-active {
+  width: 24px;
+  background: #e1bf7a;
+  border-color: #e1bf7a;
+}
+.tt-mj-media:fullscreen,
+.tt-mj-media.is-fullscreen {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  min-height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+.tt-mj-media:fullscreen .tt-mj-media-caption strong,
+.tt-mj-media.is-fullscreen .tt-mj-media-caption strong {
+  font-size: clamp(1.25rem, 2vw, 2rem);
+}
+
+@media (max-width: 860px) {
+  .tt-sidebar-collapse { display: none !important; }
+}
+@media (max-width: 640px) {
+  .tt-mj-media-top { top: 10px; left: 10px; right: 10px; }
+  .tt-mj-media-arrow { width: 34px; height: 34px; }
+  .tt-mj-media-arrow.is-prev { left: 10px; }
+  .tt-mj-media-arrow.is-next { right: 10px; }
+  .tt-mj-media-caption { padding: 7px 9px; }
+  .tt-mj-media-caption strong { font-size: .95rem; }
+  .tt-mj-media-full { width: 36px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-app-shell,
+  .tt-sidebar,
+  .tt-sidebar-collapse,
+  .tt-sidebar-collapse svg,
+  .tt-mj,
+  .tt-mj-media-slide,
+  .tt-mj-media-dots button {
+    transition: none;
+  }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -4184,6 +4512,10 @@ select { font-family: inherit; }
         </div>
       </div>
     </div>
+    <button class="tt-sidebar-collapse" id="sidebar-collapse" type="button"
+            aria-label="Свернуть боковую панель" aria-pressed="false" title="Свернуть меню">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+    </button>
     <div class="tt-tabs">
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span>Новый тур</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span>Бронирования</span></button>
@@ -4200,23 +4532,6 @@ select { font-family: inherit; }
       <button class="tt-tab tt-tab-op" data-tab="agencies" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14M8 10h2M14 10h2M8 14h2M14 14h2M10 21v-3h4v3" /></svg></span><span>Агентства</span></button>
     </div>
 
-    <button class="tt-sidebar-route tt-tab-ag" id="featured-tour-btn" type="button">
-      <span class="tt-route-label">Авторский маршрут</span>
-      <strong>Ризе + Батуми</strong>
-      <small>Karadeniz · 8 дней / 7 ночей</small>
-      <span class="tt-route-cities" aria-label="Трабзон, Ризе, Батуми">
-        <span><i></i><b>Трабзон</b></span>
-        <span><i></i><b>Ризе</b></span>
-        <span><i></i><b>Батуми</b></span>
-      </span>
-      <span class="tt-route-cta">Открыть тур <i aria-hidden="true">↗</i></span>
-    </button>
-
-    <div class="tt-sidebar-account">
-      <span class="tt-avatar" id="side-avatar"></span>
-      <div><small>Аккаунт агентства</small><strong id="agency-name"></strong><span>Партнёрский доступ</span></div>
-      <button class="tt-icon-btn" id="logout-btn" title="Выйти" aria-label="Выйти"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" /></svg></button>
-    </div>
   </aside>
 
   <div class="tt-workspace">
@@ -4229,7 +4544,7 @@ select { font-family: inherit; }
       </div>
       <div class="tt-app-tools">
         <div class="tt-currency-board tt-app-currency" title="Официальный курс Центрального банка Узбекистана">
-          <span class="tt-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9h14M7 9v7M12 9v7M17 9v7M4 18h16M5 7l7-4 7 4" /><path d="M3.5 12.5a8.8 8.8 0 0 0 2.1 6M3.4 15l.1-2.5L6 13M20.5 11.5a8.8 8.8 0 0 0-2.1-6M20.6 9l-.1 2.5-2.5-.5" /></svg></span>
+          <span class="tt-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5h16M6 8.5v8M10 8.5v8M14 8.5v8M18 8.5v8M3 19h18M5 6.5 12 3l7 3.5" /></svg></span>
           <span class="tt-tool-copy"><small>Курс ЦБ</small><span class="tt-rate-row"><b>$</b><strong data-rate="usd">—</strong><i></i><b>€</b><strong data-rate="eur">—</strong></span></span>
         </div>
         <a class="tt-app-tg" href="https://t.me/+998998307711" target="_blank"
@@ -4295,7 +4610,47 @@ select { font-family: inherit; }
               <span class="tt-mj-b2b">B2B</span>
             </section>
 
-            <aside class="tt-mj-media" id="builder-media"></aside>
+            <aside class="tt-mj-media" id="builder-media" tabindex="0"
+                   role="region" aria-roledescription="carousel"
+                   aria-label="Фотографии тура Ризе, Трабзон и Батуми">
+              <div class="tt-mj-media-slides" id="builder-media-slides" aria-live="off">
+                <figure class="tt-mj-media-slide is-active" data-media-slide aria-hidden="false">
+                  <img src="img/tour-rize-tea-valley.webp" alt="Чайные долины Ризе среди зелёных гор" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/hero-karadeniz.webp" alt="Черноморское побережье рядом с Трабзоном" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/tour-batumi-boulevard.webp" alt="Приморский бульвар Батуми на закате" />
+                </figure>
+                <figure class="tt-mj-media-slide" data-media-slide aria-hidden="true">
+                  <img src="img/hotel-batumi-view-luxury.webp" alt="Отель у моря в Батуми" />
+                </figure>
+              </div>
+              <div class="tt-mj-media-top">
+                <span class="tt-mj-media-caption" id="builder-media-caption">
+                  <small>Ризе</small><strong>Чайные долины</strong>
+                </span>
+                <button class="tt-mj-media-full" id="builder-media-full" type="button"
+                        aria-label="Открыть фотографию на весь экран" aria-pressed="false"
+                        title="На весь экран">
+                  <svg class="tt-media-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" /></svg>
+                  <svg class="tt-media-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+                </button>
+              </div>
+              <button class="tt-mj-media-arrow is-prev" id="builder-media-prev" type="button"
+                      aria-label="Предыдущая фотография">←</button>
+              <button class="tt-mj-media-arrow is-next" id="builder-media-next" type="button"
+                      aria-label="Следующая фотография">→</button>
+              <div class="tt-mj-media-dots" id="builder-media-dots" role="group"
+                   aria-label="Выбрать фотографию">
+                <button class="is-active" type="button" data-media-dot="0" aria-label="Ризе — чайные долины" aria-current="true"></button>
+                <button type="button" data-media-dot="1" aria-label="Трабзон — побережье"></button>
+                <button type="button" data-media-dot="2" aria-label="Батуми — бульвар"></button>
+                <button type="button" data-media-dot="3" aria-label="Батуми — отель"></button>
+              </div>
+              <span class="tt-sr-only" id="builder-media-status" aria-live="polite">Фото 1 из 4: Ризе, чайные долины</span>
+            </aside>
           </div>
 
           <div class="tt-mj-actions">
@@ -9547,6 +9902,7 @@ window.TURON_DESTINATIONS = [
     builder: { code: null, counts: {} },
     // брони агентства: их читают разделы «Туристы», «Платежи», «Документы»
     bookings: [],
+    mediaIndex: 0,
   };
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
@@ -9615,15 +9971,18 @@ window.TURON_DESTINATIONS = [
     $("screen-public").hidden = true;
     $("screen-login").hidden = true;
     $("screen-app").hidden = false;
-    $("agency-name").textContent = agency.name;
-    $("top-agency-name").textContent = agency.name;
+    // Нижняя карточка агентства удалена из бокового меню. Обновляем имя
+    // только там, где соответствующий элемент действительно существует.
+    var agencyName = $("agency-name");
+    if (agencyName) agencyName.textContent = agency.name;
+    var topAgencyName = $("top-agency-name");
+    if (topAgencyName) topAgencyName.textContent = agency.name;
     // инициалы были захардкожены («GW», «TT») и не совпадали с агентством;
     // из одного слова берём две первые буквы, иначе кружок с одной буквой
     var words = agency.name.split(/\s+/).filter(Boolean);
     var initials = (words.length > 1
       ? words.slice(0, 2).map(function (w) { return w[0]; }).join("")
       : (words[0] || "").slice(0, 2)).toUpperCase();
-    $("side-avatar").textContent = initials;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
     // и своих комиссий не имеет.
@@ -9692,7 +10051,6 @@ window.TURON_DESTINATIONS = [
       showPublic();
     });
   }
-  $("logout-btn").addEventListener("click", doLogout);
   $("logout-top").addEventListener("click", doLogout);
 
   /* Колокольчик: открытие панели, закрытие по клику вне и по Esc.
@@ -10087,10 +10445,6 @@ window.TURON_DESTINATIONS = [
     if (commission > 0) {
       cbox.innerHTML = "<span>Комиссия агентства</span><b>" + money(commission) + "</b>";
     }
-
-    // ------------------------------------------------------ фото
-    var photo = (hotels[0] && hotels[0].image) || "img/hotel-batumi-view-luxury.webp";
-    $("builder-media").style.backgroundImage = "url(" + photo + ")";
 
     // --------------------------------------------- кнопки и контент
     var prog = TuronProvisional.programFor(d);
@@ -10840,12 +11194,156 @@ window.TURON_DESTINATIONS = [
     setNav(!$("screen-app").classList.contains("is-nav-open"));
   });
   $("nav-scrim").addEventListener("click", function () { setNav(false); });
-  $("featured-tour-btn").addEventListener("click", function () {
-    switchTab("catalog");
-    setNav(false);
+
+  // На широком экране меню можно оставить полноценным или свернуть до
+  // вертикальной полосы иконок. Выбор агентства запоминается на устройстве.
+  var sidebarStorageKey = "turon.sidebar.compact";
+  var sidebarBtn = $("sidebar-collapse");
+
+  document.querySelectorAll(".tt-sidebar .tt-tab").forEach(function (tab) {
+    var label = tab.querySelector("span:last-child");
+    if (!label) return;
+    tab.dataset.tooltip = label.textContent.trim();
+    tab.setAttribute("aria-label", label.textContent.trim());
   });
+
+  function applySidebarMode(compact, remember) {
+    $("screen-app").classList.toggle("is-sidebar-collapsed", compact);
+    sidebarBtn.setAttribute("aria-pressed", compact ? "true" : "false");
+    sidebarBtn.setAttribute("aria-label", compact
+      ? "Развернуть боковую панель"
+      : "Свернуть боковую панель");
+    sidebarBtn.title = compact ? "Развернуть меню" : "Свернуть меню";
+    if (remember) {
+      try { localStorage.setItem(sidebarStorageKey, compact ? "1" : "0"); } catch (_) {}
+    }
+  }
+
+  var savedSidebar = false;
+  try { savedSidebar = localStorage.getItem(sidebarStorageKey) === "1"; } catch (_) {}
+  applySidebarMode(savedSidebar, false);
+  sidebarBtn.addEventListener("click", function () {
+    applySidebarMode(!$("screen-app").classList.contains("is-sidebar-collapsed"), true);
+  });
+
+  // Слайдер тура: ручные стрелки, точки, клавиатура, свайп, спокойная
+  // автопрокрутка и полноэкранный просмотр. При reduced-motion автоплей
+  // отключён, а CSS убирает переходы.
+  var media = $("builder-media");
+  var mediaSlides = Array.from(media.querySelectorAll("[data-media-slide]"));
+  var mediaDots = Array.from(media.querySelectorAll("[data-media-dot]"));
+  var mediaCaptions = [
+    ["Ризе", "Чайные долины"],
+    ["Трабзон", "Черноморское побережье"],
+    ["Батуми", "Приморский бульвар"],
+    ["Батуми", "Отель у моря"],
+  ];
+  var mediaTimer = null;
+  var mediaPointerX = null;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function showMedia(index, announce) {
+    state.mediaIndex = (index + mediaSlides.length) % mediaSlides.length;
+    mediaSlides.forEach(function (slide, i) {
+      var active = i === state.mediaIndex;
+      slide.classList.toggle("is-active", active);
+      slide.setAttribute("aria-hidden", active ? "false" : "true");
+    });
+    mediaDots.forEach(function (dot, i) {
+      var active = i === state.mediaIndex;
+      dot.classList.toggle("is-active", active);
+      if (active) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    });
+    var caption = mediaCaptions[state.mediaIndex];
+    $("builder-media-caption").innerHTML = "<small>" + esc(caption[0]) +
+      "</small><strong>" + esc(caption[1]) + "</strong>";
+    if (announce) {
+      $("builder-media-status").textContent = "Фото " + (state.mediaIndex + 1) +
+        " из " + mediaSlides.length + ": " + caption[0] + ", " + caption[1];
+    }
+  }
+
+  function stopMediaAuto() {
+    if (mediaTimer) window.clearInterval(mediaTimer);
+    mediaTimer = null;
+  }
+  function startMediaAuto() {
+    stopMediaAuto();
+    if (reduceMotion || document.hidden) return;
+    mediaTimer = window.setInterval(function () {
+      showMedia(state.mediaIndex + 1, false);
+    }, 6500);
+  }
+  function moveMedia(step) {
+    showMedia(state.mediaIndex + step, true);
+    startMediaAuto();
+  }
+
+  $("builder-media-prev").addEventListener("click", function () { moveMedia(-1); });
+  $("builder-media-next").addEventListener("click", function () { moveMedia(1); });
+  $("builder-media-dots").addEventListener("click", function (e) {
+    var dot = e.target.closest("[data-media-dot]");
+    if (!dot) return;
+    showMedia(Number(dot.dataset.mediaDot), true);
+    startMediaAuto();
+  });
+  media.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft") { e.preventDefault(); moveMedia(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); moveMedia(1); }
+  });
+  media.addEventListener("pointerdown", function (e) { mediaPointerX = e.clientX; });
+  media.addEventListener("pointerup", function (e) {
+    if (mediaPointerX == null) return;
+    var delta = e.clientX - mediaPointerX;
+    mediaPointerX = null;
+    if (Math.abs(delta) > 45) moveMedia(delta > 0 ? -1 : 1);
+  });
+  media.addEventListener("pointercancel", function () { mediaPointerX = null; });
+  media.addEventListener("mouseenter", stopMediaAuto);
+  media.addEventListener("mouseleave", startMediaAuto);
+  media.addEventListener("focusin", stopMediaAuto);
+  media.addEventListener("focusout", startMediaAuto);
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopMediaAuto(); else startMediaAuto();
+  });
+
+  function setMediaFullscreen(open) {
+    media.classList.toggle("is-fullscreen", open);
+    $("builder-media-full").setAttribute("aria-pressed", open ? "true" : "false");
+    $("builder-media-full").setAttribute("aria-label", open
+      ? "Закрыть полноэкранный просмотр"
+      : "Открыть фотографию на весь экран");
+    $("builder-media-full").title = open ? "Закрыть" : "На весь экран";
+    document.body.style.overflow = open ? "hidden" : "";
+  }
+
+  $("builder-media-full").addEventListener("click", function () {
+    if (document.fullscreenElement === media) {
+      document.exitFullscreen().catch(function () { setMediaFullscreen(false); });
+      return;
+    }
+    if (media.classList.contains("is-fullscreen")) {
+      setMediaFullscreen(false);
+      return;
+    }
+    if (media.requestFullscreen) {
+      media.requestFullscreen().catch(function () { setMediaFullscreen(true); });
+    } else {
+      setMediaFullscreen(true);
+    }
+  });
+  document.addEventListener("fullscreenchange", function () {
+    setMediaFullscreen(document.fullscreenElement === media);
+  });
+  showMedia(0, false);
+  startMediaAuto();
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNav(false);
+    if (e.key === "Escape" && media.classList.contains("is-fullscreen") && !document.fullscreenElement) {
+      setMediaFullscreen(false);
+    }
   });
 
   $("builder-book").addEventListener("click", function () {
@@ -10892,12 +11390,19 @@ window.TURON_DESTINATIONS = [
   // Теперь: 401 (токен протух) — честный выход; нет связи — держим токен и
   // показываем «нет связи» с кнопкой «Повторить».
   function restoreSession() {
-    TuronApi.me()
-      .then(function (res) { hideOffline(); showApp(res.agency); })
-      .catch(function (err) {
+    TuronApi.me().then(
+      function (res) {
+        hideOffline();
+        showApp(res.agency);
+      },
+      function (err) {
+        // Обрабатываем здесь только отказ самого запроса /api/me.
+        // Ошибка интерфейса после успешного ответа больше не маскируется
+        // под отсутствие связи с сервером.
         if (err && err.status) { showPublic(); }   // сервер ответил (401 и т.п.) — выходим
-        else { showOffline(); }                     // сеть недоступна — сессию не трогаем
-      });
+        else { showOffline(); }                    // сеть недоступна — сессию не трогаем
+      }
+    );
   }
 
   function showOffline() {
