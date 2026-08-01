@@ -3785,11 +3785,11 @@ select { font-family: inherit; }
   color: var(--tt-tool-gold-deep);
 }
 .tt-tool-icon svg {
-  width: 27px;
-  height: 27px;
+  width: 25px;
+  height: 25px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.25;
+  stroke-width: 1.45;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -3816,10 +3816,11 @@ select { font-family: inherit; }
 .tt-rate-row b { color: #0b342e; font-size: .9rem; font-weight: 600; }
 .tt-rate-row strong {
   color: #082f29;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.05rem;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: .98rem;
   font-weight: 700;
-  letter-spacing: .025em;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
 }
 .tt-rate-row > i {
   width: 1px;
