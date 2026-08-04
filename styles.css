@@ -1,70 +1,17 @@
-:root {
-  --tt-bg: #f7f5f0;
-  --tt-surface: #ffffff;
-  --tt-border: #e4e0d6;
-  --tt-text: #22201b;
-  --tt-text-muted: #6b6558;
-  --tt-accent: #b5722e;
-  --tt-accent-dark: #8f5a24;
-  --tt-accent-soft: #f3e6d6;
-  --tt-success: #3a7d54;
-  --tt-warn-bg: #fdf3e0;
-  --tt-warn-border: #e6c48a;
-  --tt-warn-text: #7a5312;
-  --tt-radius: 14px;
-  --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
-  font-synthesis: none;
-}
+/* ----------------------------------------------------------------- темы
+   Здесь раньше жили четыре блока: :root со старой палитрой,
+   @media (prefers-color-scheme: dark) и :root[data-theme="dark"/"light"].
+   Все они перекрывались настоящим :root ниже, поэтому годами были мертвы
+   и никто этого не замечал.
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --tt-bg: #17140f;
-    --tt-surface: #221e17;
-    --tt-border: #34302a;
-    --tt-text: #f3efe6;
-    --tt-text-muted: #b3ab9a;
-    --tt-accent: #d99a52;
-    --tt-accent-dark: #eab475;
-    --tt-accent-soft: #3a2d1c;
-    --tt-success: #6fbf8b;
-    --tt-warn-bg: #3a2f19;
-    --tt-warn-border: #6d5629;
-    --tt-warn-text: #f0d9a8;
-    --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-  }
-}
+   Как только data-theme стал осмысленным (кнопка день/ночь), блок
+   :root[data-theme="dark"] ожил — его специфичность (0,2,0) выше, чем у
+   обычного :root (0,1,0), — и перекрасил ВЕСЬ сайт, включая кабинет, в
+   старую коричневую палитру: логотип перевозчика пропадал, даты уходили
+   в нечитаемое. Удалены целиком.
 
-:root[data-theme="dark"] {
-  --tt-bg: #17140f;
-  --tt-surface: #221e17;
-  --tt-border: #34302a;
-  --tt-text: #f3efe6;
-  --tt-text-muted: #b3ab9a;
-  --tt-accent: #d99a52;
-  --tt-accent-dark: #eab475;
-  --tt-accent-soft: #3a2d1c;
-  --tt-success: #6fbf8b;
-  --tt-warn-bg: #3a2f19;
-  --tt-warn-border: #6d5629;
-  --tt-warn-text: #f0d9a8;
-  --tt-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-}
-
-:root[data-theme="light"] {
-  --tt-bg: #f7f5f0;
-  --tt-surface: #ffffff;
-  --tt-border: #e4e0d6;
-  --tt-text: #22201b;
-  --tt-text-muted: #6b6558;
-  --tt-accent: #b5722e;
-  --tt-accent-dark: #8f5a24;
-  --tt-accent-soft: #f3e6d6;
-  --tt-success: #3a7d54;
-  --tt-warn-bg: #fdf3e0;
-  --tt-warn-border: #e6c48a;
-  --tt-warn-text: #7a5312;
-  --tt-shadow: 0 4px 18px rgba(30, 25, 15, 0.08);
-}
+   Теперь единственный источник палитры — :root ниже, а data-theme влияет
+   только на то, что явно на него завязано (тёмная публичная часть). */
 
 * { box-sizing: border-box; }
 
@@ -213,14 +160,15 @@ a { color: inherit; }
   font-size: 0.85rem;
   text-align: left;
 }
-@media (prefers-color-scheme: dark) {
-  .tt-error-box { border-color: #6b3b35; background: #3a211e; color: #f0bdb6; }
-}
-:root[data-theme="dark"] .tt-error-box {
-  border-color: #6b3b35; background: #3a211e; color: #f0bdb6;
-}
-:root[data-theme="light"] .tt-error-box {
-  border-color: #d9a49e; background: #fbecea; color: #8d3229;
+/* Тёмный вариант — только на тёмных экранах (вход и публичная часть в
+   ночной теме). Раньше он висел на :root[data-theme] и, когда data-theme
+   стал осмысленным, полез бы в кремовый кабинет. Системную тему тут тоже
+   не слушаем: оформление выбирает кнопка, а не настройки ОС. */
+#screen-login .tt-error-box,
+:root:not([data-theme="light"]) #screen-public .tt-error-box {
+  border-color: #6b3b35;
+  background: #3a211e;
+  color: #f0bdb6;
 }
 
 /* ------------------------------------------------------------- вход */
@@ -1047,6 +995,9 @@ a { color: inherit; }
   --tt-border-strong: rgba(16, 55, 47, 0.24);
   --tt-text: #172923;
   --tt-text-muted: #6b7771;
+  /* был объявлен только в тёмной публичной палитре — в светлой
+     теме var(--tt-text-subtle) не разрешался вообще */
+  --tt-text-subtle: #8d968f;
   --tt-accent: #e9653a;
   --tt-accent-dark: #c94925;
   --tt-accent-soft: #fae9e2;

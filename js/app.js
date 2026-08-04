@@ -212,8 +212,8 @@
     if (cabinetReady) return;
     cabinetReady = true;
 
-    var agencyName = $("agency-name");
-    if (agencyName) agencyName.textContent = session.name;
+    // Нижняя карточка агентства из бокового меню удалена — осталось только
+    // имя в верхней панели.
     var topAgencyName = $("top-agency-name");
     if (topAgencyName) topAgencyName.textContent = session.name;
 

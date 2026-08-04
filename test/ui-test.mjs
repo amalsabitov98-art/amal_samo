@@ -287,6 +287,35 @@ console.log("\nТема день/ночь");
   await page.close();
 }
 
+// Кабинет темой не управляется — он кремовый при любом data-theme. Проверка
+// не теоретическая: когда data-theme стал осмысленным, ожил давно мёртвый
+// блок :root[data-theme="dark"] (специфичность выше обычного :root) и
+// перекрасил ВЕСЬ сайт в старую коричневую палитру — в кабинете пропадал
+// логотип перевозчика и терялись даты.
+{
+  const { page, errors } = await session("umida");
+  const palette = () => page.evaluate(() => {
+    const cs = getComputedStyle(document.getElementById("screen-app"));
+    return {
+      bg: cs.getPropertyValue("--tt-bg").trim(),
+      text: cs.getPropertyValue("--tt-text").trim(),
+    };
+  });
+  const dark = await palette();
+  check("кабинет остаётся светлым при тёмной теме",
+        dark.bg === "#f4f1e9", JSON.stringify(dark));
+
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+  await page.waitForTimeout(200);
+  const light = await palette();
+  check("палитра кабинета не зависит от темы",
+        light.bg === dark.bg && light.text === dark.text,
+        JSON.stringify(light));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // ------------------------------------------------------------ навигация
 // Адрес — единственный источник правды: клик, «назад» и F5 обязаны давать
 // один и тот же экран. Раньше экраны переключались напрямую, и обновление
