@@ -2588,9 +2588,7 @@ select { font-family: inherit; }
 }
 .tt-earnings > div { padding: 18px 20px; border-right: 1px solid var(--tt-border); }
 .tt-earnings > div:last-child { border-right: 0; }
-.tt-earnings strong {
-  font-size: 1.6rem;
-}
+.tt-earnings strong { font-size: 1.6rem; }
 .tt-panel h2 {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.4rem;
