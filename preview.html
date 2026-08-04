@@ -1072,6 +1072,249 @@ a { color: inherit; }
   color-scheme: light;
 }
 
+/* ======================================================================
+   Тёмная тема публичной части (референс — тёмный сайт туров с бирюзой).
+   Скоуп именно на #screen-public, а не на :root: кабинет остаётся светлым,
+   агентства к нему привыкли, и перекрашивать его никто не просил.
+   Почти всё внутри уже ходит через var(--tt-*), поэтому переопределения
+   переменных хватает — руками ниже правим только то, где цвет был зашит.
+
+   Осторожно: в файле ДВА блока :root, и второй перекрывает первый вместе
+   с @media (prefers-color-scheme: dark). Системная тёмная тема из-за этого
+   не работает — этот блок к ней отношения не имеет, он безусловный.
+   ====================================================================== */
+#screen-public {
+  --tt-bg: #070b0d;
+  --tt-surface: #0f1619;
+  --tt-surface-2: #131c20;
+  --tt-border: rgba(122, 200, 214, 0.15);
+  --tt-border-strong: rgba(122, 200, 214, 0.28);
+  --tt-text: #e9f3f6;
+  --tt-text-muted: #93a8b0;
+  --tt-text-subtle: #6d818a;
+  --tt-accent: #4fd6e8;
+  --tt-accent-dark: #7fe4f2;
+  --tt-accent-soft: rgba(79, 214, 232, 0.13);
+  --tt-forest: #0a1417;
+  --tt-forest-deep: #05090b;
+  --tt-forest-soft: #12232a;
+  --tt-success: #4fd6a0;
+  --tt-success-soft: rgba(79, 214, 160, 0.13);
+  --tt-warn-bg: rgba(233, 189, 105, 0.12);
+  --tt-warn-border: rgba(233, 189, 105, 0.34);
+  --tt-warn-text: #e9bd69;
+  --tt-danger: #ef6a5c;
+  --tt-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  --tt-shadow-hover: 0 18px 48px rgba(0, 0, 0, 0.62);
+  color: var(--tt-text);
+  color-scheme: dark;
+  min-height: 100vh;
+}
+/* Ниже по файлу у #screen-public свой фон — кремовый градиент с золотым
+   отсветом. Он объявлен позже, поэтому перебиваем специфичностью (body +
+   id), а не порядком: декоративный отсвет оставляем, но в бирюзе. */
+body #screen-public {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(79, 214, 232, 0.1), transparent 24rem),
+    linear-gradient(180deg, #080e11 0%, var(--tt-bg) 42%, #05090b 100%);
+}
+
+/* Бирюза светлая: белый текст на ней не читается, поэтому в публичной
+   части у заливных кнопок текст тёмный. */
+#screen-public .tt-btn,
+#screen-public .tt-hero-search-btn { color: #05252a; }
+#screen-public .tt-btn.secondary {
+  background: transparent;
+  border: 1px solid var(--tt-border-strong);
+  color: var(--tt-text);
+}
+#screen-public .tt-btn.secondary:hover {
+  border-color: var(--tt-accent);
+  color: var(--tt-accent);
+}
+
+/* Шапка и поднавигация были кремовыми — единственное светлое пятно. */
+#screen-public .tt-public-header {
+  border-bottom-color: var(--tt-border);
+  background: rgba(7, 11, 13, 0.92);
+}
+#screen-public .tt-public-subnav {
+  border-bottom-color: var(--tt-border);
+  background: rgba(10, 16, 19, 0.86);
+}
+#screen-public .tt-public-subnav button:hover,
+#screen-public .tt-public-subnav button.is-active {
+  border-color: var(--tt-border-strong);
+  background: rgba(79, 214, 232, 0.1);
+  color: var(--tt-accent);
+}
+#screen-public .tt-logo-mark { filter: brightness(1.15); }
+
+/* Плашки шапки были кремовыми: табло курсов, выбор языка, кнопка входа и
+   подложка под эмблемой. На чёрном они светились тремя белыми пятнами. */
+#screen-public .tt-currency-board {
+  border-color: var(--tt-border);
+  background: rgba(255, 255, 255, 0.05);
+}
+#screen-public .tt-currency-board strong { color: var(--tt-text); }
+#screen-public .tt-currency-board b { color: var(--tt-accent); }
+#screen-public .tt-language select {
+  border-color: var(--tt-border);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--tt-text);
+}
+#screen-public .tt-account-btn {
+  border-color: var(--tt-border-strong);
+  background: transparent;
+  color: var(--tt-text);
+}
+#screen-public .tt-account-btn:hover {
+  border-color: var(--tt-accent);
+  background: rgba(79, 214, 232, 0.12);
+  color: var(--tt-accent);
+}
+#screen-public .tt-logo > .tt-logo-mark {
+  background-color: transparent;
+  box-shadow: none;
+}
+/* Бренд в шапке — это <button>, а глобального сброса фона у кнопок в файле
+   нет: браузер рисовал свой светло-серый ButtonFace. На кремовой теме это
+   сливалось с фоном, на чёрной вылезло плашкой. */
+#screen-public .tt-public-brand {
+  border: 0;
+  background: transparent;
+  /* цвет тоже дефолтный от браузера (ButtonText, чёрный) — задаём явно,
+     иначе «Turon Tour» пропадает на тёмном фоне */
+  color: var(--tt-text);
+}
+#screen-public .tt-public-footer { border-top: 1px solid var(--tt-border); }
+
+/* --tt-forest в тёмной теме стал почти чёрным, и всё, что красило им ТЕКСТ,
+   пропало на тёмном фоне. В кабинете он остался прежним, поэтому чиним
+   только публичные места. */
+#screen-public .tt-crumb { color: var(--tt-accent); }
+/* У кнопок поднавигации фон задан только для :hover и .is-active, так что
+   неактивные показывали серый ButtonFace браузера — та же мина, что у
+   бренда. На кремовой теме её не было видно. */
+#screen-public .tt-public-subnav button { background: transparent; }
+#screen-public .tt-public-subnav .tt-about-nav {
+  border-color: var(--tt-border);
+  color: var(--tt-text);
+}
+#screen-public .tt-cat-tile-art::after { color: var(--tt-accent); }
+/* Активный вариант маршрута был темнее неактивного — выбор не читался. */
+#screen-public .tt-cat-variant.is-active {
+  border-color: var(--tt-accent);
+  background: var(--tt-accent-soft);
+  color: var(--tt-accent);
+}
+
+/* Фон самой страницы: body держит кремовый --tt-bg из :root, и при
+   «резиновом» скролле из-под тёмного экрана выглядывала кремовая полоса. */
+body:has(#screen-public:not([hidden])) {
+  background: #070b0d;
+}
+
+/* Акценты, которые были золотыми, — в бирюзу. */
+#screen-public .tt-public-intro .tt-eyebrow,
+#screen-public .tt-public-intro h1 em,
+#screen-public .tt-about-copy .tt-eyebrow,
+#screen-public .tt-cat-heading .tt-eyebrow { color: var(--tt-accent); }
+#screen-public .tt-hero-search-field:focus-within { outline-color: var(--tt-accent); }
+
+/* Герой: зелёная тонировка ролика меняется на тёмно-бирюзовую, иначе
+   поверх чёрной страницы он выглядел бы зелёным пятном. */
+#screen-public .tt-public-intro {
+  background: #05090b;
+  box-shadow: 0 38px 110px rgba(0, 0, 0, 0.5);
+}
+#screen-public .tt-public-intro::before {
+  background:
+    linear-gradient(180deg, rgba(4, 10, 12, 0.62) 0%, rgba(5, 14, 17, 0.1) 40%,
+                    rgba(5, 14, 17, 0.16) 60%, rgba(4, 10, 12, 0.72) 100%),
+    linear-gradient(0deg, rgba(6, 22, 27, 0.28), rgba(6, 22, 27, 0.28));
+}
+#screen-public .tt-public-hero-copy {
+  background: radial-gradient(ellipse 76% 86% at 50% 50%,
+    rgba(3, 10, 13, 0.7) 0%, rgba(3, 10, 13, 0.46) 46%, rgba(3, 10, 13, 0) 78%);
+}
+#screen-public .tt-hero-search {
+  border-color: rgba(122, 200, 214, 0.22);
+  background: rgba(9, 18, 22, 0.62);
+}
+/* Поля стали тёмными: кремовые на чёрной странице били по глазам.
+   color-scheme: dark выше заодно перекрашивает выпадающий список. */
+#screen-public .tt-hero-search-field {
+  border: 1px solid rgba(122, 200, 214, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+#screen-public .tt-hero-search-field span { color: var(--tt-text-subtle); }
+#screen-public .tt-hero-search-field select {
+  color: var(--tt-text);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #7fa3ad 50%),
+    linear-gradient(135deg, #7fa3ad 50%, transparent 50%);
+}
+
+/* Блоки, которые были тёмно-зелёными, — в тон странице. */
+#screen-public .tt-about-company {
+  border-color: var(--tt-border);
+  background: linear-gradient(155deg, #0c181c 0%, #060c0e 100%);
+}
+#screen-public .tt-cat-hero {
+  background: linear-gradient(150deg, rgba(14, 40, 47, 0.9), rgba(5, 12, 15, 0.98));
+}
+#screen-public .tt-cat-hero .tt-muted-note { color: var(--tt-accent); }
+#screen-public .tt-cat-tile-art {
+  background: linear-gradient(150deg, #123840 0%, #06161a 100%);
+}
+#screen-public .tt-cat-tile-art::after { background: rgba(15, 22, 25, 0.92); }
+#screen-public .tt-cat-policy {
+  border-color: rgba(233, 189, 105, 0.28);
+  background: rgba(233, 189, 105, 0.07);
+}
+
+/* ------------------------------------------------- преимущества под героем
+   Четыре факта, каждый взят из tour_content kind='included' (перелёт,
+   отели, гид, поддержка) — выдуманных обещаний тут быть не должно.
+   Правится программа тура — правится и этот блок. */
+.tt-benefits {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: calc(clamp(72px, 9vw, 124px) * -1 + 34px) 0 clamp(56px, 7vw, 96px);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg);
+  background: var(--tt-border);
+  overflow: hidden;
+}
+.tt-benefit {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 26px 24px;
+  background: var(--tt-surface);
+}
+.tt-benefit svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: var(--tt-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-benefit strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.tt-benefit span {
+  color: var(--tt-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -8260,6 +8503,14 @@ window.TURON_DESTINATIONS = [
       "hero.accent": "которые остаются с вами.",
       "hero.text": "Экскурсионные и групповые туры с продуманной программой, перелётом и поддержкой команды на всём маршруте.",
       "hero.route": "Маршрут Карадениз",
+      "benefit.flight.title": "Перелёт включён",
+      "benefit.flight.text": "Авиабилеты Ташкент — Трабзон или Батуми уже в цене тура.",
+      "benefit.hotel.title": "Отели на первой линии",
+      "benefit.hotel.text": "7 ночей с завтраками в Батуми и Ризе, у самого моря.",
+      "benefit.guide.title": "Гид и 15+ экскурсий",
+      "benefit.guide.text": "Русскоговорящий узбекский гид сопровождает всю поездку.",
+      "benefit.support.title": "Страховка и поддержка 24/7",
+      "benefit.support.text": "Медицинская страховка на весь период и связь с нами в любое время.",
       "search.destination": "Направление",
       "search.anyDestination": "Все направления",
       "search.month": "Месяц выезда",
@@ -8304,6 +8555,14 @@ window.TURON_DESTINATIONS = [
       "hero.accent": "sayohatlar.",
       "hero.text": "Puxta dastur, aviaqatnov va butun yo‘nalish davomida jamoa ko‘magi bilan ekskursiya hamda guruh turlari.",
       "hero.route": "Karadeniz yo‘nalishi",
+      "benefit.flight.title": "Aviabilet narxda",
+      "benefit.flight.text": "Toshkent — Trabzon yoki Batumi aviabiletlari tur narxiga kiritilgan.",
+      "benefit.hotel.title": "Dengiz bo‘yidagi mehmonxonalar",
+      "benefit.hotel.text": "Batumi va Rizeda nonushta bilan 7 kecha, birinchi qatorda.",
+      "benefit.guide.title": "Gid va 15+ ekskursiya",
+      "benefit.guide.text": "Rus tilida so‘zlashuvchi o‘zbek gid butun sayohat davomida yoningizda.",
+      "benefit.support.title": "Sug‘urta va 24/7 ko‘mak",
+      "benefit.support.text": "Butun davrga tibbiy sug‘urta va istalgan vaqtda biz bilan aloqa.",
       "search.destination": "Yo‘nalish",
       "search.anyDestination": "Barcha yo‘nalishlar",
       "search.month": "Jo‘nash oyi",
@@ -8348,6 +8607,14 @@ window.TURON_DESTINATIONS = [
       "hero.accent": "stay with you.",
       "hero.text": "Excursion and group tours with a thoughtful programme, flights and support from our team throughout the route.",
       "hero.route": "Karadeniz route",
+      "benefit.flight.title": "Flights included",
+      "benefit.flight.text": "Tashkent — Trabzon or Batumi air tickets are already in the price.",
+      "benefit.hotel.title": "Seafront hotels",
+      "benefit.hotel.text": "7 nights with breakfast in Batumi and Rize, right on the coast.",
+      "benefit.guide.title": "Guide and 15+ excursions",
+      "benefit.guide.text": "A Russian-speaking Uzbek guide accompanies the whole trip.",
+      "benefit.support.title": "Insurance and 24/7 support",
+      "benefit.support.text": "Medical insurance for the whole period and our team on call anytime.",
       "search.destination": "Destination",
       "search.anyDestination": "All destinations",
       "search.month": "Departure month",
@@ -8392,6 +8659,14 @@ window.TURON_DESTINATIONS = [
       "hero.accent": "yolculuklar.",
       "hero.text": "Özenle hazırlanan program, uçuşlar ve rota boyunca ekip desteğiyle kültür ve grup turları.",
       "hero.route": "Karadeniz rotası",
+      "benefit.flight.title": "Uçuş dahil",
+      "benefit.flight.text": "Taşkent — Trabzon veya Batum uçak biletleri tur fiyatına dahil.",
+      "benefit.hotel.title": "Sahil şeridinde oteller",
+      "benefit.hotel.text": "Batum ve Rize\'de kahvaltı dahil 7 gece, denize sıfır.",
+      "benefit.guide.title": "Rehber ve 15+ gezi",
+      "benefit.guide.text": "Rusça konuşan Özbek rehber tüm yolculuk boyunca yanınızda.",
+      "benefit.support.title": "Sigorta ve 7/24 destek",
+      "benefit.support.text": "Tüm dönem için sağlık sigortası ve dilediğiniz an bize ulaşma imkânı.",
       "search.destination": "Rota",
       "search.anyDestination": "Tüm rotalar",
       "search.month": "Kalkış ayı",
@@ -8821,6 +9096,35 @@ window.TURON_DESTINATIONS = [
     );
   }
 
+  /*
+   * Блок преимуществ под героем (раскладка с референса — ряд из четырёх
+   * иконок). Каждый пункт — пересказ строки из `tour_content` kind='included'
+   * тура Карадениз: перелёт, отели, гид, поддержка. Ничего сверх того, что
+   * оператор уже подтвердил, тут писать нельзя — иначе агент пообещает
+   * клиенту услугу, которой в программе нет.
+   *
+   * Ссылок «подробнее» с референса нет намеренно: тур у нас пока один, и все
+   * четыре вели бы в одну и ту же карточку — четыре одинаковые кнопки.
+   */
+  var BENEFIT_ICONS = {
+    flight: '<path d="M3 13.5 21 4l-4.5 9.5L21 20l-8-3.5L5 20l3.5-6.5L3 13.5Z" />',
+    hotel: '<path d="M4 20V6a2 2 0 0 1 2-2h5v16M11 10h7a2 2 0 0 1 2 2v8M15 14h1M15 17h1M6.5 8h2M6.5 11h2M6.5 14h2" />',
+    guide: '<circle cx="12" cy="7" r="3" /><path d="M5.5 20c.6-4.2 3-6.2 6.5-6.2s5.9 2 6.5 6.2" />',
+    support: '<circle cx="12" cy="12" r="8.5" /><path d="M12 16.5v-3a2.6 2.6 0 1 0-2.6-2.6" /><path d="M12 8.2h.01" />',
+  };
+
+  function benefitsHtml() {
+    return '<section class="tt-benefits">' +
+      ["flight", "hotel", "guide", "support"].map(function (k) {
+        return '<article class="tt-benefit">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' + BENEFIT_ICONS[k] + "</svg>" +
+          "<strong>" + esc(tr("benefit." + k + ".title")) + "</strong>" +
+          "<span>" + esc(tr("benefit." + k + ".text")) + "</span>" +
+          "</article>";
+      }).join("") +
+      "</section>";
+  }
+
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
   function monthKey(iso) { return iso.slice(0, 7); }
   // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
@@ -9210,6 +9514,7 @@ window.TURON_DESTINATIONS = [
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
           "</section>" +
+          benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +

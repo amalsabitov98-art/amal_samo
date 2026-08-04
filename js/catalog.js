@@ -195,6 +195,35 @@
     );
   }
 
+  /*
+   * Блок преимуществ под героем (раскладка с референса — ряд из четырёх
+   * иконок). Каждый пункт — пересказ строки из `tour_content` kind='included'
+   * тура Карадениз: перелёт, отели, гид, поддержка. Ничего сверх того, что
+   * оператор уже подтвердил, тут писать нельзя — иначе агент пообещает
+   * клиенту услугу, которой в программе нет.
+   *
+   * Ссылок «подробнее» с референса нет намеренно: тур у нас пока один, и все
+   * четыре вели бы в одну и ту же карточку — четыре одинаковые кнопки.
+   */
+  var BENEFIT_ICONS = {
+    flight: '<path d="M3 13.5 21 4l-4.5 9.5L21 20l-8-3.5L5 20l3.5-6.5L3 13.5Z" />',
+    hotel: '<path d="M4 20V6a2 2 0 0 1 2-2h5v16M11 10h7a2 2 0 0 1 2 2v8M15 14h1M15 17h1M6.5 8h2M6.5 11h2M6.5 14h2" />',
+    guide: '<circle cx="12" cy="7" r="3" /><path d="M5.5 20c.6-4.2 3-6.2 6.5-6.2s5.9 2 6.5 6.2" />',
+    support: '<circle cx="12" cy="12" r="8.5" /><path d="M12 16.5v-3a2.6 2.6 0 1 0-2.6-2.6" /><path d="M12 8.2h.01" />',
+  };
+
+  function benefitsHtml() {
+    return '<section class="tt-benefits">' +
+      ["flight", "hotel", "guide", "support"].map(function (k) {
+        return '<article class="tt-benefit">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' + BENEFIT_ICONS[k] + "</svg>" +
+          "<strong>" + esc(tr("benefit." + k + ".title")) + "</strong>" +
+          "<span>" + esc(tr("benefit." + k + ".text")) + "</span>" +
+          "</article>";
+      }).join("") +
+      "</section>";
+  }
+
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
   function monthKey(iso) { return iso.slice(0, 7); }
   // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
@@ -584,6 +613,7 @@
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
           "</section>" +
+          benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +
