@@ -398,6 +398,35 @@ async function catalogTour(env, code) {
   };
 }
 
+/*
+ * Плоский список предстоящих заездов для поиска на титульной странице.
+ * Нужен именно отдельным маршрутом: catalogTours отдаёт только MIN(date) по
+ * туру, и фильтр «сентябрь» по нему врал бы — тур с ближайшим заездом в
+ * августе выпал бы из выдачи, хотя сентябрьские заезды у него есть.
+ *
+ * Правила публичности те же, что в catalogTour: ни комиссий, ни capacity /
+ * seats_taken — только остаток, обрезанный на 21, чтобы объём продаж не
+ * читался снаружи.
+ */
+async function catalogDepartures(env) {
+  const rows = await env.DB.prepare(
+    `SELECT d.code, d.date_start, d.transport, d.is_info_tour,
+            MIN(d.capacity - d.seats_taken) AS seats_free,
+            t.code AS tour_code, t.name AS tour_name, t.destination, t.nights,
+            MIN(CASE WHEN p.kind = 'placement' THEN p.price END) AS min_price
+       FROM departures d
+       JOIN tours t ON t.id = d.tour_id
+       LEFT JOIN departure_prices p ON p.departure_id = d.id
+      WHERE d.is_open = 1 AND t.is_bookable = 1 AND d.date_start >= date('now')
+      GROUP BY d.id
+      ORDER BY d.date_start, d.transport`
+  ).all();
+  return rows.results.map((d) => ({
+    ...d,
+    seats_free: Math.max(0, Math.min(d.seats_free, 21)),
+  }));
+}
+
 // Возраст на дату выезда — именно так тариф и определяется у оператора.
 function ageOn(birthDate, onDate) {
   const b = new Date(birthDate), o = new Date(onDate);
@@ -954,6 +983,10 @@ async function route(request, env) {
 
     if (path === "/api/public/destinations" && request.method === "GET") {
       return json(await catalogDestinations(env));
+    }
+
+    if (path === "/api/public/departures" && request.method === "GET") {
+      return json(await catalogDepartures(env));
     }
 
     if (path === "/api/public/tours" && request.method === "GET") {

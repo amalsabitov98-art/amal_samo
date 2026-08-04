@@ -1941,26 +1941,34 @@ select { font-family: inherit; }
 .tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; color: #cddbd3; }
 
 /* ------------------------------------------------ public catalogue */
+/* --------------------------------------------------------- титульный экран
+   Видео на весь блок + текст и панель поиска колонкой по центру.
+   Раскладка именно центральная, а не левая как раньше: в ролике композиция
+   центрированная (глобус ровно посередине), и текст слева наезжал бы прямо
+   на него. Поэтому затемняем верх и низ под надписи, а середину оставляем
+   открытой — там и виден глобус. */
 .tt-public-intro {
   position: relative;
-  /* было 72vh — на большом мониторе выглядело «на пол-экрана».
-     Растим почти на весь экран, потолок 940px чтобы на очень высоких
-     мониторах не зияло пустотой. */
   min-height: clamp(620px, 88vh, 940px);
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 34px);
   overflow: hidden;
   margin-bottom: clamp(72px, 9vw, 124px);
-  padding: clamp(42px, 6vw, 84px);
+  padding: clamp(52px, 6vw, 92px) clamp(22px, 4vw, 64px);
   border-radius: 34px;
   color: #fffaf0;
   background: #082b25;
   box-shadow: 0 38px 110px rgba(6, 35, 29, 0.26);
   isolation: isolate;
   scroll-margin-top: 150px;
-  touch-action: pan-y;
-  outline: none;
+  text-align: center;
 }
+/* Ролик синий, палитра сайта зелёно-золотая. Первый слой — зелёная заливка,
+   она сводит видео к нашим цветам; второй — затемнение сверху и снизу под
+   текст, с прозрачной серединой. */
 .tt-public-intro::before {
   content: "";
   position: absolute;
@@ -1968,75 +1976,42 @@ select { font-family: inherit; }
   z-index: 1;
   border-radius: inherit;
   background:
-    linear-gradient(90deg, rgba(3, 24, 21, 0.97) 0%, rgba(4, 31, 27, 0.9) 40%, rgba(4, 30, 26, 0.44) 70%, rgba(4, 26, 23, 0.2) 100%),
-    linear-gradient(180deg, rgba(4, 29, 25, 0.08) 38%, rgba(3, 24, 21, 0.62) 100%);
-  pointer-events: none;
-}
-.tt-public-intro::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  right: clamp(-220px, -12vw, -80px);
-  width: clamp(520px, 58vw, 800px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(229, 201, 135, 0.15);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 72px rgba(255, 255, 255, 0.022),
-    0 0 0 144px rgba(255, 255, 255, 0.014);
-  transform: translateY(-50%);
+    linear-gradient(180deg, rgba(3, 24, 21, 0.52) 0%, rgba(4, 31, 27, 0.08) 40%,
+                    rgba(4, 31, 27, 0.14) 60%, rgba(3, 24, 21, 0.62) 100%),
+    linear-gradient(0deg, rgba(8, 43, 37, 0.2), rgba(8, 43, 37, 0.2));
   pointer-events: none;
 }
 .tt-public-intro > * { position: relative; z-index: 2; }
-.tt-public-intro:focus-visible {
-  box-shadow:
-    0 0 0 4px rgba(229, 201, 135, 0.78),
-    0 38px 110px rgba(6, 35, 29, 0.26);
-}
-.tt-hero-slides {
-  position: absolute !important;
-  z-index: 0 !important;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-}
-.tt-hero-slide {
+.tt-hero-video {
   position: absolute;
-  inset: -1px;
-  opacity: 0;
-  background-position: center;
-  background-size: cover;
-  transform: scale(1.035);
-  transition: opacity 0.8s ease, transform 7s cubic-bezier(0.2, 0.72, 0.28, 1);
-  will-change: opacity, transform;
-}
-.tt-hero-slide.is-active {
-  opacity: 1;
-  transform: scale(1);
-}
-.tt-hero-slide-rize-batumi {
-  background-image: url("img/hero-rize-batumi.webp");
-  background-position: center 52%;
-}
-.tt-hero-slide-rize-morning {
-  background-image: url("img/hero-rize-morning.webp");
-  background-position: center 48%;
-}
-.tt-hero-slide-batumi-sunset {
-  background-image: url("img/hero-batumi-sunset.webp");
-  background-position: center 54%;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  pointer-events: none;
 }
 .tt-public-intro .tt-eyebrow { color: #e5c987; }
-.tt-public-hero-copy { width: min(100%, 790px); }
+/* Текст лежит прямо на глобусе с иконками — самая пёстрая часть кадра.
+   Мягкая радиальная подложка даёт ему подложку, но без видимой рамки:
+   к краям она уходит в ноль, и кадр остаётся открытым. */
+.tt-public-hero-copy {
+  width: min(100%, 900px);
+  padding: 24px clamp(18px, 4vw, 44px);
+  background: radial-gradient(ellipse 76% 86% at 50% 50%,
+    rgba(3, 22, 19, 0.66) 0%, rgba(3, 22, 19, 0.44) 46%, rgba(3, 22, 19, 0) 78%);
+}
+/* Заголовок мельче прежнего: рядом теперь панель поиска, и прошлые 7.5rem
+   вместе с ней съедали весь экран, не оставляя видео ни полосы. */
 .tt-public-intro h1 {
-  max-width: 870px;
-  margin: 17px 0 22px;
+  margin: 15px 0 18px;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(4rem, 7.3vw, 7.5rem);
+  font-size: clamp(2.5rem, 5.2vw, 4.6rem);
   font-weight: 500;
-  line-height: 0.84;
-  letter-spacing: -0.058em;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  text-shadow: 0 2px 26px rgba(2, 18, 15, 0.5);
 }
 .tt-public-intro h1 em {
   display: block;
@@ -2045,112 +2020,113 @@ select { font-family: inherit; }
   font-weight: 500;
 }
 .tt-public-intro p {
-  max-width: 610px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: clamp(0.78rem, 1.25vw, 0.94rem);
-  line-height: 1.8;
+  max-width: 620px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(0.8rem, 1.25vw, 0.95rem);
+  line-height: 1.75;
+  text-shadow: 0 1px 14px rgba(2, 18, 15, 0.5);
 }
-.tt-public-actions {
-  display: flex;
-  align-items: center;
+
+/* ------------------------------------------------------------ поиск туров */
+.tt-hero-search {
+  width: min(100%, 1020px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   gap: 10px;
-  margin-top: 32px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 22px;
+  background: rgba(6, 34, 28, 0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 26px 60px rgba(3, 22, 18, 0.42);
+  backdrop-filter: blur(18px) saturate(1.15);
+  text-align: left;
 }
-.tt-public-actions button {
-  min-height: 48px;
-  border-radius: 13px;
-  padding: 12px 17px;
-  font-size: 0.7rem;
+.tt-hero-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: rgba(255, 250, 240, 0.95);
+  cursor: pointer;
+}
+.tt-hero-search-field span {
+  color: #6d7d75;
+  font-size: 0.58rem;
   font-weight: 700;
-  transition: 0.2s ease;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
-.tt-hero-primary {
+.tt-hero-search-field select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0 18px 0 0;
+  background: transparent;
+  color: #12312a;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6d7d75 50%),
+    linear-gradient(135deg, #6d7d75 50%, transparent 50%);
+  background-position: right 6px center, right 1px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.tt-hero-search-field select:focus-visible { outline: none; }
+.tt-hero-search-field:focus-within {
+  outline: 2px solid #e5c987;
+  outline-offset: 2px;
+}
+.tt-hero-search-btn {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 14px;
   background: var(--tt-accent);
   color: #fff;
-  box-shadow: 0 14px 30px rgba(233, 101, 58, 0.3);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
-.tt-hero-primary i { font-size: 1rem; font-style: normal; }
-.tt-hero-secondary {
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  background: rgba(4, 30, 25, 0.38);
-  color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
+.tt-hero-search-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
-.tt-public-actions button:hover { transform: translateY(-2px); }
-.tt-public-actions button:focus-visible,
-.tt-hero-arrow:focus-visible,
-.tt-hero-toggle:focus-visible,
-.tt-hero-dots button:focus-visible {
+.tt-hero-search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(233, 101, 58, 0.36);
+}
+.tt-hero-search-btn:focus-visible {
   outline: 2px solid #fffaf0;
   outline-offset: 3px;
 }
+.tt-hero-search-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 4px 2px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+}
+.tt-hero-search-hint:empty { display: none; }
 
-.tt-hero-controls {
-  position: absolute !important;
-  left: clamp(26px, 4vw, 56px);
-  bottom: clamp(22px, 3vw, 40px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.tt-hero-arrow,
-.tt-hero-toggle {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  background: rgba(3, 27, 23, 0.46);
-  color: #fffaf0;
-  font-size: 0.9rem;
-  line-height: 1;
-  backdrop-filter: blur(9px);
-  transition: 0.2s ease;
-}
-.tt-hero-toggle {
-  margin-left: 2px;
-  font-size: 0.7rem;
-}
-.tt-hero-arrow:hover,
-.tt-hero-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.58);
-  background: rgba(3, 27, 23, 0.72);
-}
-.tt-hero-dots {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 3px;
-}
-.tt-hero-dots button {
-  width: 30px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.tt-hero-dots i {
-  width: 18px;
-  height: 2px;
-  display: block;
-  background: rgba(255, 255, 255, 0.38);
-  transition: width 0.25s ease, background 0.25s ease;
-}
-.tt-hero-dots button.is-active i {
-  width: 25px;
-  background: #e5c987;
-}
 .tt-public-route {
-  position: absolute;
-  right: clamp(26px, 4vw, 56px);
-  bottom: clamp(22px, 3vw, 40px);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2171,6 +2147,31 @@ select { font-family: inherit; }
   border-radius: 50%;
   background: var(--tt-accent);
 }
+
+/* ------------------------------------------------------- выдача поиска */
+.tt-search-results { scroll-margin-top: 150px; margin-bottom: clamp(48px, 6vw, 88px); }
+.tt-search-list { display: grid; gap: 10px; }
+.tt-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) auto auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-search-when strong,
+.tt-search-what strong { display: block; font-size: 0.92rem; }
+.tt-search-when span,
+.tt-search-what span { display: block; font-size: 0.72rem; }
+.tt-search-seats { font-size: 0.74rem; font-weight: 700; }
+.tt-search-seats.is-ok { color: var(--tt-success); }
+.tt-search-seats.is-low { color: var(--tt-warn-text); }
+.tt-search-seats.is-full { color: var(--tt-text-subtle); }
+.tt-search-price { text-align: right; }
+.tt-search-price span { display: block; font-size: 0.62rem; color: var(--tt-text-muted); }
+.tt-search-price strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .tt-public-catalogue {
   scroll-margin-top: 150px;
 }
@@ -2740,37 +2741,21 @@ select { font-family: inherit; }
   .tt-section-intro { display: block; }
   .tt-route-pill { width: fit-content; margin-top: 13px; }
   .tt-public-intro {
-    align-items: flex-end;
-    min-height: clamp(520px, 72svh, 620px);
-    padding: 94px 26px 82px;
+    min-height: clamp(520px, 78svh, 720px);
+    padding: 64px 26px 56px;
     border-radius: 22px;
   }
-  .tt-public-intro::before {
-    background:
-      linear-gradient(180deg, rgba(3, 24, 21, 0.22) 0%, rgba(3, 24, 21, 0.35) 34%, rgba(3, 24, 21, 0.94) 79%, rgba(3, 24, 21, 0.99) 100%),
-      linear-gradient(90deg, rgba(3, 24, 21, 0.46), rgba(3, 24, 21, 0.08));
+  /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
+     они обрезают «Все направления» на середине слова. */
+  .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt-hero-search-btn { grid-column: 1 / -1; }
+  .tt-search-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
   }
-  .tt-public-intro::after {
-    top: 18%;
-    right: -190px;
-    width: 500px;
-    opacity: 0.7;
-  }
-  .tt-public-hero-copy { position: relative; z-index: 3; }
-  .tt-public-intro h1 { max-width: 620px; }
-  .tt-public-route {
-    right: 22px;
-    top: 22px;
-    bottom: auto;
-  }
-  .tt-hero-controls { left: 22px; bottom: 20px; }
-  .tt-hero-arrow,
-  .tt-hero-toggle { width: 44px; height: 44px; }
-  .tt-hero-slide-rize-batumi { background-position: 58% center; }
-  .tt-hero-slide-rize-morning { background-position: 52% center; }
-  .tt-hero-slide-batumi-sunset { background-position: 56% center; }
-  .tt-public-actions { align-items: stretch; }
-  .tt-public-actions button { min-height: 45px; }
+  .tt-search-what { grid-column: 1 / -1; order: -1; }
+  .tt-search-price { text-align: left; }
+  .tt-search-row .tt-btn { grid-column: 1 / -1; }
   .tt-cat-heading { display: block; }
   .tt-cat-heading p { margin-top: 9px; }
   .tt-toolbar { align-items: stretch; padding: 13px; }
@@ -2845,18 +2830,11 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 88px 22px 76px; }
-  .tt-public-intro h1 { font-size: 3.25rem; }
+  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 56px 20px 48px; }
+  .tt-public-intro h1 { font-size: 2.7rem; }
   .tt-public-intro p { max-width: 94%; }
-  .tt-public-actions { display: grid; }
-  .tt-public-actions button { justify-content: space-between; width: 100%; }
-  .tt-public-route { top: 18px; right: 18px; gap: 6px; font-size: 0.62rem; }
-  .tt-hero-controls { left: 18px; bottom: 18px; gap: 5px; }
-  .tt-hero-arrow,
-  .tt-hero-toggle { width: 44px; height: 44px; }
-  .tt-hero-dots button { width: 28px; height: 44px; }
-  .tt-hero-dots i { width: 14px; }
-  .tt-hero-dots button.is-active i { width: 20px; }
+  .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
+  .tt-public-route { gap: 6px; font-size: 0.62rem; }
   .tt-dep { display: block; }
   .tt-dep > * + * { margin-top: 13px; }
   .tt-dep-seats { text-align: left; }
@@ -2885,11 +2863,9 @@ select { font-family: inherit; }
     min-height: 520px;
     padding: 82px 18px 78px;
   }
-  .tt-public-intro h1 { font-size: 2.8rem; }
+  .tt-public-intro h1 { font-size: 2.35rem; }
   .tt-public-intro p { max-width: 100%; line-height: 1.65; }
-  .tt-public-route { top: 15px; right: 15px; font-size: 0.56rem; }
-  .tt-hero-controls { left: 14px; bottom: 15px; }
-  .tt-public-actions { margin-top: 24px; }
+  .tt-public-route { font-size: 0.56rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2900,15 +2876,7 @@ select { font-family: inherit; }
     transform: none;
     transition: none;
   }
-  .tt-hero-slide,
-  .tt-public-actions button,
-  .tt-hero-arrow,
-  .tt-hero-toggle,
-  .tt-hero-dots i {
-    transition: none;
-  }
-  /* кнопку паузы оставляем: автопрокрутка идёт и при reduce-motion
-     (мгновенной сменой), значит должна быть возможность её остановить */
+  .tt-hero-search-btn { transition: none; }
   .tt-dep,
   .tt-cat-tile,
   .tt-cat-tour,

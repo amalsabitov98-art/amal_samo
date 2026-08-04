@@ -52,6 +52,58 @@ async function session(login) {
   return { page, errors };
 }
 
+// --------------------------------------------------- титульная (без входа)
+// Гостевой экран: видео вместо прежней карусели и поиск по реальным заездам.
+// Именно здесь ловится «панель есть, а фильтрует пустоту».
+console.log("\nТитульная страница");
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => {
+    if (m.type() === "error" && !/net::|ERR_/.test(m.text())) errors.push(m.text());
+  });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+
+  check("на титульной есть видео-подложка",
+        (await page.locator(".tt-hero-video").count()) === 1);
+  check("каруселей с картинками больше нет",
+        (await page.locator(".tt-hero-slide").count()) === 0);
+  check("панель поиска на месте", await page.locator("#tour-search").isVisible());
+
+  // выпадающие списки строятся из заездов, а не зашиты в разметку
+  const months = await page.locator("#ts-month option").count();
+  const airports = await page.locator("#ts-airport option").count();
+  check("месяцы подставлены из заездов", months > 1, months + " вариантов");
+  check("аэропорты подставлены из заездов", airports > 1, airports + " вариантов");
+  check("в списке месяцев нет мусорного «г.»",
+        !(await page.locator("#ts-month").innerText()).includes(" г."));
+
+  const hintAll = await page.textContent("[data-search-hint]");
+  check("счётчик найденного заполнен", /\d/.test(hintAll || ""), hintAll);
+
+  // фильтр обязан сужать выдачу, иначе он декоративный
+  await page.selectOption("#ts-airport", "BUS");
+  await page.waitForTimeout(200);
+  const hintBus = await page.textContent("[data-search-hint]");
+  check("фильтр по аэропорту сужает выдачу", hintAll !== hintBus,
+        `${hintAll} → ${hintBus}`);
+
+  await page.click(".tt-hero-search-btn");
+  await page.waitForTimeout(600);
+  const rows = await page.locator("#tour-search-results .tt-search-row").count();
+  check("выдача поиска отрисована", rows > 0, rows + " строк");
+
+  await page.locator("#tour-search-results .tt-search-row .tt-btn").first().click();
+  await page.waitForTimeout(700);
+  check("из выдачи открывается карточка тура",
+        (await page.evaluate(() => location.hash)).startsWith("#/t/"));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // ------------------------------------------------------------- агентство
 console.log("\nКабинет агентства");
 {

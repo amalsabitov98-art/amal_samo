@@ -360,6 +360,38 @@
       return request("/api/public/tours/" + encodeURIComponent(code));
     },
 
+    /*
+     * Плоский список заездов для поиска на титульной. Маршрут появился
+     * позже остального каталога, поэтому 404 от ещё не задеплоенного
+     * воркера гасим в пустой список: поиск сузится до направления, а
+     * страница не сломается.
+     */
+    catalogDepartures: function () {
+      if (!API_BASE) {
+        // В демо-заездах направления нет — оно лежит на туре, доклеиваем.
+        var dest = {};
+        (global.TURON_TOURS || []).forEach(function (t) {
+          dest[t.code] = t.destination;
+        });
+        return Promise.resolve(futureDepartures().map(function (d) {
+          return {
+            code: d.code, date_start: d.date_start, transport: d.transport,
+            is_info_tour: d.is_info_tour, tour_code: d.tour_code,
+            tour_name: d.tour_name, destination: dest[d.tour_code], nights: d.nights,
+            seats_free: Math.max(0, Math.min(d.seats_free, 21)),
+            min_price: (d.prices || []).reduce(function (min, p) {
+              if (p.kind !== "placement") return min;
+              return min == null || p.price < min ? p.price : min;
+            }, null),
+          };
+        }));
+      }
+      return request("/api/public/departures").catch(function (err) {
+        if (err && err.status === 404) return [];
+        throw err;
+      });
+    },
+
     departures: function (opts) {
       var all = opts && opts.all;
       if (!API_BASE) {

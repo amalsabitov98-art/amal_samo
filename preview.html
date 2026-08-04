@@ -1946,26 +1946,34 @@ select { font-family: inherit; }
 .tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; color: #cddbd3; }
 
 /* ------------------------------------------------ public catalogue */
+/* --------------------------------------------------------- титульный экран
+   Видео на весь блок + текст и панель поиска колонкой по центру.
+   Раскладка именно центральная, а не левая как раньше: в ролике композиция
+   центрированная (глобус ровно посередине), и текст слева наезжал бы прямо
+   на него. Поэтому затемняем верх и низ под надписи, а середину оставляем
+   открытой — там и виден глобус. */
 .tt-public-intro {
   position: relative;
-  /* было 72vh — на большом мониторе выглядело «на пол-экрана».
-     Растим почти на весь экран, потолок 940px чтобы на очень высоких
-     мониторах не зияло пустотой. */
   min-height: clamp(620px, 88vh, 940px);
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 34px);
   overflow: hidden;
   margin-bottom: clamp(72px, 9vw, 124px);
-  padding: clamp(42px, 6vw, 84px);
+  padding: clamp(52px, 6vw, 92px) clamp(22px, 4vw, 64px);
   border-radius: 34px;
   color: #fffaf0;
   background: #082b25;
   box-shadow: 0 38px 110px rgba(6, 35, 29, 0.26);
   isolation: isolate;
   scroll-margin-top: 150px;
-  touch-action: pan-y;
-  outline: none;
+  text-align: center;
 }
+/* Ролик синий, палитра сайта зелёно-золотая. Первый слой — зелёная заливка,
+   она сводит видео к нашим цветам; второй — затемнение сверху и снизу под
+   текст, с прозрачной серединой. */
 .tt-public-intro::before {
   content: "";
   position: absolute;
@@ -1973,75 +1981,42 @@ select { font-family: inherit; }
   z-index: 1;
   border-radius: inherit;
   background:
-    linear-gradient(90deg, rgba(3, 24, 21, 0.97) 0%, rgba(4, 31, 27, 0.9) 40%, rgba(4, 30, 26, 0.44) 70%, rgba(4, 26, 23, 0.2) 100%),
-    linear-gradient(180deg, rgba(4, 29, 25, 0.08) 38%, rgba(3, 24, 21, 0.62) 100%);
-  pointer-events: none;
-}
-.tt-public-intro::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  right: clamp(-220px, -12vw, -80px);
-  width: clamp(520px, 58vw, 800px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(229, 201, 135, 0.15);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 72px rgba(255, 255, 255, 0.022),
-    0 0 0 144px rgba(255, 255, 255, 0.014);
-  transform: translateY(-50%);
+    linear-gradient(180deg, rgba(3, 24, 21, 0.52) 0%, rgba(4, 31, 27, 0.08) 40%,
+                    rgba(4, 31, 27, 0.14) 60%, rgba(3, 24, 21, 0.62) 100%),
+    linear-gradient(0deg, rgba(8, 43, 37, 0.2), rgba(8, 43, 37, 0.2));
   pointer-events: none;
 }
 .tt-public-intro > * { position: relative; z-index: 2; }
-.tt-public-intro:focus-visible {
-  box-shadow:
-    0 0 0 4px rgba(229, 201, 135, 0.78),
-    0 38px 110px rgba(6, 35, 29, 0.26);
-}
-.tt-hero-slides {
-  position: absolute !important;
-  z-index: 0 !important;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-}
-.tt-hero-slide {
+.tt-hero-video {
   position: absolute;
-  inset: -1px;
-  opacity: 0;
-  background-position: center;
-  background-size: cover;
-  transform: scale(1.035);
-  transition: opacity 0.8s ease, transform 7s cubic-bezier(0.2, 0.72, 0.28, 1);
-  will-change: opacity, transform;
-}
-.tt-hero-slide.is-active {
-  opacity: 1;
-  transform: scale(1);
-}
-.tt-hero-slide-rize-batumi {
-  background-image: url("img/hero-rize-batumi.webp");
-  background-position: center 52%;
-}
-.tt-hero-slide-rize-morning {
-  background-image: url("img/hero-rize-morning.webp");
-  background-position: center 48%;
-}
-.tt-hero-slide-batumi-sunset {
-  background-image: url("img/hero-batumi-sunset.webp");
-  background-position: center 54%;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  pointer-events: none;
 }
 .tt-public-intro .tt-eyebrow { color: #e5c987; }
-.tt-public-hero-copy { width: min(100%, 790px); }
+/* Текст лежит прямо на глобусе с иконками — самая пёстрая часть кадра.
+   Мягкая радиальная подложка даёт ему подложку, но без видимой рамки:
+   к краям она уходит в ноль, и кадр остаётся открытым. */
+.tt-public-hero-copy {
+  width: min(100%, 900px);
+  padding: 24px clamp(18px, 4vw, 44px);
+  background: radial-gradient(ellipse 76% 86% at 50% 50%,
+    rgba(3, 22, 19, 0.66) 0%, rgba(3, 22, 19, 0.44) 46%, rgba(3, 22, 19, 0) 78%);
+}
+/* Заголовок мельче прежнего: рядом теперь панель поиска, и прошлые 7.5rem
+   вместе с ней съедали весь экран, не оставляя видео ни полосы. */
 .tt-public-intro h1 {
-  max-width: 870px;
-  margin: 17px 0 22px;
+  margin: 15px 0 18px;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(4rem, 7.3vw, 7.5rem);
+  font-size: clamp(2.5rem, 5.2vw, 4.6rem);
   font-weight: 500;
-  line-height: 0.84;
-  letter-spacing: -0.058em;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  text-shadow: 0 2px 26px rgba(2, 18, 15, 0.5);
 }
 .tt-public-intro h1 em {
   display: block;
@@ -2050,112 +2025,113 @@ select { font-family: inherit; }
   font-weight: 500;
 }
 .tt-public-intro p {
-  max-width: 610px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: clamp(0.78rem, 1.25vw, 0.94rem);
-  line-height: 1.8;
+  max-width: 620px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(0.8rem, 1.25vw, 0.95rem);
+  line-height: 1.75;
+  text-shadow: 0 1px 14px rgba(2, 18, 15, 0.5);
 }
-.tt-public-actions {
-  display: flex;
-  align-items: center;
+
+/* ------------------------------------------------------------ поиск туров */
+.tt-hero-search {
+  width: min(100%, 1020px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   gap: 10px;
-  margin-top: 32px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 22px;
+  background: rgba(6, 34, 28, 0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 26px 60px rgba(3, 22, 18, 0.42);
+  backdrop-filter: blur(18px) saturate(1.15);
+  text-align: left;
 }
-.tt-public-actions button {
-  min-height: 48px;
-  border-radius: 13px;
-  padding: 12px 17px;
-  font-size: 0.7rem;
+.tt-hero-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: rgba(255, 250, 240, 0.95);
+  cursor: pointer;
+}
+.tt-hero-search-field span {
+  color: #6d7d75;
+  font-size: 0.58rem;
   font-weight: 700;
-  transition: 0.2s ease;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
-.tt-hero-primary {
+.tt-hero-search-field select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0 18px 0 0;
+  background: transparent;
+  color: #12312a;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6d7d75 50%),
+    linear-gradient(135deg, #6d7d75 50%, transparent 50%);
+  background-position: right 6px center, right 1px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.tt-hero-search-field select:focus-visible { outline: none; }
+.tt-hero-search-field:focus-within {
+  outline: 2px solid #e5c987;
+  outline-offset: 2px;
+}
+.tt-hero-search-btn {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 14px;
   background: var(--tt-accent);
   color: #fff;
-  box-shadow: 0 14px 30px rgba(233, 101, 58, 0.3);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
-.tt-hero-primary i { font-size: 1rem; font-style: normal; }
-.tt-hero-secondary {
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  background: rgba(4, 30, 25, 0.38);
-  color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
+.tt-hero-search-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
-.tt-public-actions button:hover { transform: translateY(-2px); }
-.tt-public-actions button:focus-visible,
-.tt-hero-arrow:focus-visible,
-.tt-hero-toggle:focus-visible,
-.tt-hero-dots button:focus-visible {
+.tt-hero-search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(233, 101, 58, 0.36);
+}
+.tt-hero-search-btn:focus-visible {
   outline: 2px solid #fffaf0;
   outline-offset: 3px;
 }
+.tt-hero-search-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 4px 2px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+}
+.tt-hero-search-hint:empty { display: none; }
 
-.tt-hero-controls {
-  position: absolute !important;
-  left: clamp(26px, 4vw, 56px);
-  bottom: clamp(22px, 3vw, 40px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.tt-hero-arrow,
-.tt-hero-toggle {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  background: rgba(3, 27, 23, 0.46);
-  color: #fffaf0;
-  font-size: 0.9rem;
-  line-height: 1;
-  backdrop-filter: blur(9px);
-  transition: 0.2s ease;
-}
-.tt-hero-toggle {
-  margin-left: 2px;
-  font-size: 0.7rem;
-}
-.tt-hero-arrow:hover,
-.tt-hero-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.58);
-  background: rgba(3, 27, 23, 0.72);
-}
-.tt-hero-dots {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 3px;
-}
-.tt-hero-dots button {
-  width: 30px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.tt-hero-dots i {
-  width: 18px;
-  height: 2px;
-  display: block;
-  background: rgba(255, 255, 255, 0.38);
-  transition: width 0.25s ease, background 0.25s ease;
-}
-.tt-hero-dots button.is-active i {
-  width: 25px;
-  background: #e5c987;
-}
 .tt-public-route {
-  position: absolute;
-  right: clamp(26px, 4vw, 56px);
-  bottom: clamp(22px, 3vw, 40px);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2176,6 +2152,31 @@ select { font-family: inherit; }
   border-radius: 50%;
   background: var(--tt-accent);
 }
+
+/* ------------------------------------------------------- выдача поиска */
+.tt-search-results { scroll-margin-top: 150px; margin-bottom: clamp(48px, 6vw, 88px); }
+.tt-search-list { display: grid; gap: 10px; }
+.tt-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) auto auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-search-when strong,
+.tt-search-what strong { display: block; font-size: 0.92rem; }
+.tt-search-when span,
+.tt-search-what span { display: block; font-size: 0.72rem; }
+.tt-search-seats { font-size: 0.74rem; font-weight: 700; }
+.tt-search-seats.is-ok { color: var(--tt-success); }
+.tt-search-seats.is-low { color: var(--tt-warn-text); }
+.tt-search-seats.is-full { color: var(--tt-text-subtle); }
+.tt-search-price { text-align: right; }
+.tt-search-price span { display: block; font-size: 0.62rem; color: var(--tt-text-muted); }
+.tt-search-price strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .tt-public-catalogue {
   scroll-margin-top: 150px;
 }
@@ -2745,37 +2746,21 @@ select { font-family: inherit; }
   .tt-section-intro { display: block; }
   .tt-route-pill { width: fit-content; margin-top: 13px; }
   .tt-public-intro {
-    align-items: flex-end;
-    min-height: clamp(520px, 72svh, 620px);
-    padding: 94px 26px 82px;
+    min-height: clamp(520px, 78svh, 720px);
+    padding: 64px 26px 56px;
     border-radius: 22px;
   }
-  .tt-public-intro::before {
-    background:
-      linear-gradient(180deg, rgba(3, 24, 21, 0.22) 0%, rgba(3, 24, 21, 0.35) 34%, rgba(3, 24, 21, 0.94) 79%, rgba(3, 24, 21, 0.99) 100%),
-      linear-gradient(90deg, rgba(3, 24, 21, 0.46), rgba(3, 24, 21, 0.08));
+  /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
+     они обрезают «Все направления» на середине слова. */
+  .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt-hero-search-btn { grid-column: 1 / -1; }
+  .tt-search-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
   }
-  .tt-public-intro::after {
-    top: 18%;
-    right: -190px;
-    width: 500px;
-    opacity: 0.7;
-  }
-  .tt-public-hero-copy { position: relative; z-index: 3; }
-  .tt-public-intro h1 { max-width: 620px; }
-  .tt-public-route {
-    right: 22px;
-    top: 22px;
-    bottom: auto;
-  }
-  .tt-hero-controls { left: 22px; bottom: 20px; }
-  .tt-hero-arrow,
-  .tt-hero-toggle { width: 44px; height: 44px; }
-  .tt-hero-slide-rize-batumi { background-position: 58% center; }
-  .tt-hero-slide-rize-morning { background-position: 52% center; }
-  .tt-hero-slide-batumi-sunset { background-position: 56% center; }
-  .tt-public-actions { align-items: stretch; }
-  .tt-public-actions button { min-height: 45px; }
+  .tt-search-what { grid-column: 1 / -1; order: -1; }
+  .tt-search-price { text-align: left; }
+  .tt-search-row .tt-btn { grid-column: 1 / -1; }
   .tt-cat-heading { display: block; }
   .tt-cat-heading p { margin-top: 9px; }
   .tt-toolbar { align-items: stretch; padding: 13px; }
@@ -2850,18 +2835,11 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 88px 22px 76px; }
-  .tt-public-intro h1 { font-size: 3.25rem; }
+  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 56px 20px 48px; }
+  .tt-public-intro h1 { font-size: 2.7rem; }
   .tt-public-intro p { max-width: 94%; }
-  .tt-public-actions { display: grid; }
-  .tt-public-actions button { justify-content: space-between; width: 100%; }
-  .tt-public-route { top: 18px; right: 18px; gap: 6px; font-size: 0.62rem; }
-  .tt-hero-controls { left: 18px; bottom: 18px; gap: 5px; }
-  .tt-hero-arrow,
-  .tt-hero-toggle { width: 44px; height: 44px; }
-  .tt-hero-dots button { width: 28px; height: 44px; }
-  .tt-hero-dots i { width: 14px; }
-  .tt-hero-dots button.is-active i { width: 20px; }
+  .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
+  .tt-public-route { gap: 6px; font-size: 0.62rem; }
   .tt-dep { display: block; }
   .tt-dep > * + * { margin-top: 13px; }
   .tt-dep-seats { text-align: left; }
@@ -2890,11 +2868,9 @@ select { font-family: inherit; }
     min-height: 520px;
     padding: 82px 18px 78px;
   }
-  .tt-public-intro h1 { font-size: 2.8rem; }
+  .tt-public-intro h1 { font-size: 2.35rem; }
   .tt-public-intro p { max-width: 100%; line-height: 1.65; }
-  .tt-public-route { top: 15px; right: 15px; font-size: 0.56rem; }
-  .tt-hero-controls { left: 14px; bottom: 15px; }
-  .tt-public-actions { margin-top: 24px; }
+  .tt-public-route { font-size: 0.56rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2905,15 +2881,7 @@ select { font-family: inherit; }
     transform: none;
     transition: none;
   }
-  .tt-hero-slide,
-  .tt-public-actions button,
-  .tt-hero-arrow,
-  .tt-hero-toggle,
-  .tt-hero-dots i {
-    transition: none;
-  }
-  /* кнопку паузы оставляем: автопрокрутка идёт и при reduce-motion
-     (мгновенной сменой), значит должна быть возможность её остановить */
+  .tt-hero-search-btn { transition: none; }
   .tt-dep,
   .tt-cat-tile,
   .tt-cat-tour,
@@ -7753,6 +7721,38 @@ window.TURON_DESTINATIONS = [
       return request("/api/public/tours/" + encodeURIComponent(code));
     },
 
+    /*
+     * Плоский список заездов для поиска на титульной. Маршрут появился
+     * позже остального каталога, поэтому 404 от ещё не задеплоенного
+     * воркера гасим в пустой список: поиск сузится до направления, а
+     * страница не сломается.
+     */
+    catalogDepartures: function () {
+      if (!API_BASE) {
+        // В демо-заездах направления нет — оно лежит на туре, доклеиваем.
+        var dest = {};
+        (global.TURON_TOURS || []).forEach(function (t) {
+          dest[t.code] = t.destination;
+        });
+        return Promise.resolve(futureDepartures().map(function (d) {
+          return {
+            code: d.code, date_start: d.date_start, transport: d.transport,
+            is_info_tour: d.is_info_tour, tour_code: d.tour_code,
+            tour_name: d.tour_name, destination: dest[d.tour_code], nights: d.nights,
+            seats_free: Math.max(0, Math.min(d.seats_free, 21)),
+            min_price: (d.prices || []).reduce(function (min, p) {
+              if (p.kind !== "placement") return min;
+              return min == null || p.price < min ? p.price : min;
+            }, null),
+          };
+        }));
+      }
+      return request("/api/public/departures").catch(function (err) {
+        if (err && err.status === 404) return [];
+        throw err;
+      });
+    },
+
     departures: function (opts) {
       var all = opts && opts.all;
       if (!API_BASE) {
@@ -8259,24 +8259,18 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Путешествия,",
       "hero.accent": "которые остаются с вами.",
       "hero.text": "Экскурсионные и групповые туры с продуманной программой, перелётом и поддержкой команды на всём маршруте.",
-      "hero.primary": "Смотреть экскурсионные туры",
-      "hero.secondary": "Все туры",
       "hero.route": "Маршрут Карадениз",
-      "slider.label": "Визуальная история маршрута Ризе и Батуми",
-      "slider.controls": "Управление слайдером",
-      "slider.previous": "Предыдущий слайд",
-      "slider.next": "Следующий слайд",
-      "slider.pause": "Остановить автопрокрутку",
-      "slider.play": "Возобновить автопрокрутку",
-      "slider.slide1": "Чайные террасы Ризе переходят в побережье Батуми",
-      "slider.slide2": "Утренний туман над чайными террасами Ризе",
-      "slider.slide3": "Бульвар и побережье Батуми на закате",
-      "slider.goto1": "Показать слайд 1",
-      "slider.goto2": "Показать слайд 2",
-      "slider.goto3": "Показать слайд 3",
-      "slider.status1": "Слайд 1 из 3",
-      "slider.status2": "Слайд 2 из 3",
-      "slider.status3": "Слайд 3 из 3",
+      "search.destination": "Направление",
+      "search.anyDestination": "Все направления",
+      "search.month": "Месяц выезда",
+      "search.anyMonth": "Любая дата",
+      "search.airport": "Аэропорт прилёта",
+      "search.anyAirport": "Любой",
+      "search.submit": "Найти туры",
+      "search.found": "Найдено",
+      "search.none": "Ничего не найдено",
+      "search.noneHint": "По этим условиям заездов нет. Попробуйте другой месяц или аэропорт.",
+      "search.resultsKicker": "Результаты поиска",
       "catalog.kicker": "Коллекция Turon Tour",
       "catalog.title": "Выберите направление",
       "catalog.text": "Откройте программы, ближайшие даты и доступные варианты размещения.",
@@ -8309,24 +8303,18 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Siz bilan qoladigan",
       "hero.accent": "sayohatlar.",
       "hero.text": "Puxta dastur, aviaqatnov va butun yo‘nalish davomida jamoa ko‘magi bilan ekskursiya hamda guruh turlari.",
-      "hero.primary": "Ekskursiya turlarini ko‘rish",
-      "hero.secondary": "Barcha turlar",
       "hero.route": "Karadeniz yo‘nalishi",
-      "slider.label": "Rize va Batumi yo‘nalishining vizual hikoyasi",
-      "slider.controls": "Slayder boshqaruvi",
-      "slider.previous": "Oldingi slayd",
-      "slider.next": "Keyingi slayd",
-      "slider.pause": "Avtomatik aylantirishni to‘xtatish",
-      "slider.play": "Avtomatik aylantirishni davom ettirish",
-      "slider.slide1": "Rize choy terassalaridan Batumi sohiliga",
-      "slider.slide2": "Rize choy terassalari uzra tonggi tuman",
-      "slider.slide3": "Batumi bulvari va sohili quyosh botishida",
-      "slider.goto1": "1-slaydni ko‘rsatish",
-      "slider.goto2": "2-slaydni ko‘rsatish",
-      "slider.goto3": "3-slaydni ko‘rsatish",
-      "slider.status1": "3 slayddan 1-si",
-      "slider.status2": "3 slayddan 2-si",
-      "slider.status3": "3 slayddan 3-si",
+      "search.destination": "Yo‘nalish",
+      "search.anyDestination": "Barcha yo‘nalishlar",
+      "search.month": "Jo‘nash oyi",
+      "search.anyMonth": "Istalgan sana",
+      "search.airport": "Qo‘nish aeroporti",
+      "search.anyAirport": "Istalgan",
+      "search.submit": "Turlarni topish",
+      "search.found": "Topildi",
+      "search.none": "Hech narsa topilmadi",
+      "search.noneHint": "Bu shartlar bo‘yicha zaezdlar yo‘q. Boshqa oy yoki aeroportni tanlang.",
+      "search.resultsKicker": "Qidiruv natijalari",
       "catalog.kicker": "Turon Tour kolleksiyasi",
       "catalog.title": "Yo‘nalishni tanlang",
       "catalog.text": "Dasturlar, yaqin sanalar va joylashuv variantlarini ko‘ring.",
@@ -8359,24 +8347,18 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Journeys that",
       "hero.accent": "stay with you.",
       "hero.text": "Excursion and group tours with a thoughtful programme, flights and support from our team throughout the route.",
-      "hero.primary": "Explore excursion tours",
-      "hero.secondary": "All tours",
       "hero.route": "Karadeniz route",
-      "slider.label": "A visual journey through Rize and Batumi",
-      "slider.controls": "Carousel controls",
-      "slider.previous": "Previous slide",
-      "slider.next": "Next slide",
-      "slider.pause": "Pause automatic rotation",
-      "slider.play": "Resume automatic rotation",
-      "slider.slide1": "From Rize tea terraces to the Batumi coast",
-      "slider.slide2": "Morning mist over Rize tea terraces",
-      "slider.slide3": "Batumi boulevard and coastline at sunset",
-      "slider.goto1": "Show slide 1",
-      "slider.goto2": "Show slide 2",
-      "slider.goto3": "Show slide 3",
-      "slider.status1": "Slide 1 of 3",
-      "slider.status2": "Slide 2 of 3",
-      "slider.status3": "Slide 3 of 3",
+      "search.destination": "Destination",
+      "search.anyDestination": "All destinations",
+      "search.month": "Departure month",
+      "search.anyMonth": "Any date",
+      "search.airport": "Arrival airport",
+      "search.anyAirport": "Any",
+      "search.submit": "Find tours",
+      "search.found": "Found",
+      "search.none": "Nothing found",
+      "search.noneHint": "No departures match these filters. Try another month or airport.",
+      "search.resultsKicker": "Search results",
       "catalog.kicker": "The Turon Tour collection",
       "catalog.title": "Choose a destination",
       "catalog.text": "Explore programmes, upcoming dates and available accommodation options.",
@@ -8409,24 +8391,18 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Sizinle kalan",
       "hero.accent": "yolculuklar.",
       "hero.text": "Özenle hazırlanan program, uçuşlar ve rota boyunca ekip desteğiyle kültür ve grup turları.",
-      "hero.primary": "Kültür turlarını keşfet",
-      "hero.secondary": "Tüm turlar",
       "hero.route": "Karadeniz rotası",
-      "slider.label": "Rize ve Batum rotasının görsel hikâyesi",
-      "slider.controls": "Slayt kontrolleri",
-      "slider.previous": "Önceki slayt",
-      "slider.next": "Sonraki slayt",
-      "slider.pause": "Otomatik geçişi durdur",
-      "slider.play": "Otomatik geçişi sürdür",
-      "slider.slide1": "Rize çay teraslarından Batum sahiline",
-      "slider.slide2": "Rize çay terasları üzerinde sabah sisi",
-      "slider.slide3": "Gün batımında Batum bulvarı ve sahili",
-      "slider.goto1": "1. slaydı göster",
-      "slider.goto2": "2. slaydı göster",
-      "slider.goto3": "3. slaydı göster",
-      "slider.status1": "3 slayttan 1.",
-      "slider.status2": "3 slayttan 2.",
-      "slider.status3": "3 slayttan 3.",
+      "search.destination": "Rota",
+      "search.anyDestination": "Tüm rotalar",
+      "search.month": "Kalkış ayı",
+      "search.anyMonth": "Herhangi bir tarih",
+      "search.airport": "Varış havalimanı",
+      "search.anyAirport": "Herhangi biri",
+      "search.submit": "Tur ara",
+      "search.found": "Bulundu",
+      "search.none": "Sonuç bulunamadı",
+      "search.noneHint": "Bu filtrelere uyan kalkış yok. Başka bir ay veya havalimanı deneyin.",
+      "search.resultsKicker": "Arama sonuçları",
       "catalog.kicker": "Turon Tour koleksiyonu",
       "catalog.title": "Rotanızı seçin",
       "catalog.text": "Programları, yaklaşan tarihleri ve konaklama seçeneklerini inceleyin.",
@@ -8585,166 +8561,7 @@ window.TURON_DESTINATIONS = [
     });
   }
 
-  var heroCleanup = null;
   var revealObserver = null;
-
-  function initHeroCarousel(container) {
-    if (heroCleanup) heroCleanup();
-    heroCleanup = null;
-
-    var hero = container.querySelector("[data-hero-carousel]");
-    if (!hero) return;
-
-    var slides = Array.prototype.slice.call(hero.querySelectorAll(".tt-hero-slide"));
-    var dots = Array.prototype.slice.call(hero.querySelectorAll("[data-hero-dot]"));
-    var previous = hero.querySelector("[data-hero-prev]");
-    var next = hero.querySelector("[data-hero-next]");
-    var toggle = hero.querySelector("[data-hero-toggle]");
-    var toggleIcon = toggle && toggle.querySelector("span");
-    var status = hero.querySelector("[data-hero-status]");
-    var reducedQuery = global.matchMedia
-      ? global.matchMedia("(prefers-reduced-motion: reduce)")
-      : { matches: false };
-    var index = 0;
-    var timer = null;
-    var pointerStart = null;
-    // Автопрокрутка включена по умолчанию — оператор хочет, чтобы кадры
-    // менялись сами. При системном «уменьшить движение» кадры всё равно
-    // сменяются, но мгновенно (fade убирается в CSS), а не замирают.
-    var manuallyPaused = false;
-    var focusInside = false;
-
-    function updateToggle() {
-      if (!toggle) return;
-      toggle.setAttribute("aria-pressed", manuallyPaused ? "true" : "false");
-      toggle.setAttribute("aria-label", t(manuallyPaused ? "slider.play" : "slider.pause"));
-      if (toggleIcon) toggleIcon.textContent = manuallyPaused ? "▶" : "Ⅱ";
-    }
-
-    function setSlide(nextIndex, announce) {
-      index = (nextIndex + slides.length) % slides.length;
-      slides.forEach(function (slide, slideIndex) {
-        var active = slideIndex === index;
-        slide.classList.toggle("is-active", active);
-        slide.setAttribute("aria-hidden", active ? "false" : "true");
-      });
-      dots.forEach(function (dot, dotIndex) {
-        var active = dotIndex === index;
-        dot.classList.toggle("is-active", active);
-        if (active) dot.setAttribute("aria-current", "true");
-        else dot.removeAttribute("aria-current");
-      });
-      if (status) {
-        status.setAttribute("aria-live", announce ? "polite" : "off");
-        status.textContent = t("slider.status" + (index + 1)) + " — " +
-          t("slider.slide" + (index + 1));
-      }
-    }
-
-    function stopTimer() {
-      if (timer) global.clearInterval(timer);
-      timer = null;
-    }
-
-    function startTimer() {
-      stopTimer();
-      // Наведение мыши больше не ставит на паузу: hero теперь во весь
-      // экран, курсор почти всегда над ним — иначе карусель стояла бы.
-      // Пауза остаётся ручной (кнопка) и при скрытой вкладке.
-      if (slides.length < 2 || manuallyPaused || focusInside || document.hidden) return;
-      timer = global.setInterval(function () {
-        setSlide(index + 1, false);
-      }, 6500);
-    }
-
-    function choose(nextIndex) {
-      manuallyPaused = true;
-      updateToggle();
-      setSlide(nextIndex, true);
-      stopTimer();
-    }
-
-    function onPrevious() { choose(index - 1); }
-    function onNext() { choose(index + 1); }
-    function onToggle() {
-      manuallyPaused = !manuallyPaused;
-      updateToggle();
-      if (manuallyPaused) stopTimer();
-      else startTimer();
-    }
-    function onKeydown(event) {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        onPrevious();
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault();
-        onNext();
-      } else if (event.key === "Home") {
-        event.preventDefault();
-        choose(0);
-      } else if (event.key === "End") {
-        event.preventDefault();
-        choose(slides.length - 1);
-      }
-    }
-    function onPointerDown(event) {
-      if (event.pointerType !== "touch") return;
-      pointerStart = { x: event.clientX, y: event.clientY };
-    }
-    function onPointerUp(event) {
-      if (!pointerStart || event.pointerType !== "touch") return;
-      var x = event.clientX - pointerStart.x;
-      var y = event.clientY - pointerStart.y;
-      pointerStart = null;
-      if (Math.abs(x) < 48 || Math.abs(x) < Math.abs(y) * 1.2) return;
-      if (x < 0) onNext();
-      else onPrevious();
-    }
-    function onVisibility() {
-      if (document.hidden) stopTimer();
-      else startTimer();
-    }
-    function onMotionChange() {
-      // «Уменьшить движение» больше не выключает автопрокрутку — только
-      // убирает плавность перехода (это делает CSS). Кадры идут дальше.
-    }
-
-    if (previous) previous.addEventListener("click", onPrevious);
-    if (next) next.addEventListener("click", onNext);
-    if (toggle) toggle.addEventListener("click", onToggle);
-    dots.forEach(function (dot) {
-      dot.addEventListener("click", function () {
-        choose(Number(dot.dataset.heroDot));
-      });
-    });
-    hero.addEventListener("keydown", onKeydown);
-    hero.addEventListener("pointerdown", onPointerDown, { passive: true });
-    hero.addEventListener("pointerup", onPointerUp, { passive: true });
-    hero.addEventListener("pointercancel", function () { pointerStart = null; });
-    hero.addEventListener("focusin", function () {
-      focusInside = true;
-      stopTimer();
-    });
-    hero.addEventListener("focusout", function (event) {
-      if (event.relatedTarget && hero.contains(event.relatedTarget)) return;
-      focusInside = false;
-      startTimer();
-    });
-    document.addEventListener("visibilitychange", onVisibility);
-    if (reducedQuery.addEventListener) reducedQuery.addEventListener("change", onMotionChange);
-
-    setSlide(0, false);
-    updateToggle();
-    startTimer();
-
-    heroCleanup = function () {
-      stopTimer();
-      document.removeEventListener("visibilitychange", onVisibility);
-      if (reducedQuery.removeEventListener) {
-        reducedQuery.removeEventListener("change", onMotionChange);
-      }
-    };
-  }
 
   function initReveal(container) {
     if (revealObserver) revealObserver.disconnect();
@@ -8775,7 +8592,6 @@ window.TURON_DESTINATIONS = [
   }
 
   function enhance(container) {
-    initHeroCarousel(container || document);
     initReveal(container || document);
   }
 
@@ -8969,6 +8785,50 @@ window.TURON_DESTINATIONS = [
         ? '<p class="tt-muted-note">До выезда меньше 20 дней — рассрочки нет.</p>'
         : "") +
       "</div>";
+  }
+
+  /*
+   * ------------------------------------------------------ поиск на титульной
+   * Панель ищет по РЕАЛЬНЫМ заездам (TuronApi.catalogDepartures), а не по
+   * выдуманному списку курортов: варианты в select-ах строятся из того, что
+   * действительно есть в продаже. Поэтому «сентябрь» появляется, только если
+   * сентябрьские заезды заведены, а аэропорт — только тот, куда правда летим.
+   *
+   * Заезды берутся отдельным маршрутом, а не из catalogTours: там MIN(date)
+   * по туру, и фильтр по месяцу врал бы (тур с ближайшим заездом в августе
+   * пропал бы из сентябрьской выдачи, хотя сентябрьские заезды у него есть).
+   */
+  function searchPanelHtml() {
+    function field(id, label, first) {
+      return '<label class="tt-hero-search-field" for="' + id + '">' +
+        "<span>" + esc(label) + "</span>" +
+        '<select id="' + id + '"><option value="">' + esc(first) + "</option></select>" +
+        "</label>";
+    }
+    return (
+      '<form class="tt-hero-search" id="tour-search" novalidate>' +
+        field("ts-dest", tr("search.destination"), tr("search.anyDestination")) +
+        field("ts-month", tr("search.month"), tr("search.anyMonth")) +
+        field("ts-airport", tr("search.airport"), tr("search.anyAirport")) +
+        '<button class="tt-hero-search-btn" type="submit">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" />' +
+          "</svg>" +
+          "<span>" + esc(tr("search.submit")) + "</span>" +
+        "</button>" +
+        '<p class="tt-hero-search-hint" data-search-hint aria-live="polite"></p>' +
+      "</form>"
+    );
+  }
+
+  // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
+  function monthKey(iso) { return iso.slice(0, 7); }
+  // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
+  // и это «г.» в выпадающем списке выглядит мусором.
+  function monthLabel(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    var m = d.toLocaleDateString("ru-RU", { month: "long", timeZone: "UTC" });
+    return m.charAt(0).toUpperCase() + m.slice(1) + " " + d.getUTCFullYear();
   }
 
   function hashFor(v) {
@@ -9181,6 +9041,138 @@ window.TURON_DESTINATIONS = [
         }).join("") + "</ol></section>";
     }
 
+    /*
+     * Строка выдачи поиска. Отдельная от departureRow намеренно: тот берёт
+     * полный прайс заезда и открывает калькулятор в контексте загруженной
+     * карточки тура, а здесь на руках только сводка (min_price, остаток).
+     * Кнопка ведёт в карточку тура — там и прайс, и расчёт, и бронь.
+     */
+    function searchResultRow(d) {
+      var seats = seatsLabel(d.seats_free);
+      var meta = [TRANSPORT[d.transport] || d.transport];
+      if (d.nights) {
+        meta.push(d.nights + " " + plural(d.nights, "ночь", "ночи", "ночей"));
+      }
+      meta.push(d.code);
+      return (
+        '<article class="tt-search-row">' +
+          '<div class="tt-search-when">' +
+            "<strong>" + dateRange(d.date_start, d.nights) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(meta.join(" · ")) + "</span>" +
+          "</div>" +
+          '<div class="tt-search-what">' +
+            "<strong>" + esc(d.tour_name) + "</strong>" +
+            (d.destination
+              ? '<span class="tt-muted-note">' + esc(d.destination) + "</span>"
+              : "") +
+            (d.is_info_tour
+              ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
+          "</div>" +
+          '<div class="tt-search-seats ' + seats.level + '">' + seats.text + "</div>" +
+          '<div class="tt-search-price">' +
+            (d.min_price != null
+              ? '<span class="tt-muted-note">от</span><strong>' +
+                money(d.min_price) + "</strong>"
+              : "") +
+          "</div>" +
+          '<button class="tt-btn tt-btn-sm" data-tour="' + esc(d.tour_code) + '">' +
+            "Программа и цены</button>" +
+        "</article>"
+      );
+    }
+
+    /*
+     * Поиск на титульной. Варианты в select-ах строятся из реальных заездов,
+     * поэтому пустых обещаний в выдаче не бывает: если месяц есть в списке —
+     * заезды в нём точно заведены.
+     *
+     * Ошибку загрузки заездов глотаем намеренно: поиск — надстройка над
+     * каталогом, и упавший запрос не должен убирать со страницы направления.
+     * Панель в этом случае просто остаётся с одним фильтром по направлению.
+     */
+    function initSearch() {
+      var form = root.querySelector("#tour-search");
+      var out = root.querySelector("#tour-search-results");
+      if (!form || !out) return;
+
+      var destSel = form.querySelector("#ts-dest");
+      var monthSel = form.querySelector("#ts-month");
+      var airSel = form.querySelector("#ts-airport");
+      var hint = form.querySelector("[data-search-hint]");
+      var all = [];
+
+      function matches() {
+        return all.filter(function (d) {
+          if (destSel.value && d.destination !== destSel.value) return false;
+          if (monthSel.value && monthKey(d.date_start) !== monthSel.value) return false;
+          if (airSel.value && d.transport !== airSel.value) return false;
+          return true;
+        });
+      }
+
+      function showCount() {
+        var n = matches().length;
+        hint.textContent = n
+          ? tr("search.found") + " " + n + " " +
+            plural(n, "заезд", "заезда", "заездов")
+          : tr("search.none");
+      }
+
+      function addOptions(sel, items) {
+        sel.insertAdjacentHTML("beforeend", items.map(function (o) {
+          return '<option value="' + esc(o.value) + '">' + esc(o.label) + "</option>";
+        }).join(""));
+      }
+
+      TuronApi.catalogDepartures().then(function (list) {
+        all = list || [];
+        if (!all.length) return;
+
+        var seenD = {}, seenM = {}, seenA = {};
+        var dests = [], months = [], airs = [];
+        all.forEach(function (d) {
+          if (d.destination && !seenD[d.destination]) {
+            seenD[d.destination] = 1;
+            dests.push({ value: d.destination, label: d.destination });
+          }
+          var mk = monthKey(d.date_start);
+          if (!seenM[mk]) {
+            seenM[mk] = 1;
+            months.push({ value: mk, label: monthLabel(d.date_start) });
+          }
+          if (d.transport && !seenA[d.transport]) {
+            seenA[d.transport] = 1;
+            airs.push({ value: d.transport, label: TRANSPORT[d.transport] || d.transport });
+          }
+        });
+        months.sort(function (a, b) { return a.value < b.value ? -1 : 1; });
+
+        addOptions(destSel, dests);
+        addOptions(monthSel, months);
+        addOptions(airSel, airs);
+        showCount();
+      }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
+
+      form.addEventListener("change", showCount);
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var found = matches();
+        out.hidden = false;
+        out.innerHTML =
+          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+            esc(tr("search.resultsKicker")) + "</span><h2>" +
+            (found.length
+              ? esc(tr("search.found")) + " " + found.length + " " +
+                plural(found.length, "заезд", "заезда", "заездов")
+              : esc(tr("search.none"))) +
+            "</h2></div></div>" +
+          (found.length
+            ? '<div class="tt-search-list">' + found.map(searchResultRow).join("") + "</div>"
+            : '<div class="tt-empty-state">' + esc(tr("search.noneHint")) + "</div>");
+        out.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
     function renderDestinations() {
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
@@ -9201,56 +9193,24 @@ window.TURON_DESTINATIONS = [
         }
 
         root.innerHTML =
-          '<section class="tt-public-intro" id="excursion-tours" data-hero-carousel ' +
-            'role="region" aria-roledescription="carousel" aria-label="' +
-            esc(tr("slider.label")) + '" tabindex="0">' +
-            '<div class="tt-hero-slides" aria-live="off">' +
-              '<div class="tt-hero-slide tt-hero-slide-rize-batumi is-active" ' +
-                'id="hero-slide-1" role="img" aria-label="' +
-                esc(tr("slider.slide1")) + '" aria-hidden="false"></div>' +
-              '<div class="tt-hero-slide tt-hero-slide-rize-morning" ' +
-                'id="hero-slide-2" role="img" aria-label="' +
-                esc(tr("slider.slide2")) + '" aria-hidden="true"></div>' +
-              '<div class="tt-hero-slide tt-hero-slide-batumi-sunset" ' +
-                'id="hero-slide-3" role="img" aria-label="' +
-                esc(tr("slider.slide3")) + '" aria-hidden="true"></div>' +
-            "</div>" +
+          '<section class="tt-public-intro" id="excursion-tours">' +
+            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260804-1" ' +
+              'aria-hidden="true" tabindex="-1">' +
+              '<source src="img/hero-travel.mp4?v=20260804-1" type="video/mp4" />' +
+            "</video>" +
             '<div class="tt-public-hero-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
-              '<h1>' + esc(tr("hero.title")) + " <em>" +
+              "<h1>" + esc(tr("hero.title")) + " <em>" +
                 esc(tr("hero.accent")) + "</em></h1>" +
               "<p>" + esc(tr("hero.text")) + "</p>" +
-              '<div class="tt-public-actions">' +
-                '<button class="tt-hero-primary" type="button" data-scroll-target="tour-catalog">' +
-                  esc(tr("hero.primary")) + "<i>↘</i></button>" +
-                '<button class="tt-hero-secondary" type="button" data-scroll-target="tour-catalog">' +
-                  esc(tr("hero.secondary")) + "</button>" +
-              "</div>" +
             "</div>" +
-            '<div class="tt-hero-controls" role="group" aria-label="' +
-              esc(tr("slider.controls")) + '">' +
-              '<button type="button" class="tt-hero-arrow" data-hero-prev aria-label="' +
-                esc(tr("slider.previous")) + '">←</button>' +
-              '<div class="tt-hero-dots">' +
-                '<button type="button" class="is-active" data-hero-dot="0" ' +
-                  'aria-controls="hero-slide-1" aria-current="true" aria-label="' +
-                  esc(tr("slider.goto1")) + '"><i></i></button>' +
-                '<button type="button" data-hero-dot="1" aria-controls="hero-slide-2" ' +
-                  'aria-label="' + esc(tr("slider.goto2")) + '"><i></i></button>' +
-                '<button type="button" data-hero-dot="2" aria-controls="hero-slide-3" ' +
-                  'aria-label="' + esc(tr("slider.goto3")) + '"><i></i></button>' +
-              "</div>" +
-              '<button type="button" class="tt-hero-arrow" data-hero-next aria-label="' +
-                esc(tr("slider.next")) + '">→</button>' +
-              '<button type="button" class="tt-hero-toggle" data-hero-toggle aria-pressed="false" ' +
-                'aria-label="' + esc(tr("slider.pause")) + '"><span aria-hidden="true">Ⅱ</span></button>' +
-            "</div>" +
-            '<span class="tt-sr-only" data-hero-status aria-live="polite" aria-atomic="true">' +
-              esc(tr("slider.status1")) + "</span>" +
+            searchPanelHtml() +
             '<div class="tt-public-route" aria-label="' + esc(tr("hero.route")) + '">' +
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
           "</section>" +
+          '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +
             '<div class="tt-about-brand">' +
@@ -9271,6 +9231,15 @@ window.TURON_DESTINATIONS = [
           "</section>" +
           '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
             '<span>Tashkent · Uzbekistan</span></footer>';
+        // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
+        // CSS видео не останавливает, поэтому только так.
+        var video = root.querySelector(".tt-hero-video");
+        if (video && global.matchMedia &&
+            global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          video.removeAttribute("autoplay");
+          video.pause();
+        }
+        initSearch();
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
           global.TuronPublicUi.enhance(root);
         }

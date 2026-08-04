@@ -161,6 +161,50 @@
       "</div>";
   }
 
+  /*
+   * ------------------------------------------------------ поиск на титульной
+   * Панель ищет по РЕАЛЬНЫМ заездам (TuronApi.catalogDepartures), а не по
+   * выдуманному списку курортов: варианты в select-ах строятся из того, что
+   * действительно есть в продаже. Поэтому «сентябрь» появляется, только если
+   * сентябрьские заезды заведены, а аэропорт — только тот, куда правда летим.
+   *
+   * Заезды берутся отдельным маршрутом, а не из catalogTours: там MIN(date)
+   * по туру, и фильтр по месяцу врал бы (тур с ближайшим заездом в августе
+   * пропал бы из сентябрьской выдачи, хотя сентябрьские заезды у него есть).
+   */
+  function searchPanelHtml() {
+    function field(id, label, first) {
+      return '<label class="tt-hero-search-field" for="' + id + '">' +
+        "<span>" + esc(label) + "</span>" +
+        '<select id="' + id + '"><option value="">' + esc(first) + "</option></select>" +
+        "</label>";
+    }
+    return (
+      '<form class="tt-hero-search" id="tour-search" novalidate>' +
+        field("ts-dest", tr("search.destination"), tr("search.anyDestination")) +
+        field("ts-month", tr("search.month"), tr("search.anyMonth")) +
+        field("ts-airport", tr("search.airport"), tr("search.anyAirport")) +
+        '<button class="tt-hero-search-btn" type="submit">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" />' +
+          "</svg>" +
+          "<span>" + esc(tr("search.submit")) + "</span>" +
+        "</button>" +
+        '<p class="tt-hero-search-hint" data-search-hint aria-live="polite"></p>' +
+      "</form>"
+    );
+  }
+
+  // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
+  function monthKey(iso) { return iso.slice(0, 7); }
+  // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
+  // и это «г.» в выпадающем списке выглядит мусором.
+  function monthLabel(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    var m = d.toLocaleDateString("ru-RU", { month: "long", timeZone: "UTC" });
+    return m.charAt(0).toUpperCase() + m.slice(1) + " " + d.getUTCFullYear();
+  }
+
   function hashFor(v) {
     if (v.kind === "tours") return "#/d/" + encodeURIComponent(v.destination);
     if (v.kind === "tour") return "#/t/" + encodeURIComponent(v.code);
@@ -371,6 +415,138 @@
         }).join("") + "</ol></section>";
     }
 
+    /*
+     * Строка выдачи поиска. Отдельная от departureRow намеренно: тот берёт
+     * полный прайс заезда и открывает калькулятор в контексте загруженной
+     * карточки тура, а здесь на руках только сводка (min_price, остаток).
+     * Кнопка ведёт в карточку тура — там и прайс, и расчёт, и бронь.
+     */
+    function searchResultRow(d) {
+      var seats = seatsLabel(d.seats_free);
+      var meta = [TRANSPORT[d.transport] || d.transport];
+      if (d.nights) {
+        meta.push(d.nights + " " + plural(d.nights, "ночь", "ночи", "ночей"));
+      }
+      meta.push(d.code);
+      return (
+        '<article class="tt-search-row">' +
+          '<div class="tt-search-when">' +
+            "<strong>" + dateRange(d.date_start, d.nights) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(meta.join(" · ")) + "</span>" +
+          "</div>" +
+          '<div class="tt-search-what">' +
+            "<strong>" + esc(d.tour_name) + "</strong>" +
+            (d.destination
+              ? '<span class="tt-muted-note">' + esc(d.destination) + "</span>"
+              : "") +
+            (d.is_info_tour
+              ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
+          "</div>" +
+          '<div class="tt-search-seats ' + seats.level + '">' + seats.text + "</div>" +
+          '<div class="tt-search-price">' +
+            (d.min_price != null
+              ? '<span class="tt-muted-note">от</span><strong>' +
+                money(d.min_price) + "</strong>"
+              : "") +
+          "</div>" +
+          '<button class="tt-btn tt-btn-sm" data-tour="' + esc(d.tour_code) + '">' +
+            "Программа и цены</button>" +
+        "</article>"
+      );
+    }
+
+    /*
+     * Поиск на титульной. Варианты в select-ах строятся из реальных заездов,
+     * поэтому пустых обещаний в выдаче не бывает: если месяц есть в списке —
+     * заезды в нём точно заведены.
+     *
+     * Ошибку загрузки заездов глотаем намеренно: поиск — надстройка над
+     * каталогом, и упавший запрос не должен убирать со страницы направления.
+     * Панель в этом случае просто остаётся с одним фильтром по направлению.
+     */
+    function initSearch() {
+      var form = root.querySelector("#tour-search");
+      var out = root.querySelector("#tour-search-results");
+      if (!form || !out) return;
+
+      var destSel = form.querySelector("#ts-dest");
+      var monthSel = form.querySelector("#ts-month");
+      var airSel = form.querySelector("#ts-airport");
+      var hint = form.querySelector("[data-search-hint]");
+      var all = [];
+
+      function matches() {
+        return all.filter(function (d) {
+          if (destSel.value && d.destination !== destSel.value) return false;
+          if (monthSel.value && monthKey(d.date_start) !== monthSel.value) return false;
+          if (airSel.value && d.transport !== airSel.value) return false;
+          return true;
+        });
+      }
+
+      function showCount() {
+        var n = matches().length;
+        hint.textContent = n
+          ? tr("search.found") + " " + n + " " +
+            plural(n, "заезд", "заезда", "заездов")
+          : tr("search.none");
+      }
+
+      function addOptions(sel, items) {
+        sel.insertAdjacentHTML("beforeend", items.map(function (o) {
+          return '<option value="' + esc(o.value) + '">' + esc(o.label) + "</option>";
+        }).join(""));
+      }
+
+      TuronApi.catalogDepartures().then(function (list) {
+        all = list || [];
+        if (!all.length) return;
+
+        var seenD = {}, seenM = {}, seenA = {};
+        var dests = [], months = [], airs = [];
+        all.forEach(function (d) {
+          if (d.destination && !seenD[d.destination]) {
+            seenD[d.destination] = 1;
+            dests.push({ value: d.destination, label: d.destination });
+          }
+          var mk = monthKey(d.date_start);
+          if (!seenM[mk]) {
+            seenM[mk] = 1;
+            months.push({ value: mk, label: monthLabel(d.date_start) });
+          }
+          if (d.transport && !seenA[d.transport]) {
+            seenA[d.transport] = 1;
+            airs.push({ value: d.transport, label: TRANSPORT[d.transport] || d.transport });
+          }
+        });
+        months.sort(function (a, b) { return a.value < b.value ? -1 : 1; });
+
+        addOptions(destSel, dests);
+        addOptions(monthSel, months);
+        addOptions(airSel, airs);
+        showCount();
+      }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
+
+      form.addEventListener("change", showCount);
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var found = matches();
+        out.hidden = false;
+        out.innerHTML =
+          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+            esc(tr("search.resultsKicker")) + "</span><h2>" +
+            (found.length
+              ? esc(tr("search.found")) + " " + found.length + " " +
+                plural(found.length, "заезд", "заезда", "заездов")
+              : esc(tr("search.none"))) +
+            "</h2></div></div>" +
+          (found.length
+            ? '<div class="tt-search-list">' + found.map(searchResultRow).join("") + "</div>"
+            : '<div class="tt-empty-state">' + esc(tr("search.noneHint")) + "</div>");
+        out.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
     function renderDestinations() {
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
@@ -391,56 +567,24 @@
         }
 
         root.innerHTML =
-          '<section class="tt-public-intro" id="excursion-tours" data-hero-carousel ' +
-            'role="region" aria-roledescription="carousel" aria-label="' +
-            esc(tr("slider.label")) + '" tabindex="0">' +
-            '<div class="tt-hero-slides" aria-live="off">' +
-              '<div class="tt-hero-slide tt-hero-slide-rize-batumi is-active" ' +
-                'id="hero-slide-1" role="img" aria-label="' +
-                esc(tr("slider.slide1")) + '" aria-hidden="false"></div>' +
-              '<div class="tt-hero-slide tt-hero-slide-rize-morning" ' +
-                'id="hero-slide-2" role="img" aria-label="' +
-                esc(tr("slider.slide2")) + '" aria-hidden="true"></div>' +
-              '<div class="tt-hero-slide tt-hero-slide-batumi-sunset" ' +
-                'id="hero-slide-3" role="img" aria-label="' +
-                esc(tr("slider.slide3")) + '" aria-hidden="true"></div>' +
-            "</div>" +
+          '<section class="tt-public-intro" id="excursion-tours">' +
+            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260804-1" ' +
+              'aria-hidden="true" tabindex="-1">' +
+              '<source src="img/hero-travel.mp4?v=20260804-1" type="video/mp4" />' +
+            "</video>" +
             '<div class="tt-public-hero-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
-              '<h1>' + esc(tr("hero.title")) + " <em>" +
+              "<h1>" + esc(tr("hero.title")) + " <em>" +
                 esc(tr("hero.accent")) + "</em></h1>" +
               "<p>" + esc(tr("hero.text")) + "</p>" +
-              '<div class="tt-public-actions">' +
-                '<button class="tt-hero-primary" type="button" data-scroll-target="tour-catalog">' +
-                  esc(tr("hero.primary")) + "<i>↘</i></button>" +
-                '<button class="tt-hero-secondary" type="button" data-scroll-target="tour-catalog">' +
-                  esc(tr("hero.secondary")) + "</button>" +
-              "</div>" +
             "</div>" +
-            '<div class="tt-hero-controls" role="group" aria-label="' +
-              esc(tr("slider.controls")) + '">' +
-              '<button type="button" class="tt-hero-arrow" data-hero-prev aria-label="' +
-                esc(tr("slider.previous")) + '">←</button>' +
-              '<div class="tt-hero-dots">' +
-                '<button type="button" class="is-active" data-hero-dot="0" ' +
-                  'aria-controls="hero-slide-1" aria-current="true" aria-label="' +
-                  esc(tr("slider.goto1")) + '"><i></i></button>' +
-                '<button type="button" data-hero-dot="1" aria-controls="hero-slide-2" ' +
-                  'aria-label="' + esc(tr("slider.goto2")) + '"><i></i></button>' +
-                '<button type="button" data-hero-dot="2" aria-controls="hero-slide-3" ' +
-                  'aria-label="' + esc(tr("slider.goto3")) + '"><i></i></button>' +
-              "</div>" +
-              '<button type="button" class="tt-hero-arrow" data-hero-next aria-label="' +
-                esc(tr("slider.next")) + '">→</button>' +
-              '<button type="button" class="tt-hero-toggle" data-hero-toggle aria-pressed="false" ' +
-                'aria-label="' + esc(tr("slider.pause")) + '"><span aria-hidden="true">Ⅱ</span></button>' +
-            "</div>" +
-            '<span class="tt-sr-only" data-hero-status aria-live="polite" aria-atomic="true">' +
-              esc(tr("slider.status1")) + "</span>" +
+            searchPanelHtml() +
             '<div class="tt-public-route" aria-label="' + esc(tr("hero.route")) + '">' +
               '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
             "</div>" +
           "</section>" +
+          '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +
             '<div class="tt-about-brand">' +
@@ -461,6 +605,15 @@
           "</section>" +
           '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
             '<span>Tashkent · Uzbekistan</span></footer>';
+        // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
+        // CSS видео не останавливает, поэтому только так.
+        var video = root.querySelector(".tt-hero-video");
+        if (video && global.matchMedia &&
+            global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          video.removeAttribute("autoplay");
+          video.pause();
+        }
+        initSearch();
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
           global.TuronPublicUi.enhance(root);
         }
