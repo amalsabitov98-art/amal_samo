@@ -9992,6 +9992,7 @@ window.TURON_DESTINATIONS = [
     if (isOperator) {
       TuronAdmin.start();
       switchTab("manifest");
+      loadOperatorNotices();   // колокольчик — просрочки по всем агентствам
       return;
     }
 
@@ -10071,7 +10072,7 @@ window.TURON_DESTINATIONS = [
     if (!go) return;
     setNotices(false);
     switchTab(go.dataset.goto);
-    renderPayments();
+    if (go.dataset.goto === "payments") renderPayments();
   });
   document.addEventListener("click", function () { setNotices(false); });
   document.addEventListener("keydown", function (e) {
@@ -10894,7 +10895,48 @@ window.TURON_DESTINATIONS = [
    * просроченные платежи, ближайшие выезды и проблемы с паспортами.
    * Отдельного запроса нет — считаем по state.bookings.
    */
+  // Уведомления оператора считаются по ВСЕМ броням (/api/admin/bookings),
+  // а не по личным — у оператора своих броней нет. Пока не загружены —
+  // null, тогда работает агентский режим ниже.
+  var operatorNotices = null;
+
+  function loadOperatorNotices() {
+    return TuronApi.adminBookings({ debtOnly: true, limit: 200 })
+      .then(function (res) {
+        var today = new Date().toISOString().slice(0, 10);
+        var soon = new Date();
+        soon.setDate(soon.getDate() + 7);
+        var soonIso = soon.toISOString().slice(0, 10);
+        var out = [];
+        (res.items || []).forEach(function (b) {
+          if (b.status === "cancelled") return;
+          var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
+          var lateSum = 0;
+          pol.steps.forEach(function (s) {
+            var due = s.due.toISOString().slice(0, 10);
+            var need = Math.round(b.total_price * s.share * 100) / 100;
+            if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
+          });
+          if (lateSum > 0) {
+            out.push({ kind: "late", text: "Просрочен платёж: " +
+              (b.agency_name || "агентство") + " · " + b.code + " — " + money(lateSum) });
+          }
+          if (b.date_start >= today && b.date_start <= soonIso) {
+            out.push({ kind: "soon", text: "Выезд " + formatDate(b.date_start) + " · " +
+              (b.agency_name || "") + " · " + b.code +
+              (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
+          }
+        });
+        var order = { late: 0, soon: 1 };
+        out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
+        operatorNotices = out;
+        renderNotices();
+      })
+      .catch(function () { operatorNotices = []; renderNotices(); });
+  }
+
   function collectNotices() {
+    if (operatorNotices) return operatorNotices;
     var out = [];
     var today = new Date().toISOString().slice(0, 10);
     var soon = new Date();
@@ -10966,7 +11008,9 @@ window.TURON_DESTINATIONS = [
           return '<li class="is-' + n.kind + '"><b>' + icons[n.kind] + "</b>" +
             esc(n.text) + "</li>";
         }).join("") + "</ul>" +
-        '<button type="button" class="tt-notice-go" data-goto="payments">Перейти к платежам</button>'
+        (operatorNotices
+          ? '<button type="button" class="tt-notice-go" data-goto="admin-bookings">Открыть все брони</button>'
+          : '<button type="button" class="tt-notice-go" data-goto="payments">Перейти к платежам</button>')
       : '<div class="tt-notice-head">Уведомления</div>' +
         '<p class="tt-notice-empty">Всё в порядке: просрочек нет, ' +
         "ближайших выездов на этой неделе тоже.</p>";
