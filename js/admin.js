@@ -69,26 +69,155 @@
     ["изоҳ", function (p) { return p.note || ""; }],
   ];
 
-  function toCsv(passengers) {
-    var cell = function (v) {
-      var s = String(v == null ? "" : v);
-      return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-    };
-    var lines = [MANIFEST_COLUMNS.map(function (c) { return cell(c[0]); }).join(";")];
-    passengers.forEach(function (p) {
-      lines.push(MANIFEST_COLUMNS.map(function (c) { return cell(c[1](p)); }).join(";"));
+  /*
+   * Выгрузка в НАСТОЯЩИЙ .xlsx — без сторонних библиотек. .xlsx это просто
+   * ZIP из нескольких XML-файлов, поэтому собираем его руками: пара
+   * килобайт кода, никакой тяжёлой зависимости, на скорость сайта не
+   * влияет (код грузится вместе с admin.js, срабатывает только по клику).
+   * Excel открывает файл сразу: жирная шапка, закреплённая первая строка,
+   * автофильтр по колонкам, цена — числом (можно суммировать).
+   */
+  var XML_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+  function xmlEsc(s) { return String(s).replace(/[&<>"]/g, function (c) { return XML_ESC[c]; }); }
+
+  function colLetter(n) {
+    var s = "";
+    n += 1;
+    while (n > 0) { var r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = (n - r - 1) / 26; }
+    return s;
+  }
+
+  function sheetXml(columns, rows) {
+    function cell(ref, value, style) {
+      var s = style ? ' s="' + style + '"' : "";
+      if (typeof value === "number" && isFinite(value)) {
+        return '<c r="' + ref + '"' + s + '><v>' + value + "</v></c>";
+      }
+      return '<c r="' + ref + '"' + s + ' t="inlineStr"><is><t xml:space="preserve">' +
+        xmlEsc(value == null ? "" : value) + "</t></is></c>";
+    }
+    var cols = '<cols>' + columns.map(function (c, i) {
+      var w = Math.max(12, Math.min(40, String(c[0]).length + 6));
+      return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>';
+    }).join("") + "</cols>";
+    var head = "<row r=\"1\">" + columns.map(function (c, i) {
+      return cell(colLetter(i) + "1", c[0], 1);
+    }).join("") + "</row>";
+    var body = rows.map(function (p, ri) {
+      var r = ri + 2;
+      return '<row r="' + r + '">' + columns.map(function (c, i) {
+        return cell(colLetter(i) + r, c[1](p));
+      }).join("") + "</row>";
+    }).join("");
+    var last = colLetter(columns.length - 1);
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<sheetViews><sheetView workbookViewId="0">' +
+      '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>' +
+      '<selection pane="bottomLeft"/></sheetView></sheetViews>' +
+      cols + "<sheetData>" + head + body + "</sheetData>" +
+      '<autoFilter ref="A1:' + last + "1\"/></worksheet>";
+  }
+
+  var STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="11"/><color rgb="FF3A2A16"/><name val="Calibri"/></font></fonts>' +
+    '<fills count="3"><fill><patternFill patternType="none"/></fill>' +
+    '<fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFF3E6D6"/></patternFill></fill></fills>' +
+    '<borders count="1"><border/></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  var CONTENT_TYPES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+
+  var ROOT_RELS = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  var WORKBOOK_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    '<sheets><sheet name="Список пассажиров" sheetId="1" r:id="rId1"/></sheets></workbook>';
+
+  var WORKBOOK_RELS = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+
+  // CRC32 — нужен для ZIP-заголовков.
+  var CRC_TABLE = (function () {
+    var t = [], c;
+    for (var n = 0; n < 256; n++) {
+      c = n;
+      for (var k = 0; k < 8; k++) c = c & 1 ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(bytes) {
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ bytes[i]) & 0xFF];
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  // Минимальный ZIP без сжатия (method=store) — Excel читает такой .xlsx.
+  function zipStore(files) {
+    var enc = new TextEncoder();
+    var chunks = [], central = [], offset = 0;
+    function u16(n) { return [n & 255, (n >> 8) & 255]; }
+    function u32(n) { return [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = enc.encode(f.name);
+      var data = enc.encode(f.data);
+      var crc = crc32(data);
+      var local = new Uint8Array([].concat(
+        u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+        u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0)));
+      chunks.push(local, name, data);
+      central.push(new Uint8Array([].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0),
+        u32(crc), u32(data.length), u32(data.length),
+        u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset))));
+      central.push(name);
+      offset += local.length + name.length + data.length;
     });
-    // BOM обязателен: без него Excel открывает кириллицу кракозябрами,
-    // а разделитель «;» — чтобы не спорить с локальными настройками.
-    return "﻿" + lines.join("\r\n");
+    var centralStart = offset, centralSize = 0;
+    central.forEach(function (c) { chunks.push(c); centralSize += c.length; });
+    chunks.push(new Uint8Array([].concat(
+      u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+      u32(centralSize), u32(centralStart), u16(0))));
+    var total = chunks.reduce(function (s, c) { return s + c.length; }, 0);
+    var out = new Uint8Array(total), pos = 0;
+    chunks.forEach(function (c) { out.set(c, pos); pos += c.length; });
+    return out;
   }
 
   function downloadCsv(departureCode, passengers) {
-    var blob = new Blob([toCsv(passengers)], { type: "text/csv;charset=utf-8" });
+    var zip = zipStore([
+      { name: "[Content_Types].xml", data: CONTENT_TYPES },
+      { name: "_rels/.rels", data: ROOT_RELS },
+      { name: "xl/workbook.xml", data: WORKBOOK_XML },
+      { name: "xl/_rels/workbook.xml.rels", data: WORKBOOK_RELS },
+      { name: "xl/styles.xml", data: STYLES_XML },
+      { name: "xl/worksheets/sheet1.xml", data: sheetXml(MANIFEST_COLUMNS, passengers) },
+    ]);
+    var blob = new Blob([zip], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "turon-" + departureCode + ".csv";
+    a.download = "turon-" + departureCode + ".xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
