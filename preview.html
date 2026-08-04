@@ -8589,6 +8589,7 @@ window.TURON_DESTINATIONS = [
       "brand.tagline": "туроператор · Ташкент",
       "header.language": "Язык",
       "header.login": "Войти",
+      "header.cabinet": "Кабинет",
       "nav.excursions": "Экскурсионные туры",
       "nav.tours": "Туры",
       "nav.about": "О компании",
@@ -8641,6 +8642,7 @@ window.TURON_DESTINATIONS = [
       "brand.tagline": "turoperator · Toshkent",
       "header.language": "Til",
       "header.login": "Kirish",
+      "header.cabinet": "Kabinet",
       "nav.excursions": "Ekskursiya turlari",
       "nav.tours": "Turlar",
       "nav.about": "Kompaniya haqida",
@@ -8693,6 +8695,7 @@ window.TURON_DESTINATIONS = [
       "brand.tagline": "tour operator · Tashkent",
       "header.language": "Language",
       "header.login": "Sign in",
+      "header.cabinet": "Workspace",
       "nav.excursions": "Excursion tours",
       "nav.tours": "Tours",
       "nav.about": "About us",
@@ -8745,6 +8748,7 @@ window.TURON_DESTINATIONS = [
       "brand.tagline": "tur operatörü · Taşkent",
       "header.language": "Dil",
       "header.login": "Giriş",
+      "header.cabinet": "Panel",
       "nav.excursions": "Kültür turları",
       "nav.tours": "Turlar",
       "nav.about": "Hakkımızda",
@@ -10518,6 +10522,7 @@ window.TURON_DESTINATIONS = [
   var cabinetReady = false;    // тяжёлая инициализация кабинета уже прошла
   var currentScreen = null;
   var pendingRoute = null;     // куда вернуть после входа
+  var loginReturn = null;      // откуда пришли на экран входа
   var lastAppRoute = null;     // последняя вкладка кабинета — чтобы кнопка
                                // «Кабинет» возвращала туда, где человек был
 
@@ -10641,6 +10646,7 @@ window.TURON_DESTINATIONS = [
       useHash: true,
       onLogin: function (code) {
         pendingBooking = code;
+        loginReturn = window.location.hash || "#/";
         navigate("#/login");
       },
     });
@@ -10736,8 +10742,12 @@ window.TURON_DESTINATIONS = [
     if (!btn) return;
     var label = btn.querySelector("span");
     if (label) {
-      label.textContent = session ? "Кабинет" : "Войти";
-      label.removeAttribute("data-i18n");   // подпись зависит от сессии
+      // Меняем сам ключ, а не текст: снятие data-i18n оставляло подпись
+      // русской при переключении языка в публичной шапке.
+      var key = session ? "header.cabinet" : "header.login";
+      label.setAttribute("data-i18n", key);
+      label.textContent = window.TuronPublicUi ? window.TuronPublicUi.t(key)
+                                               : (session ? "Кабинет" : "Войти");
     }
     btn.setAttribute("aria-label", session ? "Вернуться в кабинет" : "Войти");
   }
@@ -10819,7 +10829,9 @@ window.TURON_DESTINATIONS = [
   });
 
   $("public-login-btn").addEventListener("click", function () {
-    navigate(session ? (lastAppRoute || appRoute()) : "#/login");
+    if (session) return navigate(lastAppRoute || appRoute());
+    loginReturn = window.location.hash || "#/";
+    navigate("#/login");
   });
 
   // Логотип в кабинете ведёт на главную страницу сайта, сессия при этом
@@ -10832,6 +10844,7 @@ window.TURON_DESTINATIONS = [
   });
 
   window.addEventListener("turon:language", function () {
+    syncPublicAccount();
     if (publicCatalog && !$("screen-public").hidden) publicCatalog.render();
   });
 
@@ -10839,7 +10852,11 @@ window.TURON_DESTINATIONS = [
     pendingBooking = null;
     pendingRoute = null;
     $("login-error").innerHTML = "";
-    navigate("#/");
+    // Возвращаем на карточку тура, с которой человек нажал «войти и
+    // забронировать», а не в корень каталога — иначе он теряет своё место.
+    var back = loginReturn || "#/";
+    loginReturn = null;
+    navigate(back);
   });
 
   // --------------------------------------------------------------- заезды

@@ -64,6 +64,7 @@
   var cabinetReady = false;    // тяжёлая инициализация кабинета уже прошла
   var currentScreen = null;
   var pendingRoute = null;     // куда вернуть после входа
+  var loginReturn = null;      // откуда пришли на экран входа
   var lastAppRoute = null;     // последняя вкладка кабинета — чтобы кнопка
                                // «Кабинет» возвращала туда, где человек был
 
@@ -187,6 +188,7 @@
       useHash: true,
       onLogin: function (code) {
         pendingBooking = code;
+        loginReturn = window.location.hash || "#/";
         navigate("#/login");
       },
     });
@@ -282,8 +284,12 @@
     if (!btn) return;
     var label = btn.querySelector("span");
     if (label) {
-      label.textContent = session ? "Кабинет" : "Войти";
-      label.removeAttribute("data-i18n");   // подпись зависит от сессии
+      // Меняем сам ключ, а не текст: снятие data-i18n оставляло подпись
+      // русской при переключении языка в публичной шапке.
+      var key = session ? "header.cabinet" : "header.login";
+      label.setAttribute("data-i18n", key);
+      label.textContent = window.TuronPublicUi ? window.TuronPublicUi.t(key)
+                                               : (session ? "Кабинет" : "Войти");
     }
     btn.setAttribute("aria-label", session ? "Вернуться в кабинет" : "Войти");
   }
@@ -365,7 +371,9 @@
   });
 
   $("public-login-btn").addEventListener("click", function () {
-    navigate(session ? (lastAppRoute || appRoute()) : "#/login");
+    if (session) return navigate(lastAppRoute || appRoute());
+    loginReturn = window.location.hash || "#/";
+    navigate("#/login");
   });
 
   // Логотип в кабинете ведёт на главную страницу сайта, сессия при этом
@@ -378,6 +386,7 @@
   });
 
   window.addEventListener("turon:language", function () {
+    syncPublicAccount();
     if (publicCatalog && !$("screen-public").hidden) publicCatalog.render();
   });
 
@@ -385,7 +394,11 @@
     pendingBooking = null;
     pendingRoute = null;
     $("login-error").innerHTML = "";
-    navigate("#/");
+    // Возвращаем на карточку тура, с которой человек нажал «войти и
+    // забронировать», а не в корень каталога — иначе он теряет своё место.
+    var back = loginReturn || "#/";
+    loginReturn = null;
+    navigate(back);
   });
 
   // --------------------------------------------------------------- заезды
