@@ -240,6 +240,53 @@ console.log("\nКабинет оператора");
   await page.close();
 }
 
+// --------------------------------------------------------- тема день/ночь
+// Светлый вариант — это прежнее кремовое оформление: тёмные правила навешены
+// через :root:not([data-theme="light"]), поэтому «день» просто перестаёт их
+// применять. Проверяем, что переключается, запоминается и что раскладка
+// подвала от темы не зависит (на этом уже поймались — заголовки уезжали
+// в капс, а колонки разъезжались).
+console.log("\nТема день/ночь");
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+
+  const theme = () => page.evaluate(
+    () => document.documentElement.getAttribute("data-theme"));
+  const pageBg = () => page.evaluate(
+    () => getComputedStyle(document.body).backgroundColor);
+  const footDisplay = () => page.evaluate(
+    () => getComputedStyle(document.querySelector(".tt-public-footer")).textTransform);
+
+  check("по умолчанию тёмная тема", (await theme()) === "dark", await theme());
+  const darkBg = await pageBg();
+  check("кнопка темы есть в шапке", await page.locator("#theme-toggle").isVisible());
+  check("подвал не в капсе на тёмной", (await footDisplay()) === "none", await footDisplay());
+
+  await page.click("#theme-toggle");
+  await page.waitForTimeout(500);
+  check("клик переключает на светлую", (await theme()) === "light", await theme());
+  const lightBg = await pageBg();
+  check("фон страницы реально поменялся", darkBg !== lightBg, `${darkBg} → ${lightBg}`);
+  check("подвал не в капсе и на светлой", (await footDisplay()) === "none", await footDisplay());
+  check("в светлой теме контакты в подвале на месте",
+        (await page.locator(".tt-foot-cols a").count()) >= 3);
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+  check("выбор темы переживает обновление", (await theme()) === "light", await theme());
+
+  await page.click("#theme-toggle");
+  await page.waitForTimeout(500);
+  check("возврат к тёмной работает", (await theme()) === "dark", await theme());
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // ------------------------------------------------------------ навигация
 // Адрес — единственный источник правды: клик, «назад» и F5 обязаны давать
 // один и тот же экран. Раньше экраны переключались напрямую, и обновление

@@ -65,8 +65,24 @@ function inlineImages(css) {
   });
 }
 
+// Превью собирает свой <head>, поэтому загрузочный скрипт темы приходится
+// повторять здесь. Без него preview.html открывался вообще без data-theme —
+// и тесты гоняли не то оформление, что видит живой посетитель.
+const themeBoot = `<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("turon.theme");
+      document.documentElement.setAttribute(
+        "data-theme", saved === "light" ? "light" : "dark");
+    } catch (e) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>`;
+
 const out = `${metaTags}
 <title>Turon Tour — кабинет агентства (превью)</title>
+${themeBoot}
 <style>
 ${inlineImages(read("styles.css"))}
 

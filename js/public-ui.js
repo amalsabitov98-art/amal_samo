@@ -16,6 +16,8 @@
       "header.language": "Язык",
       "header.login": "Войти",
       "header.cabinet": "Кабинет",
+      "theme.toLight": "Светлая тема",
+      "theme.toDark": "Тёмная тема",
       "nav.excursions": "Экскурсионные туры",
       "nav.tours": "Туры",
       "nav.about": "О компании",
@@ -69,6 +71,8 @@
       "header.language": "Til",
       "header.login": "Kirish",
       "header.cabinet": "Kabinet",
+      "theme.toLight": "Yorug‘ mavzu",
+      "theme.toDark": "Qorong‘i mavzu",
       "nav.excursions": "Ekskursiya turlari",
       "nav.tours": "Turlar",
       "nav.about": "Kompaniya haqida",
@@ -122,6 +126,8 @@
       "header.language": "Language",
       "header.login": "Sign in",
       "header.cabinet": "Workspace",
+      "theme.toLight": "Light theme",
+      "theme.toDark": "Dark theme",
       "nav.excursions": "Excursion tours",
       "nav.tours": "Tours",
       "nav.about": "About us",
@@ -175,6 +181,8 @@
       "header.language": "Dil",
       "header.login": "Giriş",
       "header.cabinet": "Panel",
+      "theme.toLight": "Açık tema",
+      "theme.toDark": "Koyu tema",
       "nav.excursions": "Kültür turları",
       "nav.tours": "Turlar",
       "nav.about": "Hakkımızda",
@@ -255,10 +263,65 @@
     language = next;
     try { global.localStorage.setItem(STORAGE_LANGUAGE, next); } catch (_) {}
     applyStaticTranslations();
+    syncThemeButton();
     global.dispatchEvent(new CustomEvent("turon:language", {
       detail: { language: language }
     }));
     paintStoredRates();
+  }
+
+  /* --------------------------------------------------------------- тема
+   * День/ночь для публичной части. Тёмная — по умолчанию: так утверждён
+   * дизайн. Светлая — это прежнее кремовое оформление, оно никуда не
+   * делось: тёмные правила в styles.css навешены через
+   * :root:not([data-theme="light"]), поэтому «день» просто перестаёт их
+   * применять, а не красит поверх.
+   *
+   * Кабинет темой НЕ управляется намеренно: он светлый в обоих режимах.
+   * Агентства к нему привыкли, а в его разметке много зашитых цветов —
+   * перекрашивать вслепую значит выкатить наполовину сломанный кабинет.
+   *
+   * Начальное значение ставит инлайн-скрипт в <head> — до первой отрисовки,
+   * иначе на тёмной теме мелькала бы белая вспышка.
+   */
+  var STORAGE_THEME = "turon.theme";
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light"
+      ? "light" : "dark";
+  }
+
+  function setTheme(next) {
+    var value = next === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", value);
+    try { global.localStorage.setItem(STORAGE_THEME, value); } catch (_) {}
+    syncThemeButton();
+    // Цвет строки состояния браузера на телефоне — иначе на тёмной теме
+    // сверху остаётся зелёная полоса от светлого оформления.
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", value === "light" ? "#0d302a" : "#070b0d");
+    global.dispatchEvent(new CustomEvent("turon:theme", { detail: { theme: value } }));
+  }
+
+  function syncThemeButton() {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    var dark = currentTheme() === "dark";
+    btn.setAttribute("aria-pressed", dark ? "true" : "false");
+    // Подпись описывает ДЕЙСТВИЕ, а не текущее состояние: так понятнее,
+    // что произойдёт по нажатию.
+    btn.setAttribute("aria-label", dark ? t("theme.toLight") : t("theme.toDark"));
+    btn.setAttribute("title", dark ? t("theme.toLight") : t("theme.toDark"));
+  }
+
+  function initTheme() {
+    var btn = document.getElementById("theme-toggle");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        setTheme(currentTheme() === "dark" ? "light" : "dark");
+      });
+    }
+    syncThemeButton();
   }
 
   function formatRate(value) {
@@ -420,8 +483,12 @@
   applyStaticTranslations();
   loadRates();
 
+  initTheme();
+
   global.TuronPublicUi = {
     t: t,
+    theme: currentTheme,
+    setTheme: setTheme,
     language: function () { return language; },
     setLanguage: setLanguage,
     loadRates: loadRates,

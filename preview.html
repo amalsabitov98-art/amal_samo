@@ -2,6 +2,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#0d302a" />
 <title>Turon Tour — кабинет агентства (превью)</title>
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("turon.theme");
+      document.documentElement.setAttribute(
+        "data-theme", saved === "light" ? "light" : "dark");
+    } catch (e) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
 <style>
 :root {
   --tt-bg: #f7f5f0;
@@ -1083,7 +1094,7 @@ a { color: inherit; }
    с @media (prefers-color-scheme: dark). Системная тёмная тема из-за этого
    не работает — этот блок к ней отношения не имеет, он безусловный.
    ====================================================================== */
-#screen-public {
+:root:not([data-theme="light"]) #screen-public {
   --tt-bg: #070b0d;
   --tt-surface: #0f1619;
   --tt-surface-2: #131c20;
@@ -1113,7 +1124,7 @@ a { color: inherit; }
 /* Ниже по файлу у #screen-public свой фон — кремовый градиент с золотым
    отсветом. Он объявлен позже, поэтому перебиваем специфичностью (body +
    id), а не порядком: декоративный отсвет оставляем, но в бирюзе. */
-body #screen-public {
+:root:not([data-theme="light"]) #screen-public {
   background:
     radial-gradient(circle at 84% 8%, rgba(79, 214, 232, 0.1), transparent 24rem),
     linear-gradient(180deg, #080e11 0%, var(--tt-bg) 42%, #05090b 100%);
@@ -1121,29 +1132,29 @@ body #screen-public {
 
 /* Бирюза светлая: белый текст на ней не читается, поэтому в публичной
    части у заливных кнопок текст тёмный. */
-#screen-public .tt-btn,
+:root:not([data-theme="light"]) #screen-public .tt-btn,
 #screen-public .tt-hero-search-btn { color: #05252a; }
-#screen-public .tt-btn.secondary {
+:root:not([data-theme="light"]) #screen-public .tt-btn.secondary {
   background: transparent;
   border: 1px solid var(--tt-border-strong);
   color: var(--tt-text);
 }
-#screen-public .tt-btn.secondary:hover {
+:root:not([data-theme="light"]) #screen-public .tt-btn.secondary:hover {
   border-color: var(--tt-accent);
   color: var(--tt-accent);
 }
 
 /* Шапка и поднавигация были кремовыми — единственное светлое пятно. */
-#screen-public .tt-public-header {
+:root:not([data-theme="light"]) #screen-public .tt-public-header {
   border-bottom-color: var(--tt-border);
   background: rgba(7, 11, 13, 0.92);
 }
-#screen-public .tt-public-subnav {
+:root:not([data-theme="light"]) #screen-public .tt-public-subnav {
   border-bottom-color: var(--tt-border);
   background: rgba(10, 16, 19, 0.86);
 }
-#screen-public .tt-public-subnav button:hover,
-#screen-public .tt-public-subnav button.is-active {
+:root:not([data-theme="light"]) #screen-public .tt-public-subnav button:hover,
+:root:not([data-theme="light"]) #screen-public .tt-public-subnav button.is-active {
   border-color: var(--tt-border-strong);
   background: rgba(79, 214, 232, 0.1);
   color: var(--tt-accent);
@@ -1152,35 +1163,73 @@ body #screen-public {
 
 /* Плашки шапки были кремовыми: табло курсов, выбор языка, кнопка входа и
    подложка под эмблемой. На чёрном они светились тремя белыми пятнами. */
-#screen-public .tt-currency-board {
+:root:not([data-theme="light"]) #screen-public .tt-currency-board {
   border-color: var(--tt-border);
   background: rgba(255, 255, 255, 0.05);
 }
 #screen-public .tt-currency-board strong { color: var(--tt-text); }
 #screen-public .tt-currency-board b { color: var(--tt-accent); }
-#screen-public .tt-language select {
+:root:not([data-theme="light"]) #screen-public .tt-language select {
   border-color: var(--tt-border);
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--tt-text);
 }
-#screen-public .tt-account-btn {
+:root:not([data-theme="light"]) #screen-public .tt-account-btn {
   border-color: var(--tt-border-strong);
   background: transparent;
   color: var(--tt-text);
 }
-#screen-public .tt-account-btn:hover {
+:root:not([data-theme="light"]) #screen-public .tt-account-btn:hover {
   border-color: var(--tt-accent);
   background: rgba(79, 214, 232, 0.12);
   color: var(--tt-accent);
 }
-#screen-public .tt-logo > .tt-logo-mark {
+:root:not([data-theme="light"]) #screen-public .tt-logo > .tt-logo-mark {
   background-color: transparent;
   box-shadow: none;
 }
 /* Бренд в шапке — это <button>, а глобального сброса фона у кнопок в файле
    нет: браузер рисовал свой светло-серый ButtonFace. На кремовой теме это
    сливалось с фоном, на чёрной вылезло плашкой. */
-#screen-public .tt-public-brand {
+/* ------------------------------------------------------- кнопка темы
+   Иконка показывает ДЕЙСТВИЕ: на тёмной теме — солнце («включить день»),
+   на светлой — луна. Так понятнее, чем рисовать текущее состояние. */
+.tt-theme-btn {
+  width: 46px;
+  height: 46px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--tt-border);
+  border-radius: 13px;
+  background: transparent;
+  color: var(--tt-text);
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+.tt-theme-btn svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  grid-area: 1 / 1;
+}
+.tt-theme-btn:hover {
+  border-color: var(--tt-accent);
+  color: var(--tt-accent);
+}
+.tt-theme-btn:focus-visible {
+  outline: 2px solid var(--tt-accent);
+  outline-offset: 2px;
+}
+/* показываем ровно одну иконку — ту, что описывает переход */
+:root[data-theme="dark"] .tt-theme-moon,
+:root[data-theme="light"] .tt-theme-sun { display: none; }
+
+:root:not([data-theme="light"]) #screen-public .tt-public-brand {
   border: 0;
   background: transparent;
   /* цвет тоже дефолтный от браузера (ButtonText, чёрный) — задаём явно,
@@ -1197,13 +1246,13 @@ body #screen-public {
    неактивные показывали серый ButtonFace браузера — та же мина, что у
    бренда. На кремовой теме её не было видно. */
 #screen-public .tt-public-subnav button { background: transparent; }
-#screen-public .tt-public-subnav .tt-about-nav {
+:root:not([data-theme="light"]) #screen-public .tt-public-subnav .tt-about-nav {
   border-color: var(--tt-border);
   color: var(--tt-text);
 }
 #screen-public .tt-cat-tile-art::after { color: var(--tt-accent); }
 /* Активный вариант маршрута был темнее неактивного — выбор не читался. */
-#screen-public .tt-cat-variant.is-active {
+:root:not([data-theme="light"]) #screen-public .tt-cat-variant.is-active {
   border-color: var(--tt-accent);
   background: var(--tt-accent-soft);
   color: var(--tt-accent);
@@ -1211,45 +1260,45 @@ body #screen-public {
 
 /* Фон самой страницы: body держит кремовый --tt-bg из :root, и при
    «резиновом» скролле из-под тёмного экрана выглядывала кремовая полоса. */
-body:has(#screen-public:not([hidden])) {
+:root:not([data-theme="light"]) body:has(#screen-public:not([hidden])) {
   background: #070b0d;
 }
 
 /* Акценты, которые были золотыми, — в бирюзу. */
-#screen-public .tt-public-intro .tt-eyebrow,
-#screen-public .tt-public-intro h1 em,
-#screen-public .tt-about-copy .tt-eyebrow,
+:root:not([data-theme="light"]) #screen-public .tt-public-intro .tt-eyebrow,
+:root:not([data-theme="light"]) #screen-public .tt-public-intro h1 em,
+:root:not([data-theme="light"]) #screen-public .tt-about-copy .tt-eyebrow,
 #screen-public .tt-cat-heading .tt-eyebrow { color: var(--tt-accent); }
 #screen-public .tt-hero-search-field:focus-within { outline-color: var(--tt-accent); }
 
 /* Герой: зелёная тонировка ролика меняется на тёмно-бирюзовую, иначе
    поверх чёрной страницы он выглядел бы зелёным пятном. */
-#screen-public .tt-public-intro {
+:root:not([data-theme="light"]) #screen-public .tt-public-intro {
   background: #05090b;
   box-shadow: 0 38px 110px rgba(0, 0, 0, 0.5);
 }
-#screen-public .tt-public-intro::before {
+:root:not([data-theme="light"]) #screen-public .tt-public-intro::before {
   background:
     linear-gradient(180deg, rgba(4, 10, 12, 0.62) 0%, rgba(5, 14, 17, 0.1) 40%,
                     rgba(5, 14, 17, 0.16) 60%, rgba(4, 10, 12, 0.72) 100%),
     linear-gradient(0deg, rgba(6, 22, 27, 0.28), rgba(6, 22, 27, 0.28));
 }
-#screen-public .tt-public-hero-copy {
+:root:not([data-theme="light"]) #screen-public .tt-public-hero-copy {
   background: radial-gradient(ellipse 76% 86% at 50% 50%,
     rgba(3, 10, 13, 0.7) 0%, rgba(3, 10, 13, 0.46) 46%, rgba(3, 10, 13, 0) 78%);
 }
-#screen-public .tt-hero-search {
+:root:not([data-theme="light"]) #screen-public .tt-hero-search {
   border-color: rgba(122, 200, 214, 0.22);
   background: rgba(9, 18, 22, 0.62);
 }
 /* Поля стали тёмными: кремовые на чёрной странице били по глазам.
    color-scheme: dark выше заодно перекрашивает выпадающий список. */
-#screen-public .tt-hero-search-field {
+:root:not([data-theme="light"]) #screen-public .tt-hero-search-field {
   border: 1px solid rgba(122, 200, 214, 0.16);
   background: rgba(255, 255, 255, 0.05);
 }
 #screen-public .tt-hero-search-field span { color: var(--tt-text-subtle); }
-#screen-public .tt-hero-search-field select {
+:root:not([data-theme="light"]) #screen-public .tt-hero-search-field select {
   color: var(--tt-text);
   background-image:
     linear-gradient(45deg, transparent 50%, #7fa3ad 50%),
@@ -1257,39 +1306,42 @@ body:has(#screen-public:not([hidden])) {
 }
 
 /* Блоки, которые были тёмно-зелёными, — в тон странице. */
-#screen-public .tt-about-company {
+:root:not([data-theme="light"]) #screen-public .tt-about-company {
   border-color: var(--tt-border);
   background: linear-gradient(155deg, #0c181c 0%, #060c0e 100%);
 }
-#screen-public .tt-cat-hero {
+:root:not([data-theme="light"]) #screen-public .tt-cat-hero {
   background: linear-gradient(150deg, rgba(14, 40, 47, 0.9), rgba(5, 12, 15, 0.98));
 }
 #screen-public .tt-cat-hero .tt-muted-note { color: var(--tt-accent); }
-#screen-public .tt-cat-tile-art {
+:root:not([data-theme="light"]) #screen-public .tt-cat-tile-art {
   background: linear-gradient(150deg, #123840 0%, #06161a 100%);
 }
 /* Плитка с настоящей фотографией. Сам URL приходит инлайновым стилем из
    destinationTile (значение из БД), здесь только раскладка кадра — и она
    обязана идти ПОСЛЕ правила выше: то задаёт фон сокращением background,
    а оно обнуляет background-size. */
-#screen-public .tt-cat-tile-art.has-photo {
+:root:not([data-theme="light"]) #screen-public .tt-cat-tile-art.has-photo {
   background-color: #06161a;
   background-size: cover;
   background-position: center;
 }
-#screen-public .tt-cat-tile-art.has-photo::before {
+:root:not([data-theme="light"]) #screen-public .tt-cat-tile-art.has-photo::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(4, 12, 15, 0) 45%, rgba(4, 12, 15, 0.55) 100%);
 }
-#screen-public .tt-cat-tile:hover .tt-cat-tile-art.has-photo {
+:root:not([data-theme="light"]) #screen-public .tt-cat-tile:hover .tt-cat-tile-art.has-photo {
   filter: brightness(1.08);
 }
 
 /* ------------------------------------------------------------- подвал
    Контакты оператора вместо одного копирайта: гость публичной страницы —
    это турист или агент, которому нужно позвонить. */
+/* Раскладка подвала от темы НЕ зависит: базовое правило ниже по файлу
+   делает его флексом в капсе (так он выглядел, когда в нём был один
+   копирайт), и в светлой теме новые колонки от этого разъезжались. */
 #screen-public .tt-public-footer {
   display: block;
   padding: 34px 3px 0;
@@ -1334,7 +1386,7 @@ body:has(#screen-public:not([hidden])) {
   text-transform: uppercase;
 }
 #screen-public .tt-cat-tile-art::after { background: rgba(15, 22, 25, 0.92); }
-#screen-public .tt-cat-policy {
+:root:not([data-theme="light"]) #screen-public .tt-cat-policy {
   border-color: rgba(233, 189, 105, 0.28);
   background: rgba(233, 189, 105, 0.07);
 }
@@ -3147,6 +3199,7 @@ select { font-family: inherit; }
   .tt-public-intro h1 { font-size: 2.7rem; }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
+  .tt-theme-btn { width: 40px; height: 40px; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-public-route { gap: 6px; font-size: 0.62rem; }
@@ -4722,6 +4775,17 @@ select { font-family: inherit; }
         <i aria-hidden="true"></i>
         <span><b>€</b> 1 = <strong id="rate-eur" data-rate="eur">—</strong></span>
       </div>
+      <button class="tt-theme-btn" id="theme-toggle" type="button"
+              aria-label="Тема оформления">
+        <svg class="tt-theme-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 13.5A8 8 0 0 1 10.5 4a8.2 8.2 0 1 0 9.5 9.5Z" />
+        </svg>
+        <svg class="tt-theme-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" />
+          <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2
+                   M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
+        </svg>
+      </button>
       <label class="tt-language" for="public-language">
         <span class="tt-sr-only" data-i18n="header.language">Язык</span>
         <select id="public-language" aria-label="Язык сайта">
@@ -8590,6 +8654,8 @@ window.TURON_DESTINATIONS = [
       "header.language": "Язык",
       "header.login": "Войти",
       "header.cabinet": "Кабинет",
+      "theme.toLight": "Светлая тема",
+      "theme.toDark": "Тёмная тема",
       "nav.excursions": "Экскурсионные туры",
       "nav.tours": "Туры",
       "nav.about": "О компании",
@@ -8643,6 +8709,8 @@ window.TURON_DESTINATIONS = [
       "header.language": "Til",
       "header.login": "Kirish",
       "header.cabinet": "Kabinet",
+      "theme.toLight": "Yorug‘ mavzu",
+      "theme.toDark": "Qorong‘i mavzu",
       "nav.excursions": "Ekskursiya turlari",
       "nav.tours": "Turlar",
       "nav.about": "Kompaniya haqida",
@@ -8696,6 +8764,8 @@ window.TURON_DESTINATIONS = [
       "header.language": "Language",
       "header.login": "Sign in",
       "header.cabinet": "Workspace",
+      "theme.toLight": "Light theme",
+      "theme.toDark": "Dark theme",
       "nav.excursions": "Excursion tours",
       "nav.tours": "Tours",
       "nav.about": "About us",
@@ -8749,6 +8819,8 @@ window.TURON_DESTINATIONS = [
       "header.language": "Dil",
       "header.login": "Giriş",
       "header.cabinet": "Panel",
+      "theme.toLight": "Açık tema",
+      "theme.toDark": "Koyu tema",
       "nav.excursions": "Kültür turları",
       "nav.tours": "Turlar",
       "nav.about": "Hakkımızda",
@@ -8829,10 +8901,65 @@ window.TURON_DESTINATIONS = [
     language = next;
     try { global.localStorage.setItem(STORAGE_LANGUAGE, next); } catch (_) {}
     applyStaticTranslations();
+    syncThemeButton();
     global.dispatchEvent(new CustomEvent("turon:language", {
       detail: { language: language }
     }));
     paintStoredRates();
+  }
+
+  /* --------------------------------------------------------------- тема
+   * День/ночь для публичной части. Тёмная — по умолчанию: так утверждён
+   * дизайн. Светлая — это прежнее кремовое оформление, оно никуда не
+   * делось: тёмные правила в styles.css навешены через
+   * :root:not([data-theme="light"]), поэтому «день» просто перестаёт их
+   * применять, а не красит поверх.
+   *
+   * Кабинет темой НЕ управляется намеренно: он светлый в обоих режимах.
+   * Агентства к нему привыкли, а в его разметке много зашитых цветов —
+   * перекрашивать вслепую значит выкатить наполовину сломанный кабинет.
+   *
+   * Начальное значение ставит инлайн-скрипт в <head> — до первой отрисовки,
+   * иначе на тёмной теме мелькала бы белая вспышка.
+   */
+  var STORAGE_THEME = "turon.theme";
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "light"
+      ? "light" : "dark";
+  }
+
+  function setTheme(next) {
+    var value = next === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", value);
+    try { global.localStorage.setItem(STORAGE_THEME, value); } catch (_) {}
+    syncThemeButton();
+    // Цвет строки состояния браузера на телефоне — иначе на тёмной теме
+    // сверху остаётся зелёная полоса от светлого оформления.
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", value === "light" ? "#0d302a" : "#070b0d");
+    global.dispatchEvent(new CustomEvent("turon:theme", { detail: { theme: value } }));
+  }
+
+  function syncThemeButton() {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    var dark = currentTheme() === "dark";
+    btn.setAttribute("aria-pressed", dark ? "true" : "false");
+    // Подпись описывает ДЕЙСТВИЕ, а не текущее состояние: так понятнее,
+    // что произойдёт по нажатию.
+    btn.setAttribute("aria-label", dark ? t("theme.toLight") : t("theme.toDark"));
+    btn.setAttribute("title", dark ? t("theme.toLight") : t("theme.toDark"));
+  }
+
+  function initTheme() {
+    var btn = document.getElementById("theme-toggle");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        setTheme(currentTheme() === "dark" ? "light" : "dark");
+      });
+    }
+    syncThemeButton();
   }
 
   function formatRate(value) {
@@ -8994,8 +9121,12 @@ window.TURON_DESTINATIONS = [
   applyStaticTranslations();
   loadRates();
 
+  initTheme();
+
   global.TuronPublicUi = {
     t: t,
+    theme: currentTheme,
+    setTheme: setTheme,
     language: function () { return language; },
     setLanguage: setLanguage,
     loadRates: loadRates,

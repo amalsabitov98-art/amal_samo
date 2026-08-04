@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Turon Tour — экскурсионные и групповые туры</title>
 <meta name="theme-color" content="#0d302a" />
+<!--
+  Тему ставим ДО отрисовки и до загрузки styles.css: если сделать это из
+  скрипта в конце страницы, светлый вариант успеет мелькнуть белой вспышкой
+  на тёмной теме. Поэтому крошечный инлайн прямо здесь.
+  Значения: "dark" (по умолчанию, утверждённый дизайн) и "light".
+-->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("turon.theme");
+      document.documentElement.setAttribute(
+        "data-theme", saved === "light" ? "light" : "dark");
+    } catch (e) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <!--
@@ -39,6 +56,17 @@
         <i aria-hidden="true"></i>
         <span><b>€</b> 1 = <strong id="rate-eur" data-rate="eur">—</strong></span>
       </div>
+      <button class="tt-theme-btn" id="theme-toggle" type="button"
+              aria-label="Тема оформления">
+        <svg class="tt-theme-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 13.5A8 8 0 0 1 10.5 4a8.2 8.2 0 1 0 9.5 9.5Z" />
+        </svg>
+        <svg class="tt-theme-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" />
+          <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2
+                   M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
+        </svg>
+      </button>
       <label class="tt-language" for="public-language">
         <span class="tt-sr-only" data-i18n="header.language">Язык</span>
         <select id="public-language" aria-label="Язык сайта">
