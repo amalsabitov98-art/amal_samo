@@ -1268,6 +1268,71 @@ body:has(#screen-public:not([hidden])) {
 #screen-public .tt-cat-tile-art {
   background: linear-gradient(150deg, #123840 0%, #06161a 100%);
 }
+/* Плитка с настоящей фотографией. Сам URL приходит инлайновым стилем из
+   destinationTile (значение из БД), здесь только раскладка кадра — и она
+   обязана идти ПОСЛЕ правила выше: то задаёт фон сокращением background,
+   а оно обнуляет background-size. */
+#screen-public .tt-cat-tile-art.has-photo {
+  background-color: #06161a;
+  background-size: cover;
+  background-position: center;
+}
+#screen-public .tt-cat-tile-art.has-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(4, 12, 15, 0) 45%, rgba(4, 12, 15, 0.55) 100%);
+}
+#screen-public .tt-cat-tile:hover .tt-cat-tile-art.has-photo {
+  filter: brightness(1.08);
+}
+
+/* ------------------------------------------------------------- подвал
+   Контакты оператора вместо одного копирайта: гость публичной страницы —
+   это турист или агент, которому нужно позвонить. */
+#screen-public .tt-public-footer {
+  display: block;
+  padding: 34px 3px 0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.78rem;
+}
+.tt-foot-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  gap: 26px;
+  padding-bottom: 26px;
+}
+.tt-foot-cols > div { display: flex; flex-direction: column; gap: 7px; align-items: flex-start; }
+.tt-foot-cols strong { color: var(--tt-text); font-size: 0.82rem; }
+.tt-foot-brand {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.3rem !important;
+  font-weight: 600;
+}
+.tt-foot-cols a,
+.tt-foot-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tt-text-muted);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.tt-foot-cols a:hover,
+.tt-foot-link:hover { color: var(--tt-accent); }
+.tt-foot-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0 4px;
+  border-top: 1px solid var(--tt-border);
+  color: var(--tt-text-subtle);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 #screen-public .tt-cat-tile-art::after { background: rgba(15, 22, 25, 0.92); }
 #screen-public .tt-cat-policy {
   border-color: rgba(233, 189, 105, 0.28);
@@ -3082,6 +3147,8 @@ select { font-family: inherit; }
   .tt-public-intro h1 { font-size: 2.7rem; }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
+  .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
+  .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-public-route { gap: 6px; font-size: 0.62rem; }
   .tt-dep { display: block; }
   .tt-dep > * + * { margin-top: 13px; }
@@ -7623,7 +7690,7 @@ window.TURON_DESTINATIONS = [
   "name": "Турция",
   "title": "Турция и Грузия",
   "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
-  "image": null,
+  "image": "img/hero-rize-batumi.webp",
   "sort": 1
  },
  {
@@ -9010,7 +9077,10 @@ window.TURON_DESTINATIONS = [
     return (
       '<button class="tt-cat-tile' + (closed ? " is-soon" : "") + '" data-dest="' +
         esc(d.name) + '">' +
-        '<span class="tt-cat-tile-art"' +
+        // has-photo нужен из-за CSS: тёмная тема задаёт фон плитки
+        // сокращением background, а оно сбрасывает background-size, и
+        // фотография легла бы в натуральную величину вместо cover.
+        '<span class="tt-cat-tile-art' + (d.image ? " has-photo" : "") + '"' +
           (d.image ? ' style="background-image:url(' + esc(d.image) + ')"' : "") +
         "></span>" +
         '<span class="tt-cat-tile-body">' +
@@ -9158,6 +9228,49 @@ window.TURON_DESTINATIONS = [
           "</article>";
       }).join("") +
       "</section>";
+  }
+
+  /*
+   * Подвал. Раньше в нём был только копирайт, хотя гость на публичной
+   * странице — это турист или агент, которому нужно позвонить. Контакты
+   * берутся из js/provisional.js (подтверждены оператором), а не пишутся
+   * здесь руками: иначе телефон пришлось бы править в двух местах.
+   */
+  function footerHtml() {
+    var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || null;
+    if (!op) {
+      return '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
+        "<span>Tashkent · Uzbekistan</span></footer>";
+    }
+    return (
+      '<footer class="tt-public-footer">' +
+        '<div class="tt-foot-cols">' +
+          "<div>" +
+            '<strong class="tt-foot-brand">' + esc(op.name) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(op.address) + "</span>" +
+          "</div>" +
+          "<div>" +
+            "<strong>Связаться</strong>" +
+            '<a href="tel:' + esc(op.phone_href) + '">' + esc(op.phone) + "</a>" +
+            '<a href="mailto:' + esc(op.email) + '">' + esc(op.email) + "</a>" +
+            '<a href="' + esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
+              "Telegram</a>" +
+          "</div>" +
+          "<div>" +
+            "<strong>Агентствам</strong>" +
+            '<button type="button" class="tt-foot-link" data-go="root">Каталог туров</button>' +
+            '<a href="#/login">Вход для партнёров</a>' +
+          "</div>" +
+        "</div>" +
+        '<div class="tt-foot-bottom">' +
+          // В копирайте оставляем бренд сайта: OPERATOR.name — это как
+          // оператор представляется в контактах, а какое имя тут юридически
+          // верное, нам не подтверждали.
+          "<span>© 2026 Turon Tour</span>" +
+          "<span>Tashkent · Uzbekistan</span>" +
+        "</div>" +
+      "</footer>"
+    );
   }
 
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
@@ -9578,8 +9691,7 @@ window.TURON_DESTINATIONS = [
             "</div>" +
             '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
-          '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
-            '<span>Tashkent · Uzbekistan</span></footer>';
+          footerHtml();
         // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
         // CSS видео не останавливает, поэтому только так.
         var video = root.querySelector(".tt-hero-video");

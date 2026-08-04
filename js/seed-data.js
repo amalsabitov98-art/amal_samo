@@ -2530,7 +2530,7 @@ window.TURON_DESTINATIONS = [
   "name": "Турция",
   "title": "Турция и Грузия",
   "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
-  "image": null,
+  "image": "img/hero-rize-batumi.webp",
   "sort": 1
  },
  {

@@ -74,7 +74,10 @@
     return (
       '<button class="tt-cat-tile' + (closed ? " is-soon" : "") + '" data-dest="' +
         esc(d.name) + '">' +
-        '<span class="tt-cat-tile-art"' +
+        // has-photo нужен из-за CSS: тёмная тема задаёт фон плитки
+        // сокращением background, а оно сбрасывает background-size, и
+        // фотография легла бы в натуральную величину вместо cover.
+        '<span class="tt-cat-tile-art' + (d.image ? " has-photo" : "") + '"' +
           (d.image ? ' style="background-image:url(' + esc(d.image) + ')"' : "") +
         "></span>" +
         '<span class="tt-cat-tile-body">' +
@@ -222,6 +225,49 @@
           "</article>";
       }).join("") +
       "</section>";
+  }
+
+  /*
+   * Подвал. Раньше в нём был только копирайт, хотя гость на публичной
+   * странице — это турист или агент, которому нужно позвонить. Контакты
+   * берутся из js/provisional.js (подтверждены оператором), а не пишутся
+   * здесь руками: иначе телефон пришлось бы править в двух местах.
+   */
+  function footerHtml() {
+    var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || null;
+    if (!op) {
+      return '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
+        "<span>Tashkent · Uzbekistan</span></footer>";
+    }
+    return (
+      '<footer class="tt-public-footer">' +
+        '<div class="tt-foot-cols">' +
+          "<div>" +
+            '<strong class="tt-foot-brand">' + esc(op.name) + "</strong>" +
+            '<span class="tt-muted-note">' + esc(op.address) + "</span>" +
+          "</div>" +
+          "<div>" +
+            "<strong>Связаться</strong>" +
+            '<a href="tel:' + esc(op.phone_href) + '">' + esc(op.phone) + "</a>" +
+            '<a href="mailto:' + esc(op.email) + '">' + esc(op.email) + "</a>" +
+            '<a href="' + esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
+              "Telegram</a>" +
+          "</div>" +
+          "<div>" +
+            "<strong>Агентствам</strong>" +
+            '<button type="button" class="tt-foot-link" data-go="root">Каталог туров</button>' +
+            '<a href="#/login">Вход для партнёров</a>' +
+          "</div>" +
+        "</div>" +
+        '<div class="tt-foot-bottom">' +
+          // В копирайте оставляем бренд сайта: OPERATOR.name — это как
+          // оператор представляется в контактах, а какое имя тут юридически
+          // верное, нам не подтверждали.
+          "<span>© 2026 Turon Tour</span>" +
+          "<span>Tashkent · Uzbekistan</span>" +
+        "</div>" +
+      "</footer>"
+    );
   }
 
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
@@ -642,8 +688,7 @@
             "</div>" +
             '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
-          '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
-            '<span>Tashkent · Uzbekistan</span></footer>';
+          footerHtml();
         // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
         // CSS видео не останавливает, поэтому только так.
         var video = root.querySelector(".tt-hero-video");

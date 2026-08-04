@@ -18,7 +18,7 @@ INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('
 INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', 'ea31004b690cd245c6914477b11e67920ca4fc10ea36633165158631aaad3166', 'f1bd8b7a4ac3f8b94139b5cda6946be2', 'OFO TOUR', 'agency');
 INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '3f244256d25b65fd63c0e57d2f43ff22680138c7f15dab4285ec01096ee430af', '603efd32454c219281bb6b794d588f8c', 'Turon Tour (оператор)', 'operator');
 
-INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Турция', 'Турция и Грузия', 'Черноморское побережье: Трабзон, Ризе, Батуми', NULL, 1);
+INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Турция', 'Турция и Грузия', 'Черноморское побережье: Трабзон, Ризе, Батуми', 'img/hero-rize-batumi.webp', 1);
 INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Япония', 'Япония', 'Готовятся к запуску — ждём даты заездов и цены', NULL, 2);
 
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения', 'Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и Трабзон за 8 дней. Сопровождение узбекского гида, более 15 экскурсий, отели на первой береговой линии, трансферы на микроавтобусах Sprinter и ужин в грузинской семье.', 7);
