@@ -1841,10 +1841,12 @@ select { font-family: inherit; }
   position: absolute;
   z-index: -1;
   inset: 0;
+  /* Чуть светлее прежнего — видео должно быть заметно ярче, виньетка
+     только смягчает края, а не гасит кадр целиком. */
   background:
-    radial-gradient(120% 90% at 50% 100%, rgba(5, 20, 17, 0.55) 0%, rgba(5, 20, 17, 0) 55%),
-    radial-gradient(120% 90% at 50% 0%, rgba(5, 20, 17, 0.4) 0%, rgba(5, 20, 17, 0) 45%),
-    linear-gradient(180deg, rgba(5, 20, 17, 0.18), rgba(5, 20, 17, 0.28));
+    radial-gradient(120% 90% at 50% 100%, rgba(5, 20, 17, 0.42) 0%, rgba(5, 20, 17, 0) 55%),
+    radial-gradient(120% 90% at 50% 0%, rgba(5, 20, 17, 0.3) 0%, rgba(5, 20, 17, 0) 45%),
+    linear-gradient(180deg, rgba(5, 20, 17, 0.1), rgba(5, 20, 17, 0.18));
   pointer-events: none;
 }
 .tt-login-video {
@@ -1911,11 +1913,11 @@ select { font-family: inherit; }
   max-width: none;
   padding: 38px 36px;
   border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(20, 30, 27, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(30, 42, 37, 0.26);
   backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: #fff9ed;
   text-align: left;
 }
