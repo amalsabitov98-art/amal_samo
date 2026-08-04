@@ -240,6 +240,66 @@ console.log("\nКабинет оператора");
   await page.close();
 }
 
+// ------------------------------------------------------------ навигация
+// Адрес — единственный источник правды: клик, «назад» и F5 обязаны давать
+// один и тот же экран. Раньше экраны переключались напрямую, и обновление
+// страницы в кабинете выкидывало на первую вкладку.
+console.log("\nНавигация и адресная строка");
+{
+  const { page, errors } = await session("umida");
+  const hash = () => page.evaluate(() => location.hash);
+  const tab = () => page.evaluate(
+    () => document.querySelector(".tt-tab.is-active")?.dataset.tab || "-");
+  const shown = () => page.evaluate(
+    () => ["public", "login", "app"]
+      .find((n) => !document.getElementById("screen-" + n).hidden) || "none");
+
+  check("после входа адрес указывает на кабинет",
+        (await hash()).startsWith("#/app/"), await hash());
+
+  await page.locator('.tt-tab[data-tab="payments"]').first().click({ force: true });
+  await page.waitForTimeout(500);
+  check("вкладка попадает в адрес", (await hash()) === "#/app/payments", await hash());
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(1200);
+  check("обновление страницы возвращает на ту же вкладку",
+        (await hash()) === "#/app/payments" && (await tab()) === "payments",
+        (await hash()) + " / " + (await tab()));
+
+  await page.goBack();
+  await page.waitForTimeout(600);
+  check("«назад» листает вкладки кабинета", (await tab()) !== "payments", await tab());
+
+  await page.click("#app-home-btn");
+  await page.waitForTimeout(700);
+  check("логотип кабинета ведёт на главную",
+        (await shown()) === "public" && (await hash()) === "#/",
+        (await shown()) + " " + (await hash()));
+  check("в шапке появляется возврат в кабинет",
+        (await page.textContent("#public-login-btn span")).trim() === "Кабинет");
+
+  await page.click("#public-login-btn");
+  await page.waitForTimeout(700);
+  check("кнопка «Кабинет» возвращает на последнюю вкладку",
+        (await shown()) === "app", await shown());
+
+  await page.click("#logout-top");
+  await page.waitForTimeout(700);
+  check("после выхода — главная и кнопка «Войти»",
+        (await shown()) === "public" &&
+        (await page.textContent("#public-login-btn span")).trim() === "Войти");
+
+  // адрес кабинета без сессии не должен пускать внутрь
+  await page.goto("file://" + PREVIEW + "#/app/bookings", { waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+  check("кабинет по ссылке без входа уводит на форму входа",
+        (await shown()) === "login", await shown());
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // -------------------------------------------------------------- телефон
 console.log("\nМобильная вёрстка");
 {

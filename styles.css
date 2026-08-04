@@ -3699,6 +3699,39 @@ select { font-family: inherit; }
   align-items: center;
   gap: 11px;
   min-height: 54px;
+  /* Это <button> (ведёт на главную), а сброса фона у кнопок в файле нет —
+     без явных значений браузер подставит серый ButtonFace и свою рамку. */
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tt-sidebar-brandlock:focus-visible {
+  outline: 2px solid var(--tt-tool-gold, #e5c987);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+/* Бесшовная смена экранов: анимируем только прозрачность. transform здесь
+   нельзя — он создаёт containing block, и position:fixed внутри (окно
+   брони, затемнение меню) начнёт считаться от экрана, а не от окна. */
+#screen-public,
+#screen-login,
+#screen-app {
+  transition: opacity 0.24s ease;
+}
+#screen-public.tt-screen-enter,
+#screen-login.tt-screen-enter,
+#screen-app.tt-screen-enter {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  #screen-public,
+  #screen-login,
+  #screen-app { transition: none; }
 }
 .tt-sidebar-emblem {
   width: 47px;

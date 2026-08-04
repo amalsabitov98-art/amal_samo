@@ -240,13 +240,20 @@
     return "#/";
   }
 
+  /*
+   * Разбор адреса. null означает «этот хеш не наш» — маршруты кабинета
+   * (#/app/...) и входа (#/login) ведёт роутер в app.js. Без этого каталог
+   * на каждое переключение вкладки в кабинете считал бы, что его просят
+   * показать список направлений, и дёргал бы сеть впустую.
+   */
   function viewFromHash() {
     var h = (global.location.hash || "").replace(/^#/, "");
+    if (h === "" || h === "/") return { kind: "destinations" };
     var m = h.match(/^\/d\/(.+)$/);
     if (m) return { kind: "tours", destination: decodeURIComponent(m[1]) };
     m = h.match(/^\/t\/(.+)$/);
     if (m) return { kind: "tour", code: decodeURIComponent(m[1]), variant: null };
-    return { kind: "destinations" };
+    return null;
   }
 
   /*
@@ -260,7 +267,9 @@
   function create(opts) {
     var cfg = Object.assign({ canBook: false, useHash: false }, opts);
     var root = cfg.root;
-    var view = cfg.useHash ? viewFromHash() : { kind: "destinations" };
+    // viewFromHash может вернуть null (адрес кабинета) — тогда показываем
+    // список направлений: каталог всегда должен быть с чего-то начат.
+    var view = (cfg.useHash && viewFromHash()) || { kind: "destinations" };
     // Открытый калькулятор: код заезда и счётчики по тарифам.
     var calc = { code: null, counts: {} };
     // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
@@ -849,7 +858,9 @@
     if (cfg.useHash) {
       global.addEventListener("hashchange", function () {
         // хеш ведёт только гостевой каталог, кабинетный им не управляется
-        view = viewFromHash();
+        var next = viewFromHash();
+        if (!next) return;   // #/login и #/app/* — не наши, их ведёт app.js
+        view = next;
         draw();
       });
     }

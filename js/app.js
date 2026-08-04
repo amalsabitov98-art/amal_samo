@@ -46,58 +46,183 @@
     });
   }
 
+  /* ================================================================ маршруты
+   * Один хеш-роутер на все экраны. Раньше экраны переключались прямыми
+   * вызовами show*(), и адрес про это ничего не знал — отсюда три жалобы
+   * сразу: «назад» некуда нажимать, обновление страницы в кабинете теряло
+   * вкладку, а логотип никуда не вёл.
+   *
+   *   #/                — каталог (главная)
+   *   #/d/X, #/t/Y      — направление и карточка тура (ведёт catalog.js)
+   *   #/login           — вход
+   *   #/app/<вкладка>   — кабинет на конкретной вкладке
+   *
+   * Адрес — единственный источник правды: и клик, и «назад», и F5 проходят
+   * через applyRoute(), поэтому расходиться им негде.
+   */
+  var session = null;          // агентство текущей сессии
+  var cabinetReady = false;    // тяжёлая инициализация кабинета уже прошла
+  var currentScreen = null;
+  var pendingRoute = null;     // куда вернуть после входа
+  var lastAppRoute = null;     // последняя вкладка кабинета — чтобы кнопка
+                               // «Кабинет» возвращала туда, где человек был
+
+  function parseRoute() {
+    var h = (window.location.hash || "").replace(/^#/, "");
+    if (h === "/login") return { screen: "login" };
+    var m = h.match(/^\/app(?:\/([\w-]+))?$/);
+    if (m) return { screen: "app", tab: m[1] || null };
+    return { screen: "public" };
+  }
+
+  function defaultTab() {
+    return session && TuronAdmin.isOperator(session) ? "manifest" : "builder";
+  }
+
+  function appRoute(tab) { return "#/app/" + (tab || defaultTab()); }
+
+  // replace — не оставлять след в истории (редиректы и вход/выход):
+  // иначе «назад» возвращал бы на экран, с которого нас только что увели.
+  function navigate(hash, replace) {
+    if (window.location.hash === hash) { applyRoute(); return; }
+    if (replace) {
+      window.history.replaceState(null, "", hash);
+      applyRoute();
+    } else {
+      window.location.hash = hash;   // hashchange сам поднимет applyRoute
+    }
+  }
+
+  function goTab(name) { navigate(appRoute(name)); }
+
+  /* Разбор адреса. Редиректы (кабинет без сессии → вход, вход с сессией →
+   * кабинет) делаются циклом, а не рекурсией: resolveRoute возвращает адрес,
+   * куда надо переехать, либо null, если экран уже показан. Счётчик — чтобы
+   * пара взаимных редиректов не закрутилась навсегда. */
+  function applyRoute() {
+    for (var guard = 0; guard < 5; guard++) {
+      var redirect = resolveRoute();
+      if (!redirect) return;                            // экран показан
+      if (window.location.hash === redirect) return;    // уже здесь — стоп
+      window.history.replaceState(null, "", redirect);
+    }
+  }
+
+  function resolveRoute() {
+    var r = parseRoute();
+
+    if (r.screen === "app") {
+      // Просят кабинет без сессии — запоминаем куда и уводим на вход.
+      if (!session) {
+        pendingRoute = window.location.hash;
+        return "#/login";
+      }
+      // Проверку «а можно ли роли эту вкладку» делает showApp: флаги
+      // видимости вкладок выставляет ensureCabinet, и до него спрашивать
+      // tabAllowed бесполезно — у свежей сессии они ещё от прошлой роли.
+      showApp(r.tab);
+      return null;
+    }
+
+    if (r.screen === "login") {
+      if (session) return lastAppRoute || appRoute();
+      showLogin();
+      return null;
+    }
+
+    showPublic();
+    return null;
+  }
+
+  function tabAllowed(name) {
+    var tab = document.querySelector('.tt-tab[data-tab="' + name + '"]');
+    return !!tab && !tab.hidden;
+  }
+
+  function reducedMotion() {
+    return !!(window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  /* Плавное появление экрана. Анимируем ТОЛЬКО прозрачность: transform на
+   * контейнере создал бы новый containing block, и position:fixed внутри
+   * (окно брони, затемнение меню) начал бы считаться от него, а не от окна. */
+  function fadeIn(id) {
+    var el = $(id);
+    if (!el || reducedMotion()) return;
+    el.classList.add("tt-screen-enter");
+    // Двойной rAF: если снять класс в том же кадре, браузер схлопнет обе
+    // правки в один стиль и перехода не случится.
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        el.classList.remove("tt-screen-enter");
+      });
+    });
+  }
+
+  /* Смена экрана. Возвращает true, если экран действительно поменялся —
+   * по этому признаку решаем, перерисовывать ли каталог: внутри публичной
+   * части хеш ведёт сам catalog.js, и второй render() был бы лишним. */
+  function setScreen(name) {
+    if (currentScreen === name) return false;
+    currentScreen = name;
+    $("screen-public").hidden = name !== "public";
+    $("screen-login").hidden = name !== "login";
+    $("screen-app").hidden = name !== "app";
+    $("offline-screen").hidden = true;
+    fadeIn(name === "public" ? "screen-public"
+         : name === "login" ? "screen-login" : "screen-app");
+    window.scrollTo(0, 0);
+    return true;
+  }
+
   // ------------------------------------------------------------------ вход
   // Гостя встречает каталог, а не форма входа: тур можно показать клиенту
   // по ссылке, логин нужен только чтобы забронировать.
+  function ensurePublicCatalog() {
+    if (publicCatalog) return;
+    publicCatalog = TuronCatalog.create({
+      root: $("public-catalog"),
+      canBook: false,
+      useHash: true,
+      onLogin: function (code) {
+        pendingBooking = code;
+        navigate("#/login");
+      },
+    });
+  }
+
   function showPublic() {
-    $("screen-public").hidden = false;
-    $("screen-login").hidden = true;
-    $("screen-app").hidden = true;
-    if (!publicCatalog) {
-      publicCatalog = TuronCatalog.create({
-        root: $("public-catalog"),
-        canBook: false,
-        useHash: true,
-        onLogin: function (code) {
-          pendingBooking = code;
-          showLogin();
-        },
-      });
-    }
-    publicCatalog.render();
+    var changed = setScreen("public");
+    ensurePublicCatalog();
+    syncPublicAccount();
+    if (changed) publicCatalog.render();
   }
 
   function showLogin() {
-    $("screen-public").hidden = true;
-    $("screen-login").hidden = false;
-    $("screen-app").hidden = true;
+    setScreen("login");
   }
 
-  function showApp(agency) {
-    $("screen-public").hidden = true;
-    $("screen-login").hidden = true;
-    $("screen-app").hidden = false;
-    // Нижняя карточка агентства удалена из бокового меню. Обновляем имя
-    // только там, где соответствующий элемент действительно существует.
+  /* Кабинет. Тяжёлая часть (загрузка заездов, броней, каталога) выполняется
+   * один раз: showApp зовётся на каждое переключение вкладки, и грузить всё
+   * заново на каждый клик было бы расточительно. */
+  function ensureCabinet() {
+    if (cabinetReady) return;
+    cabinetReady = true;
+
     var agencyName = $("agency-name");
-    if (agencyName) agencyName.textContent = agency.name;
+    if (agencyName) agencyName.textContent = session.name;
     var topAgencyName = $("top-agency-name");
-    if (topAgencyName) topAgencyName.textContent = agency.name;
-    // инициалы были захардкожены («GW», «TT») и не совпадали с агентством;
-    // из одного слова берём две первые буквы, иначе кружок с одной буквой
-    var words = agency.name.split(/\s+/).filter(Boolean);
-    var initials = (words.length > 1
-      ? words.slice(0, 2).map(function (w) { return w[0]; }).join("")
-      : (words[0] || "").slice(0, 2)).toUpperCase();
+    if (topAgencyName) topAgencyName.textContent = session.name;
 
     // Оператору показываем его вкладки и прячем агентские: он не бронирует
     // и своих комиссий не имеет.
-    var isOperator = TuronAdmin.isOperator(agency);
+    var isOperator = TuronAdmin.isOperator(session);
     document.querySelectorAll(".tt-tab-op").forEach(function (t) { t.hidden = !isOperator; });
     document.querySelectorAll(".tt-tab-ag").forEach(function (t) { t.hidden = isOperator; });
+
     if (isOperator) {
       TuronAdmin.start();
-      switchTab("manifest");
       loadOperatorNotices();   // колокольчик — просрочки по всем агентствам
       return;
     }
@@ -110,7 +235,6 @@
       });
     }
 
-    switchTab("builder");
     var ready = loadDepartures();
     loadBookings();
     loadTours();
@@ -122,6 +246,46 @@
       pendingBooking = null;
       ready.then(function () { bookFromCatalog(code); });
     }
+  }
+
+  function showApp(tab) {
+    setScreen("app");
+    ensureCabinet();   // здесь же выставляются флаги видимости вкладок по роли
+    var name = tab && tabAllowed(tab) ? tab : defaultTab();
+    var want = appRoute(name);
+    /* Адрес мог просить вкладку, которой у этой роли нет (ссылка из чужой
+     * истории). Правим его напрямую replaceState, а НЕ через navigate:
+     * navigate снова позвал бы applyRoute, тот — showApp, и так по кругу.
+     * Ровно на этом уже поймались: оператор входил, manifest ещё числился
+     * скрытым, и редирект уходил в бесконечную рекурсию. */
+    if (window.location.hash !== want) window.history.replaceState(null, "", want);
+    lastAppRoute = want;
+    switchTab(name);
+    refreshTab(name);
+  }
+
+  /* Разделы, которые строятся на клиенте из уже загруженных броней.
+   * Вызывается и по клику, и по «назад», и после F5 — иначе вкладка,
+   * открытая по адресу, оставалась бы пустой. */
+  function refreshTab(name) {
+    if (name === "catalog" && cabinetCatalog) cabinetCatalog.render();
+    else if (name === "travellers") renderTravellers();
+    else if (name === "payments") renderPayments();
+    else if (name === "documents") renderDocuments();
+    else if (name === "messages") renderMessages();
+  }
+
+  /* В публичной шапке вошедшему показываем «Кабинет» вместо «Войти» —
+   * иначе из каталога в кабинет можно было вернуться только через адрес. */
+  function syncPublicAccount() {
+    var btn = $("public-login-btn");
+    if (!btn) return;
+    var label = btn.querySelector("span");
+    if (label) {
+      label.textContent = session ? "Кабинет" : "Войти";
+      label.removeAttribute("data-i18n");   // подпись зависит от сессии
+    }
+    btn.setAttribute("aria-label", session ? "Вернуться в кабинет" : "Войти");
   }
 
   // Бронь из каталога: карточка тура отдаёт код заезда, а окно брони
@@ -145,7 +309,15 @@
     btn.disabled = true;
     $("login-error").innerHTML = "";
     TuronApi.login($("l-login").value, $("l-password").value)
-      .then(function (res) { showApp(res.agency); })
+      .then(function (res) {
+        session = res.agency;
+        cabinetReady = false;
+        syncPublicAccount();
+        var back = pendingRoute;
+        pendingRoute = null;
+        // replace: экран входа не должен остаться в истории позади кабинета
+        navigate(back || appRoute(), true);
+      })
       .catch(function (err) {
         $("login-error").innerHTML = '<div class="tt-error-box">' + esc(err.message) + "</div>";
       })
@@ -155,7 +327,15 @@
   function doLogout() {
     TuronApi.logout().then(function () {
       $("l-password").value = "";
-      showPublic();
+      session = null;
+      // кабинет придётся собрать заново: следующий вход может быть под
+      // другой ролью, а вкладки и загруженные данные остались от прежней
+      cabinetReady = false;
+      lastAppRoute = null;
+      state.bookings = [];
+      operatorNotices = null;
+      syncPublicAccount();
+      navigate("#/", true);
     });
   }
   $("logout-top").addEventListener("click", doLogout);
@@ -177,19 +357,24 @@
     var go = e.target.closest("[data-goto]");
     if (!go) return;
     setNotices(false);
-    switchTab(go.dataset.goto);
-    if (go.dataset.goto === "payments") renderPayments();
+    goTab(go.dataset.goto);
   });
   document.addEventListener("click", function () { setNotices(false); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") setNotices(false);
   });
 
-  $("public-login-btn").addEventListener("click", function () { showLogin(); });
+  $("public-login-btn").addEventListener("click", function () {
+    navigate(session ? (lastAppRoute || appRoute()) : "#/login");
+  });
+
+  // Логотип в кабинете ведёт на главную страницу сайта, сессия при этом
+  // сохраняется — вернуться можно кнопкой «Кабинет» в публичной шапке.
+  $("app-home-btn").addEventListener("click", function () { navigate("#/"); });
 
   $("public-home-btn").addEventListener("click", function () {
-    if (publicCatalog) publicCatalog.reset();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigate("#/");
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
   });
 
   window.addEventListener("turon:language", function () {
@@ -198,8 +383,9 @@
 
   $("login-back").addEventListener("click", function () {
     pendingBooking = null;
+    pendingRoute = null;
     $("login-error").innerHTML = "";
-    showPublic();
+    navigate("#/");
   });
 
   // --------------------------------------------------------------- заезды
@@ -576,10 +762,9 @@
   $("builder-program").addEventListener("click", function () {
     var url = $("builder-program").dataset.url;
     if (url) { window.open(url, "_blank", "noopener"); return; }
-    // Резерв без PDF: открываем каталог и обязательно перерисовываем его —
-    // сам по себе switchTab содержимое вкладки не строит.
-    switchTab("catalog");
-    if (cabinetCatalog) cabinetCatalog.render();
+    // Резерв без PDF: открываем каталог. Перерисовку делает refreshTab
+    // внутри маршрута — сам по себе switchTab содержимое не строит.
+    goTab("catalog");
   });
 
   $("panel-builder").addEventListener("click", function (e) {
@@ -799,7 +984,7 @@
     action.then(function (res) {
       closeBooking();
       return Promise.all([loadDepartures(), loadBookings()]).then(function () {
-        switchTab("bookings");
+        goTab("bookings");
         flash(editing
           ? "Бронь " + res.booking_code + " обновлена: " + res.passengers_count +
             " чел., " + money(res.total_price)
@@ -1320,15 +1505,8 @@
   document.querySelector(".tt-tabs").addEventListener("click", function (e) {
     var tab = e.target.closest(".tt-tab");
     if (!tab || !tab.dataset.tab) return;
-    switchTab(tab.dataset.tab);
     setNav(false);   // на телефоне меню выдвижное — закрываем после выбора
-    // данные могли измениться после брони — перерисовываем раздел
-    var t = tab.dataset.tab;
-    if (t === "catalog" && cabinetCatalog) cabinetCatalog.render();
-    if (t === "travellers") renderTravellers();
-    if (t === "payments") renderPayments();
-    if (t === "documents") renderDocuments();
-    if (t === "messages") renderMessages();
+    goTab(tab.dataset.tab);
   });
 
   // Выдвижное меню на узком экране. Кнопка ☰ в шапке была, но ни к чему
@@ -1543,14 +1721,27 @@
     TuronApi.me().then(
       function (res) {
         hideOffline();
-        showApp(res.agency);
+        session = res.agency;
+        cabinetReady = false;
+        syncPublicAccount();
+        // Куда именно — решает адрес: обновление страницы на #/app/payments
+        // обязано вернуть на «Платежи», а не на первую вкладку.
+        applyRoute();
       },
       function (err) {
         // Обрабатываем здесь только отказ самого запроса /api/me.
         // Ошибка интерфейса после успешного ответа больше не маскируется
         // под отсутствие связи с сервером.
-        if (err && err.status) { showPublic(); }   // сервер ответил (401 и т.п.) — выходим
-        else { showOffline(); }                    // сеть недоступна — сессию не трогаем
+        if (err && err.status) {
+          // сервер ответил (401 и т.п.) — токен протух, это честный выход
+          session = null;
+          cabinetReady = false;
+          syncPublicAccount();
+          var r = parseRoute();
+          navigate(r.screen === "app" ? "#/" : window.location.hash || "#/", true);
+        } else {
+          showOffline();   // сеть недоступна — сессию не трогаем
+        }
       }
     );
   }
@@ -1561,6 +1752,9 @@
     $("screen-public").hidden = true;
     $("screen-login").hidden = true;
     $("screen-app").hidden = true;
+    // экран сменился в обход setScreen — сбрасываем метку, иначе возврат
+    // на тот же экран после «Повторить» ничего не покажет
+    currentScreen = null;
   }
   function hideOffline() { $("offline-screen").hidden = true; }
 
@@ -1572,9 +1766,11 @@
     setTimeout(function () { btn.disabled = false; btn.textContent = "Повторить"; }, 1500);
   });
 
+  window.addEventListener("hashchange", applyRoute);
+
   if (TuronApi.isLoggedIn()) {
     restoreSession();
   } else {
-    showPublic();
+    applyRoute();   // #/app/* без сессии сам уведёт на вход
   }
 })();
