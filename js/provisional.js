@@ -149,7 +149,7 @@
       name: "Ойбек",
       phone: "+998 97 743 09 09",
       phone_href: "+998977430909",
-      telegram_href: null,
+      telegram_href: "https://t.me/+998977430909",
     },
   ];
 

@@ -9087,7 +9087,7 @@ window.TURON_DESTINATIONS = [
       name: "Ойбек",
       phone: "+998 97 743 09 09",
       phone_href: "+998977430909",
-      telegram_href: null,
+      telegram_href: "https://t.me/+998977430909",
     },
   ];
 
@@ -12783,16 +12783,178 @@ window.TURON_DESTINATIONS = [
     $("documents-list").innerHTML = active.length
       ? active.map(function (b) {
           return '<article class="tt-row-card">' +
-            "<div><strong>Ваучер " + esc(b.code) + "</strong>" +
+            "<div><strong>Бронь " + esc(b.code) + "</strong>" +
               '<div class="tt-muted-note">' + formatDate(b.date_start) + " · " +
               b.passengers_count + " чел. · " + money(b.total_price) + "</div></div>" +
             '<div class="tt-row-actions">' +
               '<button class="tt-btn secondary tt-btn-sm" data-voucher="' +
-                esc(b.code) + '">Открыть и распечатать</button>' +
+                esc(b.code) + '">Ваучер</button>' +
+              '<button class="tt-btn secondary tt-btn-sm" data-ticket="' +
+                esc(b.code) + '">Авиабилет</button>' +
             "</div>" +
           "</article>";
-        }).join("") + TuronProvisional.noteHtml("бланк ваучера")
+        }).join("") + TuronProvisional.noteHtml("бланки ваучера и билета")
       : '<div class="tt-empty-state">Документы появятся после первой брони.</div>';
+  }
+
+  /* ------------------------------------------------------------ ваучер
+   * Бланк повторяет ваучер, который оператор уже выдаёт клиентам
+   * (генератор в репозитории etihad-voucher): шапка с номером заказа,
+   * карточки пассажиров, перелёт двумя плечами со стрелкой, блок услуг
+   * справа, отели, список трансферов и экскурсий.
+   *
+   * Брендинг тут НАШ. В образце в шапке стоит логотип Etihad, но рейсы у
+   * тура выполняет Centrum Air, а ваучер выдаёт Turon Tourism — чужая
+   * эмблема на нём означала бы, что документ выпустила авиакомпания,
+   * которая к брони отношения не имеет.
+   *
+   * Стили инлайном: окно открывается через document.write, styles.css
+   * туда не подключён, а тащить весь файл ради одного бланка незачем.
+   * Цветовые токены — те же, что в образце.
+   */
+  var V = {
+    forest: "#14432c", forestDeep: "#0f2c1e", forestSoft: "#1f5c3d",
+    gold: "#b6912f", goldSoft: "#cbab52",
+    ivory: "#f7f4ec", paper: "#fffefb",
+    line: "#e6dfcd", ink: "#16241c", muted: "#6d7d72",
+  };
+
+  function voucherCss() {
+    return (
+      "@page{size:A4;margin:12mm}" +
+      "*{box-sizing:border-box}" +
+      "body{margin:0;background:" + V.ivory + ";color:" + V.ink + ";" +
+        "font:14px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}" +
+      ".sheet{max-width:820px;margin:24px auto;background:" + V.paper + ";" +
+        "border:1px solid " + V.line + ";border-radius:16px;padding:34px 38px 30px;" +
+        "box-shadow:0 24px 60px -24px rgba(12,36,24,.28)}" +
+      /* шапка */
+      ".vh{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:26px}" +
+      ".vh-brand{display:flex;align-items:center;gap:13px}" +
+      ".vh-brand img{height:52px;display:block}" +
+      ".vh-word{font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:700;" +
+        "letter-spacing:.26em;text-transform:uppercase;color:" + V.forest + ";line-height:1}" +
+      ".vh-sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:" + V.muted + ";margin-top:6px}" +
+      ".vh-order{text-align:right;white-space:nowrap}" +
+      ".vh-order span{display:block;font-size:13px;font-weight:700;color:" + V.forest + "}" +
+      ".vh-order strong{display:block;font-size:30px;font-weight:800;color:" + V.forestDeep + ";line-height:1.1}" +
+      ".vh-order em{display:block;font-style:normal;font-size:11px;color:" + V.muted + ";margin-top:3px}" +
+      /* заголовки разделов */
+      "h2{font-size:17px;font-weight:800;color:" + V.forest + ";margin:22px 0 10px}" +
+      "h2:first-of-type{margin-top:0}" +
+      /* карточки */
+      ".card{border:1.5px solid " + V.line + ";border-radius:11px;background:#fff;padding:11px 14px}" +
+      ".lbl{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:" + V.muted + "}" +
+      ".val{font-size:15px;font-weight:700;color:" + V.forestDeep + "}" +
+      /* пассажиры */
+      ".pax{display:grid;grid-template-columns:1fr auto auto;gap:10px;margin-bottom:9px}" +
+      ".pax-name{display:flex;align-items:center;gap:11px}" +
+      ".pax-name .val{font-size:17px;letter-spacing:.01em}" +
+      ".pax-ico{width:26px;height:26px;flex:none;fill:" + V.forest + "}" +
+      ".pax-type{font-size:10px;font-weight:700;letter-spacing:.08em;color:" + V.gold + ";margin-top:2px}" +
+      /* маршрут */
+      ".route{display:grid;grid-template-columns:1fr 250px;gap:12px;align-items:start}" +
+      ".legs{display:grid;gap:9px}" +
+      ".leg{display:grid;grid-template-columns:1fr 42px 1fr;align-items:center;gap:0}" +
+      ".leg .card{text-align:center;padding:9px 10px}" +
+      ".leg-date{font-size:12px;color:" + V.ink + "}" +
+      ".leg-time{font-size:12px;color:" + V.ink + ";margin-bottom:2px}" +
+      ".leg-city{font-size:17px;font-weight:800;color:" + V.forestDeep + ";letter-spacing:.01em}" +
+      ".leg-code{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:" + V.muted + ";margin-top:2px}" +
+      ".leg-mid{display:flex;justify-content:center}" +
+      ".leg-dot{width:32px;height:32px;border-radius:50%;background:" + V.forestSoft + ";" +
+        "display:flex;align-items:center;justify-content:center}" +
+      ".leg-dot svg{width:17px;height:17px;fill:#fff}" +
+      ".facts{display:grid;grid-template-columns:1fr 1fr;gap:14px 10px;height:100%;align-content:center}" +
+      ".facts .val{font-size:16px;color:" + V.forestSoft + "}" +
+      /* отели */
+      ".hotels{display:grid;grid-template-columns:1fr 1fr;gap:11px}" +
+      ".hotel .val{font-size:15px}" +
+      ".hotel-dates{font-size:11.5px;color:" + V.muted + ";margin-top:2px}" +
+      /* услуги */
+      ".svc{display:grid;gap:5px}" +
+      ".svc div{border:1.5px solid " + V.line + ";border-radius:9px;background:#fff;padding:7px 13px;font-size:13px}" +
+      /* подвал */
+      ".vf{margin-top:22px;padding-top:14px;border-top:1px solid " + V.line + ";" +
+        "display:flex;justify-content:space-between;gap:20px;font-size:11.5px;color:" + V.muted + "}" +
+      ".vf strong{color:" + V.forest + "}" +
+      ".warn{margin-top:12px;padding:9px 13px;border-radius:9px;background:#fbf3e3;" +
+        "border:1px solid #e8d9ae;color:#8a6a18;font-size:11.5px}" +
+      ".actions{max-width:820px;margin:0 auto 30px;display:flex;gap:10px}" +
+      ".actions button{font:inherit;font-weight:600;font-size:14px;padding:10px 18px;border-radius:10px;" +
+        "border:1px solid " + V.line + ";background:" + V.forest + ";color:#fff;cursor:pointer}" +
+      "@media print{body{background:#fff}.sheet{margin:0;border:0;border-radius:0;box-shadow:none;max-width:none}" +
+        ".no-print{display:none}}"
+    );
+  }
+
+  // Билет добавляет к общим стилям только своё: таблицу пассажиров и
+  // сегменты перелёта. Всё остальное — те же карточки, что у ваучера.
+  function ticketCss() {
+    return (
+      "table.tk{width:100%;border-collapse:collapse;margin:0 0 4px}" +
+      "table.tk th{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;" +
+        "color:" + V.muted + ";text-align:left;padding:0 10px 6px;border-bottom:1.5px solid " + V.line + "}" +
+      "table.tk td{padding:9px 10px;border-bottom:1px solid " + V.line + ";font-size:13.5px}" +
+      "table.tk td strong{color:" + V.forestDeep + ";font-size:14.5px}" +
+      "table.tk tr:last-child td{border-bottom:0}" +
+      ".seg{border:1.5px solid " + V.line + ";border-radius:11px;background:#fff;margin-bottom:10px;overflow:hidden}" +
+      ".seg-head{display:flex;justify-content:space-between;gap:14px;padding:8px 15px;" +
+        "background:" + V.ivory + ";border-bottom:1.5px solid " + V.line + ";" +
+        "font-size:11.5px;font-weight:700;color:" + V.forest + ";letter-spacing:.02em}" +
+      ".seg-head span:last-child{font-weight:600;color:" + V.muted + "}" +
+      ".seg-body{display:grid;grid-template-columns:1fr 120px 1fr;align-items:center;padding:13px 15px;gap:10px}" +
+      ".seg-body .val{font-size:22px;line-height:1.1}" +
+      ".seg-city{font-size:13px;font-weight:600;color:" + V.forest + ";margin-top:3px}" +
+      ".seg-date{font-size:11.5px;color:" + V.muted + ";margin-top:1px}" +
+      ".seg-mid{display:flex;flex-direction:column;align-items:center;gap:5px}" +
+      ".seg-dur{font-size:11px;color:" + V.muted + ";white-space:nowrap}"
+    );
+  }
+
+  var PLANE_SVG = '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg>';
+  var PERSON_SVG = '<svg class="pax-ico" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5Z"/></svg>';
+
+  // «07.08.2026» — в бланке даты только в таком виде, без словесных месяцев.
+  function vDate(iso) {
+    if (!iso) return "—";
+    var p = String(iso).slice(0, 10).split("-");
+    return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : iso;
+  }
+
+  // «4 ночи» — в app.js своего склонения нет, а тащить его из каталога
+  // ради одной строки бланка незачем.
+  function vNights(n) {
+    var m10 = n % 10, m100 = n % 100;
+    var w = (m10 === 1 && m100 !== 11) ? "ночь"
+          : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) ? "ночи" : "ночей";
+    return n + " " + w;
+  }
+
+  function paxType(birthDate, dateStart) {
+    var age = TuronApi.ageOn(birthDate, dateStart);
+    if (age == null || isNaN(age)) return "";
+    return age < 2 ? "INFANT" : age < 12 ? "CHILD" : "ADULT";
+  }
+
+  function legHtml(leg, date) {
+    return (
+      '<div class="leg">' +
+        '<div class="card">' +
+          '<div class="leg-date">' + esc(vDate(date)) + "</div>" +
+          '<div class="leg-time">' + esc(leg.dep) + "</div>" +
+          '<div class="leg-city">' + esc(leg.from_city.toUpperCase()) + "</div>" +
+          '<div class="leg-code">' + esc(leg.from_city) + " (" + esc(leg.from) + ")</div>" +
+        "</div>" +
+        '<div class="leg-mid"><span class="leg-dot">' + PLANE_SVG + "</span></div>" +
+        '<div class="card">' +
+          '<div class="leg-date">' + esc(vDate(date)) + "</div>" +
+          '<div class="leg-time">' + esc(leg.arr) + "</div>" +
+          '<div class="leg-city">' + esc(leg.to_city.toUpperCase()) + "</div>" +
+          '<div class="leg-code">' + esc(leg.to_city) + " (" + esc(leg.to) + ")</div>" +
+        "</div>" +
+      "</div>"
+    );
   }
 
   function openVoucher(code) {
@@ -12808,53 +12970,227 @@ window.TURON_DESTINATIONS = [
     var fl = TuronProvisional.flightsFor({
       transport: b.transport, date_start: b.date_start, nights: nights,
     });
+    var hotels = TuronProvisional.hotelsFor({ transport: b.transport });
+
+    // Окно открывается пустым (about:blank), поэтому относительный путь к
+    // логотипу в нём не разрешится — собираем абсолютный от адреса кабинета.
+    var logo = location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, "") +
+      "img/turon-logo.webp";
+
     var win = window.open("", "_blank");
     if (!win) { flash("Разрешите всплывающие окна, чтобы открыть ваучер."); return; }
 
+    var pax = (b.passengers || []).map(function (p) {
+      var type = paxType(p.birth_date, b.date_start);
+      return (
+        '<div class="pax">' +
+          '<div class="card pax-name">' + PERSON_SVG +
+            '<span class="val">' + esc(p.full_name) + "</span></div>" +
+          '<div class="card"><div class="lbl">Номер документа</div>' +
+            '<div class="val">' + esc(p.passport_number || "—") + "</div></div>" +
+          '<div class="card"><div class="lbl">Дата рождения</div>' +
+            '<div class="val">' + esc(vDate(p.birth_date)) + "</div>" +
+            (type ? '<div class="pax-type">' + type + "</div>" : "") +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    // Отели идут подряд: первый от даты заезда, второй — от даты выселения
+    // из первого. Так же, как их выдаёт оператор (4 ночи + 3 ночи).
+    var cursor = b.date_start;
+    var hotelHtml = hotels.map(function (h) {
+      var from = cursor;
+      var to = TuronApi.departureEnd(from, h.nights);
+      cursor = to;
+      return (
+        '<div class="card hotel"><div class="lbl">Отель ' + esc(h.city) + "</div>" +
+          '<div class="val">' + esc(h.name) + "</div>" +
+          '<div class="hotel-dates">' + esc(vDate(from)) + " — " + esc(vDate(to)) +
+            " (" + vNights(h.nights) + ")</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    var placements = [];
+    (b.passengers || []).forEach(function (p) {
+      if (p.placement && placements.indexOf(p.placement) === -1) placements.push(p.placement);
+    });
+
     win.document.write(
-      '<!doctype html><meta charset="utf-8"><title>Ваучер ' + esc(b.code) + "</title>" +
-      "<style>body{font:14px/1.5 Georgia,serif;margin:40px;color:#222}" +
-      "h1{font-size:20px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin:16px 0}" +
-      "th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;font-size:13px}" +
-      "th{background:#f2efe9}.muted{color:#666;font-size:12px}" +
-      ".head{display:flex;justify-content:space-between;align-items:flex-start;" +
-      "border-bottom:2px solid #0d302a;padding-bottom:12px}" +
-      "@media print{.no-print{display:none}}</style>" +
-      '<div class="head"><div><h1>Turon Tour</h1>' +
-        '<div class="muted">' + esc(op.address) + "<br />" +
-        esc(op.phone) + " · " + esc(op.email) + "</div></div>" +
-        "<div><strong>Ваучер " + esc(b.code) + '</strong><div class="muted">от ' +
-        esc((b.created_at || "").slice(0, 10)) + "</div></div></div>" +
-      "<p><strong>Заезд:</strong> " + formatRange(b.date_start, nights) + " · " +
-        esc(TRANSPORT[b.transport] || b.transport) + " · " + esc(b.departure_code) + "</p>" +
-      (fl
-        ? "<p><strong>Рейсы:</strong> " +
-          esc(fl.out.code) + " " + esc(fl.out.from) + "–" + esc(fl.out.to) + " " +
-          esc(fl.out.dep) + ", " + esc(fl.back.code) + " " + esc(fl.back.from) + "–" +
-          esc(fl.back.to) + " " + esc(fl.back.dep) +
-          ". Багаж " + esc(fl.out.baggage) + ", ручная кладь " +
-          esc(fl.out.cabin_baggage) + "</p>"
-        : "") +
-      "<table><tr><th>#</th><th>Фамилия и имя</th><th>Дата рождения</th>" +
-        "<th>Паспорт</th><th>Размещение</th><th>Тариф</th></tr>" +
-      (b.passengers || []).map(function (p, i) {
-        return "<tr><td>" + (i + 1) + "</td><td>" + esc(p.full_name) + "</td><td>" +
-          esc(p.birth_date) + "</td><td>" + esc(p.passport_number) + "</td><td>" +
-          esc(p.placement) + "</td><td>" + esc(p.tariff || p.price_code) + "</td></tr>";
-      }).join("") + "</table>" +
-      "<p><strong>Стоимость:</strong> " + money(b.total_price) +
-        " · оплачено " + money(b.paid) + " · остаток " + money(b.balance) + "</p>" +
-      (b.note ? "<p><strong>Примечание:</strong> " + esc(b.note) + "</p>" : "") +
-      '<p class="muted">Документ сформирован кабинетом агентства. Бланк ' +
-      "предварительный — форму ваучера оператор ещё не утвердил.</p>" +
-      '<button class="no-print" onclick="window.print()">Печать</button>'
+      '<!doctype html><html lang="ru"><head><meta charset="utf-8">' +
+      "<title>Ваучер " + esc(b.code) + "</title>" +
+      "<style>" + voucherCss() + "</style></head><body>" +
+      '<div class="sheet">' +
+        '<div class="vh">' +
+          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="">' +
+            "<div><div class=\"vh-word\">Turon Tour</div>" +
+            '<div class="vh-sub">' + esc(op.name) + "</div></div></div>" +
+          '<div class="vh-order"><span>Номер заказа:</span>' +
+            "<strong>" + esc(b.code) + "</strong>" +
+            "<em>от " + esc(vDate(b.created_at)) + "</em></div>" +
+        "</div>" +
+
+        "<h2>Информация о пассажирах:</h2>" + pax +
+
+        "<h2>Информация о маршруте:</h2>" +
+        '<div class="route">' +
+          '<div class="legs">' +
+            (fl ? legHtml(fl.out, fl.out.date) + legHtml(fl.back, fl.back.date)
+                : '<div class="card">Рейс на эту дату не в полётной программе — ' +
+                  "уточните у оператора.</div>") +
+          "</div>" +
+          '<div class="card facts">' +
+            '<div><div class="lbl">Стоимость</div><div class="val">' +
+              money(b.total_price) + "</div></div>" +
+            '<div><div class="lbl">Размещение</div><div class="val">' +
+              esc(placements.join(", ") || "—") + "</div></div>" +
+            '<div><div class="lbl">Ручная кладь</div><div class="val">' +
+              esc(fl ? fl.out.cabin_baggage : "—") + "</div></div>" +
+            '<div><div class="lbl">Багаж</div><div class="val">' +
+              esc(fl ? fl.out.baggage : "—") + "</div></div>" +
+          "</div>" +
+        "</div>" +
+
+        (hotelHtml ? "<h2>Проживание:</h2><div class=\"hotels\">" + hotelHtml + "</div>" : "") +
+
+        "<h2>Заезд:</h2>" +
+        '<div class="svc"><div>' + esc(formatRange(b.date_start, nights)) + " · " +
+          esc(TRANSPORT[b.transport] || b.transport) + " · заезд " +
+          esc(b.departure_code) + "</div>" +
+          (b.note ? "<div>Примечание: " + esc(b.note) + "</div>" : "") +
+        "</div>" +
+
+        '<div class="vf">' +
+          "<div><strong>" + esc(op.name) + "</strong><br>" + esc(op.address) + "</div>" +
+          "<div style=\"text-align:right\"><strong>" + esc(op.contact_name) + "</strong> · " +
+            esc(op.phone) + "<br>" + esc(op.email) + "</div>" +
+        "</div>" +
+        '<div class="warn">Бланк предварительный — форму ваучера оператор ещё ' +
+          "не утвердил. Рейсы и отели указаны по подтверждённому расписанию сезона.</div>" +
+      "</div>" +
+      '<div class="actions no-print">' +
+        '<button onclick="window.print()">Печать / PDF</button>' +
+      "</div></body></html>"
+    );
+    win.document.close();
+  }
+
+  /* ---------------------------------------------------------- авиабилет
+   * Маршрут-квитанция на перелёт, вторым документом к ваучеру. Оформление
+   * то же, что у ваучера, содержимое — только про перелёт: пассажиры с
+   * документами, оба плеча посегментно (рейс, борт, время, длительность),
+   * нормы багажа.
+   *
+   * QR-кода нет намеренно — так просил оператор. Посадочный талон
+   * выдаёт авиакомпания на стойке регистрации, а этот бланк нужен
+   * туристу как подтверждение перелёта в составе тура; кодом его всё
+   * равно нигде не сканируют, и нарисованный «для вида» квадрат только
+   * создавал бы впечатление, что документ проходит по контролю.
+   */
+  function segmentHtml(leg, date, idx) {
+    return (
+      '<div class="seg">' +
+        '<div class="seg-head">' +
+          "<span>Рейс " + esc(leg.code) + "</span>" +
+          "<span>" + esc(leg.carrier) + " · " + esc(leg.aircraft) + "</span>" +
+        "</div>" +
+        '<div class="seg-body">' +
+          "<div><div class=\"lbl\">Вылет</div>" +
+            '<div class="val">' + esc(leg.dep) + "</div>" +
+            '<div class="seg-city">' + esc(leg.from_city) + " (" + esc(leg.from) + ")</div>" +
+            '<div class="seg-date">' + esc(vDate(date)) + "</div></div>" +
+          '<div class="seg-mid"><span class="leg-dot">' + PLANE_SVG + "</span>" +
+            '<div class="seg-dur">' + esc(leg.duration) + "</div></div>" +
+          "<div><div class=\"lbl\">Прилёт</div>" +
+            '<div class="val">' + esc(leg.arr) + "</div>" +
+            '<div class="seg-city">' + esc(leg.to_city) + " (" + esc(leg.to) + ")</div>" +
+            '<div class="seg-date">' + esc(vDate(date)) + "</div></div>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function openTicket(code) {
+    var b = state.bookings.filter(function (x) { return x.code === code; })[0];
+    if (!b) return;
+    var op = TuronProvisional.OPERATOR;
+    var dep = state.departures.filter(function (x) {
+      return x.code === b.departure_code;
+    })[0];
+    var nights = dep ? dep.nights : null;
+    var fl = TuronProvisional.flightsFor({
+      transport: b.transport, date_start: b.date_start, nights: nights,
+    });
+    var logo = location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, "") +
+      "img/turon-logo.webp";
+
+    var win = window.open("", "_blank");
+    if (!win) { flash("Разрешите всплывающие окна, чтобы открыть билет."); return; }
+
+    var rows = (b.passengers || []).map(function (p, i) {
+      return "<tr><td>" + (i + 1) + "</td><td><strong>" + esc(p.full_name) +
+        "</strong></td><td>" + esc(vDate(p.birth_date)) + "</td><td>" +
+        esc(p.passport_number || "—") + "</td><td>" +
+        esc(paxType(p.birth_date, b.date_start)) + "</td></tr>";
+    }).join("");
+
+    win.document.write(
+      '<!doctype html><html lang="ru"><head><meta charset="utf-8">' +
+      "<title>Авиабилет " + esc(b.code) + "</title>" +
+      "<style>" + voucherCss() + ticketCss() + "</style></head><body>" +
+      '<div class="sheet">' +
+        '<div class="vh">' +
+          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="">' +
+            "<div><div class=\"vh-word\">Turon Tour</div>" +
+            '<div class="vh-sub">Маршрут-квитанция</div></div></div>' +
+          '<div class="vh-order"><span>Код бронирования:</span>' +
+            "<strong>" + esc(b.code) + "</strong>" +
+            "<em>от " + esc(vDate(b.created_at)) + "</em></div>" +
+        "</div>" +
+
+        "<h2>Пассажиры:</h2>" +
+        '<table class="tk"><tr><th>#</th><th>Фамилия и имя</th>' +
+          "<th>Дата рождения</th><th>Документ</th><th>Тип</th></tr>" +
+          rows + "</table>" +
+
+        "<h2>Перелёт:</h2>" +
+        (fl
+          ? segmentHtml(fl.out, fl.out.date, 0) + segmentHtml(fl.back, fl.back.date, 1)
+          : '<div class="card">Рейс на эту дату не в полётной программе — ' +
+            "уточните у оператора.</div>") +
+
+        (fl
+          ? "<h2>Нормы багажа:</h2>" +
+            '<div class="route"><div class="card facts">' +
+              '<div><div class="lbl">Багаж</div><div class="val">' +
+                esc(fl.out.baggage) + "</div></div>" +
+              '<div><div class="lbl">Ручная кладь</div><div class="val">' +
+                esc(fl.out.cabin_baggage) + "</div></div>" +
+            "</div><div></div></div>"
+          : "") +
+
+        '<div class="vf">' +
+          "<div><strong>" + esc(op.name) + "</strong><br>" + esc(op.address) + "</div>" +
+          "<div style=\"text-align:right\"><strong>" + esc(op.contact_name) + "</strong> · " +
+            esc(op.phone) + "<br>" + esc(op.email) + "</div>" +
+        "</div>" +
+        '<div class="warn">Перелёт входит в состав тура. Квитанцию выдаёт ' +
+          "Turon Tourism; посадочный талон выдаёт авиакомпания при регистрации. " +
+          "Бланк предварительный — форму оператор ещё не утвердил.</div>" +
+      "</div>" +
+      '<div class="actions no-print">' +
+        '<button onclick="window.print()">Печать / PDF</button>' +
+      "</div></body></html>"
     );
     win.document.close();
   }
 
   $("documents-list").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-voucher]");
-    if (btn) openVoucher(btn.dataset.voucher);
+    var v = e.target.closest("[data-voucher]");
+    if (v) { openVoucher(v.dataset.voucher); return; }
+    var t = e.target.closest("[data-ticket]");
+    if (t) openTicket(t.dataset.ticket);
   });
 
   $("tv-query").addEventListener("input", renderTravellers);
