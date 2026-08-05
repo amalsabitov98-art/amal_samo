@@ -2417,13 +2417,13 @@ select { font-family: inherit; }
   z-index: 0;
   width: 100%;
   height: 100%;
-  /* contain, а не cover: у кольца в кадре почти нет вертикального запаса
-     (~10% высоты), а сам блок теперь растянут на весь экран (100svh). На
-     мониторе шире 16:9 cover обрезал бы верх и низ ровно по кольцу — оно
-     переставало быть целым. contain всегда показывает кадр целиком; то,
-     что не покрыто видео по краям, закрывает фон блока (он тёмный и
-     близок по тону к углам самого ролика, поэтому полосы почти не видны). */
-  object-fit: contain;
+  /* cover, не contain: contain давал полосы по бокам почти на любом экране
+     шире 16:9, а видео должно быть «на весь экран» без полей. Вместо этого
+     у самого файла добавлены поля (blur-расширение фона сверху/снизу,
+     см. CLAUDE.md) — у кольца в родном кадре было только ~3-4% запаса по
+     вертикали, теперь ~13-16%, и cover обрезает эти добавленные поля на
+     широких мониторах, не задевая само кольцо. */
+  object-fit: cover;
   border-radius: inherit;
   pointer-events: none;
 }
@@ -9875,9 +9875,9 @@ window.TURON_DESTINATIONS = [
         root.innerHTML =
           '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-3" ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-4" ' +
               'aria-hidden="true" tabindex="-1">' +
-              '<source src="img/hero-travel.mp4?v=20260805-3" type="video/mp4" />' +
+              '<source src="img/hero-travel.mp4?v=20260805-4" type="video/mp4" />' +
             "</video>" +
             '<div class="tt-public-hero-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +

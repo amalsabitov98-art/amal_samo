@@ -653,9 +653,9 @@
         root.innerHTML =
           '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-3" ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-4" ' +
               'aria-hidden="true" tabindex="-1">' +
-              '<source src="img/hero-travel.mp4?v=20260805-3" type="video/mp4" />' +
+              '<source src="img/hero-travel.mp4?v=20260805-4" type="video/mp4" />' +
             "</video>" +
             '<div class="tt-public-hero-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
