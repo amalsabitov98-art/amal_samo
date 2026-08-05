@@ -13,10 +13,10 @@ DELETE FROM destinations;
 DELETE FROM tours;
 DELETE FROM agencies;
 
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', '66d83eae526c475ffe860e44c216dd47f01638f080517d76c6139530fbd6d309', 'a5edee78a28ae7df142268d339574bae', 'UMIDA', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'a9a354400e0e1de56f0100310a785a39508336805671a5edc35e885f58317443', '4a088c499dd45077cf246c57909e8059', 'EASY TOURISM', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', 'ea31004b690cd245c6914477b11e67920ca4fc10ea36633165158631aaad3166', 'f1bd8b7a4ac3f8b94139b5cda6946be2', 'OFO TOUR', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '3f244256d25b65fd63c0e57d2f43ff22680138c7f15dab4285ec01096ee430af', '603efd32454c219281bb6b794d588f8c', 'Turon Tour (оператор)', 'operator');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'c377221e12e2418303be8a350e34ba9eb927afac7621c675e01538cf0fd7e7fd', 'a5db0b81441a2d2b07924125001f7a82', 'UMIDA', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'd0afb110e665701db677352e1f542f15f87eb90bc99c0005f10f007bf3f89113', '3240723f3c3ffde18026b25052ffb458', 'EASY TOURISM', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', 'f98c006acddaeb7b839d1db8f5917102b5688c9bc99bf2b3f0035711adf0b943', 'aacfffee542693747ef4c5bb3d099b6b', 'OFO TOUR', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', 'a64f3d50edd87d1f6bd90f55710fcf726b0b83877da64a74d39271027599f811', '444e933d26fb7d55364f0c01ac9e0605', 'Turon Tour (оператор)', 'operator');
 
 INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Турция', 'Турция и Грузия', 'Черноморское побережье: Трабзон, Ризе, Батуми', 'img/hero-rize-batumi.webp', 1);
 INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Япония', 'Япония', 'Готовятся к запуску — ждём даты заездов и цены', NULL, 2);
@@ -66,11 +66,13 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 600, NULL, NULL, 1 FROM departures WHERE code = 'BUS2205';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'BUS2205';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 600, NULL, NULL, 1 FROM departures WHERE code = 'BUS2205';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'BUS2205';
 
 INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capacity, seats_taken) SELECT id, 'BUS2905', '2026-05-29', 'BUS', 0, 65, 32 FROM tours WHERE code = 'KARADENIZ';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 830, NULL, NULL, 1 FROM departures WHERE code = 'BUS2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'BUS2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 830, NULL, NULL, 1 FROM departures WHERE code = 'BUS2905';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'BUS2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 600, 5, 11, 1 FROM departures WHERE code = 'BUS2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 480, 2, 5, 1 FROM departures WHERE code = 'BUS2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS2905';
@@ -79,6 +81,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 830, NULL, NULL, 1 FROM departures WHERE code = 'TZX2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'TZX2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 830, NULL, NULL, 1 FROM departures WHERE code = 'TZX2905';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 790, NULL, NULL, 1 FROM departures WHERE code = 'TZX2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 600, 5, 11, 1 FROM departures WHERE code = 'TZX2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 480, 2, 5, 1 FROM departures WHERE code = 'TZX2905';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX2905';
@@ -87,6 +90,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS0506';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 630, 5, 11, 1 FROM departures WHERE code = 'BUS0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 510, 2, 5, 1 FROM departures WHERE code = 'BUS0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS0506';
@@ -96,6 +100,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'TZX0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX0506';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 600, 5, 11, 1 FROM departures WHERE code = 'TZX0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 480, 2, 5, 1 FROM departures WHERE code = 'TZX0506';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX0506';
@@ -105,6 +110,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'BUS1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS1206';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 650, 5, 11, 1 FROM departures WHERE code = 'BUS1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1206';
@@ -113,6 +119,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX1206';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 600, 5, 11, 1 FROM departures WHERE code = 'TZX1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 480, 2, 5, 1 FROM departures WHERE code = 'TZX1206';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX1206';
@@ -122,6 +129,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'BUS1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS1906';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 650, 5, 11, 1 FROM departures WHERE code = 'BUS1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1906';
@@ -131,6 +139,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'TZX1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX1906';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 650, 5, 11, 1 FROM departures WHERE code = 'TZX1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX1906';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX1906';
@@ -140,6 +149,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'BUS2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS2606';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'BUS2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 650, 5, 11, 1 FROM departures WHERE code = 'BUS2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS2606';
@@ -149,6 +159,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1095, NULL, NULL, 1 FROM departures WHERE code = 'TZX2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX2606';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 875, NULL, NULL, 1 FROM departures WHERE code = 'TZX2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 650, 5, 11, 1 FROM departures WHERE code = 'TZX2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX2606';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX2606';
@@ -158,6 +169,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS0307';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 700, 5, 11, 1 FROM departures WHERE code = 'BUS0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS0307';
@@ -167,6 +179,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX0307';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX0307';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 700, 5, 11, 1 FROM departures WHERE code = 'TZX0307';
 
 INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capacity, seats_taken) SELECT id, 'BUS1007', '2026-07-10', 'BUS', 0, 65, 64 FROM tours WHERE code = 'KARADENIZ';
@@ -174,6 +187,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS1007';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 700, 5, 11, 1 FROM departures WHERE code = 'BUS1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1007';
@@ -183,6 +197,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX1007';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_11', 'Chd 5-11', 'child', 700, 5, 11, 1 FROM departures WHERE code = 'TZX1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX1007';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX1007';
@@ -192,6 +207,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS1707';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1707';
@@ -201,6 +217,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX1707';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX1707';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX1707';
@@ -210,6 +227,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS2407';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS2407';
@@ -219,6 +237,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX2407';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX2407';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX2407';
@@ -228,6 +247,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS3107';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS3107';
@@ -237,6 +257,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX3107';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX3107';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX3107';
@@ -246,6 +267,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS0708';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS0708';
@@ -255,6 +277,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX0708';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX0708';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX0708';
@@ -264,6 +287,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS1408';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1408';
@@ -273,6 +297,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX1408';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX1408';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX1408';
@@ -282,6 +307,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS2108';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS2108';
@@ -291,6 +317,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX2108';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX2108';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX2108';
@@ -300,6 +327,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'BUS2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'BUS2808';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'BUS2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS2808';
@@ -309,6 +337,7 @@ INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, 
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'SNG', 'Одноместный (SNG)', 'placement', 1145, NULL, NULL, 1 FROM departures WHERE code = 'TZX2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 970, NULL, NULL, 1 FROM departures WHERE code = 'TZX2808';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 930, NULL, NULL, 1 FROM departures WHERE code = 'TZX2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX2808';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX2808';
@@ -317,6 +346,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'BUS0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS0409';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'BUS0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS0409';
@@ -325,6 +355,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'TZX0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'TZX0409';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'TZX0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'TZX0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'TZX0409';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'TZX0409';
@@ -333,6 +364,7 @@ INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour, capa
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBL', 'Двухместный (DBL)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS1109';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TRPL', 'Трёхместный (TRPL)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'BUS1109';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'TWIN', 'Двухместный раздельный (TWIN)', 'placement', 925, NULL, NULL, 1 FROM departures WHERE code = 'BUS1109';
+INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'DBLX', 'Доп. кровать (DBL+1)', 'placement', 880, NULL, NULL, 1 FROM departures WHERE code = 'BUS1109';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_5_10', 'Chd 5-10', 'child', 700, 5, 10, 1 FROM departures WHERE code = 'BUS1109';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'CHD_2_5', 'Chd 2-5', 'child', 550, 2, 5, 1 FROM departures WHERE code = 'BUS1109';
 INSERT INTO departure_prices (departure_id, code, label, kind, price, age_from, age_to, occupies_seat) SELECT id, 'INF', 'inf 0-2', 'child', 100, 0, 2, 0 FROM departures WHERE code = 'BUS1109';

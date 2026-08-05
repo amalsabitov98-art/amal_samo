@@ -857,6 +857,12 @@
 
       var passport = TuronApi.passportIssue(p.passport_expiry, d.date_start);
 
+      // Доп. кровать: тип размещения настоящий, а тарифа на него оператор
+      // не присылал — цена временная. Не блокируем бронь, но и молча
+      // непроверенную цифру агенту не показываем: он назовёт её клиенту.
+      var bed = TuronProvisional.EXTRA_BED;
+      var bedPending = bed && bed.pricePending && t.code === bed.code;
+
       box.innerHTML = '<span class="tt-pax-tariff">' + age + " лет · " + esc(t.label) + "</span>" +
         "<strong>" + money(t.price) + "</strong>" +
         (t.occupies_seat ? "" : '<span class="tt-muted-note"> · без места</span>') +
@@ -864,6 +870,7 @@
           ? '<span class="tt-price-warn"> · детский тариф на этот заезд не задан, ' +
             "посчитано по взрослому — менеджер уточнит</span>"
           : "") +
+        (bedPending ? '<span class="tt-price-warn"> · ' + esc(bed.note) + "</span>" : "") +
         (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
@@ -1464,19 +1471,30 @@
    */
   function renderMessages() {
     var op = TuronProvisional.OPERATOR;
+    // Менеджеров может быть несколько — рисуем всех. Запасной вариант со
+    // старыми плоскими полями оставлен на случай, если список пуст.
+    var managers = (op.managers && op.managers.length)
+      ? op.managers
+      : [{ name: op.contact_name, phone: op.phone, phone_href: op.phone_href,
+           telegram_href: op.telegram_href }];
+    var people = managers.map(function (m) {
+      return "<div><span>Менеджер" + (m.name ? " · " + esc(m.name) : "") +
+        "</span><strong><a href=\"tel:" + esc(m.phone_href) + '">' +
+        esc(m.phone) + "</a></strong>" +
+        (m.telegram_href
+          ? '<a class="tt-contact-tg" href="' + esc(m.telegram_href) +
+            '" target="_blank" rel="noopener">Telegram</a>'
+          : "") +
+        "</div>";
+    }).join("");
+
     $("messages-body").innerHTML =
       '<div class="tt-panel">' +
         "<h2>Контакты оператора</h2>" +
-        '<p class="tt-muted-note">По броням отвечает менеджер Turon Tour. ' +
+        '<p class="tt-muted-note">По броням отвечают менеджеры Turon Tour. ' +
         "Пишите в Telegram или звоните.</p>" +
         '<div class="tt-contact-grid">' +
-          (op.contact_name ? "<div><span>Менеджер</span><strong>" +
-            esc(op.contact_name) + "</strong></div>" : "") +
-          "<div><span>Телефон</span><strong><a href=\"tel:" + esc(op.phone_href) +
-            '">' + esc(op.phone) + "</a></strong></div>" +
-          (op.telegram_href ? "<div><span>Telegram</span><strong><a href=\"" +
-            esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
-            esc(op.phone) + "</a></strong></div>" : "") +
+          people +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +
           "<div><span>Офис</span><strong>" + esc(op.address) + "</strong></div>" +

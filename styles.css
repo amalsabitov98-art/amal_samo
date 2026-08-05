@@ -3680,6 +3680,14 @@ select { font-family: inherit; }
   margin-bottom: 3px;
 }
 .tt-contact-grid a { color: var(--tt-accent); }
+/* Telegram у менеджера идёт отдельной строкой под телефоном, а не своей
+   ячейкой: с несколькими менеджерами отдельные ячейки разрывали пару
+   «имя — телефон», и было не понять, чей это Telegram. */
+.tt-contact-tg {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
 
 @media (max-width: 720px) {
   .tt-row-card { grid-template-columns: 1fr 1fr; }

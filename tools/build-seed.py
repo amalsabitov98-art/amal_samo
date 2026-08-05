@@ -30,7 +30,37 @@ PLACEMENT_LABELS = {
     "TWIN": "Двухместный раздельный (TWIN)",
     "TRPL": "Трёхместный (TRPL)",
     "SNG": "Одноместный (SNG)",
+    "DBLX": "Доп. кровать (DBL+1)",
 }
+
+# ------------------------------------------------------------------ extra bed
+# Доп. кровать в двухместном номере: в ведомости такого тарифа НЕТ ни у
+# одного заезда, оператор его не присылал. Цена ВРЕМЕННАЯ — приравнена к
+# TRPL, потому что это ближайший реальный тариф оператора («третий в
+# номере»), а не выдуманное число. Настоящую цену обещали уточнить.
+#
+# КАК ПОМЕНЯТЬ, когда цену дадут: правится только это место.
+#   * одинаковая цена на все заезды  -> EXTRA_BED_PRICE = 850
+#   * скидка от двухместного         -> EXTRA_BED_FROM = "DBL", EXTRA_BED_DELTA = -75
+#   * свой тариф на каждый заезд     -> EXTRA_BED_OVERRIDES = {"TZX0506": 830, ...}
+# После правки ОБЯЗАТЕЛЬНО пересобрать: python3 tools/build-seed.py > db/seed.sql
+EXTRA_BED_CODE = "DBLX"
+EXTRA_BED_FROM = "TRPL"      # из какого тарифа считаем
+EXTRA_BED_DELTA = 0          # прибавка к нему в долларах
+EXTRA_BED_PRICE = None       # если задано — перебивает расчёт для всех заездов
+EXTRA_BED_OVERRIDES = {}     # {код заезда: цена} — перебивает всё остальное
+
+
+def extra_bed_price(departure):
+    """Временная цена доп. кровати. None — если посчитать не из чего."""
+    if departure["code"] in EXTRA_BED_OVERRIDES:
+        return EXTRA_BED_OVERRIDES[departure["code"]]
+    if EXTRA_BED_PRICE is not None:
+        return EXTRA_BED_PRICE
+    base = departure["prices"].get(EXTRA_BED_FROM)
+    # Заезда без базового тарифа быть не должно, но если он появится —
+    # молча пропускаем: пустая строка в прайсе лучше, чем цена с потолка.
+    return None if base is None else base + EXTRA_BED_DELTA
 
 DEMO_AGENCIES = [
     ("umida", "UMIDA", "agency"),
@@ -385,6 +415,12 @@ def main():
         rows = []
         for code, price in sorted(d["prices"].items()):
             rows.append((code, PLACEMENT_LABELS.get(code, code), "placement", price, None, None, 1))
+        # Доп. кровать идёт следом за тарифами из ведомости: в самой
+        # ведомости её нет, цена считается по правилу выше.
+        extra = extra_bed_price(d)
+        if extra is not None and EXTRA_BED_CODE not in d["prices"]:
+            rows.append((EXTRA_BED_CODE, PLACEMENT_LABELS[EXTRA_BED_CODE],
+                         "placement", extra, None, None, 1))
         for label, price in d["child_prices"].items():
             parsed = parse_child_label(label)
             if not parsed:

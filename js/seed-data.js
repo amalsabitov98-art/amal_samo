@@ -40,6 +40,15 @@ window.TURON_SEED = [
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
    }
   ]
  },
@@ -78,6 +87,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 830,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -151,6 +169,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -214,6 +241,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -296,6 +332,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -373,6 +418,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -436,6 +490,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -518,6 +581,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -590,6 +662,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -672,6 +753,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -744,6 +834,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -826,6 +925,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -903,6 +1011,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -957,6 +1074,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1039,6 +1165,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -1111,6 +1246,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1193,6 +1337,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -1265,6 +1418,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1347,6 +1509,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -1419,6 +1590,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1501,6 +1681,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -1573,6 +1762,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1655,6 +1853,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -1727,6 +1934,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1809,6 +2025,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -1881,6 +2106,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -1963,6 +2197,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -2035,6 +2278,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2117,6 +2369,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -2180,6 +2441,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -2253,6 +2523,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -2316,6 +2595,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1

@@ -3696,6 +3696,14 @@ select { font-family: inherit; }
   margin-bottom: 3px;
 }
 .tt-contact-grid a { color: var(--tt-accent); }
+/* Telegram у менеджера идёт отдельной строкой под телефоном, а не своей
+   ячейкой: с несколькими менеджерами отдельные ячейки разрывали пару
+   «имя — телефон», и было не понять, чей это Telegram. */
+.tt-contact-tg {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
 
 @media (max-width: 720px) {
   .tt-row-card { grid-template-columns: 1fr 1fr; }
@@ -5492,6 +5500,15 @@ window.TURON_SEED = [
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
    }
   ]
  },
@@ -5530,6 +5547,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 830,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -5603,6 +5629,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 790,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -5666,6 +5701,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -5748,6 +5792,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -5825,6 +5878,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -5888,6 +5950,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -5970,6 +6041,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -6042,6 +6122,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6124,6 +6213,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -6196,6 +6294,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 875,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6278,6 +6385,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -6355,6 +6471,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -6409,6 +6534,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6491,6 +6625,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_11",
     "label": "Chd 5-11",
     "kind": "child",
@@ -6563,6 +6706,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6645,6 +6797,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -6717,6 +6878,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6799,6 +6969,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -6871,6 +7050,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -6953,6 +7141,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7025,6 +7222,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -7107,6 +7313,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7179,6 +7394,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -7261,6 +7485,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7333,6 +7566,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -7415,6 +7657,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7487,6 +7738,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 970,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -7569,6 +7829,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 930,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7632,6 +7901,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -7705,6 +7983,15 @@ window.TURON_SEED = [
     "occupies_seat": 1
    },
    {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
     "code": "CHD_5_10",
     "label": "Chd 5-10",
     "kind": "child",
@@ -7768,6 +8055,15 @@ window.TURON_SEED = [
     "label": "Двухместный раздельный (TWIN)",
     "kind": "placement",
     "price": 925,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBLX",
+    "label": "Доп. кровать (DBL+1)",
+    "kind": "placement",
+    "price": 880,
     "age_from": null,
     "age_to": null,
     "occupies_seat": 1
@@ -8772,12 +9068,39 @@ window.TURON_DESTINATIONS = [
    * оператором идёт по телефону и в Telegram — переписки внутри
    * кабинета не нужно.
    */
+  /* Менеджеров несколько, поэтому список, а не одно поле. Первый в списке
+   * считается основным: его телефон стоит в подвале публичной страницы и в
+   * ваучере, где место есть ровно под один контакт. Полный список показывает
+   * вкладка «Контакты» в кабинете.
+   *
+   * Telegram указан только у Аскара — это подтверждённая ссылка. Для Ойбека
+   * дали телефон и ничего больше, а t.me/+номер сработает лишь если у него
+   * есть Telegram на этом номере; проверить мы не можем, поэтому не пишем. */
+  var MANAGERS = [
+    {
+      name: "Аскар",
+      phone: "+998 99 830 77 11",
+      phone_href: "+998998307711",
+      telegram_href: "https://t.me/+998998307711",
+    },
+    {
+      name: "Ойбек",
+      phone: "+998 97 743 09 09",
+      phone_href: "+998977430909",
+      telegram_href: null,
+    },
+  ];
+
   var OPERATOR = {
     name: "Turon Tourism",
-    contact_name: "Аскар",
-    phone: "+998 99 830 77 11",
-    phone_href: "+998998307711",
-    telegram_href: "https://t.me/+998998307711",
+    managers: MANAGERS,
+    // Основной контакт продублирован плоскими полями: подвал и ваучер
+    // читают их напрямую, и разбирать там список незачем. Берётся из
+    // MANAGERS[0], чтобы телефон не пришлось править в двух местах.
+    contact_name: MANAGERS[0].name,
+    phone: MANAGERS[0].phone,
+    phone_href: MANAGERS[0].phone_href,
+    telegram_href: MANAGERS[0].telegram_href,
     email: "info@turontourism.uz",
     address: "Ташкент, Шайхантахурский район, проспект Бунёдкор 6/1",
   };
@@ -8797,6 +9120,26 @@ window.TURON_DESTINATIONS = [
            url: "https://drive.google.com/uc?export=download&id=1MQwAqPMDjkgzSLDA7nvEOnV-IC3DEOU3" },
   };
 
+  /*
+   * 5. ДОП. КРОВАТЬ (DBL+1) — ЦЕНА НЕ ПОДТВЕРЖДЕНА
+   * ----------------------------------------------
+   * Сам тип размещения настоящий: оператор сказал, что в двухместный
+   * номер иногда можно поставить дополнительную кровать. А вот тарифа на
+   * него в ведомости нет ни у одного заезда, поэтому цена временно
+   * приравнена к TRPL («третий в номере») — ближайшему реальному тарифу.
+   *
+   * Пока цену не подтвердили, в форме брони рядом с суммой висит
+   * предупреждение: агент не должен называть клиенту эту цифру как
+   * окончательную. Когда цену дадут — правится EXTRA_BED_* в
+   * tools/build-seed.py, миграция для боевой базы, и отсюда убирается
+   * pricePending.
+   */
+  var EXTRA_BED = {
+    code: "DBLX",
+    pricePending: true,
+    note: "цена доп. кровати предварительная — уточните у оператора",
+  };
+
   function shiftDate(iso, days) {
     if (!iso) return null;
     var d = new Date(iso + "T00:00:00Z");
@@ -8810,6 +9153,7 @@ window.TURON_DESTINATIONS = [
     ROUTES: ROUTES,
     HOTELS: HOTELS,
     OPERATOR: OPERATOR,
+    EXTRA_BED: EXTRA_BED,
     PROGRAMS: PROGRAMS,
 
     // «прилёт Батуми · вылет Трабзон» — чтобы зеркальность была видна
@@ -11907,6 +12251,12 @@ window.TURON_DESTINATIONS = [
 
       var passport = TuronApi.passportIssue(p.passport_expiry, d.date_start);
 
+      // Доп. кровать: тип размещения настоящий, а тарифа на него оператор
+      // не присылал — цена временная. Не блокируем бронь, но и молча
+      // непроверенную цифру агенту не показываем: он назовёт её клиенту.
+      var bed = TuronProvisional.EXTRA_BED;
+      var bedPending = bed && bed.pricePending && t.code === bed.code;
+
       box.innerHTML = '<span class="tt-pax-tariff">' + age + " лет · " + esc(t.label) + "</span>" +
         "<strong>" + money(t.price) + "</strong>" +
         (t.occupies_seat ? "" : '<span class="tt-muted-note"> · без места</span>') +
@@ -11914,6 +12264,7 @@ window.TURON_DESTINATIONS = [
           ? '<span class="tt-price-warn"> · детский тариф на этот заезд не задан, ' +
             "посчитано по взрослому — менеджер уточнит</span>"
           : "") +
+        (bedPending ? '<span class="tt-price-warn"> · ' + esc(bed.note) + "</span>" : "") +
         (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
@@ -12514,19 +12865,30 @@ window.TURON_DESTINATIONS = [
    */
   function renderMessages() {
     var op = TuronProvisional.OPERATOR;
+    // Менеджеров может быть несколько — рисуем всех. Запасной вариант со
+    // старыми плоскими полями оставлен на случай, если список пуст.
+    var managers = (op.managers && op.managers.length)
+      ? op.managers
+      : [{ name: op.contact_name, phone: op.phone, phone_href: op.phone_href,
+           telegram_href: op.telegram_href }];
+    var people = managers.map(function (m) {
+      return "<div><span>Менеджер" + (m.name ? " · " + esc(m.name) : "") +
+        "</span><strong><a href=\"tel:" + esc(m.phone_href) + '">' +
+        esc(m.phone) + "</a></strong>" +
+        (m.telegram_href
+          ? '<a class="tt-contact-tg" href="' + esc(m.telegram_href) +
+            '" target="_blank" rel="noopener">Telegram</a>'
+          : "") +
+        "</div>";
+    }).join("");
+
     $("messages-body").innerHTML =
       '<div class="tt-panel">' +
         "<h2>Контакты оператора</h2>" +
-        '<p class="tt-muted-note">По броням отвечает менеджер Turon Tour. ' +
+        '<p class="tt-muted-note">По броням отвечают менеджеры Turon Tour. ' +
         "Пишите в Telegram или звоните.</p>" +
         '<div class="tt-contact-grid">' +
-          (op.contact_name ? "<div><span>Менеджер</span><strong>" +
-            esc(op.contact_name) + "</strong></div>" : "") +
-          "<div><span>Телефон</span><strong><a href=\"tel:" + esc(op.phone_href) +
-            '">' + esc(op.phone) + "</a></strong></div>" +
-          (op.telegram_href ? "<div><span>Telegram</span><strong><a href=\"" +
-            esc(op.telegram_href) + '" target="_blank" rel="noopener">' +
-            esc(op.phone) + "</a></strong></div>" : "") +
+          people +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +
           "<div><span>Офис</span><strong>" + esc(op.address) + "</strong></div>" +
