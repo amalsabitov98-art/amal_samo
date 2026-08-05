@@ -61,6 +61,23 @@
     return many;
   }
 
+  /* Существительное после числа в выдаче поиска. Раньше слово «заездов» было
+   * зашито прямо в строку, и на других языках получалось «Topildi 11 заездов»
+   * — русское слово посреди узбекской фразы. Теперь берётся из словаря.
+   *
+   * Правило склонения русское, поэтому применяется только к русскому: для
+   * английского оно врало бы на 21 и 31 («21 departure» вместо «departures»),
+   * а узбекскому и турецкому склонение после числа вообще не нужно — там во
+   * всех трёх формах одно слово. */
+  function countWord(n) {
+    var one = tr("search.foundOne");
+    var few = tr("search.foundFew");
+    var many = tr("search.foundMany");
+    var lang = global.TuronPublicUi && global.TuronPublicUi.language
+      ? global.TuronPublicUi.language() : "ru";
+    return lang === "ru" ? plural(n, one, few, many) : (n === 1 ? one : few);
+  }
+
   function crumbs(parts) {
     return '<nav class="tt-crumbs">' + parts.map(function (p, i) {
       if (i === parts.length - 1) return "<span>" + esc(p.text) + "</span>";
@@ -684,8 +701,7 @@
       function showCount() {
         var n = matches().length;
         hint.textContent = n
-          ? tr("search.found") + " " + n + " " +
-            plural(n, "заезд", "заезда", "заездов")
+          ? tr("search.found") + " " + n + " " + countWord(n)
           : tr("search.none");
       }
 
@@ -735,7 +751,7 @@
             esc(tr("search.resultsKicker")) + "</span><h2>" +
             (found.length
               ? esc(tr("search.found")) + " " + found.length + " " +
-                plural(found.length, "заезд", "заезда", "заездов")
+                esc(countWord(found.length))
               : esc(tr("search.none"))) +
             "</h2></div></div>" +
           (found.length

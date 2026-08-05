@@ -8919,6 +8919,9 @@ window.TURON_DESTINATIONS = [
       "search.anyAirport": "Любой",
       "search.submit": "Найти туры",
       "search.found": "Найдено",
+      "search.foundOne": "заезд",
+      "search.foundFew": "заезда",
+      "search.foundMany": "заездов",
       "search.none": "Ничего не найдено",
       "search.noneHint": "По этим условиям заездов нет. Попробуйте другой месяц или аэропорт.",
       "search.resultsKicker": "Результаты поиска",
@@ -8966,7 +8969,7 @@ window.TURON_DESTINATIONS = [
       "benefit.support.title": "Sug‘urta va 24/7 ko‘mak",
       "benefit.support.text": "Butun davrga tibbiy sug‘urta va istalgan vaqtda biz bilan aloqa.",
       "upcoming.kicker": "Sotuvdagi sanalar",
-      "upcoming.title": "Eng yaqin zaezdlar",
+      "upcoming.title": "Eng yaqin jo‘nashlar",
       "upcoming.text": "Sana, aeroport va narx — tanlash uchun kerakli hammasi. Joylar hali bor.",
       "upcoming.action": "Dastur va narxlar",
       "search.destination": "Yo‘nalish",
@@ -8977,8 +8980,11 @@ window.TURON_DESTINATIONS = [
       "search.anyAirport": "Istalgan",
       "search.submit": "Turlarni topish",
       "search.found": "Topildi",
+      "search.foundOne": "jo‘nash",
+      "search.foundFew": "jo‘nash",
+      "search.foundMany": "jo‘nash",
       "search.none": "Hech narsa topilmadi",
-      "search.noneHint": "Bu shartlar bo‘yicha zaezdlar yo‘q. Boshqa oy yoki aeroportni tanlang.",
+      "search.noneHint": "Bu shartlar bo‘yicha jo‘nashlar yo‘q. Boshqa oy yoki aeroportni tanlang.",
       "search.resultsKicker": "Qidiruv natijalari",
       "catalog.kicker": "Turon Tour kolleksiyasi",
       "catalog.title": "Yo‘nalishni tanlang",
@@ -9035,6 +9041,9 @@ window.TURON_DESTINATIONS = [
       "search.anyAirport": "Any",
       "search.submit": "Find tours",
       "search.found": "Found",
+      "search.foundOne": "departure",
+      "search.foundFew": "departures",
+      "search.foundMany": "departures",
       "search.none": "Nothing found",
       "search.noneHint": "No departures match these filters. Try another month or airport.",
       "search.resultsKicker": "Search results",
@@ -9093,6 +9102,9 @@ window.TURON_DESTINATIONS = [
       "search.anyAirport": "Herhangi biri",
       "search.submit": "Tur ara",
       "search.found": "Bulundu",
+      "search.foundOne": "kalkış",
+      "search.foundFew": "kalkış",
+      "search.foundMany": "kalkış",
       "search.none": "Sonuç bulunamadı",
       "search.noneHint": "Bu filtrelere uyan kalkış yok. Başka bir ay veya havalimanı deneyin.",
       "search.resultsKicker": "Arama sonuçları",
@@ -9462,6 +9474,23 @@ window.TURON_DESTINATIONS = [
     if (m10 === 1 && m100 !== 11) return one;
     if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
     return many;
+  }
+
+  /* Существительное после числа в выдаче поиска. Раньше слово «заездов» было
+   * зашито прямо в строку, и на других языках получалось «Topildi 11 заездов»
+   * — русское слово посреди узбекской фразы. Теперь берётся из словаря.
+   *
+   * Правило склонения русское, поэтому применяется только к русскому: для
+   * английского оно врало бы на 21 и 31 («21 departure» вместо «departures»),
+   * а узбекскому и турецкому склонение после числа вообще не нужно — там во
+   * всех трёх формах одно слово. */
+  function countWord(n) {
+    var one = tr("search.foundOne");
+    var few = tr("search.foundFew");
+    var many = tr("search.foundMany");
+    var lang = global.TuronPublicUi && global.TuronPublicUi.language
+      ? global.TuronPublicUi.language() : "ru";
+    return lang === "ru" ? plural(n, one, few, many) : (n === 1 ? one : few);
   }
 
   function crumbs(parts) {
@@ -10087,8 +10116,7 @@ window.TURON_DESTINATIONS = [
       function showCount() {
         var n = matches().length;
         hint.textContent = n
-          ? tr("search.found") + " " + n + " " +
-            plural(n, "заезд", "заезда", "заездов")
+          ? tr("search.found") + " " + n + " " + countWord(n)
           : tr("search.none");
       }
 
@@ -10138,7 +10166,7 @@ window.TURON_DESTINATIONS = [
             esc(tr("search.resultsKicker")) + "</span><h2>" +
             (found.length
               ? esc(tr("search.found")) + " " + found.length + " " +
-                plural(found.length, "заезд", "заезда", "заездов")
+                esc(countWord(found.length))
               : esc(tr("search.none"))) +
             "</h2></div></div>" +
           (found.length
