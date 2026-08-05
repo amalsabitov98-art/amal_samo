@@ -411,6 +411,9 @@
     // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
     // калькуляторе перерисовывали её из памяти, а не дёргали API.
     var loadedTour = null;
+    // Слушатели пробуждения видео вешаются на документ, а он один — значит
+    // и вешать их надо один раз, а не при каждой отрисовке титульной.
+    var heroWakeBound = false;
 
     function seatsLabel(free) {
       if (free <= 0) return { text: "мест нет", level: "is-full" };
@@ -806,7 +809,13 @@
         if (video && global.matchMedia &&
             global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           video.removeAttribute("autoplay");
+          // Метка для resumeHero: иначе, если «уменьшить движение» включили
+          // уже после того, как слушатели пробуждения повисли на документе,
+          // они бы честно завели остановленный ролик обратно.
+          video.setAttribute("data-no-autoplay", "");
           video.pause();
+        } else {
+          keepHeroPlaying(video);
         }
         initSearch();
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
@@ -916,6 +925,43 @@
       if (screen) {
         screen.classList.toggle("has-hero", !!root.querySelector(".tt-public-intro"));
       }
+    }
+
+    /* Свёрнутый браузер (или уход на другую вкладку) усыпляет фоновое видео,
+     * и обратно само оно уже не заводится: вернувшись на страницу, зритель
+     * видел застывший кадр вместо ролика. autoplay тут не помогает — он
+     * срабатывает один раз при загрузке.
+     *
+     * Поэтому будим сами. visibilitychange ловит переключение вкладок и
+     * сворачивание, pageshow — возврат «назад» из bfcache (там документ
+     * восстанавливается целиком, событие видимости не приходит).
+     * play() возвращает промис и на заблокированном автовоспроизведении
+     * отваливается — гасим, иначе в консоли висит необработанный reject. */
+    function resumeHero() {
+      // Видео ищем заново, а не держим ссылку: каталог перерисовывается при
+      // каждом переходе, и старый элемент к этому моменту уже выброшен.
+      var video = root.querySelector(".tt-hero-video");
+      if (!video || global.document.hidden || !video.paused) return;
+      if (video.hasAttribute("data-no-autoplay")) return;
+      var started = video.play();
+      if (started && started.catch) started.catch(function () {});
+    }
+
+    function keepHeroPlaying(video) {
+      if (!video) return;
+      // Браузер может усыпить ролик и без смены видимости (экономия батареи
+      // на ноутбуке) — тогда единственный сигнал это сам pause. Слушатель
+      // висит на самом элементе и умирает вместе с ним при перерисовке.
+      video.addEventListener("pause", function () {
+        global.setTimeout(resumeHero, 120);
+      });
+      if (heroWakeBound) return;
+      heroWakeBound = true;
+      // А эти двое — на документе, поэтому вешаются один раз на экземпляр
+      // каталога: иначе каждый переход «каталог → тур → назад» добавлял бы
+      // ещё пару, и к концу сессии их набирались бы десятки.
+      global.document.addEventListener("visibilitychange", resumeHero);
+      global.addEventListener("pageshow", resumeHero);
     }
 
     function draw() {
