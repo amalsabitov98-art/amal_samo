@@ -1331,6 +1331,106 @@ a { color: inherit; }
    Четыре факта, каждый взят из tour_content kind='included' (перелёт,
    отели, гид, поддержка) — выдуманных обещаний тут быть не должно.
    Правится программа тура — правится и этот блок. */
+/* ------------------------------------------------ ближайшие заезды
+   Подача с референса Globe Express: фото на всю карточку, мелкая подпись
+   сверху, крупное главное снизу. Крупным идёт ДАТА, а не название тура —
+   маршрут у всех заездов один, выбирают именно дату. */
+.tt-upcoming {
+  margin-bottom: clamp(56px, 7vw, 96px);
+  scroll-margin-top: 150px;
+}
+.tt-up-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.tt-up-card {
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg);
+  /* фон-картинка приходит инлайном из upcomingCard */
+  background-color: var(--tt-surface);
+  background-size: cover;
+  background-position: center;
+  color: #fffaf0;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+/* Затемнение снизу — под текст. Без него подпись пропадала на светлых
+   кадрах (небо на закате), а на тёмных читалась нормально: проверять
+   такие карточки надо на самом светлом фото, а не на первом попавшемся. */
+.tt-up-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(4, 12, 15, 0.08) 0%,
+    rgba(4, 12, 15, 0.52) 52%,
+    rgba(4, 12, 15, 0.88) 100%);
+}
+.tt-up-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--tt-shadow-hover);
+}
+.tt-up-card:focus-visible {
+  outline: 2px solid var(--tt-accent);
+  outline-offset: 3px;
+}
+.tt-up-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  padding: 18px;
+}
+.tt-up-meta {
+  color: rgba(255, 250, 240, 0.82);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tt-up-date {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.72rem;
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+.tt-up-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+.tt-up-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tt-up-price i {
+  margin-right: 5px;
+  color: rgba(255, 250, 240, 0.7);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tt-up-go {
+  color: var(--tt-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
 .tt-benefits {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1366,6 +1466,16 @@ a { color: inherit; }
   color: var(--tt-text-muted);
   font-size: 0.74rem;
   line-height: 1.6;
+}
+/* Четыре колонки держатся только на широком экране. Без этого блок оставался
+   четырёхколоночным и на телефоне: на 390px в колонке помещалось по одному
+   слову, заголовки переносились по буквам и вылезали за карточку. */
+@media (max-width: 860px) {
+  .tt-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .tt-benefits { grid-template-columns: minmax(0, 1fr); }
+  .tt-benefit { padding: 22px 20px; }
 }
 
 html { scroll-behavior: smooth; }
@@ -2412,7 +2522,33 @@ select { font-family: inherit; }
     linear-gradient(0deg, rgba(8, 43, 37, 0.18), rgba(8, 43, 37, 0.18));
   pointer-events: none;
 }
-.tt-public-intro > * { position: relative; z-index: 2; }
+/* Растворение низа героя в фоне страницы. Без него тёмное видео обрывалось
+   в кремовый фон ровной горизонтальной линией — она читалась как дефект
+   вёрстки, а не как граница блока. Цвет берётся из --tt-bg, а он переопределён
+   на #screen-public для тёмной темы, поэтому правило одно на обе: в светлой
+   уходит в кремовый, в тёмной — в почти чёрный (там растворение и так
+   незаметно, фон страницы и герой почти одного цвета).
+   z-index 2 — выше ::before (1) и видео (0). Содержимое героя лежит в первом
+   экране, до низа не достаёт, так что перекрыть ему нечего. */
+.tt-public-intro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: clamp(64px, 8vh, 112px);
+  /* Растяжка неравномерная: ровный переход от тёмного к кремовому идёт через
+     серый и выглядит мутной дымкой на пол-экрана. Здесь почти вся плотность
+     собрана у самой кромки — видео остаётся чётким, а линии на стыке нет. */
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,
+    color-mix(in srgb, var(--tt-bg) 18%, transparent) 58%,
+    color-mix(in srgb, var(--tt-bg) 62%, transparent) 84%,
+    var(--tt-bg) 100%);
+  pointer-events: none;
+}
+.tt-public-intro > * { position: relative; z-index: 3; }
 .tt-hero-video {
   position: absolute;
   inset: 0;
@@ -2420,11 +2556,12 @@ select { font-family: inherit; }
   width: 100%;
   height: 100%;
   /* cover, не contain: contain давал полосы по бокам почти на любом экране
-     шире 16:9, а видео должно быть «на весь экран» без полей. Вместо этого
-     у самого файла добавлены поля (blur-расширение фона сверху/снизу,
-     см. CLAUDE.md) — у кольца в родном кадре было только ~3-4% запаса по
-     вертикали, теперь ~13-16%, и cover обрезает эти добавленные поля на
-     широких мониторах, не задевая само кольцо. */
+     шире 16:9, а видео должно быть «на весь экран» без полей.
+     Запас под обрезку даёт высота блока (145svh, см. .tt-public-intro выше),
+     а НЕ поля в самом файле: размытое blur-расширение фона, которое там
+     когда-то было, читалось сверху и снизу ровными полосами со швом на
+     границе с настоящим кадром — ровно та «линия», из-за которой всё и
+     переделывалось. Файл снова в родном кадре 2560×1440. */
   object-fit: cover;
   border-radius: inherit;
   pointer-events: none;
@@ -3173,6 +3310,7 @@ select { font-family: inherit; }
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
      они обрезают «Все направления» на середине слова. */
+  .tt-up-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search-btn { grid-column: 1 / -1; }
   .tt-search-row {
@@ -3265,6 +3403,7 @@ select { font-family: inherit; }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
   .tt-theme-btn { width: 40px; height: 40px; }
+  .tt-up-grid { grid-template-columns: 1fr; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-dep { display: block; }

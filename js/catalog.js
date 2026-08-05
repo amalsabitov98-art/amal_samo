@@ -270,6 +270,96 @@
     );
   }
 
+  /*
+   * ---------------------------------------------------- ближайшие заезды
+   * Полоса карточек под преимуществами. Подача взята с референса Globe
+   * Express (фото на всю карточку, мелкая подпись сверху, крупное главное
+   * снизу, цена и действие), но содержимое — наши настоящие заезды.
+   *
+   * Каруселей с чужими странами не делаем: тур в продаже один, и «5
+   * направлений» пришлось бы выдумывать. Крупным на карточке идёт ДАТА, а
+   * не название тура: у всех заездов маршрут один и тот же, выбирают
+   * именно дату.
+   *
+   * Фотографии настоящие, но привязаны к позиции карточки, а не к
+   * конкретному заезду — все они сняты на этом же маршруте (Ризе и
+   * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
+   * фото именно того заезда» тут нет и быть не может.
+   */
+  var ROUTE_PHOTOS = [
+    "img/hero-rize-batumi.webp",
+    "img/tour-rize-tea-valley.webp",
+    "img/hero-batumi-sunset.webp",
+    "img/tour-batumi-boulevard.webp",
+    "img/hero-rize-morning.webp",
+  ];
+
+  // «4 — 11 сентября»: месяц не повторяем, если он один и тот же.
+  function dateSpan(dateStart, nights) {
+    var end = TuronApi.departureEnd(dateStart, nights);
+    if (!end) return dateLong(dateStart);
+    var a = new Date(dateStart + "T00:00:00Z");
+    var b = new Date(end + "T00:00:00Z");
+    if (a.getUTCMonth() === b.getUTCMonth()) {
+      return a.getUTCDate() + " — " + dateLong(end);
+    }
+    return dateLong(dateStart) + " — " + dateLong(end);
+  }
+
+  /*
+   * Карточки группируются по ДАТЕ, а не по заезду. На одну и ту же неделю
+   * обычно есть два заезда — через Батуми и через Трабзон, — и по карточке
+   * на каждый давало четыре плитки на две недели с одинаковыми крупными
+   * заголовками: с виду опечатка, а не выбор. Группировка показывает четыре
+   * разные недели, оба аэропорта уходят в подпись, цена берётся
+   * минимальная по группе (это и есть честное «от»).
+   */
+  function groupByDate(list) {
+    var order = [], byDate = {};
+    list.forEach(function (d) {
+      var g = byDate[d.date_start];
+      if (!g) {
+        g = byDate[d.date_start] = {
+          date_start: d.date_start, nights: d.nights, tour_code: d.tour_code,
+          transports: [], min_price: null,
+        };
+        order.push(g);
+      }
+      if (g.transports.indexOf(d.transport) === -1) g.transports.push(d.transport);
+      if (d.min_price != null && (g.min_price == null || d.min_price < g.min_price)) {
+        g.min_price = d.min_price;
+      }
+    });
+    return order;
+  }
+
+  function upcomingCard(g, i) {
+    var air = g.transports.map(function (t) {
+      // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
+      return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
+    }).join(" · ");
+    var meta = ["Авиа · " + air];
+    if (g.nights) {
+      meta.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
+    }
+    return (
+      '<button class="tt-up-card" data-tour="' + esc(g.tour_code) + '" ' +
+        'style="background-image:url(' +
+        esc(ROUTE_PHOTOS[i % ROUTE_PHOTOS.length]) + ')">' +
+        '<span class="tt-up-body">' +
+          '<span class="tt-up-meta">' + esc(meta.join(" · ")) + "</span>" +
+          '<span class="tt-up-date">' + esc(dateSpan(g.date_start, g.nights)) + "</span>" +
+          '<span class="tt-up-foot">' +
+            (g.min_price != null
+              ? '<span class="tt-up-price"><i>от</i>' + money(g.min_price) + "</span>"
+              : "<span></span>") +
+            '<span class="tt-up-go">' + esc(tr("upcoming.action")) + " →</span>" +
+          "</span>" +
+        "</span>" +
+      "</button>"
+    );
+  }
+
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
   function monthKey(iso) { return iso.slice(0, 7); }
   // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
@@ -548,6 +638,26 @@
      * каталогом, и упавший запрос не должен убирать со страницы направления.
      * Панель в этом случае просто остаётся с одним фильтром по направлению.
      */
+    /* Ближайшие заезды. Список уже загружен для поиска — второй раз в сеть
+     * не ходим. Если заездов нет (или маршрут /api/public/departures ещё не
+     * задеплоен и отдал пустоту), секция просто не появляется: пустой блок
+     * с заголовком «Ближайшие заезды» и ничем внутри выглядел бы поломкой. */
+    function renderUpcoming(list) {
+      var box = root.querySelector("#upcoming-departures");
+      if (!box) return;
+      var soon = groupByDate(list || []).slice(0, 4);
+      if (!soon.length) { box.hidden = true; return; }
+      box.hidden = false;
+      box.innerHTML =
+        '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+          esc(tr("upcoming.kicker")) + "</span><h2>" +
+          esc(tr("upcoming.title")) + "</h2></div><p>" +
+          esc(tr("upcoming.text")) + "</p></div>" +
+        '<div class="tt-up-grid">' +
+          soon.map(upcomingCard).join("") +
+        "</div>";
+    }
+
     function initSearch() {
       var form = root.querySelector("#tour-search");
       var out = root.querySelector("#tour-search-results");
@@ -609,6 +719,7 @@
         addOptions(monthSel, months);
         addOptions(airSel, airs);
         showCount();
+        renderUpcoming(all);
       }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
 
       form.addEventListener("change", showCount);
@@ -653,9 +764,9 @@
         root.innerHTML =
           '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-5" ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
               'aria-hidden="true" tabindex="-1">' +
-              '<source src="img/hero-travel.mp4?v=20260805-5" type="video/mp4" />' +
+              '<source src="img/hero-travel.mp4?v=20260805-6" type="video/mp4" />' +
             "</video>" +
             '<div class="tt-hero-content">' +
               '<div class="tt-public-hero-copy">' +
@@ -668,6 +779,7 @@
             "</div>" +
           "</section>" +
           benefitsHtml() +
+          '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +

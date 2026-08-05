@@ -1347,6 +1347,106 @@ a { color: inherit; }
    Четыре факта, каждый взят из tour_content kind='included' (перелёт,
    отели, гид, поддержка) — выдуманных обещаний тут быть не должно.
    Правится программа тура — правится и этот блок. */
+/* ------------------------------------------------ ближайшие заезды
+   Подача с референса Globe Express: фото на всю карточку, мелкая подпись
+   сверху, крупное главное снизу. Крупным идёт ДАТА, а не название тура —
+   маршрут у всех заездов один, выбирают именно дату. */
+.tt-upcoming {
+  margin-bottom: clamp(56px, 7vw, 96px);
+  scroll-margin-top: 150px;
+}
+.tt-up-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.tt-up-card {
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg);
+  /* фон-картинка приходит инлайном из upcomingCard */
+  background-color: var(--tt-surface);
+  background-size: cover;
+  background-position: center;
+  color: #fffaf0;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+/* Затемнение снизу — под текст. Без него подпись пропадала на светлых
+   кадрах (небо на закате), а на тёмных читалась нормально: проверять
+   такие карточки надо на самом светлом фото, а не на первом попавшемся. */
+.tt-up-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(4, 12, 15, 0.08) 0%,
+    rgba(4, 12, 15, 0.52) 52%,
+    rgba(4, 12, 15, 0.88) 100%);
+}
+.tt-up-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--tt-shadow-hover);
+}
+.tt-up-card:focus-visible {
+  outline: 2px solid var(--tt-accent);
+  outline-offset: 3px;
+}
+.tt-up-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  padding: 18px;
+}
+.tt-up-meta {
+  color: rgba(255, 250, 240, 0.82);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tt-up-date {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.72rem;
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+.tt-up-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+.tt-up-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tt-up-price i {
+  margin-right: 5px;
+  color: rgba(255, 250, 240, 0.7);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tt-up-go {
+  color: var(--tt-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
 .tt-benefits {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1382,6 +1482,16 @@ a { color: inherit; }
   color: var(--tt-text-muted);
   font-size: 0.74rem;
   line-height: 1.6;
+}
+/* Четыре колонки держатся только на широком экране. Без этого блок оставался
+   четырёхколоночным и на телефоне: на 390px в колонке помещалось по одному
+   слову, заголовки переносились по буквам и вылезали за карточку. */
+@media (max-width: 860px) {
+  .tt-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .tt-benefits { grid-template-columns: minmax(0, 1fr); }
+  .tt-benefit { padding: 22px 20px; }
 }
 
 html { scroll-behavior: smooth; }
@@ -2428,7 +2538,33 @@ select { font-family: inherit; }
     linear-gradient(0deg, rgba(8, 43, 37, 0.18), rgba(8, 43, 37, 0.18));
   pointer-events: none;
 }
-.tt-public-intro > * { position: relative; z-index: 2; }
+/* Растворение низа героя в фоне страницы. Без него тёмное видео обрывалось
+   в кремовый фон ровной горизонтальной линией — она читалась как дефект
+   вёрстки, а не как граница блока. Цвет берётся из --tt-bg, а он переопределён
+   на #screen-public для тёмной темы, поэтому правило одно на обе: в светлой
+   уходит в кремовый, в тёмной — в почти чёрный (там растворение и так
+   незаметно, фон страницы и герой почти одного цвета).
+   z-index 2 — выше ::before (1) и видео (0). Содержимое героя лежит в первом
+   экране, до низа не достаёт, так что перекрыть ему нечего. */
+.tt-public-intro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: clamp(64px, 8vh, 112px);
+  /* Растяжка неравномерная: ровный переход от тёмного к кремовому идёт через
+     серый и выглядит мутной дымкой на пол-экрана. Здесь почти вся плотность
+     собрана у самой кромки — видео остаётся чётким, а линии на стыке нет. */
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,
+    color-mix(in srgb, var(--tt-bg) 18%, transparent) 58%,
+    color-mix(in srgb, var(--tt-bg) 62%, transparent) 84%,
+    var(--tt-bg) 100%);
+  pointer-events: none;
+}
+.tt-public-intro > * { position: relative; z-index: 3; }
 .tt-hero-video {
   position: absolute;
   inset: 0;
@@ -2436,11 +2572,12 @@ select { font-family: inherit; }
   width: 100%;
   height: 100%;
   /* cover, не contain: contain давал полосы по бокам почти на любом экране
-     шире 16:9, а видео должно быть «на весь экран» без полей. Вместо этого
-     у самого файла добавлены поля (blur-расширение фона сверху/снизу,
-     см. CLAUDE.md) — у кольца в родном кадре было только ~3-4% запаса по
-     вертикали, теперь ~13-16%, и cover обрезает эти добавленные поля на
-     широких мониторах, не задевая само кольцо. */
+     шире 16:9, а видео должно быть «на весь экран» без полей.
+     Запас под обрезку даёт высота блока (145svh, см. .tt-public-intro выше),
+     а НЕ поля в самом файле: размытое blur-расширение фона, которое там
+     когда-то было, читалось сверху и снизу ровными полосами со швом на
+     границе с настоящим кадром — ровно та «линия», из-за которой всё и
+     переделывалось. Файл снова в родном кадре 2560×1440. */
   object-fit: cover;
   border-radius: inherit;
   pointer-events: none;
@@ -3189,6 +3326,7 @@ select { font-family: inherit; }
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
      они обрезают «Все направления» на середине слова. */
+  .tt-up-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search-btn { grid-column: 1 / -1; }
   .tt-search-row {
@@ -3281,6 +3419,7 @@ select { font-family: inherit; }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
   .tt-theme-btn { width: 40px; height: 40px; }
+  .tt-up-grid { grid-template-columns: 1fr; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-dep { display: block; }
@@ -8765,6 +8904,10 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Русскоговорящий узбекский гид сопровождает всю поездку.",
       "benefit.support.title": "Страховка и поддержка 24/7",
       "benefit.support.text": "Медицинская страховка на весь период и связь с нами в любое время.",
+      "upcoming.kicker": "Даты в продаже",
+      "upcoming.title": "Ближайшие заезды",
+      "upcoming.text": "Даты, аэропорт и цена — всё, что нужно, чтобы выбрать. Мест ещё хватает.",
+      "upcoming.action": "Программа и цены",
       "search.destination": "Направление",
       "search.anyDestination": "Все направления",
       "search.month": "Месяц выезда",
@@ -8819,6 +8962,10 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Rus tilida so‘zlashuvchi o‘zbek gid butun sayohat davomida yoningizda.",
       "benefit.support.title": "Sug‘urta va 24/7 ko‘mak",
       "benefit.support.text": "Butun davrga tibbiy sug‘urta va istalgan vaqtda biz bilan aloqa.",
+      "upcoming.kicker": "Sotuvdagi sanalar",
+      "upcoming.title": "Eng yaqin zaezdlar",
+      "upcoming.text": "Sana, aeroport va narx — tanlash uchun kerakli hammasi. Joylar hali bor.",
+      "upcoming.action": "Dastur va narxlar",
       "search.destination": "Yo‘nalish",
       "search.anyDestination": "Barcha yo‘nalishlar",
       "search.month": "Jo‘nash oyi",
@@ -8873,6 +9020,10 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "A Russian-speaking Uzbek guide accompanies the whole trip.",
       "benefit.support.title": "Insurance and 24/7 support",
       "benefit.support.text": "Medical insurance for the whole period and our team on call anytime.",
+      "upcoming.kicker": "Dates on sale",
+      "upcoming.title": "Upcoming departures",
+      "upcoming.text": "Dates, airport and price — everything you need to choose. Seats still available.",
+      "upcoming.action": "Programme and prices",
       "search.destination": "Destination",
       "search.anyDestination": "All destinations",
       "search.month": "Departure month",
@@ -8927,6 +9078,10 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Rusça konuşan Özbek rehber tüm yolculuk boyunca yanınızda.",
       "benefit.support.title": "Sigorta ve 7/24 destek",
       "benefit.support.text": "Tüm dönem için sağlık sigortası ve dilediğiniz an bize ulaşma imkânı.",
+      "upcoming.kicker": "Satıştaki tarihler",
+      "upcoming.title": "Yaklaşan kalkışlar",
+      "upcoming.text": "Tarih, havalimanı ve fiyat — seçim için gereken her şey. Yerler hâlâ mevcut.",
+      "upcoming.action": "Program ve fiyatlar",
       "search.destination": "Rota",
       "search.anyDestination": "Tüm rotalar",
       "search.month": "Kalkış ayı",
@@ -9515,6 +9670,96 @@ window.TURON_DESTINATIONS = [
     );
   }
 
+  /*
+   * ---------------------------------------------------- ближайшие заезды
+   * Полоса карточек под преимуществами. Подача взята с референса Globe
+   * Express (фото на всю карточку, мелкая подпись сверху, крупное главное
+   * снизу, цена и действие), но содержимое — наши настоящие заезды.
+   *
+   * Каруселей с чужими странами не делаем: тур в продаже один, и «5
+   * направлений» пришлось бы выдумывать. Крупным на карточке идёт ДАТА, а
+   * не название тура: у всех заездов маршрут один и тот же, выбирают
+   * именно дату.
+   *
+   * Фотографии настоящие, но привязаны к позиции карточки, а не к
+   * конкретному заезду — все они сняты на этом же маршруте (Ризе и
+   * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
+   * фото именно того заезда» тут нет и быть не может.
+   */
+  var ROUTE_PHOTOS = [
+    "img/hero-rize-batumi.webp",
+    "img/tour-rize-tea-valley.webp",
+    "img/hero-batumi-sunset.webp",
+    "img/tour-batumi-boulevard.webp",
+    "img/hero-rize-morning.webp",
+  ];
+
+  // «4 — 11 сентября»: месяц не повторяем, если он один и тот же.
+  function dateSpan(dateStart, nights) {
+    var end = TuronApi.departureEnd(dateStart, nights);
+    if (!end) return dateLong(dateStart);
+    var a = new Date(dateStart + "T00:00:00Z");
+    var b = new Date(end + "T00:00:00Z");
+    if (a.getUTCMonth() === b.getUTCMonth()) {
+      return a.getUTCDate() + " — " + dateLong(end);
+    }
+    return dateLong(dateStart) + " — " + dateLong(end);
+  }
+
+  /*
+   * Карточки группируются по ДАТЕ, а не по заезду. На одну и ту же неделю
+   * обычно есть два заезда — через Батуми и через Трабзон, — и по карточке
+   * на каждый давало четыре плитки на две недели с одинаковыми крупными
+   * заголовками: с виду опечатка, а не выбор. Группировка показывает четыре
+   * разные недели, оба аэропорта уходят в подпись, цена берётся
+   * минимальная по группе (это и есть честное «от»).
+   */
+  function groupByDate(list) {
+    var order = [], byDate = {};
+    list.forEach(function (d) {
+      var g = byDate[d.date_start];
+      if (!g) {
+        g = byDate[d.date_start] = {
+          date_start: d.date_start, nights: d.nights, tour_code: d.tour_code,
+          transports: [], min_price: null,
+        };
+        order.push(g);
+      }
+      if (g.transports.indexOf(d.transport) === -1) g.transports.push(d.transport);
+      if (d.min_price != null && (g.min_price == null || d.min_price < g.min_price)) {
+        g.min_price = d.min_price;
+      }
+    });
+    return order;
+  }
+
+  function upcomingCard(g, i) {
+    var air = g.transports.map(function (t) {
+      // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
+      return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
+    }).join(" · ");
+    var meta = ["Авиа · " + air];
+    if (g.nights) {
+      meta.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
+    }
+    return (
+      '<button class="tt-up-card" data-tour="' + esc(g.tour_code) + '" ' +
+        'style="background-image:url(' +
+        esc(ROUTE_PHOTOS[i % ROUTE_PHOTOS.length]) + ')">' +
+        '<span class="tt-up-body">' +
+          '<span class="tt-up-meta">' + esc(meta.join(" · ")) + "</span>" +
+          '<span class="tt-up-date">' + esc(dateSpan(g.date_start, g.nights)) + "</span>" +
+          '<span class="tt-up-foot">' +
+            (g.min_price != null
+              ? '<span class="tt-up-price"><i>от</i>' + money(g.min_price) + "</span>"
+              : "<span></span>") +
+            '<span class="tt-up-go">' + esc(tr("upcoming.action")) + " →</span>" +
+          "</span>" +
+        "</span>" +
+      "</button>"
+    );
+  }
+
   // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
   function monthKey(iso) { return iso.slice(0, 7); }
   // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
@@ -9793,6 +10038,26 @@ window.TURON_DESTINATIONS = [
      * каталогом, и упавший запрос не должен убирать со страницы направления.
      * Панель в этом случае просто остаётся с одним фильтром по направлению.
      */
+    /* Ближайшие заезды. Список уже загружен для поиска — второй раз в сеть
+     * не ходим. Если заездов нет (или маршрут /api/public/departures ещё не
+     * задеплоен и отдал пустоту), секция просто не появляется: пустой блок
+     * с заголовком «Ближайшие заезды» и ничем внутри выглядел бы поломкой. */
+    function renderUpcoming(list) {
+      var box = root.querySelector("#upcoming-departures");
+      if (!box) return;
+      var soon = groupByDate(list || []).slice(0, 4);
+      if (!soon.length) { box.hidden = true; return; }
+      box.hidden = false;
+      box.innerHTML =
+        '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+          esc(tr("upcoming.kicker")) + "</span><h2>" +
+          esc(tr("upcoming.title")) + "</h2></div><p>" +
+          esc(tr("upcoming.text")) + "</p></div>" +
+        '<div class="tt-up-grid">' +
+          soon.map(upcomingCard).join("") +
+        "</div>";
+    }
+
     function initSearch() {
       var form = root.querySelector("#tour-search");
       var out = root.querySelector("#tour-search-results");
@@ -9854,6 +10119,7 @@ window.TURON_DESTINATIONS = [
         addOptions(monthSel, months);
         addOptions(airSel, airs);
         showCount();
+        renderUpcoming(all);
       }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
 
       form.addEventListener("change", showCount);
@@ -9898,9 +10164,9 @@ window.TURON_DESTINATIONS = [
         root.innerHTML =
           '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-5" ' +
+              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
               'aria-hidden="true" tabindex="-1">' +
-              '<source src="img/hero-travel.mp4?v=20260805-5" type="video/mp4" />' +
+              '<source src="img/hero-travel.mp4?v=20260805-6" type="video/mp4" />' +
             "</video>" +
             '<div class="tt-hero-content">' +
               '<div class="tt-public-hero-copy">' +
@@ -9913,6 +10179,7 @@ window.TURON_DESTINATIONS = [
             "</div>" +
           "</section>" +
           benefitsHtml() +
+          '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company">' +
