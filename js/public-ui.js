@@ -310,6 +310,30 @@
     btn.setAttribute("title", dark ? t("theme.toLight") : t("theme.toDark"));
   }
 
+  /* Высота шапки уходит в CSS-переменную. На титульной шапка лежит поверх
+   * видео, и герою нужен отступ сверху ровно под неё. Угадывать нельзя: на
+   * телефоне полосы переносятся и высота вырастает с 138 до 254 px — на
+   * этом уже поймались, заголовок оказался под логотипом. Меняется она и
+   * при смене языка (подписи другой длины), поэтому слушаем ResizeObserver.
+   */
+  function syncTopbarHeight() {
+    var bar = document.querySelector(".tt-public-topbar");
+    if (!bar) return;
+    document.documentElement.style.setProperty(
+      "--tt-topbar-h", Math.round(bar.getBoundingClientRect().height) + "px");
+  }
+
+  function initTopbarHeight() {
+    var bar = document.querySelector(".tt-public-topbar");
+    if (!bar) return;
+    syncTopbarHeight();
+    if (global.ResizeObserver) {
+      new global.ResizeObserver(syncTopbarHeight).observe(bar);
+    } else {
+      global.addEventListener("resize", syncTopbarHeight);
+    }
+  }
+
   function initTheme() {
     var btn = document.getElementById("theme-toggle");
     if (btn) {
@@ -480,6 +504,7 @@
   loadRates();
 
   initTheme();
+  initTopbarHeight();
 
   global.TuronPublicUi = {
     t: t,

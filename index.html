@@ -43,6 +43,11 @@
 
 <!-- ------------------------------------------- публичный каталог (без входа) -->
 <div id="screen-public" hidden>
+  <!-- Шапка и поднавигация обёрнуты вместе: на титульной они ложатся
+       поверх видео одним блоком (класс has-hero на #screen-public), и
+       позиционировать две отдельные полосы было бы гаданием о высоте
+       первой. На остальных экранах блок остаётся обычным потоком. -->
+  <div class="tt-public-topbar">
   <header class="tt-header tt-public-header">
     <button class="tt-logo tt-public-brand" id="public-home-btn" type="button"
             aria-label="Turon Tour — на главную">
@@ -96,6 +101,7 @@
       <span data-i18n="nav.about">О компании</span><i>↘</i>
     </button>
   </nav>
+  </div>
   <main class="tt-container" id="public-catalog"></main>
 </div>
 

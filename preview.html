@@ -1180,11 +1180,13 @@ a { color: inherit; }
 :root[data-theme="dark"] .tt-theme-moon,
 :root[data-theme="light"] .tt-theme-sun { display: none; }
 
-:root:not([data-theme="light"]) #screen-public .tt-public-brand {
+/* Бренд в шапке — это <button>, а глобального сброса фона у кнопок в файле
+   нет: браузер подставляет свои ButtonFace и ButtonText. Сброс нужен в
+   ОБЕИХ темах — в светлой под логотипом вылезала такая же плашка, просто
+   на кремовом фоне её не замечали, пока шапка не легла на видео. */
+#screen-public .tt-public-brand {
   border: 0;
   background: transparent;
-  /* цвет тоже дефолтный от браузера (ButtonText, чёрный) — задаём явно,
-     иначе «Turon Tour» пропадает на тёмном фоне */
   color: var(--tt-text);
 }
 #screen-public .tt-public-footer { border-top: 1px solid var(--tt-border); }
@@ -1229,9 +1231,9 @@ a { color: inherit; }
 }
 :root:not([data-theme="light"]) #screen-public .tt-public-intro::before {
   background:
-    linear-gradient(180deg, rgba(4, 10, 12, 0.62) 0%, rgba(5, 14, 17, 0.1) 40%,
-                    rgba(5, 14, 17, 0.16) 60%, rgba(4, 10, 12, 0.72) 100%),
-    linear-gradient(0deg, rgba(6, 22, 27, 0.28), rgba(6, 22, 27, 0.28));
+    linear-gradient(180deg, rgba(4, 10, 12, 0.24) 0%, rgba(5, 14, 17, 0.06) 34%,
+                    rgba(5, 14, 17, 0.14) 62%, rgba(4, 10, 12, 0.72) 100%),
+    linear-gradient(0deg, rgba(6, 22, 27, 0.24), rgba(6, 22, 27, 0.24));
 }
 :root:not([data-theme="light"]) #screen-public .tt-public-hero-copy {
   background: radial-gradient(ellipse 76% 86% at 50% 50%,
@@ -2265,6 +2267,102 @@ select { font-family: inherit; }
 .tt-login-card .tt-link-btn { width: 100%; margin-top: 7px; color: #cddbd3; }
 
 /* ------------------------------------------------ public catalogue */
+/* ============================================================ шапка на видео
+   На титульной шапка и поднавигация лежат ПОВЕРХ ролика, а не полосой над
+   ним — иначе это не слайд, а картинка под меню. Класс has-hero ставит
+   catalog.js и только там, где видео действительно есть: на карточке тура
+   прозрачная шапка висела бы над обычным текстом.
+
+   Шапка не липкая — уезжает вместе со страницей (так выбрано).
+
+   Селекторы начинаются с :root не для красоты: правила тёмной темы
+   записаны как :root:not([data-theme="light"]) #screen-public … и весят
+   больше — без этого фон шапки оставался непрозрачным и поперёк видео
+   шла чёрная полоса.
+
+   Цвета здесь светлые НЕЗАВИСИМО от темы: ролик тёмный в обоих режимах, а
+   в дневной теме текст шапки тёмно-зелёный и на видео просто пропал бы. */
+#screen-public { position: relative; }
+
+:root #screen-public.has-hero .tt-public-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+}
+:root #screen-public.has-hero .tt-public-header,
+:root #screen-public.has-hero .tt-public-subnav {
+  position: relative;
+  border-bottom-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+}
+/* Подложка под текст шапки живёт на самой шапке и плавно сходит на нет.
+   Раньше верх кадра давил градиент самого героя — получалась заметная
+   тёмная полоса поперёк видео, ровно то, чего просили избежать. */
+:root #screen-public.has-hero .tt-public-topbar::before {
+  content: "";
+  position: absolute;
+  inset: -10px 0 -70px;
+  z-index: -1;
+  background: linear-gradient(180deg,
+    rgba(3, 10, 13, 0.74) 0%,
+    rgba(3, 10, 13, 0.42) 45%,
+    rgba(3, 10, 13, 0) 100%);
+  pointer-events: none;
+}
+
+/* бренд */
+:root #screen-public.has-hero .tt-public-brand {
+  border: 0;
+  background: transparent;
+  color: #fffaf0;
+}
+:root #screen-public.has-hero .tt-logo > span small { color: rgba(255, 250, 240, 0.62); }
+:root #screen-public.has-hero .tt-logo > .tt-logo-mark {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+/* стеклянные плашки инструментов */
+:root #screen-public.has-hero .tt-currency-board,
+:root #screen-public.has-hero .tt-language select,
+:root #screen-public.has-hero .tt-theme-btn,
+:root #screen-public.has-hero .tt-account-btn {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.09);
+  color: #fffaf0;
+  backdrop-filter: blur(10px);
+}
+:root #screen-public.has-hero .tt-currency-board strong { color: #fffaf0; }
+:root #screen-public.has-hero .tt-currency-board b { color: #e5c987; }
+:root #screen-public.has-hero .tt-currency-board > i { background: rgba(255, 255, 255, 0.28); }
+/* без color-scheme выпадающий список языка остаётся белым системным */
+:root #screen-public.has-hero .tt-language select { color-scheme: dark; }
+:root #screen-public.has-hero .tt-theme-btn:hover,
+:root #screen-public.has-hero .tt-account-btn:hover {
+  border-color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fffaf0;
+}
+
+/* разделы */
+:root #screen-public.has-hero .tt-public-subnav button {
+  color: rgba(255, 250, 240, 0.78);
+  background: transparent;
+}
+:root #screen-public.has-hero .tt-public-subnav button:hover,
+:root #screen-public.has-hero .tt-public-subnav button.is-active {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fffaf0;
+}
+:root #screen-public.has-hero .tt-public-subnav .tt-about-nav {
+  border-color: rgba(255, 255, 255, 0.26);
+  color: #fffaf0;
+}
+
 /* --------------------------------------------------------- титульный экран
    Видео на весь блок + текст и панель поиска колонкой по центру.
    Раскладка именно центральная, а не левая как раньше: в ролике композиция
@@ -2273,10 +2371,10 @@ select { font-family: inherit; }
    открытой — там и виден глобус. */
 .tt-public-intro {
   position: relative;
-  /* «На весь экран»: высота — окно минус шапка с поднавигацией. svh, а не
-     vh, — на телефоне vh считается по развёрнутому браузеру, и низ героя
-     уезжал бы под адресную строку. */
-  min-height: calc(100svh - 136px);
+  /* «На весь экран»: ровно окно. svh, а не vh, — на телефоне vh считается
+     по развёрнутому браузеру, и низ героя уезжал бы под адресную строку.
+     Шапка лежит поверх, поэтому вычитать её высоту не нужно. */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2284,7 +2382,12 @@ select { font-family: inherit; }
   gap: clamp(20px, 3vw, 34px);
   overflow: hidden;
   margin-bottom: clamp(72px, 9vw, 124px);
-  padding: clamp(52px, 6vw, 92px) clamp(22px, 4vw, 64px);
+  /* Сверху — запас ровно под шапку, которая лежит поверх. Высоту меряет
+     JS (--tt-topbar-h): на телефоне полосы переносятся, и захардкоженное
+     значение прятало заголовок под логотипом. Запасное значение на случай,
+     если скрипт не отработал. */
+  padding: calc(var(--tt-topbar-h, 150px) + clamp(26px, 5vh, 70px))
+           clamp(22px, 4vw, 64px) clamp(52px, 6vw, 92px);
   border-radius: 0;
   color: #fffaf0;
   background: #082b25;
@@ -2302,9 +2405,9 @@ select { font-family: inherit; }
   z-index: 1;
   border-radius: inherit;
   background:
-    linear-gradient(180deg, rgba(3, 24, 21, 0.52) 0%, rgba(4, 31, 27, 0.08) 40%,
-                    rgba(4, 31, 27, 0.14) 60%, rgba(3, 24, 21, 0.62) 100%),
-    linear-gradient(0deg, rgba(8, 43, 37, 0.2), rgba(8, 43, 37, 0.2));
+    linear-gradient(180deg, rgba(3, 24, 21, 0.2) 0%, rgba(4, 31, 27, 0.06) 34%,
+                    rgba(4, 31, 27, 0.12) 62%, rgba(3, 24, 21, 0.62) 100%),
+    linear-gradient(0deg, rgba(8, 43, 37, 0.18), rgba(8, 43, 37, 0.18));
   pointer-events: none;
 }
 .tt-public-intro > * { position: relative; z-index: 2; }
@@ -3048,7 +3151,8 @@ select { font-family: inherit; }
   .tt-route-pill { width: fit-content; margin-top: 13px; }
   .tt-public-intro {
     min-height: clamp(520px, 78svh, 720px);
-    padding: 64px 26px 56px;
+    /* верх — под шапку, которая лежит поверх видео (см. --tt-topbar-h) */
+    padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 26px 56px;
     border-radius: 22px;
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
@@ -3136,7 +3240,10 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro { min-height: clamp(560px, 82svh, 720px); padding: 56px 20px 48px; }
+  .tt-public-intro {
+    min-height: 100svh;
+    padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 20px 48px;
+  }
   .tt-public-intro h1 { font-size: 2.7rem; }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
@@ -3169,7 +3276,7 @@ select { font-family: inherit; }
 @media (max-width: 360px) {
   .tt-public-intro {
     min-height: 520px;
-    padding: 82px 18px 78px;
+    padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 18px 78px;
   }
   .tt-public-intro h1 { font-size: 2.35rem; }
   .tt-public-intro p { max-width: 100%; line-height: 1.65; }
@@ -4701,6 +4808,11 @@ select { font-family: inherit; }
 
 <!-- ------------------------------------------- публичный каталог (без входа) -->
 <div id="screen-public" hidden>
+  <!-- Шапка и поднавигация обёрнуты вместе: на титульной они ложатся
+       поверх видео одним блоком (класс has-hero на #screen-public), и
+       позиционировать две отдельные полосы было бы гаданием о высоте
+       первой. На остальных экранах блок остаётся обычным потоком. -->
+  <div class="tt-public-topbar">
   <header class="tt-header tt-public-header">
     <button class="tt-logo tt-public-brand" id="public-home-btn" type="button"
             aria-label="Turon Tour — на главную">
@@ -4754,6 +4866,7 @@ select { font-family: inherit; }
       <span data-i18n="nav.about">О компании</span><i>↘</i>
     </button>
   </nav>
+  </div>
   <main class="tt-container" id="public-catalog"></main>
 </div>
 
@@ -8887,6 +9000,30 @@ window.TURON_DESTINATIONS = [
     btn.setAttribute("title", dark ? t("theme.toLight") : t("theme.toDark"));
   }
 
+  /* Высота шапки уходит в CSS-переменную. На титульной шапка лежит поверх
+   * видео, и герою нужен отступ сверху ровно под неё. Угадывать нельзя: на
+   * телефоне полосы переносятся и высота вырастает с 138 до 254 px — на
+   * этом уже поймались, заголовок оказался под логотипом. Меняется она и
+   * при смене языка (подписи другой длины), поэтому слушаем ResizeObserver.
+   */
+  function syncTopbarHeight() {
+    var bar = document.querySelector(".tt-public-topbar");
+    if (!bar) return;
+    document.documentElement.style.setProperty(
+      "--tt-topbar-h", Math.round(bar.getBoundingClientRect().height) + "px");
+  }
+
+  function initTopbarHeight() {
+    var bar = document.querySelector(".tt-public-topbar");
+    if (!bar) return;
+    syncTopbarHeight();
+    if (global.ResizeObserver) {
+      new global.ResizeObserver(syncTopbarHeight).observe(bar);
+    } else {
+      global.addEventListener("resize", syncTopbarHeight);
+    }
+  }
+
   function initTheme() {
     var btn = document.getElementById("theme-toggle");
     if (btn) {
@@ -9057,6 +9194,7 @@ window.TURON_DESTINATIONS = [
   loadRates();
 
   initTheme();
+  initTopbarHeight();
 
   global.TuronPublicUi = {
     t: t,
@@ -9867,10 +10005,21 @@ window.TURON_DESTINATIONS = [
           "</section>";
     }
 
+    /* has-hero говорит стилям, что на экране есть видео и шапку можно класть
+     * поверх него. На карточке тура и в списке направлений видео нет —
+     * прозрачная шапка там висела бы над обычным текстом. */
+    function markHero() {
+      var screen = root.closest("#screen-public");
+      if (screen) {
+        screen.classList.toggle("has-hero", !!root.querySelector(".tt-public-intro"));
+      }
+    }
+
     function draw() {
-      if (view.kind === "tours") return renderTours(view.destination);
-      if (view.kind === "tour") return renderTour(view.code);
-      return renderDestinations();
+      var done = view.kind === "tours" ? renderTours(view.destination)
+               : view.kind === "tour" ? renderTour(view.code)
+               : renderDestinations();
+      return Promise.resolve(done).then(markHero, markHero);
     }
 
     function go(next, push) {

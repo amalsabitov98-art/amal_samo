@@ -794,10 +794,21 @@
           "</section>";
     }
 
+    /* has-hero говорит стилям, что на экране есть видео и шапку можно класть
+     * поверх него. На карточке тура и в списке направлений видео нет —
+     * прозрачная шапка там висела бы над обычным текстом. */
+    function markHero() {
+      var screen = root.closest("#screen-public");
+      if (screen) {
+        screen.classList.toggle("has-hero", !!root.querySelector(".tt-public-intro"));
+      }
+    }
+
     function draw() {
-      if (view.kind === "tours") return renderTours(view.destination);
-      if (view.kind === "tour") return renderTour(view.code);
-      return renderDestinations();
+      var done = view.kind === "tours" ? renderTours(view.destination)
+               : view.kind === "tour" ? renderTour(view.code)
+               : renderDestinations();
+      return Promise.resolve(done).then(markHero, markHero);
     }
 
     function go(next, push) {
