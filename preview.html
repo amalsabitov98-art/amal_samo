@@ -1226,7 +1226,6 @@ a { color: inherit; }
    поверх чёрной страницы он выглядел бы зелёным пятном. */
 :root:not([data-theme="light"]) #screen-public .tt-public-intro {
   background: #05090b;
-  box-shadow: 0 38px 110px rgba(0, 0, 0, 0.5);
 }
 :root:not([data-theme="light"]) #screen-public .tt-public-intro::before {
   background:
@@ -1645,10 +1644,19 @@ select { font-family: inherit; }
   font-style: normal;
 }
 
+/* Герой должен идти во всю ширину окна, поэтому колонку задаёт не сам
+   контейнер, а его дети — кроме героя. Раньше контейнер был обрезан до
+   1380px с боковыми отступами, и видео висело карточкой с чёрными полями
+   по краям. */
 #screen-public > .tt-container {
-  width: min(1380px, 100%);
+  width: 100%;
   max-width: none;
-  padding: clamp(22px, 3.2vw, 46px) clamp(20px, 4vw, 64px) 42px;
+  padding: 0 0 42px;
+}
+#screen-public > .tt-container > :not(.tt-public-intro) {
+  width: min(1380px, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4vw, 64px);
 }
 
 /* ---------------------------------------------------------- app shell */
@@ -2265,7 +2273,10 @@ select { font-family: inherit; }
    открытой — там и виден глобус. */
 .tt-public-intro {
   position: relative;
-  min-height: clamp(620px, 88vh, 940px);
+  /* «На весь экран»: высота — окно минус шапка с поднавигацией. svh, а не
+     vh, — на телефоне vh считается по развёрнутому браузеру, и низ героя
+     уезжал бы под адресную строку. */
+  min-height: calc(100svh - 136px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2274,10 +2285,9 @@ select { font-family: inherit; }
   overflow: hidden;
   margin-bottom: clamp(72px, 9vw, 124px);
   padding: clamp(52px, 6vw, 92px) clamp(22px, 4vw, 64px);
-  border-radius: 34px;
+  border-radius: 0;
   color: #fffaf0;
   background: #082b25;
-  box-shadow: 0 38px 110px rgba(6, 35, 29, 0.26);
   isolation: isolate;
   scroll-margin-top: 150px;
   text-align: center;
@@ -2442,27 +2452,6 @@ select { font-family: inherit; }
 }
 .tt-hero-search-hint:empty { display: none; }
 
-.tt-public-route {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.7rem;
-}
-.tt-public-route i {
-  width: clamp(20px, 3vw, 48px);
-  height: 1px;
-  background: rgba(255, 255, 255, 0.34);
-}
-.tt-public-route i::after {
-  content: "";
-  float: right;
-  width: 5px;
-  height: 5px;
-  margin-top: -2px;
-  border-radius: 50%;
-  background: var(--tt-accent);
-}
 
 /* ------------------------------------------------------- выдача поиска */
 .tt-search-results { scroll-margin-top: 150px; margin-bottom: clamp(48px, 6vw, 88px); }
@@ -3050,7 +3039,8 @@ select { font-family: inherit; }
   .tt-account-btn { min-height: 40px; padding: 7px 10px; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
-  #screen-public > .tt-container { padding: 24px 15px 70px; }
+  #screen-public > .tt-container { padding: 0 0 70px; }
+  #screen-public > .tt-container > :not(.tt-public-intro) { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
   .tt-app-container { padding: 20px 14px 60px; }
@@ -3153,7 +3143,6 @@ select { font-family: inherit; }
   .tt-theme-btn { width: 40px; height: 40px; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
-  .tt-public-route { gap: 6px; font-size: 0.62rem; }
   .tt-dep { display: block; }
   .tt-dep > * + * { margin-top: 13px; }
   .tt-dep-seats { text-align: left; }
@@ -3184,7 +3173,6 @@ select { font-family: inherit; }
   }
   .tt-public-intro h1 { font-size: 2.35rem; }
   .tt-public-intro p { max-width: 100%; line-height: 1.65; }
-  .tt-public-route { font-size: 0.56rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -8622,7 +8610,6 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Путешествия,",
       "hero.accent": "которые остаются с вами.",
       "hero.text": "Экскурсионные и групповые туры с продуманной программой, перелётом и поддержкой команды на всём маршруте.",
-      "hero.route": "Маршрут Карадениз",
       "benefit.flight.title": "Перелёт включён",
       "benefit.flight.text": "Авиабилеты Ташкент — Трабзон или Батуми уже в цене тура.",
       "benefit.hotel.title": "Отели на первой линии",
@@ -8677,7 +8664,6 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Siz bilan qoladigan",
       "hero.accent": "sayohatlar.",
       "hero.text": "Puxta dastur, aviaqatnov va butun yo‘nalish davomida jamoa ko‘magi bilan ekskursiya hamda guruh turlari.",
-      "hero.route": "Karadeniz yo‘nalishi",
       "benefit.flight.title": "Aviabilet narxda",
       "benefit.flight.text": "Toshkent — Trabzon yoki Batumi aviabiletlari tur narxiga kiritilgan.",
       "benefit.hotel.title": "Dengiz bo‘yidagi mehmonxonalar",
@@ -8732,7 +8718,6 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Journeys that",
       "hero.accent": "stay with you.",
       "hero.text": "Excursion and group tours with a thoughtful programme, flights and support from our team throughout the route.",
-      "hero.route": "Karadeniz route",
       "benefit.flight.title": "Flights included",
       "benefit.flight.text": "Tashkent — Trabzon or Batumi air tickets are already in the price.",
       "benefit.hotel.title": "Seafront hotels",
@@ -8787,7 +8772,6 @@ window.TURON_DESTINATIONS = [
       "hero.title": "Sizinle kalan",
       "hero.accent": "yolculuklar.",
       "hero.text": "Özenle hazırlanan program, uçuşlar ve rota boyunca ekip desteğiyle kültür ve grup turları.",
-      "hero.route": "Karadeniz rotası",
       "benefit.flight.title": "Uçuş dahil",
       "benefit.flight.text": "Taşkent — Trabzon veya Batum uçak biletleri tur fiyatına dahil.",
       "benefit.hotel.title": "Sahil şeridinde oteller",
@@ -9753,9 +9737,6 @@ window.TURON_DESTINATIONS = [
               "<p>" + esc(tr("hero.text")) + "</p>" +
             "</div>" +
             searchPanelHtml() +
-            '<div class="tt-public-route" aria-label="' + esc(tr("hero.route")) + '">' +
-              '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
-            "</div>" +
           "</section>" +
           benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +

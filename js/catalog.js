@@ -664,9 +664,6 @@
               "<p>" + esc(tr("hero.text")) + "</p>" +
             "</div>" +
             searchPanelHtml() +
-            '<div class="tt-public-route" aria-label="' + esc(tr("hero.route")) + '">' +
-              '<span>Батуми</span><i></i><span>Ризе</span><i></i><span>Трабзон</span>' +
-            "</div>" +
           "</section>" +
           benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
