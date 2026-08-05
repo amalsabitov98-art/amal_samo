@@ -2371,28 +2371,46 @@ select { font-family: inherit; }
    открытой — там и виден глобус. */
 .tt-public-intro {
   position: relative;
-  /* «На весь экран»: ровно окно. svh, а не vh, — на телефоне vh считается
-     по развёрнутому браузеру, и низ героя уезжал бы под адресную строку.
-     Шапка лежит поверх, поэтому вычитать её высоту не нужно. */
-  min-height: 100svh;
+  /* Выше окна (145svh), не ровно 100%. Чем выше блок относительно ширины
+     экрана, тем меньше object-fit:cover обрезает видео по вертикали — при
+     достаточной высоте обрезка вообще уходит в горизонталь, а там у кольца
+     огромный запас (~23% с каждой стороны против ~9% по вертикали). Ровно
+     100svh на широких мониторах (от ~1.9 по соотношению сторон) резало
+     кольцо по кромке. 145svh держит кольцо целым вплоть до ~21:9. Дальше
+     первого экрана видео уходит под прокрутку — это ожидаемо, «видео на
+     весь экран» и «виден целиком первый кадр без скролла» тут не одно и
+     то же. svh, а не vh, — на телефоне vh считается по развёрнутому
+     браузеру, и низ героя уезжал бы под адресную строку.
+
+     Центрирование текста и поиска убрано ОТСЮДА и перенесено на
+     .tt-hero-content ниже: если центрировать по всей высоте 145svh,
+     контент уезжает на середину — то есть ниже первого экрана, зритель
+     открывает страницу и не видит ни заголовка, ни поиска без скролла.
+     .tt-hero-content держит центрирование в границах ровно одного экрана
+     (100svh), а лишние 45svh просто остаются пустым продолжением видео
+     ниже — их и открывает прокрутка. */
+  min-height: 145svh;
+  overflow: hidden;
+  margin-bottom: clamp(72px, 9vw, 124px);
+  border-radius: 0;
+  background: #082b25;
+  isolation: isolate;
+  scroll-margin-top: 150px;
+}
+.tt-hero-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: clamp(20px, 3vw, 34px);
-  overflow: hidden;
-  margin-bottom: clamp(72px, 9vw, 124px);
+  min-height: 100svh;
   /* Сверху — запас ровно под шапку, которая лежит поверх. Высоту меряет
      JS (--tt-topbar-h): на телефоне полосы переносятся, и захардкоженное
      значение прятало заголовок под логотипом. Запасное значение на случай,
      если скрипт не отработал. */
   padding: calc(var(--tt-topbar-h, 150px) + clamp(26px, 5vh, 70px))
            clamp(22px, 4vw, 64px) clamp(52px, 6vw, 92px);
-  border-radius: 0;
   color: #fffaf0;
-  background: #082b25;
-  isolation: isolate;
-  scroll-margin-top: 150px;
   text-align: center;
 }
 /* Ролик синий, палитра сайта зелёно-золотая. Первый слой — зелёная заливка,
@@ -3162,9 +3180,12 @@ select { font-family: inherit; }
        ниже clamp просто не тратит лишнюю высоту под то, что видео не
        заполнит физически. */
     min-height: clamp(480px, 66svh, 640px);
+    border-radius: 22px;
+  }
+  .tt-hero-content {
+    min-height: auto;
     /* верх — под шапку, которая лежит поверх видео (см. --tt-topbar-h) */
     padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 26px 56px;
-    border-radius: 22px;
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
      они обрезают «Все направления» на середине слова. */
@@ -3251,8 +3272,9 @@ select { font-family: inherit; }
   .tt-stat-grid article { min-height: 106px; padding: 14px; }
   .tt-stat-grid strong { font-size: 1.65rem; }
   .tt-stat-grid strong.is-date { font-size: 1rem; }
-  .tt-public-intro {
-    min-height: clamp(440px, 60svh, 580px);
+  .tt-public-intro { min-height: clamp(440px, 60svh, 580px); }
+  .tt-hero-content {
+    min-height: auto;
     padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 20px 48px;
   }
   .tt-public-intro h1 { font-size: 2.7rem; }
@@ -3285,8 +3307,9 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 360px) {
-  .tt-public-intro {
-    min-height: 520px;
+  .tt-public-intro { min-height: 520px; }
+  .tt-hero-content {
+    min-height: auto;
     padding: calc(var(--tt-topbar-h, 150px) + clamp(20px, 4vh, 48px)) 18px 78px;
   }
   .tt-public-intro h1 { font-size: 2.35rem; }
@@ -9879,13 +9902,15 @@ window.TURON_DESTINATIONS = [
               'aria-hidden="true" tabindex="-1">' +
               '<source src="img/hero-travel.mp4?v=20260805-5" type="video/mp4" />' +
             "</video>" +
-            '<div class="tt-public-hero-copy">' +
-              '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
-              "<h1>" + esc(tr("hero.title")) + " <em>" +
-                esc(tr("hero.accent")) + "</em></h1>" +
-              "<p>" + esc(tr("hero.text")) + "</p>" +
+            '<div class="tt-hero-content">' +
+              '<div class="tt-public-hero-copy">' +
+                '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
+                "<h1>" + esc(tr("hero.title")) + " <em>" +
+                  esc(tr("hero.accent")) + "</em></h1>" +
+                "<p>" + esc(tr("hero.text")) + "</p>" +
+              "</div>" +
+              searchPanelHtml() +
             "</div>" +
-            searchPanelHtml() +
           "</section>" +
           benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +

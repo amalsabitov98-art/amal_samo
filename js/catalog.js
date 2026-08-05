@@ -657,13 +657,15 @@
               'aria-hidden="true" tabindex="-1">' +
               '<source src="img/hero-travel.mp4?v=20260805-5" type="video/mp4" />' +
             "</video>" +
-            '<div class="tt-public-hero-copy">' +
-              '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
-              "<h1>" + esc(tr("hero.title")) + " <em>" +
-                esc(tr("hero.accent")) + "</em></h1>" +
-              "<p>" + esc(tr("hero.text")) + "</p>" +
+            '<div class="tt-hero-content">' +
+              '<div class="tt-public-hero-copy">' +
+                '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
+                "<h1>" + esc(tr("hero.title")) + " <em>" +
+                  esc(tr("hero.accent")) + "</em></h1>" +
+                "<p>" + esc(tr("hero.text")) + "</p>" +
+              "</div>" +
+              searchPanelHtml() +
             "</div>" +
-            searchPanelHtml() +
           "</section>" +
           benefitsHtml() +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
