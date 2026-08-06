@@ -13,19 +13,14 @@ DELETE FROM destinations;
 DELETE FROM tours;
 DELETE FROM agencies;
 
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'c377221e12e2418303be8a350e34ba9eb927afac7621c675e01538cf0fd7e7fd', 'a5db0b81441a2d2b07924125001f7a82', 'UMIDA', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'd0afb110e665701db677352e1f542f15f87eb90bc99c0005f10f007bf3f89113', '3240723f3c3ffde18026b25052ffb458', 'EASY TOURISM', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', 'f98c006acddaeb7b839d1db8f5917102b5688c9bc99bf2b3f0035711adf0b943', 'aacfffee542693747ef4c5bb3d099b6b', 'OFO TOUR', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', 'a64f3d50edd87d1f6bd90f55710fcf726b0b83877da64a74d39271027599f811', '444e933d26fb7d55364f0c01ac9e0605', 'Turon Tour (оператор)', 'operator');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'e2f86cf17df143b2257eb2bebfab51f251bd1432cf2b9677bfcf6c149f1b9a8a', '1ca0b713d936a9ba3193daa63dae7adb', 'UMIDA', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'b41000bdf33044d7b5aeca138ffbdb8fa84053fd55f80c9d15bde9cbb5c4fb08', 'b906ca155aeb43ffb556bfeca0a4bb30', 'EASY TOURISM', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '4d0d2613245454ffc1a89f2fb6ad752c09fd0fba8db37256b4dedc6d918dc36a', '5fbf305ed013737338628368c95d6a51', 'OFO TOUR', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '0b1ee550364bcf93472ef3a965765590ba725f17a2a3da32cf988652573ca4bd', 'bcacf8cbf5d0f7b8541ac86a39f383c0', 'Etihad (оператор)', 'operator');
 
 INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Турция', 'Турция и Грузия', 'Черноморское побережье: Трабзон, Ризе, Батуми', 'img/hero-rize-batumi.webp', 1);
-INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Япония', 'Япония', 'Готовятся к запуску — ждём даты заездов и цены', NULL, 2);
 
 INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('KARADENIZ', 'Карадениз — Трабзон и Ризе', 'Турция', 0, 0, 1, 'Еженедельные заезды, цены по типу размещения', 'Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и Трабзон за 8 дней. Сопровождение узбекского гида, более 15 экскурсий, отели на первой береговой линии, трансферы на микроавтобусах Sprinter и ужин в грузинской семье.', 7);
-INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('JP_CONSTRUCTOR', 'Тур-конструктор «Легенды и огни Токио»', 'Япония', 100, 30, 0, 'Ожидаются даты заездов и цены', NULL, NULL);
-INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('JP_TOKYO', 'Легенды и огни Токио', 'Япония', 150, 40, 0, 'Ожидаются даты заездов и цены', NULL, NULL);
-INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('JP_GOLDEN_RING', 'Золотое кольцо Японии', 'Япония', 250, 50, 0, 'Ожидаются даты заездов и цены', NULL, NULL);
-INSERT INTO tours (code, name, destination, agency_commission, operator_commission, is_bookable, note, description, nights) VALUES ('JP_CAMP', 'Учебный лагерь Japan Camp', 'Япония', 250, 50, 0, 'Ожидаются даты заездов и цены', NULL, NULL);
 
 INSERT INTO tour_variants (tour_id, code, title, sort) SELECT id, 'A', 'Батуми → Ризе · прилёт в Батуми, вылет из Трабзона', 1 FROM tours WHERE code = 'KARADENIZ';
 INSERT INTO tour_variants (tour_id, code, title, sort) SELECT id, 'B', 'Ризе → Батуми · прилёт в Трабзон, вылет из Батуми', 2 FROM tours WHERE code = 'KARADENIZ';

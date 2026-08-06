@@ -55,14 +55,13 @@
       <span>Etihad<small data-i18n="brand.tagline">туроператор · Ташкент</small></span>
     </button>
     <div class="tt-public-tools">
+      <!-- Символ валюты — в золотом кружке-жетоне, значение рядом. «1 =» нет:
+           на кегле табло два штриха равенства сливались в тире. -->
       <div class="tt-currency-board" id="currency-board"
            title="Официальный курс Центрального банка Узбекистана">
-        <!-- Без «1 =»: шрифт табло 0.66rem, и на этом кегле два штриха
-             равенства сливаются в один — читается как случайное тире.
-             В шапке кабинета табло и так без него, теперь одинаково. -->
-        <span><b>$</b> <strong id="rate-usd" data-rate="usd">—</strong></span>
+        <span class="tt-rate"><b>$</b><strong id="rate-usd" data-rate="usd">—</strong></span>
         <i aria-hidden="true"></i>
-        <span><b>€</b> <strong id="rate-eur" data-rate="eur">—</strong></span>
+        <span class="tt-rate"><b>€</b><strong id="rate-eur" data-rate="eur">—</strong></span>
       </div>
       <button class="tt-theme-btn" id="theme-toggle" type="button"
               aria-label="Тема оформления">

@@ -1119,7 +1119,7 @@ a { color: inherit; }
   background: rgba(255, 255, 255, 0.05);
 }
 #screen-public .tt-currency-board strong { color: var(--tt-text); }
-#screen-public .tt-currency-board b { color: var(--tt-accent); }
+#screen-public .tt-currency-board b { color: #fff; }
 :root:not([data-theme="light"]) #screen-public .tt-lang-btn {
   border-color: var(--tt-border);
   background-color: rgba(255, 255, 255, 0.05);
@@ -1673,18 +1673,35 @@ select { font-family: inherit; }
   box-shadow: 0 8px 28px rgba(13, 48, 42, 0.055);
 }
 .tt-currency-board span { white-space: nowrap; }
+/* Пара «жетон + значение»: символ валюты в золотом кружке, число рядом. */
+.tt-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
 .tt-currency-board b {
-  color: var(--tt-accent-dark);
-  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, var(--tt-gold-400, #cbab52), var(--tt-accent-dark, #957823));
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(149, 120, 35, 0.32);
 }
 .tt-currency-board strong {
   color: var(--tt-forest);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
 .tt-currency-board > i {
   width: 1px;
-  height: 18px;
+  height: 20px;
   background: var(--tt-border);
 }
 
@@ -2500,7 +2517,7 @@ select { font-family: inherit; }
   backdrop-filter: blur(10px);
 }
 :root #screen-public.has-hero .tt-currency-board strong { color: #fffaf0; }
-:root #screen-public.has-hero .tt-currency-board b { color: #e5c987; }
+:root #screen-public.has-hero .tt-currency-board b { color: #fff; }
 :root #screen-public.has-hero .tt-currency-board > i { background: rgba(255, 255, 255, 0.28); }
 /* Пункты списка языка красит #public-language option (тёмный текст на белом),
    поэтому прежний color-scheme:dark здесь больше не нужен и убран: он делал
@@ -5057,14 +5074,13 @@ select { font-family: inherit; }
       <span>Etihad<small data-i18n="brand.tagline">туроператор · Ташкент</small></span>
     </button>
     <div class="tt-public-tools">
+      <!-- Символ валюты — в золотом кружке-жетоне, значение рядом. «1 =» нет:
+           на кегле табло два штриха равенства сливались в тире. -->
       <div class="tt-currency-board" id="currency-board"
            title="Официальный курс Центрального банка Узбекистана">
-        <!-- Без «1 =»: шрифт табло 0.66rem, и на этом кегле два штриха
-             равенства сливаются в один — читается как случайное тире.
-             В шапке кабинета табло и так без него, теперь одинаково. -->
-        <span><b>$</b> <strong id="rate-usd" data-rate="usd">—</strong></span>
+        <span class="tt-rate"><b>$</b><strong id="rate-usd" data-rate="usd">—</strong></span>
         <i aria-hidden="true"></i>
-        <span><b>€</b> <strong id="rate-eur" data-rate="eur">—</strong></span>
+        <span class="tt-rate"><b>€</b><strong id="rate-eur" data-rate="eur">—</strong></span>
       </div>
       <button class="tt-theme-btn" id="theme-toggle" type="button"
               aria-label="Тема оформления">
@@ -8275,66 +8291,6 @@ window.TURON_TOURS = [
     ]
    }
   ]
- },
- {
-  "code": "JP_CONSTRUCTOR",
-  "name": "Тур-конструктор «Легенды и огни Токио»",
-  "destination": "Япония",
-  "agency_commission": 100,
-  "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены",
-  "description": null,
-  "nights": null,
-  "included": [],
-  "excluded": [],
-  "info": [],
-  "gallery": [],
-  "variants": []
- },
- {
-  "code": "JP_TOKYO",
-  "name": "Легенды и огни Токио",
-  "destination": "Япония",
-  "agency_commission": 150,
-  "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены",
-  "description": null,
-  "nights": null,
-  "included": [],
-  "excluded": [],
-  "info": [],
-  "gallery": [],
-  "variants": []
- },
- {
-  "code": "JP_GOLDEN_RING",
-  "name": "Золотое кольцо Японии",
-  "destination": "Япония",
-  "agency_commission": 250,
-  "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены",
-  "description": null,
-  "nights": null,
-  "included": [],
-  "excluded": [],
-  "info": [],
-  "gallery": [],
-  "variants": []
- },
- {
-  "code": "JP_CAMP",
-  "name": "Учебный лагерь Japan Camp",
-  "destination": "Япония",
-  "agency_commission": 250,
-  "is_bookable": 0,
-  "note": "Ожидаются даты заездов и цены",
-  "description": null,
-  "nights": null,
-  "included": [],
-  "excluded": [],
-  "info": [],
-  "gallery": [],
-  "variants": []
  }
 ];
 window.TURON_DESTINATIONS = [
@@ -8344,13 +8300,6 @@ window.TURON_DESTINATIONS = [
   "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
   "image": "img/hero-rize-batumi.webp",
   "sort": 1
- },
- {
-  "name": "Япония",
-  "title": "Япония",
-  "blurb": "Готовятся к запуску — ждём даты заездов и цены",
-  "image": null,
-  "sort": 2
  }
 ];
 
@@ -8404,7 +8353,7 @@ window.TURON_DESTINATIONS = [
     { id: 1, login: "umida", name: "UMIDA" },
     { id: 2, login: "easytourism", name: "EASY TOURISM" },
     { id: 3, login: "ofotour", name: "OFO TOUR" },
-    { id: 4, login: "operator", name: "Turon Tour (оператор)", role: "operator" },
+    { id: 4, login: "operator", name: "Etihad (оператор)", role: "operator" },
   ];
   var DEMO_PASSWORD = "turon2026";
 
@@ -8448,7 +8397,7 @@ window.TURON_DESTINATIONS = [
   }
 
 /*
-   * Проверка паспорта. Большинство стран, включая Турцию и Японию, требуют
+   * Проверка паспорта. Многие страны, в т.ч. Турция, требуют
    * запас в 6 месяцев после окончания поездки, поэтому предупреждаем не
    * только об уже истёкшем документе.
    *
@@ -9320,7 +9269,7 @@ window.TURON_DESTINATIONS = [
       "nav.about": "О компании",
       "login.kicker": "Партнёрский доступ",
       "login.title": "Добро пожаловать",
-      "login.note": "Войдите в кабинет агентства Turon Tour",
+      "login.note": "Войдите в кабинет агентства Etihad",
       "login.user": "Логин",
       "login.password": "Пароль",
       "login.back": "← В каталог",
@@ -9356,12 +9305,12 @@ window.TURON_DESTINATIONS = [
       "search.none": "Ничего не найдено",
       "search.noneHint": "По этим условиям заездов нет. Попробуйте другой месяц или аэропорт.",
       "search.resultsKicker": "Результаты поиска",
-      "catalog.kicker": "Коллекция Turon Tour",
+      "catalog.kicker": "Коллекция Etihad",
       "catalog.title": "Выберите направление",
       "catalog.text": "Откройте программы, ближайшие даты и доступные варианты размещения.",
       "about.kicker": "О компании",
       "about.title": "Не просто отправляем в поездку. Собираем путешествие целиком.",
-      "about.text": "Turon Tour — туроператор из Ташкента. Мы создаём экскурсионные и групповые маршруты, объединяя перелёт, размещение, программу и сопровождение в одной понятной системе.",
+      "about.text": "Etihad — туроператор из Ташкента. Мы создаём экскурсионные и групповые маршруты, объединяя перелёт, размещение, программу и сопровождение в одной понятной системе.",
       "about.operator": "Туроператор из Узбекистана",
       "about.partners": "Работаем с туристами и агентствами",
       "about.support": "Поддержка на маршруте 24/7",
@@ -9381,7 +9330,7 @@ window.TURON_DESTINATIONS = [
       "nav.about": "Kompaniya haqida",
       "login.kicker": "Hamkorlar uchun",
       "login.title": "Xush kelibsiz",
-      "login.note": "Turon Tour agentlik kabinetiga kiring",
+      "login.note": "Etihad agentlik kabinetiga kiring",
       "login.user": "Login",
       "login.password": "Parol",
       "login.back": "← Katalogga",
@@ -9417,12 +9366,12 @@ window.TURON_DESTINATIONS = [
       "search.none": "Hech narsa topilmadi",
       "search.noneHint": "Bu shartlar bo‘yicha jo‘nashlar yo‘q. Boshqa oy yoki aeroportni tanlang.",
       "search.resultsKicker": "Qidiruv natijalari",
-      "catalog.kicker": "Turon Tour kolleksiyasi",
+      "catalog.kicker": "Etihad kolleksiyasi",
       "catalog.title": "Yo‘nalishni tanlang",
       "catalog.text": "Dasturlar, yaqin sanalar va joylashuv variantlarini ko‘ring.",
       "about.kicker": "Kompaniya haqida",
       "about.title": "Shunchaki safarga jo‘natmaymiz. Sayohatni to‘liq yaratamiz.",
-      "about.text": "Turon Tour — Toshkentdagi turoperator. Biz parvoz, mehmonxona, dastur va hamrohlikni yagona tushunarli tizimga birlashtirgan ekskursiya va guruh yo‘nalishlarini yaratamiz.",
+      "about.text": "Etihad — Toshkentdagi turoperator. Biz parvoz, mehmonxona, dastur va hamrohlikni yagona tushunarli tizimga birlashtirgan ekskursiya va guruh yo‘nalishlarini yaratamiz.",
       "about.operator": "O‘zbekistondagi turoperator",
       "about.partners": "Sayyohlar va agentliklar bilan ishlaymiz",
       "about.support": "Yo‘nalishda 24/7 ko‘mak",
@@ -9442,7 +9391,7 @@ window.TURON_DESTINATIONS = [
       "nav.about": "About us",
       "login.kicker": "Partner access",
       "login.title": "Welcome",
-      "login.note": "Sign in to the Turon Tour agency workspace",
+      "login.note": "Sign in to the Etihad agency workspace",
       "login.user": "Login",
       "login.password": "Password",
       "login.back": "← Back to catalogue",
@@ -9478,12 +9427,12 @@ window.TURON_DESTINATIONS = [
       "search.none": "Nothing found",
       "search.noneHint": "No departures match these filters. Try another month or airport.",
       "search.resultsKicker": "Search results",
-      "catalog.kicker": "The Turon Tour collection",
+      "catalog.kicker": "The Etihad collection",
       "catalog.title": "Choose a destination",
       "catalog.text": "Explore programmes, upcoming dates and available accommodation options.",
       "about.kicker": "About us",
       "about.title": "We do more than send you away. We build the whole journey.",
-      "about.text": "Turon Tour is a Tashkent-based tour operator. We create excursion and group itineraries that bring flights, accommodation, experiences and on-route support into one clear system.",
+      "about.text": "Etihad is a Tashkent-based tour operator. We create excursion and group itineraries that bring flights, accommodation, experiences and on-route support into one clear system.",
       "about.operator": "Tour operator from Uzbekistan",
       "about.partners": "For travellers and travel agencies",
       "about.support": "24/7 support along the route",
@@ -9503,7 +9452,7 @@ window.TURON_DESTINATIONS = [
       "nav.about": "Hakkımızda",
       "login.kicker": "İş ortağı erişimi",
       "login.title": "Hoş geldiniz",
-      "login.note": "Turon Tour acente paneline giriş yapın",
+      "login.note": "Etihad acente paneline giriş yapın",
       "login.user": "Kullanıcı adı",
       "login.password": "Şifre",
       "login.back": "← Kataloğa dön",
@@ -9539,12 +9488,12 @@ window.TURON_DESTINATIONS = [
       "search.none": "Sonuç bulunamadı",
       "search.noneHint": "Bu filtrelere uyan kalkış yok. Başka bir ay veya havalimanı deneyin.",
       "search.resultsKicker": "Arama sonuçları",
-      "catalog.kicker": "Turon Tour koleksiyonu",
+      "catalog.kicker": "Etihad koleksiyonu",
       "catalog.title": "Rotanızı seçin",
       "catalog.text": "Programları, yaklaşan tarihleri ve konaklama seçeneklerini inceleyin.",
       "about.kicker": "Hakkımızda",
       "about.title": "Sadece tatile göndermiyoruz. Yolculuğun tamamını tasarlıyoruz.",
-      "about.text": "Turon Tour, Taşkent merkezli bir tur operatörüdür. Uçuş, konaklama, program ve rota desteğini tek bir anlaşılır sistemde birleştiren kültür ve grup turları hazırlıyoruz.",
+      "about.text": "Etihad, Taşkent merkezli bir tur operatörüdür. Uçuş, konaklama, program ve rota desteğini tek bir anlaşılır sistemde birleştiren kültür ve grup turları hazırlıyoruz.",
       "about.operator": "Özbekistan merkezli tur operatörü",
       "about.partners": "Gezginler ve acenteler için",
       "about.support": "Rota boyunca 7/24 destek",

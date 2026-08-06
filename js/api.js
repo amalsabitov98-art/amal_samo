@@ -46,7 +46,7 @@
     { id: 1, login: "umida", name: "UMIDA" },
     { id: 2, login: "easytourism", name: "EASY TOURISM" },
     { id: 3, login: "ofotour", name: "OFO TOUR" },
-    { id: 4, login: "operator", name: "Turon Tour (оператор)", role: "operator" },
+    { id: 4, login: "operator", name: "Etihad (оператор)", role: "operator" },
   ];
   var DEMO_PASSWORD = "turon2026";
 
@@ -90,7 +90,7 @@
   }
 
 /*
-   * Проверка паспорта. Большинство стран, включая Турцию и Японию, требуют
+   * Проверка паспорта. Многие страны, в т.ч. Турция, требуют
    * запас в 6 месяцев после окончания поездки, поэтому предупреждаем не
    * только об уже истёкшем документе.
    *
