@@ -278,8 +278,79 @@
     document.querySelectorAll("[data-i18n]").forEach(function (node) {
       node.textContent = t(node.dataset.i18n);
     });
-    var select = document.getElementById("public-language");
-    if (select) select.value = language;
+    syncLangWidget();
+  }
+
+  /* Флаги — инлайновый SVG (3:2), а не эмодзи: Windows флаг-эмодзи не рисует,
+   * показывает вместо 🇷🇺 буквы «RU». Векторные флаги чёткие на любом кегле
+   * и одинаковы во всех системах. Union Jack упрощён (без контршахматного
+   * смещения диагоналей) — на 22px это не читается, а код короче. */
+  var FLAGS = {
+    ru: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/>' +
+      '<rect y="5.33" width="24" height="5.34" fill="#0039a6"/>' +
+      '<rect y="10.67" width="24" height="5.33" fill="#d52b1e"/></svg>',
+    uz: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/>' +
+      '<rect width="24" height="5" fill="#1eb0e7"/><rect y="11" width="24" height="5" fill="#1eb53a"/>' +
+      '<rect y="4.6" width="24" height="0.5" fill="#ce1126"/><rect y="10.9" width="24" height="0.5" fill="#ce1126"/>' +
+      '<circle cx="4.3" cy="2.5" r="1.55" fill="#fff"/><circle cx="5" cy="2.5" r="1.25" fill="#1eb0e7"/></svg>',
+    en: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/>' +
+      '<path d="M0 0 24 16 M24 0 0 16" stroke="#fff" stroke-width="3.2"/>' +
+      '<path d="M0 0 24 16 M24 0 0 16" stroke="#c8102e" stroke-width="1.8"/>' +
+      '<path d="M12 0 V16 M0 8 H24" stroke="#fff" stroke-width="5.2"/>' +
+      '<path d="M12 0 V16 M0 8 H24" stroke="#c8102e" stroke-width="3.1"/></svg>',
+    tr: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#e30a17"/>' +
+      '<circle cx="9.2" cy="8" r="4" fill="#fff"/><circle cx="10.4" cy="8" r="3.2" fill="#e30a17"/>' +
+      '<path d="M14 8 16.3 7.2 14.9 9.2 14.9 6.8 16.3 8.8Z" fill="#fff"/></svg>',
+  };
+  var LANG_CODES = { ru: "RU", uz: "UZ", en: "EN", tr: "TR" };
+  var LANG_ORDER = ["ru", "uz", "en", "tr"];
+
+  function syncLangWidget() {
+    var flag = document.getElementById("lang-current-flag");
+    var code = document.getElementById("lang-current-code");
+    if (flag) flag.innerHTML = FLAGS[language] || "";
+    if (code) code.textContent = LANG_CODES[language] || language.toUpperCase();
+    var menu = document.getElementById("lang-menu");
+    if (menu) {
+      menu.querySelectorAll("[data-lang]").forEach(function (li) {
+        li.setAttribute("aria-selected", li.dataset.lang === language ? "true" : "false");
+      });
+    }
+  }
+
+  function initLangWidget() {
+    var widget = document.getElementById("lang-widget");
+    var toggle = document.getElementById("lang-toggle");
+    var menu = document.getElementById("lang-menu");
+    if (!widget || !toggle || !menu) return;
+
+    menu.innerHTML = LANG_ORDER.map(function (lc) {
+      return '<li class="tt-lang-opt" role="option" data-lang="' + lc + '">' +
+        '<span class="tt-lang-flag">' + FLAGS[lc] + "</span>" +
+        '<span class="tt-lang-code">' + LANG_CODES[lc] + "</span></li>";
+    }).join("");
+
+    function close() { menu.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
+    function open() { menu.hidden = false; toggle.setAttribute("aria-expanded", "true"); }
+
+    toggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (menu.hidden) open(); else close();
+    });
+    menu.addEventListener("click", function (e) {
+      var opt = e.target.closest("[data-lang]");
+      if (!opt) return;
+      setLanguage(opt.dataset.lang);
+      close();
+    });
+    // клик вне виджета и Esc закрывают список
+    document.addEventListener("click", function (e) {
+      if (!widget.contains(e.target)) close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+    syncLangWidget();
   }
 
   function setLanguage(next) {
@@ -521,12 +592,7 @@
     }
   });
 
-  var languageSelect = document.getElementById("public-language");
-  if (languageSelect) {
-    languageSelect.addEventListener("change", function () {
-      setLanguage(languageSelect.value);
-    });
-  }
+  initLangWidget();
 
   applyStaticTranslations();
   loadRates();

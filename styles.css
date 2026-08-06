@@ -1104,10 +1104,21 @@ a { color: inherit; }
 }
 #screen-public .tt-currency-board strong { color: var(--tt-text); }
 #screen-public .tt-currency-board b { color: var(--tt-accent); }
-:root:not([data-theme="light"]) #screen-public .tt-language select {
+:root:not([data-theme="light"]) #screen-public .tt-lang-btn {
   border-color: var(--tt-border);
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--tt-text);
+}
+/* Меню на тёмной теме — тёмная плашка с читаемым светлым текстом (раньше
+   именно оно было белым системным с невидимыми пунктами). */
+:root:not([data-theme="light"]) #screen-public .tt-lang-menu {
+  background: #10201b;
+  border-color: var(--tt-border);
+}
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt { color: var(--tt-text); }
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt:hover,
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.1);
 }
 :root:not([data-theme="light"]) #screen-public .tt-account-btn {
   border-color: var(--tt-border-strong);
@@ -1661,17 +1672,62 @@ select { font-family: inherit; }
   background: var(--tt-border);
 }
 
-.tt-language select {
-  min-width: 62px;
+/* Свой дропдаун языка (вместо <select>): кнопка с флагом + меню флагов.
+   Меню позиционируется абсолютно под кнопкой, поэтому у контейнера relative. */
+.tt-lang { position: relative; }
+.tt-lang-btn {
+  min-width: 74px;
   min-height: 46px;
-  padding: 0 25px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
   border: 1px solid rgba(13, 48, 42, 0.1);
   border-radius: 13px;
   background-color: #fffdf8;
   color: var(--tt-forest);
   font-size: 0.7rem;
   font-weight: 700;
+  cursor: pointer;
 }
+.tt-lang-flag {
+  width: 22px;
+  height: 15px;
+  flex: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  display: block;
+}
+.tt-lang-flag svg { width: 100%; height: 100%; display: block; }
+.tt-lang-caret { width: 12px; height: 12px; margin-left: auto; opacity: 0.7; }
+.tt-lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  min-width: 100%;
+  border-radius: 12px;
+  background: #fffdf8;
+  border: 1px solid rgba(13, 48, 42, 0.14);
+  box-shadow: 0 16px 40px -12px rgba(13, 48, 42, 0.34);
+}
+.tt-lang-opt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--tt-forest);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.tt-lang-opt:hover { background: rgba(20, 67, 44, 0.08); }
+.tt-lang-opt[aria-selected="true"] { background: rgba(20, 67, 44, 0.12); }
 
 .tt-account-btn {
   min-height: 46px;
@@ -2419,7 +2475,7 @@ select { font-family: inherit; }
 
 /* стеклянные плашки инструментов */
 :root #screen-public.has-hero .tt-currency-board,
-:root #screen-public.has-hero .tt-language select,
+:root #screen-public.has-hero .tt-lang-btn,
 :root #screen-public.has-hero .tt-theme-btn,
 :root #screen-public.has-hero .tt-account-btn {
   border-color: rgba(255, 255, 255, 0.26);
@@ -2430,8 +2486,10 @@ select { font-family: inherit; }
 :root #screen-public.has-hero .tt-currency-board strong { color: #fffaf0; }
 :root #screen-public.has-hero .tt-currency-board b { color: #e5c987; }
 :root #screen-public.has-hero .tt-currency-board > i { background: rgba(255, 255, 255, 0.28); }
-/* без color-scheme выпадающий список языка остаётся белым системным */
-:root #screen-public.has-hero .tt-language select { color-scheme: dark; }
+/* Пункты списка языка красит #public-language option (тёмный текст на белом),
+   поэтому прежний color-scheme:dark здесь больше не нужен и убран: он делал
+   попап тёмным только на титульной, а на остальных страницах пункты
+   оставались невидимыми. */
 :root #screen-public.has-hero .tt-theme-btn:hover,
 :root #screen-public.has-hero .tt-account-btn:hover {
   border-color: rgba(255, 255, 255, 0.62);
@@ -3281,7 +3339,7 @@ select { font-family: inherit; }
     gap: 8px;
     padding: 6px 9px;
   }
-  .tt-language select { min-width: 56px; min-height: 40px; }
+  .tt-lang-btn { min-width: 64px; min-height: 40px; }
   .tt-account-btn { min-height: 40px; padding: 7px 10px; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }

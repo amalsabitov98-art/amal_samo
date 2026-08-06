@@ -75,15 +75,23 @@
                    M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
         </svg>
       </button>
-      <label class="tt-language" for="public-language">
+      <!-- Свой дропдаун вместо <select>: нативный список пунктов рисует ОС,
+           и на тёмной теме он был белым системным с невидимым текстом, а
+           картинку-флаг в <option> вставить нельзя. Флаги — инлайновый SVG
+           (см. js/public-ui.js), меню строится там же. -->
+      <div class="tt-lang" id="lang-widget">
         <span class="tt-sr-only" data-i18n="header.language">Язык</span>
-        <select id="public-language" aria-label="Язык сайта">
-          <option value="ru">RU</option>
-          <option value="uz">UZ</option>
-          <option value="en">EN</option>
-          <option value="tr">TR</option>
-        </select>
-      </label>
+        <button type="button" class="tt-lang-btn" id="lang-toggle"
+                aria-haspopup="listbox" aria-expanded="false" aria-label="Язык сайта">
+          <span class="tt-lang-flag" id="lang-current-flag"></span>
+          <span class="tt-lang-code" id="lang-current-code">RU</span>
+          <svg class="tt-lang-caret" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor"
+                  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="tt-lang-menu" id="lang-menu" role="listbox" hidden></ul>
+      </div>
       <button class="tt-account-btn" id="public-login-btn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="8" r="3.5"></circle>

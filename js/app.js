@@ -1475,6 +1475,7 @@
       ".leg-dot svg{width:15px;height:15px;fill:#fff}" +
       ".facts{display:grid;grid-template-columns:1fr 1fr;gap:16px 10px;align-content:center}" +
       ".facts .val{font-size:15px;color:" + V.forestSoft + "}" +
+      ".facts-wide{grid-column:1 / -1}" +
       ".hotels{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}" +
       ".hotel .val{font-size:14px;text-transform:uppercase}" +
       ".hotel-dates{font-size:10.5px;color:" + V.muted + ";margin-top:1px}" +
@@ -1533,7 +1534,12 @@
       "img/etihad-logo.png";
   }
 
-  var PLANE_SVG = '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg>';
+  // Иконка «flight» рисуется носом вверх; поворачиваем на 90° по часовой,
+  // чтобы самолёт смотрел ВПРАВО — вдоль маршрута (город слева → город
+  // справа). Раньше он висел по диагонали, оператор просил горизонтально.
+  var PLANE_SVG = '<svg viewBox="0 0 24 24"><g transform="rotate(90 12 12)">' +
+    '<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/>' +
+    "</g></svg>";
   var PERSON_SVG = '<svg class="pax-ico" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5Z"/></svg>';
 
   // «07.08.2026» — в бланке даты только в таком виде, без словесных месяцев.
@@ -1654,10 +1660,10 @@
                 : '<div class="card">Рейс на эту дату не в полётной программе — ' +
                   "уточните у оператора.</div>") +
           "</div>" +
+          // Стоимости в ваучере нет намеренно: это документ клиента, сумму
+          // сделки агентства ему показывать незачем (просил оператор).
           '<div class="card facts">' +
-            '<div><div class="lbl">Стоимость:</div><div class="val">' +
-              money(b.total_price) + "</div></div>" +
-            '<div><div class="lbl">Размещение:</div><div class="val">' +
+            '<div class="facts-wide"><div class="lbl">Размещение:</div><div class="val">' +
               esc(placements.join(", ") || "—") + "</div></div>" +
             '<div><div class="lbl">Ручная кладь:</div><div class="val">' +
               esc(fl ? fl.out.cabin_baggage : "—") + "</div></div>" +

@@ -1120,10 +1120,21 @@ a { color: inherit; }
 }
 #screen-public .tt-currency-board strong { color: var(--tt-text); }
 #screen-public .tt-currency-board b { color: var(--tt-accent); }
-:root:not([data-theme="light"]) #screen-public .tt-language select {
+:root:not([data-theme="light"]) #screen-public .tt-lang-btn {
   border-color: var(--tt-border);
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--tt-text);
+}
+/* Меню на тёмной теме — тёмная плашка с читаемым светлым текстом (раньше
+   именно оно было белым системным с невидимыми пунктами). */
+:root:not([data-theme="light"]) #screen-public .tt-lang-menu {
+  background: #10201b;
+  border-color: var(--tt-border);
+}
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt { color: var(--tt-text); }
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt:hover,
+:root:not([data-theme="light"]) #screen-public .tt-lang-opt[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.1);
 }
 :root:not([data-theme="light"]) #screen-public .tt-account-btn {
   border-color: var(--tt-border-strong);
@@ -1677,17 +1688,62 @@ select { font-family: inherit; }
   background: var(--tt-border);
 }
 
-.tt-language select {
-  min-width: 62px;
+/* Свой дропдаун языка (вместо <select>): кнопка с флагом + меню флагов.
+   Меню позиционируется абсолютно под кнопкой, поэтому у контейнера relative. */
+.tt-lang { position: relative; }
+.tt-lang-btn {
+  min-width: 74px;
   min-height: 46px;
-  padding: 0 25px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
   border: 1px solid rgba(13, 48, 42, 0.1);
   border-radius: 13px;
   background-color: #fffdf8;
   color: var(--tt-forest);
   font-size: 0.7rem;
   font-weight: 700;
+  cursor: pointer;
 }
+.tt-lang-flag {
+  width: 22px;
+  height: 15px;
+  flex: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  display: block;
+}
+.tt-lang-flag svg { width: 100%; height: 100%; display: block; }
+.tt-lang-caret { width: 12px; height: 12px; margin-left: auto; opacity: 0.7; }
+.tt-lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  min-width: 100%;
+  border-radius: 12px;
+  background: #fffdf8;
+  border: 1px solid rgba(13, 48, 42, 0.14);
+  box-shadow: 0 16px 40px -12px rgba(13, 48, 42, 0.34);
+}
+.tt-lang-opt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--tt-forest);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.tt-lang-opt:hover { background: rgba(20, 67, 44, 0.08); }
+.tt-lang-opt[aria-selected="true"] { background: rgba(20, 67, 44, 0.12); }
 
 .tt-account-btn {
   min-height: 46px;
@@ -2435,7 +2491,7 @@ select { font-family: inherit; }
 
 /* стеклянные плашки инструментов */
 :root #screen-public.has-hero .tt-currency-board,
-:root #screen-public.has-hero .tt-language select,
+:root #screen-public.has-hero .tt-lang-btn,
 :root #screen-public.has-hero .tt-theme-btn,
 :root #screen-public.has-hero .tt-account-btn {
   border-color: rgba(255, 255, 255, 0.26);
@@ -2446,8 +2502,10 @@ select { font-family: inherit; }
 :root #screen-public.has-hero .tt-currency-board strong { color: #fffaf0; }
 :root #screen-public.has-hero .tt-currency-board b { color: #e5c987; }
 :root #screen-public.has-hero .tt-currency-board > i { background: rgba(255, 255, 255, 0.28); }
-/* без color-scheme выпадающий список языка остаётся белым системным */
-:root #screen-public.has-hero .tt-language select { color-scheme: dark; }
+/* Пункты списка языка красит #public-language option (тёмный текст на белом),
+   поэтому прежний color-scheme:dark здесь больше не нужен и убран: он делал
+   попап тёмным только на титульной, а на остальных страницах пункты
+   оставались невидимыми. */
 :root #screen-public.has-hero .tt-theme-btn:hover,
 :root #screen-public.has-hero .tt-account-btn:hover {
   border-color: rgba(255, 255, 255, 0.62);
@@ -3297,7 +3355,7 @@ select { font-family: inherit; }
     gap: 8px;
     padding: 6px 9px;
   }
-  .tt-language select { min-width: 56px; min-height: 40px; }
+  .tt-lang-btn { min-width: 64px; min-height: 40px; }
   .tt-account-btn { min-height: 40px; padding: 7px 10px; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
@@ -5019,15 +5077,23 @@ select { font-family: inherit; }
                    M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
         </svg>
       </button>
-      <label class="tt-language" for="public-language">
+      <!-- Свой дропдаун вместо <select>: нативный список пунктов рисует ОС,
+           и на тёмной теме он был белым системным с невидимым текстом, а
+           картинку-флаг в <option> вставить нельзя. Флаги — инлайновый SVG
+           (см. js/public-ui.js), меню строится там же. -->
+      <div class="tt-lang" id="lang-widget">
         <span class="tt-sr-only" data-i18n="header.language">Язык</span>
-        <select id="public-language" aria-label="Язык сайта">
-          <option value="ru">RU</option>
-          <option value="uz">UZ</option>
-          <option value="en">EN</option>
-          <option value="tr">TR</option>
-        </select>
-      </label>
+        <button type="button" class="tt-lang-btn" id="lang-toggle"
+                aria-haspopup="listbox" aria-expanded="false" aria-label="Язык сайта">
+          <span class="tt-lang-flag" id="lang-current-flag"></span>
+          <span class="tt-lang-code" id="lang-current-code">RU</span>
+          <svg class="tt-lang-caret" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor"
+                  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="tt-lang-menu" id="lang-menu" role="listbox" hidden></ul>
+      </div>
       <button class="tt-account-btn" id="public-login-btn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="8" r="3.5"></circle>
@@ -9513,8 +9579,79 @@ window.TURON_DESTINATIONS = [
     document.querySelectorAll("[data-i18n]").forEach(function (node) {
       node.textContent = t(node.dataset.i18n);
     });
-    var select = document.getElementById("public-language");
-    if (select) select.value = language;
+    syncLangWidget();
+  }
+
+  /* Флаги — инлайновый SVG (3:2), а не эмодзи: Windows флаг-эмодзи не рисует,
+   * показывает вместо 🇷🇺 буквы «RU». Векторные флаги чёткие на любом кегле
+   * и одинаковы во всех системах. Union Jack упрощён (без контршахматного
+   * смещения диагоналей) — на 22px это не читается, а код короче. */
+  var FLAGS = {
+    ru: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/>' +
+      '<rect y="5.33" width="24" height="5.34" fill="#0039a6"/>' +
+      '<rect y="10.67" width="24" height="5.33" fill="#d52b1e"/></svg>',
+    uz: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/>' +
+      '<rect width="24" height="5" fill="#1eb0e7"/><rect y="11" width="24" height="5" fill="#1eb53a"/>' +
+      '<rect y="4.6" width="24" height="0.5" fill="#ce1126"/><rect y="10.9" width="24" height="0.5" fill="#ce1126"/>' +
+      '<circle cx="4.3" cy="2.5" r="1.55" fill="#fff"/><circle cx="5" cy="2.5" r="1.25" fill="#1eb0e7"/></svg>',
+    en: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/>' +
+      '<path d="M0 0 24 16 M24 0 0 16" stroke="#fff" stroke-width="3.2"/>' +
+      '<path d="M0 0 24 16 M24 0 0 16" stroke="#c8102e" stroke-width="1.8"/>' +
+      '<path d="M12 0 V16 M0 8 H24" stroke="#fff" stroke-width="5.2"/>' +
+      '<path d="M12 0 V16 M0 8 H24" stroke="#c8102e" stroke-width="3.1"/></svg>',
+    tr: '<svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#e30a17"/>' +
+      '<circle cx="9.2" cy="8" r="4" fill="#fff"/><circle cx="10.4" cy="8" r="3.2" fill="#e30a17"/>' +
+      '<path d="M14 8 16.3 7.2 14.9 9.2 14.9 6.8 16.3 8.8Z" fill="#fff"/></svg>',
+  };
+  var LANG_CODES = { ru: "RU", uz: "UZ", en: "EN", tr: "TR" };
+  var LANG_ORDER = ["ru", "uz", "en", "tr"];
+
+  function syncLangWidget() {
+    var flag = document.getElementById("lang-current-flag");
+    var code = document.getElementById("lang-current-code");
+    if (flag) flag.innerHTML = FLAGS[language] || "";
+    if (code) code.textContent = LANG_CODES[language] || language.toUpperCase();
+    var menu = document.getElementById("lang-menu");
+    if (menu) {
+      menu.querySelectorAll("[data-lang]").forEach(function (li) {
+        li.setAttribute("aria-selected", li.dataset.lang === language ? "true" : "false");
+      });
+    }
+  }
+
+  function initLangWidget() {
+    var widget = document.getElementById("lang-widget");
+    var toggle = document.getElementById("lang-toggle");
+    var menu = document.getElementById("lang-menu");
+    if (!widget || !toggle || !menu) return;
+
+    menu.innerHTML = LANG_ORDER.map(function (lc) {
+      return '<li class="tt-lang-opt" role="option" data-lang="' + lc + '">' +
+        '<span class="tt-lang-flag">' + FLAGS[lc] + "</span>" +
+        '<span class="tt-lang-code">' + LANG_CODES[lc] + "</span></li>";
+    }).join("");
+
+    function close() { menu.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
+    function open() { menu.hidden = false; toggle.setAttribute("aria-expanded", "true"); }
+
+    toggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (menu.hidden) open(); else close();
+    });
+    menu.addEventListener("click", function (e) {
+      var opt = e.target.closest("[data-lang]");
+      if (!opt) return;
+      setLanguage(opt.dataset.lang);
+      close();
+    });
+    // клик вне виджета и Esc закрывают список
+    document.addEventListener("click", function (e) {
+      if (!widget.contains(e.target)) close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+    syncLangWidget();
   }
 
   function setLanguage(next) {
@@ -9756,12 +9893,7 @@ window.TURON_DESTINATIONS = [
     }
   });
 
-  var languageSelect = document.getElementById("public-language");
-  if (languageSelect) {
-    languageSelect.addEventListener("change", function () {
-      setLanguage(languageSelect.value);
-    });
-  }
+  initLangWidget();
 
   applyStaticTranslations();
   loadRates();
@@ -12894,6 +13026,7 @@ window.TURON_DESTINATIONS = [
       ".leg-dot svg{width:15px;height:15px;fill:#fff}" +
       ".facts{display:grid;grid-template-columns:1fr 1fr;gap:16px 10px;align-content:center}" +
       ".facts .val{font-size:15px;color:" + V.forestSoft + "}" +
+      ".facts-wide{grid-column:1 / -1}" +
       ".hotels{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}" +
       ".hotel .val{font-size:14px;text-transform:uppercase}" +
       ".hotel-dates{font-size:10.5px;color:" + V.muted + ";margin-top:1px}" +
@@ -12952,7 +13085,12 @@ window.TURON_DESTINATIONS = [
       "img/etihad-logo.png";
   }
 
-  var PLANE_SVG = '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg>';
+  // Иконка «flight» рисуется носом вверх; поворачиваем на 90° по часовой,
+  // чтобы самолёт смотрел ВПРАВО — вдоль маршрута (город слева → город
+  // справа). Раньше он висел по диагонали, оператор просил горизонтально.
+  var PLANE_SVG = '<svg viewBox="0 0 24 24"><g transform="rotate(90 12 12)">' +
+    '<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/>' +
+    "</g></svg>";
   var PERSON_SVG = '<svg class="pax-ico" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5Z"/></svg>';
 
   // «07.08.2026» — в бланке даты только в таком виде, без словесных месяцев.
@@ -13073,10 +13211,10 @@ window.TURON_DESTINATIONS = [
                 : '<div class="card">Рейс на эту дату не в полётной программе — ' +
                   "уточните у оператора.</div>") +
           "</div>" +
+          // Стоимости в ваучере нет намеренно: это документ клиента, сумму
+          // сделки агентства ему показывать незачем (просил оператор).
           '<div class="card facts">' +
-            '<div><div class="lbl">Стоимость:</div><div class="val">' +
-              money(b.total_price) + "</div></div>" +
-            '<div><div class="lbl">Размещение:</div><div class="val">' +
+            '<div class="facts-wide"><div class="lbl">Размещение:</div><div class="val">' +
               esc(placements.join(", ") || "—") + "</div></div>" +
             '<div><div class="lbl">Ручная кладь:</div><div class="val">' +
               esc(fl ? fl.out.cabin_baggage : "—") + "</div></div>" +
