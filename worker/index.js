@@ -488,7 +488,56 @@ function logEvent(env, bookingId, actor, action, details) {
 }
 
 // ---------------------------------------------------------------- брониро­вание
-async function createBooking(request, env, agency) {
+/*
+ * Уведомление оператору в Telegram о новой брони.
+ *
+ * НЕ ДЕЛАЕТ НИЧЕГО, пока не заданы два значения в окружении воркера:
+ *   TELEGRAM_BOT_TOKEN — токен бота от @BotFather (СЕКРЕТ, не в git):
+ *       cd worker && wrangler secret put TELEGRAM_BOT_TOKEN
+ *   TELEGRAM_CHAT_ID   — куда слать (личка оператора или id группы, куда
+ *       добавлен бот); можно как обычная переменная в wrangler.toml [vars].
+ *
+ * Комиссия в сообщение НЕ идёт — это внутренняя цифра оператора, а бот
+ * может быть в общей группе. Ошибки глушим: уведомление не критично, бронь
+ * уже сохранена. Вызывается через ctx.waitUntil, поэтому клиент ответа не ждёт.
+ */
+function tgEscape(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+async function notifyTelegram(env, b) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const dir = b.departure.transport === "TZX" ? "Трабзон"
+            : b.departure.transport === "BUS" ? "Батуми" : b.departure.transport;
+  const names = b.passengers.map((p) => "• " + tgEscape(p.full_name)).join("\n");
+  const text =
+    "🧳 <b>Новая бронь</b>\n" +
+    "Агентство: <b>" + tgEscape(b.agency_name) + "</b>\n" +
+    "Заказ: <b>" + tgEscape(b.code) + "</b>\n" +
+    "Заезд: " + tgEscape(b.departure.date_start) + " · " + dir +
+      " (" + tgEscape(b.departure.code) + ")\n" +
+    "Туристов: " + b.passengers.length + "\n" +
+    "Сумма: $" + b.total + "\n" + names;
+
+  try {
+    await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId, text, parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (_) {
+    // сеть/Telegram недоступны — молча, бронь это не затрагивает
+  }
+}
+
+async function createBooking(request, env, agency, ctx) {
   const body = await request.json();
   const passengers = Array.isArray(body.passengers) ? body.passengers : [];
   if (!body.departure_code) return fail("Не указан заезд");
@@ -572,6 +621,14 @@ async function createBooking(request, env, agency) {
       logEvent(env, booking.id, agency, "created",
                `${priced.length} чел., ${total} USD`),
     ]));
+
+    // Уведомление в Telegram оператору — фоном, чтобы ответ клиенту не ждал
+    // Telegram, а его сбой не ронял уже сохранённую бронь. Само по себе не
+    // делает ничего, пока не заданы секреты (см. notifyTelegram).
+    const notify = notifyTelegram(env, {
+      code, agency_name: agency.name, departure, passengers: priced, total,
+    });
+    if (ctx && ctx.waitUntil) ctx.waitUntil(notify);
 
     return json({
       booking_code: code,
@@ -965,7 +1022,7 @@ async function createAgency(request, env) {
 // Разбор запроса вынесен из fetch(), чтобы заголовки CORS навешивались
 // один раз на любой ответ — включая ошибки. Иначе легко забыть обернуть
 // какую-нибудь ветку, и браузер молча отвергнет ответ.
-async function route(request, env) {
+async function route(request, env, ctx) {
   const url = new URL(request.url);
   const path = url.pathname;
 
@@ -1031,7 +1088,7 @@ async function route(request, env) {
     }
 
     if (path === "/api/bookings" && request.method === "POST") {
-        return await createBooking(request, env, agency);
+        return await createBooking(request, env, agency, ctx);
     }
 
     if (path === "/api/bookings" && request.method === "GET") {
@@ -1120,10 +1177,13 @@ async function route(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: cors(env, request) });
     }
-    return withCors(await route(request, env), env, request);
+    // ctx нужен для ctx.waitUntil — фоновой отправки уведомления в Telegram
+    // после ответа клиенту (см. notifyTelegram). Без него бронь ждала бы
+    // ответа Telegram, а сбой мессенджера ронял бы саму бронь.
+    return withCors(await route(request, env, ctx), env, request);
   },
 };

@@ -9,6 +9,16 @@ compatibility_date = "2024-11-01"
 # например "https://amalsabitov98-art.github.io".
 ALLOWED_ORIGIN = "https://amalsabitov98-art.github.io"
 
+# Уведомления оператору в Telegram о новой брони. Пока не заданы обе строки —
+# уведомления просто не шлются, всё остальное работает как прежде.
+#   1) создать бота у @BotFather, получить токен;
+#   2) узнать chat_id: писать боту в личку или добавить его в группу и взять
+#      id группы (например, через @getidsbot или getUpdates);
+#   3) chat_id — сюда (не секрет), а токен — секретом, НЕ в git:
+#        cd worker && wrangler secret put TELEGRAM_BOT_TOKEN
+#   4) wrangler deploy
+# TELEGRAM_CHAT_ID = "-1001234567890"
+
 # База агентского кабинета. Создать один раз:
 #   wrangler d1 create turon-tour
 # и подставить выданный database_id сюда.
