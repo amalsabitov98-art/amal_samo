@@ -857,12 +857,6 @@
 
       var passport = TuronApi.passportIssue(p.passport_expiry, d.date_start);
 
-      // Доп. кровать: тип размещения настоящий, а тарифа на него оператор
-      // не присылал — цена временная. Не блокируем бронь, но и молча
-      // непроверенную цифру агенту не показываем: он назовёт её клиенту.
-      var bed = TuronProvisional.EXTRA_BED;
-      var bedPending = bed && bed.pricePending && t.code === bed.code;
-
       box.innerHTML = '<span class="tt-pax-tariff">' + age + " лет · " + esc(t.label) + "</span>" +
         "<strong>" + money(t.price) + "</strong>" +
         (t.occupies_seat ? "" : '<span class="tt-muted-note"> · без места</span>') +
@@ -870,7 +864,6 @@
           ? '<span class="tt-price-warn"> · детский тариф на этот заезд не задан, ' +
             "посчитано по взрослому — менеджер уточнит</span>"
           : "") +
-        (bedPending ? '<span class="tt-price-warn"> · ' + esc(bed.note) + "</span>" : "") +
         (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
