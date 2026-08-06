@@ -216,10 +216,10 @@
     var route = ROUTES[departure.transport];
     var stay = HOTELS[departure.transport] || [];
     if (!route || stay.length < 2) return [];
-    var inCity = LEGS["TAS-" + route.arrival].to_city;
     var outCity = LEGS[route.departure + "-TAS"].from_city;
+    // Два трансфера, как в бланке оператора: переезд между отелями и выезд
+    // в аэропорт. Встречи в аэропорту прилёта отдельной строкой там нет.
     return [
-      "Групповой трансфер: " + inCity + " (аэропорт) → " + stay[0].city + " (отель)",
       "Групповой трансфер: " + stay[0].city + " (отель) → " + stay[1].city + " (отель)",
       "Групповой трансфер: " + stay[1].city + " (отель) → " + outCity + " (аэропорт)",
     ].concat(EXCURSION_CITIES.map(function (c) {

@@ -9152,10 +9152,10 @@ window.TURON_DESTINATIONS = [
     var route = ROUTES[departure.transport];
     var stay = HOTELS[departure.transport] || [];
     if (!route || stay.length < 2) return [];
-    var inCity = LEGS["TAS-" + route.arrival].to_city;
     var outCity = LEGS[route.departure + "-TAS"].from_city;
+    // Два трансфера, как в бланке оператора: переезд между отелями и выезд
+    // в аэропорт. Встречи в аэропорту прилёта отдельной строкой там нет.
     return [
-      "Групповой трансфер: " + inCity + " (аэропорт) → " + stay[0].city + " (отель)",
       "Групповой трансфер: " + stay[0].city + " (отель) → " + stay[1].city + " (отель)",
       "Групповой трансфер: " + stay[1].city + " (отель) → " + outCity + " (аэропорт)",
     ].concat(EXCURSION_CITIES.map(function (c) {
@@ -12878,10 +12878,11 @@ window.TURON_DESTINATIONS = [
       /* Плечи стыкуются вплотную, самолёт сидит на шве и перекрывает обе
          карточки — в образце именно так, с зазором пара читалась как два
          независимых блока, а не как один перелёт. */
-      ".leg{display:flex;align-items:center;position:relative}" +
+      /* Карточки плеча РАЗДЕЛЬНЫЕ, между ними зазор, самолёт висит над ним и
+         перекрывает обе. Сросшиеся борта (как было) в образце не так: там у
+         каждого города своя замкнутая рамка. */
+      ".leg{display:flex;align-items:center;gap:18px;position:relative}" +
       ".leg .card{flex:1;text-align:center;padding:7px 10px}" +
-      ".leg .card:first-child{border-right:0;border-radius:9px 0 0 9px}" +
-      ".leg .card:last-child{border-left:0;border-radius:0 9px 9px 0}" +
       ".leg-date{font-size:11px}" +
       ".leg-time{font-size:11px;margin-bottom:1px}" +
       ".leg-city{font-size:15px;font-weight:800;color:" + V.forestDeep + "}" +
@@ -12900,9 +12901,15 @@ window.TURON_DESTINATIONS = [
       ".svc div{border:1.4px solid " + V.forest + ";border-radius:7px;padding:5px 12px;font-size:12px}" +
       /* Реквизиты внизу — такими же карточками, а не подвалом мелким шрифтом:
          в образце это часть бланка, её читают наравне с остальным. */
+      /* Подпись и значение в ОДНУ строку: в образце реквизиты идут строчкой
+         «АГЕНТСТВО: B2 MANAGEMENT…», а не подписью над значением. */
       ".req{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}" +
-      ".req .val{font-size:12.5px;text-transform:uppercase;font-weight:700}" +
+      ".req .card{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}" +
+      ".req .lbl{font-size:11px;color:" + V.forestDeep + "}" +
+      ".req .val{font-size:11.5px;text-transform:uppercase;font-weight:700}" +
+      ".req-sm .lbl,.req-sm .val{font-size:8.5px}" +
       ".req-wide{grid-column:1 / -1}" +
+      ".vrule{margin-top:14px;border-top:1px solid " + V.line + "}" +
       ".actions{max-width:800px;margin:0 auto 28px;display:flex;gap:10px}" +
       ".actions button{font:inherit;font-weight:600;font-size:14px;padding:10px 18px;border-radius:10px;" +
         "border:1px solid " + V.line + ";background:" + V.forest + ";color:#fff;cursor:pointer}" +
@@ -13035,7 +13042,7 @@ window.TURON_DESTINATIONS = [
       return (
         '<div class="card hotel"><div class="lbl">Отель ' + esc(h.city) + ":</div>" +
           '<div class="val">' + esc(h.name) + "</div>" +
-          '<div class="hotel-dates">' + esc(vDate(from)) + " — " + esc(vDate(to)) +
+          '<div class="hotel-dates">' + esc(vDate(from)) + " - " + esc(vDate(to)) +
             " (" + vNights(h.nights) + ")</div>" +
         "</div>"
       );
@@ -13095,13 +13102,14 @@ window.TURON_DESTINATIONS = [
             '<div class="val">' + esc(op.phone) + "</div></div>" +
           '<div class="card"><div class="lbl">Эл. почта:</div>' +
             '<div class="val">' + esc(op.email) + "</div></div>" +
-          '<div class="card"><div class="lbl">Адрес:</div>' +
+          '<div class="card req-sm"><div class="lbl">Адрес:</div>' +
             '<div class="val">' + esc(op.address) + "</div></div>" +
           (b.note
             ? '<div class="card req-wide"><div class="lbl">Примечание:</div>' +
               '<div class="val">' + esc(b.note) + "</div></div>"
             : "") +
         "</div>" +
+        '<div class="vrule"></div>' +
       "</div>" +
       '<div class="actions no-print">' +
         '<button onclick="window.print()">Печать / PDF</button>' +
