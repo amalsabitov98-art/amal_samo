@@ -163,7 +163,7 @@
     phone_href: MANAGERS[0].phone_href,
     telegram_href: MANAGERS[0].telegram_href,
     email: "info@turontourism.uz",
-    address: "Нурафшон 51",
+    address: "город Ташкент, Алмазарский район, улица Нурафшон, 51",
   };
 
   /*
@@ -200,6 +200,32 @@
     pricePending: true,
     note: "цена доп. кровати предварительная — уточните у оператора",
   };
+
+  /*
+   * 6. ТРАНСФЕРЫ И ЭКСКУРСИИ (для ваучера)
+   * --------------------------------------
+   * Список собирается из маршрута заезда, а не пишется руками: маршрут
+   * зеркальный, и захардкоженная строка «Батуми → Ризе» на заезде через
+   * Трабзон отправляла бы группу не в ту сторону. Отели берутся из HOTELS
+   * того же transport, поэтому порядок городов всегда совпадает с
+   * фактическим расселением.
+   */
+  var EXCURSION_CITIES = ["Батуми", "Ризе", "Трабзон"];
+
+  function servicesFor(departure) {
+    var route = ROUTES[departure.transport];
+    var stay = HOTELS[departure.transport] || [];
+    if (!route || stay.length < 2) return [];
+    var inCity = LEGS["TAS-" + route.arrival].to_city;
+    var outCity = LEGS[route.departure + "-TAS"].from_city;
+    return [
+      "Групповой трансфер: " + inCity + " (аэропорт) → " + stay[0].city + " (отель)",
+      "Групповой трансфер: " + stay[0].city + " (отель) → " + stay[1].city + " (отель)",
+      "Групповой трансфер: " + stay[1].city + " (отель) → " + outCity + " (аэропорт)",
+    ].concat(EXCURSION_CITIES.map(function (c) {
+      return "Экскурсия по городу " + c;
+    }));
+  }
 
   function shiftDate(iso, days) {
     if (!iso) return null;
@@ -253,6 +279,8 @@
         }),
       };
     },
+
+    servicesFor: servicesFor,
 
     hotelsFor: function (departure) {
       return (HOTELS[departure.transport] || []).slice();
