@@ -164,7 +164,7 @@
     phone_href: MANAGERS[0].phone_href,
     telegram_href: MANAGERS[0].telegram_href,
     email: "info@turontourism.uz",
-    address: "Ташкент, Шайхантахурский район, проспект Бунёдкор 6/1",
+    address: "Нурафшон 51",
   };
 
   /*
