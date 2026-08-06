@@ -253,7 +253,7 @@
   function footerHtml() {
     var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || null;
     if (!op) {
-      return '<footer class="tt-public-footer"><span>© 2026 Turon Tour</span>' +
+      return '<footer class="tt-public-footer"><span>© 2026 Etihad</span>' +
         "<span>Tashkent · Uzbekistan</span></footer>";
     }
     return (
@@ -280,7 +280,7 @@
           // В копирайте оставляем бренд сайта: OPERATOR.name — это как
           // оператор представляется в контактах, а какое имя тут юридически
           // верное, нам не подтверждали.
-          "<span>© 2026 Turon Tour</span>" +
+          "<span>© 2026 Etihad</span>" +
           "<span>Tashkent · Uzbekistan</span>" +
         "</div>" +
       "</footer>"
@@ -804,7 +804,7 @@
           '<section class="tt-about-company" id="about-company">' +
             '<div class="tt-about-brand">' +
               '<i class="tt-about-emblem" aria-hidden="true"></i>' +
-              '<span>Turon Tour<small>Tashkent · Uzbekistan</small></span>' +
+              '<span>Etihad<small>Tashkent · Uzbekistan</small></span>' +
             "</div>" +
             '<div class="tt-about-copy">' +
               '<span class="tt-eyebrow">' + esc(tr("about.kicker")) + "</span>" +

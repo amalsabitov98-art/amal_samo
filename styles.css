@@ -1517,16 +1517,14 @@ select { font-family: inherit; }
 .tt-logo-mark {
   display: block;
   flex: 0 0 auto;
-  background: url("img/turon-logo.webp") center / contain no-repeat;
+  background: url("img/etihad-mark.png") center / contain no-repeat;
 }
 .tt-logo > .tt-logo-mark {
-  /* img/turon-logo.webp обрезан по контуру эмблемы (было ~30% пустого
-     поля сверху/снизу в исходнике — на 42px значка это читалось как
-     маленькая иконка, плавающая в пустой рамке). Бокс landscape под
-     реальные пропорции герба (333×281), чтобы contain заполнял почти
-     весь квадрат, а не оставлял поля. */
-  width: 46px;
-  height: 40px;
+  /* Бокс под пропорции знака Etihad (185×108, отрезан от локапа выше
+     слова): заметно шире, чем был герб Turon, поэтому и коробка шире —
+     иначе contain ужимал бы его по ширине и оставлял поля сверху и снизу. */
+  width: 52px;
+  height: 32px;
   border-radius: 12px;
   background-color: rgba(255, 252, 244, 0.92);
   box-shadow: 0 7px 22px rgba(5, 35, 29, 0.13);
@@ -2789,7 +2787,7 @@ select { font-family: inherit; }
 .tt-about-emblem {
   width: min(23vw, 270px);
   height: min(26vw, 300px);
-  background: url("img/turon-logo.webp") center / contain no-repeat;
+  background: url("img/etihad-mark.png") center / contain no-repeat;
   filter: drop-shadow(0 25px 38px rgba(0, 0, 0, 0.28));
 }
 .tt-about-brand > span {

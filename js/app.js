@@ -1409,10 +1409,10 @@
    * карточки пассажиров, перелёт двумя плечами со стрелкой, блок услуг
    * справа, отели, список трансферов и экскурсий.
    *
-   * Брендинг тут НАШ. В образце в шапке стоит логотип Etihad, но рейсы у
-   * тура выполняет Centrum Air, а ваучер выдаёт Turon Tourism — чужая
-   * эмблема на нём означала бы, что документ выпустила авиакомпания,
-   * которая к брони отношения не имеет.
+   * Логотип в шапке — фирменный знак Etihad (зелёно-золотой изгиб, свой,
+   * НЕ авиакомпании Etihad Airways: у той золотая арабская вязь и своя
+   * угловатая гарнитура). Компания называется так же, как авиакомпания, —
+   * это совпадение имени, а не заимствование знака.
    *
    * Стили инлайном: окно открывается через document.write, styles.css
    * туда не подключён, а тащить весь файл ради одного бланка незачем.
@@ -1436,8 +1436,8 @@
         "box-shadow:0 24px 60px -24px rgba(12,36,24,.28)}" +
       /* шапка */
       ".vh{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:26px}" +
-      ".vh-brand{display:flex;align-items:center;gap:13px}" +
-      ".vh-brand img{height:52px;display:block}" +
+      ".vh-brand{display:flex;flex-direction:column;align-items:flex-start;gap:5px}" +
+      ".vh-brand img{height:64px;display:block}" +
       ".vh-word{font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:700;" +
         "letter-spacing:.26em;text-transform:uppercase;color:" + V.forest + ";line-height:1}" +
       ".vh-sub{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:" + V.muted + ";margin-top:6px}" +
@@ -1518,6 +1518,13 @@
     );
   }
 
+  /* Окно бланка открывается пустым (about:blank), относительный путь в нём
+   * не разрешается — собираем абсолютный от адреса кабинета. */
+  function brandLogoUrl() {
+    return location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, "") +
+      "img/etihad-logo.png";
+  }
+
   var PLANE_SVG = '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg>';
   var PERSON_SVG = '<svg class="pax-ico" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5Z"/></svg>';
 
@@ -1580,8 +1587,7 @@
 
     // Окно открывается пустым (about:blank), поэтому относительный путь к
     // логотипу в нём не разрешится — собираем абсолютный от адреса кабинета.
-    var logo = location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, "") +
-      "img/turon-logo.webp";
+    var logo = brandLogoUrl();
 
     var win = window.open("", "_blank");
     if (!win) { flash("Разрешите всплывающие окна, чтобы открыть ваучер."); return; }
@@ -1629,9 +1635,8 @@
       "<style>" + voucherCss() + "</style></head><body>" +
       '<div class="sheet">' +
         '<div class="vh">' +
-          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="">' +
-            "<div><div class=\"vh-word\">Turon Tour</div>" +
-            '<div class="vh-sub">' + esc(op.name) + "</div></div></div>" +
+          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="' +
+            esc(op.name) + '"><div class="vh-sub">Туроператор</div></div>' +
           '<div class="vh-order"><span>Номер заказа:</span>' +
             "<strong>" + esc(b.code) + "</strong>" +
             "<em>от " + esc(vDate(b.created_at)) + "</em></div>" +
@@ -1728,8 +1733,7 @@
     var fl = TuronProvisional.flightsFor({
       transport: b.transport, date_start: b.date_start, nights: nights,
     });
-    var logo = location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, "") +
-      "img/turon-logo.webp";
+    var logo = brandLogoUrl();
 
     var win = window.open("", "_blank");
     if (!win) { flash("Разрешите всплывающие окна, чтобы открыть билет."); return; }
@@ -1747,9 +1751,8 @@
       "<style>" + voucherCss() + ticketCss() + "</style></head><body>" +
       '<div class="sheet">' +
         '<div class="vh">' +
-          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="">' +
-            "<div><div class=\"vh-word\">Turon Tour</div>" +
-            '<div class="vh-sub">Маршрут-квитанция</div></div></div>' +
+          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="' +
+            esc(op.name) + '"><div class="vh-sub">Маршрут-квитанция</div></div>' +
           '<div class="vh-order"><span>Код бронирования:</span>' +
             "<strong>" + esc(b.code) + "</strong>" +
             "<em>от " + esc(vDate(b.created_at)) + "</em></div>" +
@@ -1782,7 +1785,7 @@
             esc(op.phone) + "<br>" + esc(op.email) + "</div>" +
         "</div>" +
         '<div class="warn">Перелёт входит в состав тура. Квитанцию выдаёт ' +
-          "Turon Tourism; посадочный талон выдаёт авиакомпания при регистрации. " +
+          "Etihad; посадочный талон выдаёт авиакомпания при регистрации. " +
           "Бланк предварительный — форму оператор ещё не утвердил.</div>" +
       "</div>" +
       '<div class="actions no-print">' +
@@ -1827,7 +1830,7 @@
     $("messages-body").innerHTML =
       '<div class="tt-panel">' +
         "<h2>Контакты оператора</h2>" +
-        '<p class="tt-muted-note">По броням отвечают менеджеры Turon Tour. ' +
+        '<p class="tt-muted-note">По броням отвечают менеджеры Etihad. ' +
         "Пишите в Telegram или звоните.</p>" +
         '<div class="tt-contact-grid">' +
           people +
