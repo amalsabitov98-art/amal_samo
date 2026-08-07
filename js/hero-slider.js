@@ -5,8 +5,9 @@
  * внутри него не перестраивает: после появления .tt-public-intro он вставляет
  * отдельный полноэкранный лист Японии СРАЗУ ПОСЛЕ видео и ДО каталога.
  *
- * CTA использует существующий data-dest="Япония", поэтому клик обслуживает
- * уже существующий делегированный роутер каталога — отдельной страницы нет.
+ * В новом фон-файле уже есть утверждённая русская типографика, поэтому поверх
+ * изображения оставляем только настоящую HTML-кнопку. CTA использует
+ * существующий data-dest="Япония" и обслуживается штатным роутером каталога.
  */
 (function (global) {
   "use strict";
@@ -24,29 +25,12 @@
   function japanSheetHtml(src) {
     return (
       '<section class="tt-japan-sheet" aria-label="Япония — сезон 2026">' +
-        '<img class="tt-japan-sheet-image" src="' + src + '" alt="" ' +
+        '<img class="tt-japan-sheet-image" src="' + src + '" alt="Япония 2026 — Токио, Киото, Осака и Фудзи" ' +
           'decoding="async" fetchpriority="high" />' +
-        '<div class="tt-japan-sheet-shade" aria-hidden="true"></div>' +
-        '<div class="tt-japan-sheet-content">' +
-          '<div class="tt-japan-sheet-label">' +
-            '<span>ЯПОНИЯ · 2026</span><i aria-hidden="true"></i>' +
-          '</div>' +
-          '<h2 class="tt-japan-sheet-title" aria-label="Открой Японию!">' +
-            '<span class="tt-japan-title-ink">ОТКРОЙ</span>' +
-            '<span class="tt-japan-title-red"><span>ЯПОНИЮ!</span></span>' +
-          '</h2>' +
-          '<p class="tt-japan-sheet-route">Токио <i>·</i> Киото <i>·</i> Осака <i>·</i> Фудзи</p>' +
-          '<div class="tt-japan-sheet-copy">' +
-            '<span aria-hidden="true"></span>' +
-            '<p>Четыре программы путешествий — от огней Токио до классических ' +
-              'маршрутов и Japan Camp.</p>' +
-          '</div>' +
-          '<div class="tt-japan-sheet-actions">' +
-            '<button class="tt-japan-sheet-cta" type="button" data-dest="Япония">' +
-              '<span>Смотреть туры</span><span aria-hidden="true">↗</span>' +
-            '</button>' +
-            '<span class="tt-japan-sheet-meta">4 программы · сезон 2026</span>' +
-          '</div>' +
+        '<div class="tt-japan-sheet-action">' +
+          '<button class="tt-japan-sheet-cta" type="button" data-dest="Япония">' +
+            '<span>Смотреть туры</span><span aria-hidden="true">↗</span>' +
+          '</button>' +
         '</div>' +
       '</section>'
     );
