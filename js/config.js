@@ -16,7 +16,7 @@ window.TURON_CONFIG = {
 
   var css = document.createElement("link");
   css.rel = "stylesheet";
-  css.href = "hero-slider.css?v=20260807-4";
+  css.href = "hero-slider.css?v=20260807-6";
   css.setAttribute("data-japan-second-sheet", "");
   document.head.appendChild(css);
 
@@ -47,7 +47,7 @@ window.TURON_CONFIG = {
     }
 
     if (!window.TURON_JAPAN_IMAGE) return;
-    addScript("js/hero-slider.js?v=20260807-5", function () {}, function () {});
+    addScript("js/hero-slider.js?v=20260807-7", function () {}, function () {});
   }
 
   loadNextImagePart();
