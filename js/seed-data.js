@@ -2751,6 +2751,66 @@ window.TURON_TOURS = [
     ]
    }
   ]
+ },
+ {
+  "code": "JP_CONSTRUCTOR",
+  "name": "Тур-конструктор «Легенды и огни Токио»",
+  "destination": "Япония",
+  "agency_commission": 100,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "JP_TOKYO",
+  "name": "Легенды и огни Токио",
+  "destination": "Япония",
+  "agency_commission": 150,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "JP_GOLDEN_RING",
+  "name": "Золотое кольцо Японии",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "JP_CAMP",
+  "name": "Учебный лагерь Japan Camp",
+  "destination": "Япония",
+  "agency_commission": 250,
+  "is_bookable": 0,
+  "note": "Ожидаются даты заездов и цены",
+  "description": null,
+  "nights": null,
+  "included": [],
+  "excluded": [],
+  "info": [],
+  "gallery": [],
+  "variants": []
  }
 ];
 window.TURON_DESTINATIONS = [
@@ -2760,5 +2820,12 @@ window.TURON_DESTINATIONS = [
   "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
   "image": "img/hero-rize-batumi.webp",
   "sort": 1
+ },
+ {
+  "name": "Япония",
+  "title": "Япония",
+  "blurb": "Готовятся к запуску — ждём даты заездов и цены",
+  "image": null,
+  "sort": 2
  }
 ];
