@@ -91,9 +91,6 @@
     return (
       '<button class="tt-cat-tile' + (closed ? " is-soon" : "") + '" data-dest="' +
         esc(d.name) + '">' +
-        // has-photo нужен из-за CSS: тёмная тема задаёт фон плитки
-        // сокращением background, а оно сбрасывает background-size, и
-        // фотография легла бы в натуральную величину вместо cover.
         '<span class="tt-cat-tile-art' + (d.image ? " has-photo" : "") + '"' +
           (d.image ? ' style="background-image:url(' + esc(d.image) + ')"' : "") +
         "></span>" +
@@ -156,13 +153,6 @@
       "</ul></div>";
   }
 
-  /*
-   * Порядок оплаты: сроки считает TuronApi.paymentPolicy, здесь только
-   * разметка. Функция на уровне модуля, а не экземпляра, — её рисует и
-   * карточка тура, и окно брони в кабинете.
-   *
-   * total = 0 — показываем доли в процентах, иначе суммы в деньгах.
-   */
   function policyHtml(dateStart, total) {
     var pol = TuronApi.paymentPolicy(dateStart);
     var rows = pol.steps.map(function (s) {
@@ -181,17 +171,6 @@
       "</div>";
   }
 
-  /*
-   * ------------------------------------------------------ поиск на титульной
-   * Панель ищет по РЕАЛЬНЫМ заездам (TuronApi.catalogDepartures), а не по
-   * выдуманному списку курортов: варианты в select-ах строятся из того, что
-   * действительно есть в продаже. Поэтому «сентябрь» появляется, только если
-   * сентябрьские заезды заведены, а аэропорт — только тот, куда правда летим.
-   *
-   * Заезды берутся отдельным маршрутом, а не из catalogTours: там MIN(date)
-   * по туру, и фильтр по месяцу врал бы (тур с ближайшим заездом в августе
-   * пропал бы из сентябрьской выдачи, хотя сентябрьские заезды у него есть).
-   */
   function searchPanelHtml() {
     function field(id, label, first) {
       return '<label class="tt-hero-search-field" for="' + id + '">' +
@@ -215,16 +194,6 @@
     );
   }
 
-  /*
-   * Блок преимуществ под героем (раскладка с референса — ряд из четырёх
-   * иконок). Каждый пункт — пересказ строки из `tour_content` kind='included'
-   * тура Карадениз: перелёт, отели, гид, поддержка. Ничего сверх того, что
-   * оператор уже подтвердил, тут писать нельзя — иначе агент пообещает
-   * клиенту услугу, которой в программе нет.
-   *
-   * Ссылок «подробнее» с референса нет намеренно: тур у нас пока один, и все
-   * четыре вели бы в одну и ту же карточку — четыре одинаковые кнопки.
-   */
   var BENEFIT_ICONS = {
     flight: '<path d="M3 13.5 21 4l-4.5 9.5L21 20l-8-3.5L5 20l3.5-6.5L3 13.5Z" />',
     hotel: '<path d="M4 20V6a2 2 0 0 1 2-2h5v16M11 10h7a2 2 0 0 1 2 2v8M15 14h1M15 17h1M6.5 8h2M6.5 11h2M6.5 14h2" />',
@@ -244,12 +213,6 @@
       "</section>";
   }
 
-  /*
-   * Подвал. Раньше в нём был только копирайт, хотя гость на публичной
-   * странице — это турист или агент, которому нужно позвонить. Контакты
-   * берутся из js/provisional.js (подтверждены оператором), а не пишутся
-   * здесь руками: иначе телефон пришлось бы править в двух местах.
-   */
   function footerHtml() {
     var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || null;
     if (!op) {
@@ -277,9 +240,6 @@
           "</div>" +
         "</div>" +
         '<div class="tt-foot-bottom">' +
-          // В копирайте оставляем бренд сайта: OPERATOR.name — это как
-          // оператор представляется в контактах, а какое имя тут юридически
-          // верное, нам не подтверждали.
           "<span>© 2026 Etihad</span>" +
           "<span>Tashkent · Uzbekistan</span>" +
         "</div>" +
@@ -287,22 +247,6 @@
     );
   }
 
-  /*
-   * ---------------------------------------------------- ближайшие заезды
-   * Полоса карточек под преимуществами. Подача взята с референса Globe
-   * Express (фото на всю карточку, мелкая подпись сверху, крупное главное
-   * снизу, цена и действие), но содержимое — наши настоящие заезды.
-   *
-   * Каруселей с чужими странами не делаем: тур в продаже один, и «5
-   * направлений» пришлось бы выдумывать. Крупным на карточке идёт ДАТА, а
-   * не название тура: у всех заездов маршрут один и тот же, выбирают
-   * именно дату.
-   *
-   * Фотографии настоящие, но привязаны к позиции карточки, а не к
-   * конкретному заезду — все они сняты на этом же маршруте (Ризе и
-   * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
-   * фото именно того заезда» тут нет и быть не может.
-   */
   var ROUTE_PHOTOS = [
     "img/hero-rize-batumi.webp",
     "img/tour-rize-tea-valley.webp",
@@ -311,7 +255,6 @@
     "img/hero-rize-morning.webp",
   ];
 
-  // «4 — 11 сентября»: месяц не повторяем, если он один и тот же.
   function dateSpan(dateStart, nights) {
     var end = TuronApi.departureEnd(dateStart, nights);
     if (!end) return dateLong(dateStart);
@@ -323,14 +266,6 @@
     return dateLong(dateStart) + " — " + dateLong(end);
   }
 
-  /*
-   * Карточки группируются по ДАТЕ, а не по заезду. На одну и ту же неделю
-   * обычно есть два заезда — через Батуми и через Трабзон, — и по карточке
-   * на каждый давало четыре плитки на две недели с одинаковыми крупными
-   * заголовками: с виду опечатка, а не выбор. Группировка показывает четыре
-   * разные недели, оба аэропорта уходят в подпись, цена берётся
-   * минимальная по группе (это и есть честное «от»).
-   */
   function groupByDate(list) {
     var order = [], byDate = {};
     list.forEach(function (d) {
@@ -352,7 +287,6 @@
 
   function upcomingCard(g, i) {
     var air = g.transports.map(function (t) {
-      // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
       return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
     }).join(" · ");
     var meta = ["Авиа · " + air];
@@ -377,10 +311,7 @@
     );
   }
 
-  // «Сентябрь 2026» из даты заезда; ключ YYYY-MM для сравнения.
   function monthKey(iso) { return iso.slice(0, 7); }
-  // Год приписываем отдельно: ru-RU с year:"numeric" выдаёт «Август 2026 г.»,
-  // и это «г.» в выпадающем списке выглядит мусором.
   function monthLabel(iso) {
     var d = new Date(iso + "T00:00:00Z");
     var m = d.toLocaleDateString("ru-RU", { month: "long", timeZone: "UTC" });
@@ -393,12 +324,6 @@
     return "#/";
   }
 
-  /*
-   * Разбор адреса. null означает «этот хеш не наш» — маршруты кабинета
-   * (#/app/...) и входа (#/login) ведёт роутер в app.js. Без этого каталог
-   * на каждое переключение вкладки в кабинете считал бы, что его просят
-   * показать список направлений, и дёргал бы сеть впустую.
-   */
   function viewFromHash() {
     var h = (global.location.hash || "").replace(/^#/, "");
     if (h === "" || h === "/") return { kind: "destinations" };
@@ -409,27 +334,12 @@
     return null;
   }
 
-  /*
-   * opts:
-   *   root     — контейнер для отрисовки (обязателен)
-   *   canBook  — показывать кнопку брони и точный остаток мест
-   *   onBook   — (departureCode) => void, клик по «Забронировать»
-   *   onLogin  — (departureCode) => void, гость просит войти
-   *   useHash  — держать текущий экран в адресе (#/t/KARADENIZ)
-   */
   function create(opts) {
     var cfg = Object.assign({ canBook: false, useHash: false }, opts);
     var root = cfg.root;
-    // viewFromHash может вернуть null (адрес кабинета) — тогда показываем
-    // список направлений: каталог всегда должен быть с чего-то начат.
     var view = (cfg.useHash && viewFromHash()) || { kind: "destinations" };
-    // Открытый калькулятор: код заезда и счётчики по тарифам.
     var calc = { code: null, counts: {} };
-    // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
-    // калькуляторе перерисовывали её из памяти, а не дёргали API.
     var loadedTour = null;
-    // Слушатели пробуждения видео вешаются на документ, а он один — значит
-    // и вешать их надо один раз, а не при каждой отрисовке титульной.
     var heroWakeBound = false;
 
     function seatsLabel(free) {
@@ -451,10 +361,6 @@
       root.innerHTML = '<div class="tt-empty-state">Загружаем…</div>';
     }
 
-    // Тарифы заезда для калькулятора: взрослые по размещению и детские
-    // по возрасту. Строки берутся из прайса самого заезда, а не из
-    // захардкоженных возрастных групп — иначе при смене тарифной сетки
-    // калькулятор начнёт считать не то, что посчитает сервер.
     function tariffRows(d) {
       var adults = d.prices.filter(function (p) { return p.kind === "placement"; })
         .sort(function (a, b) { return a.price - b.price; })
@@ -467,9 +373,6 @@
       var kids = d.prices.filter(function (p) { return p.kind === "child"; })
         .sort(function (a, b) { return a.age_from - b.age_from; })
         .map(function (p) {
-          // Верхняя граница тарифа не включается (правило `age < age_to`),
-          // поэтому пишем возраст последнего подходящего года: тариф
-          // «Chd 5-10» — это 5–9 лет, а не «до 10 включительно».
           var top = p.age_to - 1;
           return {
             code: p.code, price: p.price, occupies_seat: p.occupies_seat,
@@ -494,9 +397,6 @@
       return { total: total, people: people, seats: seats };
     }
 
-    // Калькулятор одного заезда: счётчики по тарифам, цена за человека,
-    // итог и порядок оплаты. Агент называет клиенту сумму, не заполняя
-    // паспорта; при бронировании форма открывается уже на нужное число мест.
     function calcHtml(d) {
       var counts = calc.counts;
       var t = calcTotals(d, counts);
@@ -609,12 +509,6 @@
         }).join("") + "</ol></section>";
     }
 
-    /*
-     * Строка выдачи поиска. Отдельная от departureRow намеренно: тот берёт
-     * полный прайс заезда и открывает калькулятор в контексте загруженной
-     * карточки тура, а здесь на руках только сводка (min_price, остаток).
-     * Кнопка ведёт в карточку тура — там и прайс, и расчёт, и бронь.
-     */
     function searchResultRow(d) {
       var seats = seatsLabel(d.seats_free);
       var meta = [TRANSPORT[d.transport] || d.transport];
@@ -649,19 +543,6 @@
       );
     }
 
-    /*
-     * Поиск на титульной. Варианты в select-ах строятся из реальных заездов,
-     * поэтому пустых обещаний в выдаче не бывает: если месяц есть в списке —
-     * заезды в нём точно заведены.
-     *
-     * Ошибку загрузки заездов глотаем намеренно: поиск — надстройка над
-     * каталогом, и упавший запрос не должен убирать со страницы направления.
-     * Панель в этом случае просто остаётся с одним фильтром по направлению.
-     */
-    /* Ближайшие заезды. Список уже загружен для поиска — второй раз в сеть
-     * не ходим. Если заездов нет (или маршрут /api/public/departures ещё не
-     * задеплоен и отдал пустоту), секция просто не появляется: пустой блок
-     * с заголовком «Ближайшие заезды» и ничем внутри выглядел бы поломкой. */
     function renderUpcoming(list) {
       var box = root.querySelector("#upcoming-departures");
       if (!box) return;
@@ -739,7 +620,7 @@
         addOptions(airSel, airs);
         showCount();
         renderUpcoming(all);
-      }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
+      }).catch(function () {});
 
       form.addEventListener("change", showCount);
       form.addEventListener("submit", function (e) {
@@ -797,7 +678,6 @@
               searchPanelHtml() +
             "</div>" +
           "</section>" +
-          benefitsHtml() +
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
@@ -819,15 +699,10 @@
             '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
           footerHtml();
-        // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
-        // CSS видео не останавливает, поэтому только так.
         var video = root.querySelector(".tt-hero-video");
         if (video && global.matchMedia &&
             global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           video.removeAttribute("autoplay");
-          // Метка для resumeHero: иначе, если «уменьшить движение» включили
-          // уже после того, как слушатели пробуждения повисли на документе,
-          // они бы честно завели остановленный ролик обратно.
           video.setAttribute("data-no-autoplay", "");
           video.pause();
         } else {
@@ -886,9 +761,7 @@
             '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
             (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +
           "</header>" +
-
           programmeBlock(tour) +
-
           (included.length || excluded.length
             ? '<section class="tt-cat-block"><h2>Что входит в цену</h2>' +
               '<div class="tt-cat-lists">' +
@@ -896,7 +769,6 @@
                 listBlock("Не включено", excluded, "is-out") +
               "</div></section>"
             : "") +
-
           (gallery.length
             ? '<section class="tt-cat-block"><h2>Фото</h2><div class="tt-cat-gallery">' +
               gallery.map(function (g) {
@@ -904,7 +776,6 @@
                   '" loading="lazy" />';
               }).join("") + "</div></section>"
             : "") +
-
           (info.length
             ? '<section class="tt-cat-block"><h2>Важно знать</h2><ul class="tt-cat-info">' +
               info.map(function (x) {
@@ -914,11 +785,9 @@
                   : esc(x.text)) + "</li>";
               }).join("") + "</ul></section>"
             : "") +
-
           '<section class="tt-cat-block"><h2>Заезды и цены</h2>' +
             (deps.length
               ? '<div class="tt-cat-deps">' + deps.map(function (d) {
-                  // длительность живёт на туре, а рисуется в строке заезда
                   return departureRow(Object.assign({ nights: tour.nights }, d));
                 }).join("") + "</div>"
               : '<div class="tt-empty-state">' +
@@ -933,9 +802,6 @@
           "</section>";
     }
 
-    /* has-hero говорит стилям, что на экране есть видео и шапку можно класть
-     * поверх него. На карточке тура и в списке направлений видео нет —
-     * прозрачная шапка там висела бы над обычным текстом. */
     function markHero() {
       var screen = root.closest("#screen-public");
       if (screen) {
@@ -943,19 +809,7 @@
       }
     }
 
-    /* Свёрнутый браузер (или уход на другую вкладку) усыпляет фоновое видео,
-     * и обратно само оно уже не заводится: вернувшись на страницу, зритель
-     * видел застывший кадр вместо ролика. autoplay тут не помогает — он
-     * срабатывает один раз при загрузке.
-     *
-     * Поэтому будим сами. visibilitychange ловит переключение вкладок и
-     * сворачивание, pageshow — возврат «назад» из bfcache (там документ
-     * восстанавливается целиком, событие видимости не приходит).
-     * play() возвращает промис и на заблокированном автовоспроизведении
-     * отваливается — гасим, иначе в консоли висит необработанный reject. */
     function resumeHero() {
-      // Видео ищем заново, а не держим ссылку: каталог перерисовывается при
-      // каждом переходе, и старый элемент к этому моменту уже выброшен.
       var video = root.querySelector(".tt-hero-video");
       if (!video || global.document.hidden || !video.paused) return;
       if (video.hasAttribute("data-no-autoplay")) return;
@@ -965,17 +819,11 @@
 
     function keepHeroPlaying(video) {
       if (!video) return;
-      // Браузер может усыпить ролик и без смены видимости (экономия батареи
-      // на ноутбуке) — тогда единственный сигнал это сам pause. Слушатель
-      // висит на самом элементе и умирает вместе с ним при перерисовке.
       video.addEventListener("pause", function () {
         global.setTimeout(resumeHero, 120);
       });
       if (heroWakeBound) return;
       heroWakeBound = true;
-      // А эти двое — на документе, поэтому вешаются один раз на экземпляр
-      // каталога: иначе каждый переход «каталог → тур → назад» добавлял бы
-      // ещё пару, и к концу сессии их набирались бы десятки.
       global.document.addEventListener("visibilitychange", resumeHero);
       global.addEventListener("pageshow", resumeHero);
     }
@@ -989,13 +837,10 @@
 
     function go(next, push) {
       view = next;
-      // уходим с карточки — расчёт и кэш тура больше не актуальны
       calc = { code: null, counts: {} };
       if (next.kind !== "tour") loadedTour = null;
       if (cfg.useHash) {
         var h = hashFor(next);
-        // Смена хеша сама поднимет hashchange, он и отрисует. Если адрес
-        // не меняется (повторный клик по тому же туру) — рисуем сразу.
         if (push && global.location.hash !== h) {
           global.location.hash = h;
           return;
@@ -1027,7 +872,6 @@
         return draw();
       }
 
-      // ------------------------------------------------- калькулятор
       var toggle = e.target.closest("[data-calc]");
       if (toggle) {
         var code = toggle.dataset.calc;
@@ -1056,13 +900,6 @@
       if (login && cfg.onLogin) return cfg.onLogin(login.dataset.login);
     });
 
-    /*
-     * Что передать в форму брони: по строке на каждого посчитанного
-     * туриста. Взрослым сразу подставляем размещение, детям — нет: тариф
-     * ребёнка определяется датой рождения, а её знает только агент. Форма
-     * и сервер всё равно пересчитают цену по факту, поэтому ошибка в
-     * счётчике ничего не ломает — она просто исправится при вводе даты.
-     */
     function prefillFromCalc() {
       if (!loadedTour || !calc.code) return null;
       var dep = (loadedTour.departures || []).filter(function (d) {
@@ -1086,9 +923,8 @@
 
     if (cfg.useHash) {
       global.addEventListener("hashchange", function () {
-        // хеш ведёт только гостевой каталог, кабинетный им не управляется
         var next = viewFromHash();
-        if (!next) return;   // #/login и #/app/* — не наши, их ведёт app.js
+        if (!next) return;
         view = next;
         draw();
       });
