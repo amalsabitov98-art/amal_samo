@@ -116,27 +116,16 @@
     else resumeVideoForFirstSlide(video);
   }
 
-  function enhance(hero) {
-    if (!hero || hero.hasAttribute(ENHANCED_ATTR)) return;
-    // Guard against a future catalogue render with a different hero layout.
-    // Slide 1 must remain the existing video hero, so do nothing unless both
-    // original pieces are present.
-    if (!hero.querySelector(".tt-hero-video") || !hero.querySelector(".tt-hero-content")) return;
+  function mount(hero) {
+    // The hero may have been replaced by catalogue navigation while the image
+    // was preloading. Never enhance a stale detached node.
+    if (!hero || !hero.isConnected) return;
+    if (hero.getAttribute(ENHANCED_ATTR) === "ready") return;
 
-    hero.setAttribute(ENHANCED_ATTR, "");
+    hero.setAttribute(ENHANCED_ATTR, "ready");
     hero.classList.add("tt-has-slider");
     hero.setAttribute("data-hero-slide", "1");
     hero.insertAdjacentHTML("beforeend", japanSlideHtml() + controlsHtml());
-
-    var japanImage = hero.querySelector(".tt-hero-japan-image");
-    if (japanImage) {
-      japanImage.addEventListener("error", function () {
-        hero.classList.add("tt-hero-japan-image-missing");
-      }, { once: true });
-      japanImage.addEventListener("load", function () {
-        hero.classList.remove("tt-hero-japan-image-missing");
-      }, { once: true });
-    }
 
     hero.addEventListener("click", function (event) {
       var direct = event.target.closest("[data-hero-to]");
@@ -159,6 +148,28 @@
     });
   }
 
+  function enhance(hero) {
+    if (!hero || hero.hasAttribute(ENHANCED_ATTR)) return;
+    // Guard against a future catalogue render with a different hero layout.
+    // Slide 1 must remain the existing video hero, so do nothing unless both
+    // original pieces are present.
+    if (!hero.querySelector(".tt-hero-video") || !hero.querySelector(".tt-hero-content")) return;
+
+    // Never expose a half-built second slide. The supplied Japan photograph
+    // must exist before we add controls/classes. If the asset is absent or
+    // fails to load, the page remains exactly the existing one-slide video
+    // hero; a reload after the image is deployed will enable the slider.
+    hero.setAttribute(ENHANCED_ATTR, "loading");
+    var probe = new global.Image();
+    probe.onload = function () { mount(hero); };
+    probe.onerror = function () {
+      if (hero && hero.isConnected && hero.getAttribute(ENHANCED_ATTR) === "loading") {
+        hero.removeAttribute(ENHANCED_ATTR);
+      }
+    };
+    probe.src = JAPAN_IMAGE;
+  }
+
   function enhanceCurrentHero() {
     scheduled = false;
     var root = global.document.getElementById(ROOT_ID);
@@ -176,7 +187,7 @@
     var root = global.document.getElementById(ROOT_ID);
     if (!root) return;
     scheduleEnhance();
-    observer = new MutationObserver(scheduleEnhance);
+    observer = new global.MutationObserver(scheduleEnhance);
     observer.observe(root, { childList: true, subtree: true });
   }
 
