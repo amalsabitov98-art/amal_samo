@@ -13,10 +13,10 @@ DELETE FROM destinations;
 DELETE FROM tours;
 DELETE FROM agencies;
 
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', 'e2f86cf17df143b2257eb2bebfab51f251bd1432cf2b9677bfcf6c149f1b9a8a', '1ca0b713d936a9ba3193daa63dae7adb', 'UMIDA', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'b41000bdf33044d7b5aeca138ffbdb8fa84053fd55f80c9d15bde9cbb5c4fb08', 'b906ca155aeb43ffb556bfeca0a4bb30', 'EASY TOURISM', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', '4d0d2613245454ffc1a89f2fb6ad752c09fd0fba8db37256b4dedc6d918dc36a', '5fbf305ed013737338628368c95d6a51', 'OFO TOUR', 'agency');
-INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', '0b1ee550364bcf93472ef3a965765590ba725f17a2a3da32cf988652573ca4bd', 'bcacf8cbf5d0f7b8541ac86a39f383c0', 'Etihad (оператор)', 'operator');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('umida', '55d6e3c7d96b00bddc67467bb11b3e890a52ed86bcd9fcfe15057200cfe1c6d5', 'e4e18de79160a20e0793dcb0466f1ead', 'UMIDA', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('easytourism', 'f28b2242e15273bdaa78aed3ca6e0a87753c5bdde3b39b17c0d76bdaef5a760a', '74cdd7bbeb03d8481928296d3a327648', 'EASY TOURISM', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('ofotour', 'cf79d291a104ecfc9b8ded4b217746f680baba2c47ade2146f3d0fbb7503b560', 'ec6a887a22cd7cb23a4217fafd636bfc', 'OFO TOUR', 'agency');
+INSERT INTO agencies (login, password_hash, password_salt, name, role) VALUES ('operator', 'da7a7ff041f158d9f84b96802c2d8ea42bdb416444eea3600ae5a4320c3a8656', '86ca625198f10ad654504ecc423b3ae9', 'Etihad (оператор)', 'operator');
 
 INSERT INTO destinations (name, title, blurb, image, sort) VALUES ('Турция', 'Турция и Грузия', 'Черноморское побережье: Трабзон, Ризе, Батуми', 'img/hero-rize-batumi.webp', 1);
 

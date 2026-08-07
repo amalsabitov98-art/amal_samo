@@ -780,8 +780,25 @@
           return;
         }
 
+        // Второй полноэкранный лист — тизер Японии сразу под видео. Картинка
+        // с готовой типографикой (img/japan-hero.png), поверх — кнопка.
+        // has-japan-sheet схлопывает нижний отступ видео, чтобы листы шли встык.
+        var jpOp = global.TuronProvisional && global.TuronProvisional.OPERATOR;
+        var jpHref = (jpOp && jpOp.telegram_href) || "#/";
+        var japanSheet =
+          '<section class="tt-japan-sheet" id="japan-2026" aria-label="Япония 2026">' +
+            '<img class="tt-japan-sheet-image" src="img/japan-hero.png" ' +
+              'alt="Открой Японию — Токио, Киото, Осака, Фудзи" loading="lazy" />' +
+            '<div class="tt-japan-sheet-action">' +
+              '<a class="tt-japan-sheet-cta" href="' + esc(jpHref) + '" ' +
+                'target="_blank" rel="noopener">' +
+                "<span>Оставить заявку</span><span aria-hidden=\"true\">→</span>" +
+              "</a>" +
+            "</div>" +
+          "</section>";
+
         root.innerHTML =
-          '<section class="tt-public-intro" id="excursion-tours">' +
+          '<section class="tt-public-intro tt-has-japan-sheet" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
               'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
               'aria-hidden="true" tabindex="-1">' +
@@ -797,6 +814,7 @@
               searchPanelHtml() +
             "</div>" +
           "</section>" +
+          japanSheet +
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
