@@ -2,18 +2,21 @@
    Первый video hero остаётся исходным. Этот файл оформляет только отдельный
    полноэкранный лист Японии, который JS вставляет СРАЗУ ПОСЛЕ hero. */
 
-/* У первого hero раньше был большой нижний отступ перед каталогом. Когда
-   между ними появился отдельный Japan-лист, этот воздух больше не нужен. */
 .tt-public-intro.tt-has-japan-sheet { margin-bottom: 0; }
 
+/* Полный viewport даже несмотря на то, что #public-catalog живёт внутри
+   ограниченного .tt-container. Это отдельный второй "лист", а не карточка. */
 .tt-japan-sheet {
   position: relative;
+  left: 50%;
   isolation: isolate;
-  min-height: 100svh;
+  width: 100vw;
+  height: 100svh;
+  min-height: 620px;
+  margin: 0 0 0 -50vw;
   overflow: hidden;
-  margin: 0 0 clamp(72px, 9vw, 124px);
-  background: #071417;
-  color: #fffaf0;
+  background: #d7c9bd;
+  color: #111820;
 }
 .tt-japan-sheet-image {
   position: absolute;
@@ -23,168 +26,272 @@
   height: 100%;
   object-fit: cover;
   object-position: center center;
+  image-rendering: auto;
 }
+/* Только мягко освобождаем левую часть под текст. Без чёрной пелены и без
+   фильтров на фото — так сохраняется качество и не усиливается шум. */
 .tt-japan-sheet-shade {
   position: absolute;
   inset: 0;
   z-index: 1;
+  pointer-events: none;
   background:
     linear-gradient(90deg,
-      rgba(3, 13, 15, .90) 0%,
-      rgba(3, 13, 15, .76) 24%,
-      rgba(3, 13, 15, .42) 46%,
-      rgba(3, 13, 15, .12) 68%,
-      rgba(3, 13, 15, .02) 100%),
+      rgba(250, 241, 228, .88) 0%,
+      rgba(250, 241, 228, .70) 27%,
+      rgba(250, 241, 228, .30) 48%,
+      rgba(250, 241, 228, .04) 66%,
+      rgba(250, 241, 228, 0) 100%),
     linear-gradient(180deg,
-      rgba(3, 11, 13, .16) 0%,
-      rgba(3, 11, 13, 0) 45%,
-      rgba(3, 11, 13, .24) 100%);
-  pointer-events: none;
+      rgba(255, 249, 240, .08) 0%,
+      rgba(255, 249, 240, 0) 58%,
+      rgba(5, 14, 17, .10) 100%);
 }
 .tt-japan-sheet-content {
   position: relative;
   z-index: 2;
-  width: min(760px, 58vw);
-  min-height: 100svh;
+  width: min(760px, 55vw);
+  height: 100svh;
+  min-height: 620px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: clamp(68px, 8vh, 110px) clamp(28px, 5vw, 86px);
+  padding: clamp(52px, 7vh, 94px) clamp(34px, 5.5vw, 102px);
   text-align: left;
 }
+
+/* -------------------------- редакционный верхний маркер */
 .tt-japan-sheet-label {
   display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 6px 11px;
-  border: 1px solid rgba(229, 201, 135, .46);
-  border-radius: 999px;
-  background: rgba(5, 20, 22, .24);
-  color: #e5c987;
-  font-size: .66rem;
-  font-weight: 800;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-}
-.tt-japan-sheet h2 {
-  max-width: 720px;
-  margin: 22px 0 14px;
-  color: #fffaf0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(3.2rem, 6.1vw, 6.8rem);
-  font-weight: 500;
-  letter-spacing: -.05em;
-  line-height: .9;
-  text-wrap: balance;
-  text-shadow: 0 4px 34px rgba(0, 0, 0, .28);
-}
-.tt-japan-sheet-route {
-  margin: 0 0 18px;
-  color: rgba(255, 250, 240, .94);
-  font-size: clamp(.78rem, 1.15vw, .96rem);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: clamp(20px, 2.6vh, 30px);
+  color: #171d22;
+  font-size: clamp(.78rem, 1.25vw, 1.05rem);
   font-weight: 700;
-  letter-spacing: .08em;
-  line-height: 1.5;
+  letter-spacing: .045em;
   text-transform: uppercase;
 }
-.tt-japan-sheet-text {
-  max-width: 590px;
+.tt-japan-sheet-label i {
+  display: block;
+  width: 112px;
+  height: 5px;
+  background: #b51d22;
+  clip-path: polygon(0 35%, 78% 0, 100% 48%, 76% 68%, 24% 100%, 0 74%);
+  transform: rotate(-1deg);
+}
+
+/* -------------------------- brush-style headline */
+.tt-japan-sheet-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: none;
   margin: 0;
-  color: rgba(255, 250, 240, .84);
-  font-size: clamp(.9rem, 1.12vw, 1.02rem);
-  line-height: 1.72;
+  font-family: Impact, "Arial Black", "Arial Narrow", Manrope, sans-serif;
+  text-transform: uppercase;
+  line-height: .82;
+  letter-spacing: -.055em;
 }
-.tt-japan-sheet-meta {
-  display: inline-flex;
+.tt-japan-title-ink {
+  position: relative;
+  z-index: 2;
+  display: block;
+  color: #141b21;
+  font-size: clamp(4.2rem, 7.1vw, 8rem);
+  font-style: italic;
+  font-weight: 900;
+  transform: rotate(-2.4deg) skewX(-5deg);
+  transform-origin: left bottom;
+  text-shadow: 0 1px 0 rgba(255,255,255,.22);
+}
+.tt-japan-title-red {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: clamp(-8px, -.55vw, -2px);
+  padding: .04em .18em .10em .12em;
+  color: #fff8ed;
+  font-size: clamp(3.7rem, 6.25vw, 7rem);
+  font-style: italic;
+  font-weight: 900;
+  transform: rotate(-1.6deg) skewX(-4deg);
+  transform-origin: left center;
+  filter: drop-shadow(0 12px 24px rgba(69, 15, 16, .12));
+}
+.tt-japan-title-red::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -.05em -.08em -.04em -.11em;
+  background: #b71e24;
+  clip-path: polygon(
+    1% 13%, 9% 5%, 24% 8%, 34% 2%, 50% 7%, 63% 3%, 77% 8%, 91% 4%, 99% 13%,
+    96% 28%, 100% 42%, 97% 58%, 100% 73%, 94% 88%, 78% 93%, 66% 89%, 50% 96%,
+    35% 91%, 21% 96%, 8% 90%, 1% 82%, 4% 66%, 0 50%, 4% 34%
+  );
+}
+.tt-japan-title-red span { position: relative; z-index: 1; }
+
+.tt-japan-sheet-route {
+  margin: clamp(22px, 3vh, 34px) 0 0;
+  color: #172026;
+  font-size: clamp(1.05rem, 1.75vw, 1.55rem);
+  font-weight: 600;
+  letter-spacing: -.018em;
+  line-height: 1.25;
+}
+.tt-japan-sheet-route i {
+  margin: 0 .22em;
+  color: #b71e24;
+  font-style: normal;
+}
+.tt-japan-sheet-copy {
+  display: grid;
+  grid-template-columns: 2px minmax(0, 1fr);
+  gap: 16px;
+  max-width: 520px;
+  margin-top: clamp(18px, 2.2vh, 26px);
+}
+.tt-japan-sheet-copy > span {
+  width: 2px;
+  height: 100%;
+  min-height: 54px;
+  background: #b71e24;
+}
+.tt-japan-sheet-copy p {
+  margin: 0;
+  color: rgba(17, 26, 31, .86);
+  font-size: clamp(.88rem, 1.2vw, 1.02rem);
+  line-height: 1.52;
+}
+
+.tt-japan-sheet-actions {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 24px;
-  color: rgba(255, 250, 240, .72);
-  font-size: .74rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-}
-.tt-japan-sheet-meta i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #e5c987;
+  gap: 18px;
+  margin-top: clamp(24px, 3.4vh, 36px);
 }
 .tt-japan-sheet-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  min-height: 52px;
-  margin-top: 30px;
-  padding: 0 22px 0 24px;
-  border: 1px solid rgba(229, 201, 135, .68);
+  gap: 22px;
+  min-height: 54px;
+  padding: 0 22px 0 26px;
+  border: 1px solid rgba(120, 20, 23, .16);
   border-radius: 999px;
-  background: rgba(229, 201, 135, .95);
-  color: #10201d;
+  background: #b71e24;
+  color: #fff8ed;
   font: inherit;
-  font-size: .76rem;
+  font-size: .82rem;
   font-weight: 800;
-  letter-spacing: .025em;
+  letter-spacing: .02em;
   cursor: pointer;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, .24);
+  box-shadow: 0 15px 32px rgba(108, 18, 21, .22);
   transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.tt-japan-sheet-cta > span:last-child {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.14);
+  font-size: .9rem;
 }
 .tt-japan-sheet-cta:hover {
   transform: translateY(-2px);
-  background: #f0dca5;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, .3);
+  background: #a4171d;
+  box-shadow: 0 20px 38px rgba(108, 18, 21, .28);
 }
 .tt-japan-sheet-cta:focus-visible {
-  outline: 2px solid #fffaf0;
-  outline-offset: 3px;
+  outline: 3px solid rgba(183, 30, 36, .28);
+  outline-offset: 4px;
+}
+.tt-japan-sheet-meta {
+  color: rgba(17, 26, 31, .62);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+
+/* Не позволяем full-bleed листу давать горизонтальный скролл даже в
+   браузерах, где 100vw учитывает полосу прокрутки. */
+#screen-public { overflow-x: clip; }
+
+@media (max-width: 900px) {
+  .tt-japan-sheet-content { width: min(720px, 68vw); }
+  .tt-japan-title-ink { font-size: clamp(3.8rem, 8vw, 6.4rem); }
+  .tt-japan-title-red { font-size: clamp(3.35rem, 7vw, 5.8rem); }
 }
 
 @media (max-width: 720px) {
   .tt-japan-sheet {
-    min-height: 100svh;
-    margin-bottom: 64px;
+    height: 100svh;
+    min-height: 640px;
   }
-  .tt-japan-sheet-image { object-position: 64% center; }
+  .tt-japan-sheet-image { object-position: 67% center; }
   .tt-japan-sheet-shade {
     background:
       linear-gradient(180deg,
-        rgba(3, 13, 15, .24) 0%,
-        rgba(3, 13, 15, .16) 24%,
-        rgba(3, 13, 15, .68) 60%,
-        rgba(3, 13, 15, .94) 100%),
-      linear-gradient(90deg, rgba(3, 13, 15, .48), rgba(3, 13, 15, .04));
+        rgba(248, 238, 226, .66) 0%,
+        rgba(248, 238, 226, .48) 32%,
+        rgba(248, 238, 226, .78) 70%,
+        rgba(248, 238, 226, .96) 100%),
+      linear-gradient(90deg, rgba(250, 241, 228, .72), rgba(250, 241, 228, .02));
   }
   .tt-japan-sheet-content {
     width: 100%;
-    min-height: 100svh;
+    height: 100svh;
+    min-height: 640px;
     justify-content: flex-end;
-    padding: 90px 24px 64px;
+    padding: 78px 22px 42px;
   }
-  .tt-japan-sheet h2 {
-    max-width: 560px;
+  .tt-japan-sheet-label {
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: .72rem;
+  }
+  .tt-japan-sheet-label i { width: 78px; height: 4px; }
+  .tt-japan-title-ink {
+    font-size: clamp(3.35rem, 17vw, 5.2rem);
+    transform: rotate(-2deg) skewX(-4deg);
+  }
+  .tt-japan-title-red {
+    font-size: clamp(3.05rem, 15.3vw, 4.75rem);
+    max-width: 96vw;
+  }
+  .tt-japan-sheet-route {
+    margin-top: 20px;
+    font-size: clamp(.92rem, 4.2vw, 1.12rem);
+  }
+  .tt-japan-sheet-copy {
+    max-width: min(94vw, 470px);
     margin-top: 15px;
-    font-size: clamp(2.8rem, 11vw, 4.6rem);
+    gap: 12px;
   }
-  .tt-japan-sheet-route { margin-bottom: 12px; }
-  .tt-japan-sheet-text { max-width: 94%; }
-  .tt-japan-sheet-meta { margin-top: 17px; }
-  .tt-japan-sheet-cta { min-height: 49px; margin-top: 23px; }
+  .tt-japan-sheet-copy p { font-size: .85rem; line-height: 1.46; }
+  .tt-japan-sheet-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .tt-japan-sheet-cta { width: min(100%, 360px); min-height: 52px; }
+  .tt-japan-sheet-meta { font-size: .64rem; }
 }
 
-@media (max-width: 480px) {
-  .tt-japan-sheet-content {
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-bottom: 50px;
-  }
-  .tt-japan-sheet-label { min-height: 27px; font-size: .59rem; }
-  .tt-japan-sheet h2 { font-size: clamp(2.45rem, 12vw, 3.6rem); }
-  .tt-japan-sheet-route { font-size: .7rem; letter-spacing: .05em; }
-  .tt-japan-sheet-text { max-width: 100%; font-size: .84rem; line-height: 1.58; }
-  .tt-japan-sheet-meta { font-size: .68rem; }
+@media (max-width: 420px) {
+  .tt-japan-sheet-content { padding-inline: 18px; padding-bottom: 34px; }
+  .tt-japan-title-ink { font-size: clamp(3rem, 16.5vw, 4.25rem); }
+  .tt-japan-title-red { font-size: clamp(2.72rem, 14.8vw, 3.85rem); }
+  .tt-japan-sheet-route { font-size: .9rem; }
+  .tt-japan-sheet-copy p { font-size: .81rem; }
   .tt-japan-sheet-cta { width: 100%; }
 }
 
