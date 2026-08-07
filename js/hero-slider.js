@@ -28,15 +28,25 @@
           'decoding="async" fetchpriority="high" />' +
         '<div class="tt-japan-sheet-shade" aria-hidden="true"></div>' +
         '<div class="tt-japan-sheet-content">' +
-          '<span class="tt-japan-sheet-label">JAPAN · 2026</span>' +
-          '<h2>Япония, которую хочется увидеть</h2>' +
-          '<p class="tt-japan-sheet-route">Токио · Киото · Осака · Фудзи</p>' +
-          '<p class="tt-japan-sheet-text">Четыре программы путешествий по Японии — ' +
-            'от огней Токио до классических маршрутов и Japan Camp.</p>' +
-          '<div class="tt-japan-sheet-meta">4 программы <i aria-hidden="true"></i> Сезон 2026</div>' +
-          '<button class="tt-japan-sheet-cta" type="button" data-dest="Япония">' +
-            '<span>Смотреть туры</span><span aria-hidden="true">↗</span>' +
-          '</button>' +
+          '<div class="tt-japan-sheet-label">' +
+            '<span>ЯПОНИЯ · 2026</span><i aria-hidden="true"></i>' +
+          '</div>' +
+          '<h2 class="tt-japan-sheet-title" aria-label="Открой Японию!">' +
+            '<span class="tt-japan-title-ink">ОТКРОЙ</span>' +
+            '<span class="tt-japan-title-red"><span>ЯПОНИЮ!</span></span>' +
+          '</h2>' +
+          '<p class="tt-japan-sheet-route">Токио <i>·</i> Киото <i>·</i> Осака <i>·</i> Фудзи</p>' +
+          '<div class="tt-japan-sheet-copy">' +
+            '<span aria-hidden="true"></span>' +
+            '<p>Четыре программы путешествий — от огней Токио до классических ' +
+              'маршрутов и Japan Camp.</p>' +
+          '</div>' +
+          '<div class="tt-japan-sheet-actions">' +
+            '<button class="tt-japan-sheet-cta" type="button" data-dest="Япония">' +
+              '<span>Смотреть туры</span><span aria-hidden="true">↗</span>' +
+            '</button>' +
+            '<span class="tt-japan-sheet-meta">4 программы · сезон 2026</span>' +
+          '</div>' +
         '</div>' +
       '</section>'
     );
@@ -51,8 +61,6 @@
       if (!entry) return;
 
       if (!entry.isIntersecting) {
-        // catalog.js пытается будить видео после pause(). data-no-autoplay
-        // сообщает ему, что пауза намеренная: второй лист уже на экране.
         if (!video.hasAttribute("data-no-autoplay")) {
           video.setAttribute("data-japan-offscreen-pause", "");
           video.setAttribute("data-no-autoplay", "");
@@ -61,8 +69,6 @@
         return;
       }
 
-      // Снимаем только собственную метку. Если autoplay был запрещён из-за
-      // prefers-reduced-motion, чужой data-no-autoplay не трогаем.
       if (!video.hasAttribute("data-japan-offscreen-pause")) return;
       video.removeAttribute("data-japan-offscreen-pause");
       video.removeAttribute("data-no-autoplay");
@@ -81,8 +87,6 @@
     var src = japanImage();
     if (!src) return;
 
-    // Только эта служебная метка меняет внешний отступ первого hero. Его
-    // видео, текст, поиск и верхняя панель остаются исходными.
     hero.classList.add("tt-has-japan-sheet");
     hero.insertAdjacentHTML("afterend", japanSheetHtml(src));
     bindVideoVisibility(hero);
