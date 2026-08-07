@@ -9,22 +9,30 @@ window.TURON_CONFIG = {
 
 // Второй экран титульной: отдельный полноэкранный лист «Япония» СРАЗУ ПОД
 // существующим video hero. Первый hero не перестраивается и не превращается
-// в слайдер. Фотография хранится как компактный AVIF, разбитый на несколько
-// небольших JS-частей; после их загрузки подключается модуль второго листа.
+// в слайдер. Новый качественный AVIF разбит на несколько JS-частей, чтобы
+// GitHub Pages получил его без отдельного бинарного пайплайна.
 (function loadJapanSecondSheet() {
   "use strict";
 
   var css = document.createElement("link");
   css.rel = "stylesheet";
-  css.href = "hero-slider.css?v=20260807-6";
+  css.href = "hero-slider.css?v=20260807-9";
   css.setAttribute("data-japan-second-sheet", "");
   document.head.appendChild(css);
 
   var assets = [
-    "js/japan-image-01.js?v=20260807-2",
-    "js/japan-image-02.js?v=20260807-2",
-    "js/japan-image-03.js?v=20260807-2",
-    "js/japan-image-04.js?v=20260807-2",
+    "js/japan-v3-01.js?v=20260807-1",
+    "js/japan-v3-02.js?v=20260807-1",
+    "js/japan-v3-03-04.js?v=20260807-1",
+    "js/japan-v3-05-06.js?v=20260807-1",
+    "js/japan-v3-07.js?v=20260807-1",
+    "js/japan-v3-08.js?v=20260807-1",
+    "js/japan-v3-09.js?v=20260807-1",
+    "js/japan-v3-10.js?v=20260807-1",
+    "js/japan-v3-11a.js?v=20260807-1",
+    "js/japan-v3-11b.js?v=20260807-1",
+    "js/japan-v3-11c.js?v=20260807-1",
+    "js/japan-v3-11d.js?v=20260807-1",
   ];
   var index = 0;
 
@@ -47,7 +55,7 @@ window.TURON_CONFIG = {
     }
 
     if (!window.TURON_JAPAN_IMAGE) return;
-    addScript("js/hero-slider.js?v=20260807-7", function () {}, function () {});
+    addScript("js/hero-slider.js?v=20260807-10", function () {}, function () {});
   }
 
   loadNextImagePart();
