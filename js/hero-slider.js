@@ -1,20 +1,19 @@
 /*
- * Public hero slider enhancement.
+ * Второй экран публичной титульной — Япония.
  *
- * Slide 1 is the existing video hero rendered by js/catalog.js. This file
- * does not replace or rebuild it: it only adds slider state/classes and
- * appends Slide 2 (Japan) plus controls after the existing hero appears.
+ * Первый video hero полностью остаётся за catalog.js. Этот модуль ничего
+ * внутри него не перестраивает: после появления .tt-public-intro он вставляет
+ * отдельный полноэкранный лист Японии СРАЗУ ПОСЛЕ видео и ДО каталога.
  *
- * The public catalogue already owns navigation through delegated [data-dest]
- * clicks. The Japan CTA deliberately reuses that contract instead of
- * inventing a second router or a fake page.
+ * CTA использует существующий data-dest="Япония", поэтому клик обслуживает
+ * уже существующий делегированный роутер каталога — отдельной страницы нет.
  */
 (function (global) {
   "use strict";
 
   var ROOT_ID = "public-catalog";
   var HERO_SELECTOR = ".tt-public-intro";
-  var ENHANCED_ATTR = "data-hero-slider-ready";
+  var SHEET_SELECTOR = ".tt-japan-sheet";
   var observer = null;
   var scheduled = false;
 
@@ -22,28 +21,20 @@
     return global.TURON_JAPAN_IMAGE || "";
   }
 
-  function svgArrow(direction) {
-    var path = direction === "prev"
-      ? "M14.5 6 8.5 12l6 6"
-      : "m9.5 6 6 6-6 6";
-    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + path + '" /></svg>';
-  }
-
-  function japanSlideHtml(src) {
+  function japanSheetHtml(src) {
     return (
-      '<section class="tt-hero-slide tt-hero-slide--japan" data-hero-panel="2" ' +
-        'aria-hidden="true" aria-label="Япония — второй слайд">' +
-        '<img class="tt-hero-japan-image" src="' + src + '" alt="" ' +
-          'decoding="async" fetchpriority="low" />' +
-        '<div class="tt-hero-japan-shade" aria-hidden="true"></div>' +
-        '<div class="tt-hero-japan-content">' +
-          '<span class="tt-hero-japan-label">JAPAN · 2026</span>' +
+      '<section class="tt-japan-sheet" aria-label="Япония — сезон 2026">' +
+        '<img class="tt-japan-sheet-image" src="' + src + '" alt="" ' +
+          'decoding="async" fetchpriority="high" />' +
+        '<div class="tt-japan-sheet-shade" aria-hidden="true"></div>' +
+        '<div class="tt-japan-sheet-content">' +
+          '<span class="tt-japan-sheet-label">JAPAN · 2026</span>' +
           '<h2>Япония, которую хочется увидеть</h2>' +
-          '<p class="tt-hero-japan-route">Токио · Киото · Осака · Фудзи</p>' +
-          '<p class="tt-hero-japan-text">Четыре программы путешествий по Японии — ' +
+          '<p class="tt-japan-sheet-route">Токио · Киото · Осака · Фудзи</p>' +
+          '<p class="tt-japan-sheet-text">Четыре программы путешествий по Японии — ' +
             'от огней Токио до классических маршрутов и Japan Camp.</p>' +
-          '<div class="tt-hero-japan-meta">4 программы <i aria-hidden="true"></i> Сезон 2026</div>' +
-          '<button class="tt-hero-japan-cta" type="button" data-dest="Япония">' +
+          '<div class="tt-japan-sheet-meta">4 программы <i aria-hidden="true"></i> Сезон 2026</div>' +
+          '<button class="tt-japan-sheet-cta" type="button" data-dest="Япония">' +
             '<span>Смотреть туры</span><span aria-hidden="true">↗</span>' +
           '</button>' +
         '</div>' +
@@ -51,144 +42,70 @@
     );
   }
 
-  function controlsHtml() {
-    return (
-      '<div class="tt-hero-slider-controls" role="group" aria-label="Переключение hero-слайдов">' +
-        '<button class="tt-hero-slider-arrow" type="button" data-hero-prev ' +
-          'aria-label="Предыдущий слайд">' + svgArrow("prev") + '</button>' +
-        '<div class="tt-hero-slider-count" aria-live="polite">' +
-          '<strong data-hero-current>01</strong><span>/</span><span>02</span>' +
-        '</div>' +
-        '<div class="tt-hero-slider-dots" aria-label="Выбор слайда">' +
-          '<button class="is-active" type="button" data-hero-to="1" aria-label="Слайд 1" ' +
-            'aria-current="true"><i></i></button>' +
-          '<button type="button" data-hero-to="2" aria-label="Слайд 2"><i></i></button>' +
-        '</div>' +
-        '<button class="tt-hero-slider-arrow" type="button" data-hero-next ' +
-          'aria-label="Следующий слайд">' + svgArrow("next") + '</button>' +
-      '</div>'
-    );
-  }
-
-  function prefersReducedMotion() {
-    return !!(global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }
-
-  function pauseVideoForJapan(video) {
-    if (!video) return;
-    // catalog.js normally wakes a paused hero video after 120 ms. Mark this
-    // pause as intentional first; resumeHero() explicitly respects the flag.
-    if (!video.hasAttribute("data-no-autoplay")) {
-      video.setAttribute("data-slider-paused", "");
-      video.setAttribute("data-no-autoplay", "");
-    }
-    video.pause();
-  }
-
-  function resumeVideoForFirstSlide(video) {
-    if (!video || !video.hasAttribute("data-slider-paused")) return;
-    // Remove only the marker created by this slider. A reduced-motion marker
-    // owned by catalog.js must remain untouched.
-    video.removeAttribute("data-slider-paused");
-    video.removeAttribute("data-no-autoplay");
-    if (prefersReducedMotion() || global.document.hidden) return;
-    var started = video.play();
-    if (started && started.catch) started.catch(function () {});
-  }
-
-  function setSlide(hero, next) {
-    var index = next === 2 ? 2 : 1;
+  function bindVideoVisibility(hero) {
     var video = hero.querySelector(".tt-hero-video");
-    var japan = hero.querySelector('[data-hero-panel="2"]');
-    var current = hero.querySelector("[data-hero-current]");
-    var dots = hero.querySelectorAll("[data-hero-to]");
+    if (!video || !global.IntersectionObserver) return;
 
-    hero.setAttribute("data-hero-slide", String(index));
-    if (current) current.textContent = index === 1 ? "01" : "02";
-    if (japan) japan.setAttribute("aria-hidden", index === 2 ? "false" : "true");
+    var io = new global.IntersectionObserver(function (entries) {
+      var entry = entries[0];
+      if (!entry) return;
 
-    Array.prototype.forEach.call(dots, function (dot) {
-      var active = Number(dot.getAttribute("data-hero-to")) === index;
-      dot.classList.toggle("is-active", active);
-      if (active) dot.setAttribute("aria-current", "true");
-      else dot.removeAttribute("aria-current");
-    });
+      if (!entry.isIntersecting) {
+        // catalog.js пытается будить видео после pause(). data-no-autoplay
+        // сообщает ему, что пауза намеренная: второй лист уже на экране.
+        if (!video.hasAttribute("data-no-autoplay")) {
+          video.setAttribute("data-japan-offscreen-pause", "");
+          video.setAttribute("data-no-autoplay", "");
+        }
+        video.pause();
+        return;
+      }
 
-    if (index === 2) pauseVideoForJapan(video);
-    else resumeVideoForFirstSlide(video);
+      // Снимаем только собственную метку. Если autoplay был запрещён из-за
+      // prefers-reduced-motion, чужой data-no-autoplay не трогаем.
+      if (!video.hasAttribute("data-japan-offscreen-pause")) return;
+      video.removeAttribute("data-japan-offscreen-pause");
+      video.removeAttribute("data-no-autoplay");
+      if (global.document.hidden) return;
+      var started = video.play();
+      if (started && started.catch) started.catch(function () {});
+    }, { threshold: 0.02 });
+
+    io.observe(hero);
   }
 
-  function mount(hero, src) {
-    // The catalogue can replace the hero while the image is preloading.
+  function mount(hero) {
     if (!hero || !hero.isConnected) return;
-    if (hero.getAttribute(ENHANCED_ATTR) === "ready") return;
-
-    hero.setAttribute(ENHANCED_ATTR, "ready");
-    hero.classList.add("tt-has-slider");
-    hero.setAttribute("data-hero-slide", "1");
-    hero.insertAdjacentHTML("beforeend", japanSlideHtml(src) + controlsHtml());
-
-    hero.addEventListener("click", function (event) {
-      var direct = event.target.closest("[data-hero-to]");
-      if (direct) {
-        setSlide(hero, Number(direct.getAttribute("data-hero-to")));
-        return;
-      }
-      if (event.target.closest("[data-hero-prev]")) {
-        setSlide(hero, hero.getAttribute("data-hero-slide") === "2" ? 1 : 2);
-        return;
-      }
-      if (event.target.closest("[data-hero-next]")) {
-        setSlide(hero, hero.getAttribute("data-hero-slide") === "2" ? 1 : 2);
-      }
-    });
-
-    hero.addEventListener("keydown", function (event) {
-      if (event.key === "ArrowLeft") setSlide(hero, 1);
-      if (event.key === "ArrowRight") setSlide(hero, 2);
-    });
-  }
-
-  function enhance(hero) {
-    if (!hero || hero.hasAttribute(ENHANCED_ATTR)) return;
-    // Slide 1 must remain the existing video hero, so never enhance a future
-    // layout that does not contain its original video and content nodes.
-    if (!hero.querySelector(".tt-hero-video") || !hero.querySelector(".tt-hero-content")) return;
+    if (hero.nextElementSibling && hero.nextElementSibling.matches(SHEET_SELECTOR)) return;
 
     var src = japanImage();
     if (!src) return;
 
-    // Do not expose controls until the supplied photo is decoded successfully.
-    // If anything fails, the original one-slide video hero remains untouched.
-    hero.setAttribute(ENHANCED_ATTR, "loading");
-    var probe = new global.Image();
-    probe.onload = function () { mount(hero, src); };
-    probe.onerror = function () {
-      if (hero && hero.isConnected && hero.getAttribute(ENHANCED_ATTR) === "loading") {
-        hero.removeAttribute(ENHANCED_ATTR);
-      }
-    };
-    probe.src = src;
+    // Только эта служебная метка меняет внешний отступ первого hero. Его
+    // видео, текст, поиск и верхняя панель остаются исходными.
+    hero.classList.add("tt-has-japan-sheet");
+    hero.insertAdjacentHTML("afterend", japanSheetHtml(src));
+    bindVideoVisibility(hero);
   }
 
-  function enhanceCurrentHero() {
+  function mountCurrent() {
     scheduled = false;
     var root = global.document.getElementById(ROOT_ID);
     if (!root) return;
-    enhance(root.querySelector(HERO_SELECTOR));
+    mount(root.querySelector(HERO_SELECTOR));
   }
 
-  function scheduleEnhance() {
+  function scheduleMount() {
     if (scheduled) return;
     scheduled = true;
-    global.requestAnimationFrame(enhanceCurrentHero);
+    global.requestAnimationFrame(mountCurrent);
   }
 
   function boot() {
     var root = global.document.getElementById(ROOT_ID);
     if (!root) return;
-    scheduleEnhance();
-    observer = new global.MutationObserver(scheduleEnhance);
+    scheduleMount();
+    observer = new global.MutationObserver(scheduleMount);
     observer.observe(root, { childList: true, subtree: true });
   }
 
