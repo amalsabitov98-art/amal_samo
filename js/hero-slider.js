@@ -15,9 +15,12 @@
   var ROOT_ID = "public-catalog";
   var HERO_SELECTOR = ".tt-public-intro";
   var ENHANCED_ATTR = "data-hero-slider-ready";
-  var JAPAN_IMAGE = "img/hero-japan-2026.webp";
   var observer = null;
   var scheduled = false;
+
+  function japanImage() {
+    return global.TURON_JAPAN_IMAGE || "";
+  }
 
   function svgArrow(direction) {
     var path = direction === "prev"
@@ -26,11 +29,11 @@
     return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + path + '" /></svg>';
   }
 
-  function japanSlideHtml() {
+  function japanSlideHtml(src) {
     return (
       '<section class="tt-hero-slide tt-hero-slide--japan" data-hero-panel="2" ' +
         'aria-hidden="true" aria-label="Япония — второй слайд">' +
-        '<img class="tt-hero-japan-image" src="' + JAPAN_IMAGE + '" alt="" ' +
+        '<img class="tt-hero-japan-image" src="' + src + '" alt="" ' +
           'decoding="async" fetchpriority="low" />' +
         '<div class="tt-hero-japan-shade" aria-hidden="true"></div>' +
         '<div class="tt-hero-japan-content">' +
@@ -73,8 +76,8 @@
 
   function pauseVideoForJapan(video) {
     if (!video) return;
-    // catalog.js listens to pause and normally wakes the video back up. Mark it
-    // as intentionally paused first; resumeHero() explicitly respects this.
+    // catalog.js normally wakes a paused hero video after 120 ms. Mark this
+    // pause as intentional first; resumeHero() explicitly respects the flag.
     if (!video.hasAttribute("data-no-autoplay")) {
       video.setAttribute("data-slider-paused", "");
       video.setAttribute("data-no-autoplay", "");
@@ -83,10 +86,9 @@
   }
 
   function resumeVideoForFirstSlide(video) {
-    if (!video) return;
-    // Remove only the marker that this slider itself created. If reduced
-    // motion had already disabled autoplay, leave catalog.js's marker intact.
-    if (!video.hasAttribute("data-slider-paused")) return;
+    if (!video || !video.hasAttribute("data-slider-paused")) return;
+    // Remove only the marker created by this slider. A reduced-motion marker
+    // owned by catalog.js must remain untouched.
     video.removeAttribute("data-slider-paused");
     video.removeAttribute("data-no-autoplay");
     if (prefersReducedMotion() || global.document.hidden) return;
@@ -116,16 +118,15 @@
     else resumeVideoForFirstSlide(video);
   }
 
-  function mount(hero) {
-    // The hero may have been replaced by catalogue navigation while the image
-    // was preloading. Never enhance a stale detached node.
+  function mount(hero, src) {
+    // The catalogue can replace the hero while the image is preloading.
     if (!hero || !hero.isConnected) return;
     if (hero.getAttribute(ENHANCED_ATTR) === "ready") return;
 
     hero.setAttribute(ENHANCED_ATTR, "ready");
     hero.classList.add("tt-has-slider");
     hero.setAttribute("data-hero-slide", "1");
-    hero.insertAdjacentHTML("beforeend", japanSlideHtml() + controlsHtml());
+    hero.insertAdjacentHTML("beforeend", japanSlideHtml(src) + controlsHtml());
 
     hero.addEventListener("click", function (event) {
       var direct = event.target.closest("[data-hero-to]");
@@ -150,24 +151,24 @@
 
   function enhance(hero) {
     if (!hero || hero.hasAttribute(ENHANCED_ATTR)) return;
-    // Guard against a future catalogue render with a different hero layout.
-    // Slide 1 must remain the existing video hero, so do nothing unless both
-    // original pieces are present.
+    // Slide 1 must remain the existing video hero, so never enhance a future
+    // layout that does not contain its original video and content nodes.
     if (!hero.querySelector(".tt-hero-video") || !hero.querySelector(".tt-hero-content")) return;
 
-    // Never expose a half-built second slide. The supplied Japan photograph
-    // must exist before we add controls/classes. If the asset is absent or
-    // fails to load, the page remains exactly the existing one-slide video
-    // hero; a reload after the image is deployed will enable the slider.
+    var src = japanImage();
+    if (!src) return;
+
+    // Do not expose controls until the supplied photo is decoded successfully.
+    // If anything fails, the original one-slide video hero remains untouched.
     hero.setAttribute(ENHANCED_ATTR, "loading");
     var probe = new global.Image();
-    probe.onload = function () { mount(hero); };
+    probe.onload = function () { mount(hero, src); };
     probe.onerror = function () {
       if (hero && hero.isConnected && hero.getAttribute(ENHANCED_ATTR) === "loading") {
         hero.removeAttribute(ENHANCED_ATTR);
       }
     };
-    probe.src = JAPAN_IMAGE;
+    probe.src = src;
   }
 
   function enhanceCurrentHero() {
