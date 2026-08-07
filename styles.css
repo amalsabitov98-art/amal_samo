@@ -1085,6 +1085,31 @@ a { color: inherit; }
 :root[data-app-theme="dark"] #screen-app .tt-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.05);
 }
+/* Панель поиска/фильтра (.tt-toolbar) была кремовой (rgba(255,253,248,..)) —
+   на тёмном светилась светло-серым пятном. Делаем тёмной. */
+:root[data-app-theme="dark"] #screen-app .tt-toolbar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--tt-border);
+}
+/* Табло курса в шапке кабинета: подпись и цифры были зашиты тёмно-зелёным
+   (#173c35 / #082f29) — на тёмной панели не читались. Светлим. */
+:root[data-app-theme="dark"] #screen-app .tt-app-currency .tt-tool-copy > small {
+  color: var(--tt-text-muted);
+}
+:root[data-app-theme="dark"] #screen-app .tt-rate-row,
+:root[data-app-theme="dark"] #screen-app .tt-rate-row b,
+:root[data-app-theme="dark"] #screen-app .tt-rate-row strong { color: var(--tt-text); }
+:root[data-app-theme="dark"] #screen-app .tt-tool-icon { color: var(--tt-warn-text); }
+/* Имя агентства в шапке тоже было зашито тёмным (#082f29 / #806a42). */
+:root[data-app-theme="dark"] #screen-app .tt-top-account-name strong { color: var(--tt-text); }
+:root[data-app-theme="dark"] #screen-app .tt-top-account-name small { color: var(--tt-text-muted); }
+/* Плашки шапки чуть заметнее, чтобы читались как отдельные жетоны. */
+:root[data-app-theme="dark"] #screen-app .tt-app-currency,
+:root[data-app-theme="dark"] #screen-app .tt-app-tg,
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn,
+:root[data-app-theme="dark"] #screen-app .tt-top-account {
+  background: rgba(255, 255, 255, 0.07);
+}
 
 /* ======================================================================
    Тёмная тема публичной части (референс — тёмный сайт туров с бирюзой).
@@ -2248,10 +2273,14 @@ select { font-family: inherit; }
   display: block;
   margin: 8px 0 4px;
   color: var(--tt-forest);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2rem;
-  font-weight: 600;
-  line-height: 0.9;
+  /* Цифры набором как на кнопке брони (Manrope/системный sans), а не
+     серифным Cormorant: так просил оператор — крупные числа читаются чётче. */
+  font-family: "Manrope", "Segoe UI", Roboto, sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .tt-stat-grid strong.is-date { font-size: 1.35rem; line-height: 1.15; }
 .tt-stat-grid small { color: var(--tt-text-subtle); font-size: 0.58rem; }
