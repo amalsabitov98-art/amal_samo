@@ -1,0 +1,347 @@
+/* ======================================================== public hero slider
+   Loaded after styles.css. The existing video hero remains Slide 1; these
+   rules only add Slide 2 and transition state around it. */
+.tt-public-intro.tt-has-slider {
+  --tt-hero-transition: 680ms cubic-bezier(.22,.61,.36,1);
+}
+
+/* Existing Slide 1 pieces are untouched in markup. We only animate their
+   visibility when the slider state changes. */
+.tt-public-intro.tt-has-slider > .tt-hero-video,
+.tt-public-intro.tt-has-slider > .tt-hero-content {
+  transition:
+    opacity var(--tt-hero-transition),
+    transform var(--tt-hero-transition),
+    visibility 0s linear 0s;
+}
+.tt-public-intro.tt-has-slider[data-hero-slide="2"] > .tt-hero-video,
+.tt-public-intro.tt-has-slider[data-hero-slide="2"] > .tt-hero-content {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(-18px, 0, 0);
+  pointer-events: none;
+  transition:
+    opacity var(--tt-hero-transition),
+    transform var(--tt-hero-transition),
+    visibility 0s linear 680ms;
+}
+
+.tt-hero-slide--japan {
+  position: absolute !important;
+  inset: 0;
+  z-index: 4 !important;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(18px, 0, 0);
+  pointer-events: none;
+  transition:
+    opacity var(--tt-hero-transition),
+    transform var(--tt-hero-transition),
+    visibility 0s linear 680ms;
+}
+.tt-public-intro.tt-has-slider[data-hero-slide="2"] > .tt-hero-slide--japan {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+  transition:
+    opacity var(--tt-hero-transition),
+    transform var(--tt-hero-transition),
+    visibility 0s linear 0s;
+}
+
+.tt-hero-japan-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  z-index: 0;
+}
+.tt-hero-japan-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg,
+      rgba(3, 13, 15, .92) 0%,
+      rgba(3, 13, 15, .78) 25%,
+      rgba(3, 13, 15, .42) 48%,
+      rgba(3, 13, 15, .12) 68%,
+      rgba(3, 13, 15, .04) 100%),
+    linear-gradient(180deg, rgba(3, 11, 13, .30), transparent 34%, rgba(3, 11, 13, .18));
+  pointer-events: none;
+}
+.tt-hero-japan-content {
+  position: relative;
+  z-index: 2;
+  width: min(720px, 58vw);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding:
+    calc(var(--tt-topbar-h, 150px) + clamp(34px, 5vh, 72px))
+    clamp(28px, 5vw, 84px)
+    clamp(100px, 11vh, 150px);
+  color: #fffaf0;
+  text-align: left;
+}
+.tt-hero-japan-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(229, 201, 135, .42);
+  border-radius: 999px;
+  background: rgba(5, 20, 22, .28);
+  color: #e5c987;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+.tt-hero-japan-content h2 {
+  max-width: 680px;
+  margin: 20px 0 14px;
+  color: #fffaf0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3.2rem, 6.2vw, 6.6rem);
+  font-weight: 500;
+  letter-spacing: -.05em;
+  line-height: .88;
+  text-wrap: balance;
+  text-shadow: 0 4px 34px rgba(0, 0, 0, .28);
+}
+.tt-hero-japan-route {
+  margin: 0 0 18px !important;
+  color: rgba(255, 250, 240, .92) !important;
+  font-size: clamp(.78rem, 1.2vw, .96rem) !important;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.5 !important;
+  text-transform: uppercase;
+  text-align: left;
+}
+.tt-hero-japan-text {
+  max-width: 570px !important;
+  margin: 0 !important;
+  color: rgba(255, 250, 240, .82) !important;
+  font-size: clamp(.9rem, 1.15vw, 1.02rem) !important;
+  line-height: 1.72 !important;
+  text-align: left;
+}
+.tt-hero-japan-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  color: rgba(255, 250, 240, .72);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.tt-hero-japan-meta i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e5c987;
+}
+.tt-hero-japan-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 52px;
+  margin-top: 30px;
+  padding: 0 22px 0 24px;
+  border: 1px solid rgba(229, 201, 135, .68);
+  border-radius: 999px;
+  background: rgba(229, 201, 135, .94);
+  color: #10201d;
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .025em;
+  cursor: pointer;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .24);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.tt-hero-japan-cta:hover {
+  transform: translateY(-2px);
+  background: #f0dca5;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, .3);
+}
+.tt-hero-japan-cta:focus-visible,
+.tt-hero-slider-arrow:focus-visible,
+.tt-hero-slider-dots button:focus-visible {
+  outline: 2px solid #fffaf0;
+  outline-offset: 3px;
+}
+
+/* Controls sit inside the first viewport even though the desktop hero itself
+   is intentionally 145svh tall. This keeps 01 / 02 visible without scrolling. */
+.tt-hero-slider-controls {
+  position: absolute !important;
+  top: calc(100svh - 78px);
+  right: clamp(24px, 4vw, 64px);
+  z-index: 9 !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 999px;
+  background: rgba(4, 20, 21, .38);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(14px) saturate(1.1);
+}
+.tt-hero-slider-arrow {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .08);
+  color: #fffaf0;
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease;
+}
+.tt-hero-slider-arrow:hover {
+  background: rgba(255, 255, 255, .17);
+  transform: translateY(-1px);
+}
+.tt-hero-slider-arrow svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tt-hero-slider-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 52px;
+  justify-content: center;
+  color: rgba(255, 250, 240, .6);
+  font-size: .66rem;
+  font-variant-numeric: tabular-nums;
+}
+.tt-hero-slider-count strong {
+  color: #fffaf0;
+  font-size: .78rem;
+}
+.tt-hero-slider-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 2px;
+}
+.tt-hero-slider-dots button {
+  width: 26px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.tt-hero-slider-dots i {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .32);
+  transition: width .2s ease, background .2s ease;
+}
+.tt-hero-slider-dots button.is-active i {
+  width: 24px;
+  background: #e5c987;
+}
+
+/* If the asset has not yet been copied into /img, fail gracefully instead of
+   showing a broken-image glyph. The release still needs the real supplied
+   photo at img/hero-japan-2026.webp. */
+.tt-hero-japan-image-missing .tt-hero-japan-image { display: none; }
+.tt-hero-japan-image-missing .tt-hero-slide--japan {
+  background:
+    radial-gradient(circle at 72% 26%, rgba(216, 183, 124, .18), transparent 24%),
+    linear-gradient(125deg, #071c20 0%, #10282b 48%, #1b2525 100%);
+}
+
+@media (max-width: 720px) {
+  .tt-hero-japan-shade {
+    background:
+      linear-gradient(180deg,
+        rgba(3, 13, 15, .54) 0%,
+        rgba(3, 13, 15, .30) 22%,
+        rgba(3, 13, 15, .72) 58%,
+        rgba(3, 13, 15, .90) 100%),
+      linear-gradient(90deg, rgba(3, 13, 15, .56), rgba(3, 13, 15, .08));
+  }
+  .tt-hero-japan-image { object-position: 64% center; }
+  .tt-hero-japan-content {
+    width: 100%;
+    min-height: 100%;
+    justify-content: flex-end;
+    padding:
+      calc(var(--tt-topbar-h, 150px) + 34px)
+      24px
+      104px;
+  }
+  .tt-hero-japan-content h2 {
+    max-width: 540px;
+    margin-top: 14px;
+    font-size: clamp(2.8rem, 11vw, 4.5rem);
+  }
+  .tt-hero-japan-route { margin-bottom: 12px !important; }
+  .tt-hero-japan-text { max-width: 92% !important; }
+  .tt-hero-japan-meta { margin-top: 16px; }
+  .tt-hero-japan-cta { min-height: 48px; margin-top: 22px; }
+  .tt-hero-slider-controls {
+    top: calc(var(--tt-topbar-h, 150px) + 14px);
+    right: 16px;
+    min-height: 42px;
+    gap: 6px;
+  }
+  .tt-hero-slider-arrow { width: 30px; height: 30px; }
+  .tt-hero-slider-dots { display: none; }
+}
+
+@media (max-width: 480px) {
+  .tt-hero-japan-content {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 92px;
+  }
+  .tt-hero-japan-label { min-height: 27px; font-size: .59rem; }
+  .tt-hero-japan-content h2 { font-size: clamp(2.45rem, 12vw, 3.55rem); }
+  .tt-hero-japan-route { font-size: .7rem !important; letter-spacing: .05em; }
+  .tt-hero-japan-text { max-width: 100% !important; font-size: .84rem !important; line-height: 1.58 !important; }
+  .tt-hero-japan-meta { font-size: .68rem; }
+  .tt-hero-japan-cta { width: 100%; }
+  .tt-hero-slider-controls {
+    right: 12px;
+    padding: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-public-intro.tt-has-slider > .tt-hero-video,
+  .tt-public-intro.tt-has-slider > .tt-hero-content,
+  .tt-hero-slide--japan,
+  .tt-hero-slider-arrow,
+  .tt-hero-slider-dots i,
+  .tt-hero-japan-cta {
+    transition: none !important;
+  }
+}
