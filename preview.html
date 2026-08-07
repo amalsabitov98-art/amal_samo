@@ -11,6 +11,11 @@
     } catch (e) {
       document.documentElement.setAttribute("data-theme", "dark");
     }
+    try {
+      if (localStorage.getItem("turon.app-theme") === "dark") {
+        document.documentElement.setAttribute("data-app-theme", "dark");
+      }
+    } catch (e) {}
   })();
 </script>
 <style>
@@ -1035,6 +1040,74 @@ a { color: inherit; }
 }
 
 /* ======================================================================
+   Тёмная тема КАБИНЕТА — отдельная от публичной (data-app-theme на <html>).
+   По умолчанию её нет: кабинет кремовый, как привыкли агентства. Тёмная
+   включается кнопкой в шапке кабинета и хранится в turon.app-theme.
+
+   Скоуп строго на #screen-app: публичную часть не трогаем. Осветляем
+   переменные-поверхности и текст. --tt-forest раньше был тёмным ТЕКСТОМ —
+   делаем его светлым; --tt-forest-deep/-soft остаются тёмными, потому что
+   ими крашены ФОНЫ (сайдбар, зелёные плашки, аватар) — их осветлять нельзя.
+   ====================================================================== */
+:root[data-app-theme="dark"] #screen-app {
+  /* Само свойство color, а не только переменную: body держит тёмный
+     color:var(--tt-text) из базовой темы (он вне скоупа), и элементы без
+     явного цвета — например <strong> в карточках — наследовали бы тёмный
+     текст на тёмном фоне. Здесь задаём светлый ambient для всего кабинета. */
+  color: var(--tt-text);
+  --tt-bg: #0d1c16;
+  --tt-surface: #14261e;
+  --tt-surface-2: #182d23;
+  --tt-border: rgba(203, 171, 82, 0.16);
+  --tt-border-strong: rgba(203, 171, 82, 0.30);
+  --tt-text: #e9efe8;
+  --tt-text-muted: #a2b2a7;
+  --tt-text-subtle: #7e8d84;
+  /* был тёмный текст на кремовом → на тёмном фоне делаем светлым */
+  --tt-forest: #eef3ec;
+  --tt-cream: #0d1c16;
+  --tt-accent-soft: rgba(233, 101, 58, 0.16);
+  --tt-success-soft: rgba(22, 128, 95, 0.20);
+  --tt-warn-bg: rgba(233, 189, 105, 0.14);
+  --tt-warn-text: #e6c060;
+  --tt-warn-border: rgba(233, 189, 105, 0.4);
+  --tt-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+  --tt-shadow-hover: 0 18px 48px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* Точечные правки тёмного кабинета: места, где цвет фона был зашит кремом
+   (переменные их не покрывают). Всё скоупнуто на data-app-theme=dark. */
+:root[data-app-theme="dark"] #screen-app .tt-app-header {
+  background: rgba(10, 24, 18, 0.86);
+  border-bottom-color: rgba(203, 171, 82, 0.14);
+}
+/* Плашки в шапке (курс, TG, колокольчик, аккаунт) — общий кремовый «жетон»
+   с золотой рамкой, белым внутренним кантом и бликом. На тёмной панели
+   светились. Делаем тёмными полупрозрачными и гасим белые канты/блик. */
+:root[data-app-theme="dark"] #screen-app .tt-app-currency,
+:root[data-app-theme="dark"] #screen-app .tt-app-tg,
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn,
+:root[data-app-theme="dark"] #screen-app .tt-top-account {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(203, 171, 82, 0.18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+:root[data-app-theme="dark"] #screen-app .tt-app-currency::before,
+:root[data-app-theme="dark"] #screen-app .tt-app-tg::before,
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn::before,
+:root[data-app-theme="dark"] #screen-app .tt-top-account::before { display: none; }
+:root[data-app-theme="dark"] #screen-app .tt-app-currency strong { color: var(--tt-text); }
+/* Иконка колокольчика была тёмно-зелёной — на тёмном фоне светлим. */
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn { color: #e9efe8; }
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn svg { stroke: #e9efe8; }
+/* Ховер строк таблиц был затемнением (rgba(13,48,42,..)) — на тёмном фоне
+   не виден; заменяем на лёгкое высветление. */
+:root[data-app-theme="dark"] #screen-app .tt-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ======================================================================
    Тёмная тема публичной части (референс — тёмный сайт туров с бирюзой).
    Скоуп именно на #screen-public, а не на :root: кабинет остаётся светлым,
    агентства к нему привыкли, и перекрашивать его никто не просил.
@@ -1187,9 +1260,15 @@ a { color: inherit; }
   outline: 2px solid var(--tt-accent);
   outline-offset: 2px;
 }
-/* показываем ровно одну иконку — ту, что описывает переход */
-:root[data-theme="dark"] .tt-theme-moon,
-:root[data-theme="light"] .tt-theme-sun { display: none; }
+/* Показываем ровно одну иконку — ту, что описывает переход. Скоуп на
+   #theme-toggle (публичная кнопка): иначе правило гасило бы иконку и у
+   кнопки кабинета, у неё те же классы, но своя тема (data-app-theme). */
+:root[data-theme="dark"] #theme-toggle .tt-theme-moon,
+:root[data-theme="light"] #theme-toggle .tt-theme-sun { display: none; }
+/* Кнопка кабинета: по умолчанию (кремовая) — луна «включить тёмную»,
+   в тёмной — солнце «вернуть светлую». */
+:root[data-app-theme="dark"] .tt-app-theme .tt-theme-moon,
+:root:not([data-app-theme="dark"]) .tt-app-theme .tt-theme-sun { display: none; }
 
 /* Бренд в шапке — это <button>, а глобального сброса фона у кнопок в файле
    нет: браузер подставляет свои ButtonFace и ButtonText. Сброс нужен в
@@ -1782,7 +1861,7 @@ select { font-family: inherit; }
   stroke-width: 1.6;
 }
 .tt-account-btn:hover {
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff9ed;
   transform: translateY(-1px);
 }
@@ -3086,7 +3165,7 @@ select { font-family: inherit; }
   font-size: 0.7rem;
 }
 .tt-cat-variant.is-active {
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   border-color: var(--tt-forest);
   color: #fff;
 }
@@ -3245,7 +3324,7 @@ select { font-family: inherit; }
 .tt-flash {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff;
 }
 
@@ -3589,7 +3668,7 @@ select { font-family: inherit; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff;
   font-size: .62rem;
   font-weight: 700;
@@ -3925,7 +4004,7 @@ select { font-family: inherit; }
 .tt-mj-total-lines b { color: var(--tt-text); }
 .tt-mj-total-grand {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest); color: #fff;
+  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest-soft); color: #fff;
 }
 .tt-mj-total-grand span { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; }
 .tt-mj-total-grand strong { font-size: 1.5rem; }
@@ -5243,6 +5322,19 @@ select { font-family: inherit; }
            rel="noopener" aria-label="Telegram оператора" title="Написать в Telegram">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20.2 4.2-3 15.1c-.2 1-1 1.2-1.8.7l-4.6-3.4-2.2 2.1c-.3.3-.5.5-1 .5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L5.3 13.2.7 11.8c-1-.3-1-1 .2-1.5L18.7 3.4c.8-.3 1.7.2 1.5.8Z" /></svg>
         </a>
+        <!-- Своя тема кабинета (отдельно от публичной): по умолчанию кремовая,
+             тёмная включается этой кнопкой. Иконки — как в публичной шапке. -->
+        <button class="tt-theme-btn tt-app-theme" id="app-theme-toggle" type="button"
+                aria-label="Тема кабинета" title="Тема кабинета">
+          <svg class="tt-theme-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 13.5A8 8 0 0 1 10.5 4a8.2 8.2 0 1 0 9.5 9.5Z" />
+          </svg>
+          <svg class="tt-theme-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2
+                     M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
+          </svg>
+        </button>
         <div class="tt-notice-wrap">
           <button class="tt-notice-btn" id="notice-btn" type="button"
                   aria-label="Уведомления" aria-expanded="false">
@@ -11841,6 +11933,25 @@ window.TURON_DESTINATIONS = [
     });
   }
   $("logout-top").addEventListener("click", doLogout);
+
+  /* Тема кабинета — своя, отдельно от публичной (data-app-theme на <html>,
+   * ключ turon.app-theme). По умолчанию кремовая; тёмная включается этой
+   * кнопкой. Начальное значение уже проставил инлайн-скрипт в <head>, здесь
+   * только переключение по клику. */
+  var appThemeBtn = document.getElementById("app-theme-toggle");
+  if (appThemeBtn) {
+    appThemeBtn.addEventListener("click", function () {
+      var root = document.documentElement;
+      var dark = root.getAttribute("data-app-theme") === "dark";
+      if (dark) {
+        root.removeAttribute("data-app-theme");
+        try { window.localStorage.setItem("turon.app-theme", "light"); } catch (_) {}
+      } else {
+        root.setAttribute("data-app-theme", "dark");
+        try { window.localStorage.setItem("turon.app-theme", "dark"); } catch (_) {}
+      }
+    });
+  }
 
   /* Колокольчик: открытие панели, закрытие по клику вне и по Esc.
    * Содержимое собирает renderNotices() из загруженных броней. */

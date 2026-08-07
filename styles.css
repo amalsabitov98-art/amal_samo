@@ -1019,6 +1019,74 @@ a { color: inherit; }
 }
 
 /* ======================================================================
+   Тёмная тема КАБИНЕТА — отдельная от публичной (data-app-theme на <html>).
+   По умолчанию её нет: кабинет кремовый, как привыкли агентства. Тёмная
+   включается кнопкой в шапке кабинета и хранится в turon.app-theme.
+
+   Скоуп строго на #screen-app: публичную часть не трогаем. Осветляем
+   переменные-поверхности и текст. --tt-forest раньше был тёмным ТЕКСТОМ —
+   делаем его светлым; --tt-forest-deep/-soft остаются тёмными, потому что
+   ими крашены ФОНЫ (сайдбар, зелёные плашки, аватар) — их осветлять нельзя.
+   ====================================================================== */
+:root[data-app-theme="dark"] #screen-app {
+  /* Само свойство color, а не только переменную: body держит тёмный
+     color:var(--tt-text) из базовой темы (он вне скоупа), и элементы без
+     явного цвета — например <strong> в карточках — наследовали бы тёмный
+     текст на тёмном фоне. Здесь задаём светлый ambient для всего кабинета. */
+  color: var(--tt-text);
+  --tt-bg: #0d1c16;
+  --tt-surface: #14261e;
+  --tt-surface-2: #182d23;
+  --tt-border: rgba(203, 171, 82, 0.16);
+  --tt-border-strong: rgba(203, 171, 82, 0.30);
+  --tt-text: #e9efe8;
+  --tt-text-muted: #a2b2a7;
+  --tt-text-subtle: #7e8d84;
+  /* был тёмный текст на кремовом → на тёмном фоне делаем светлым */
+  --tt-forest: #eef3ec;
+  --tt-cream: #0d1c16;
+  --tt-accent-soft: rgba(233, 101, 58, 0.16);
+  --tt-success-soft: rgba(22, 128, 95, 0.20);
+  --tt-warn-bg: rgba(233, 189, 105, 0.14);
+  --tt-warn-text: #e6c060;
+  --tt-warn-border: rgba(233, 189, 105, 0.4);
+  --tt-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+  --tt-shadow-hover: 0 18px 48px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* Точечные правки тёмного кабинета: места, где цвет фона был зашит кремом
+   (переменные их не покрывают). Всё скоупнуто на data-app-theme=dark. */
+:root[data-app-theme="dark"] #screen-app .tt-app-header {
+  background: rgba(10, 24, 18, 0.86);
+  border-bottom-color: rgba(203, 171, 82, 0.14);
+}
+/* Плашки в шапке (курс, TG, колокольчик, аккаунт) — общий кремовый «жетон»
+   с золотой рамкой, белым внутренним кантом и бликом. На тёмной панели
+   светились. Делаем тёмными полупрозрачными и гасим белые канты/блик. */
+:root[data-app-theme="dark"] #screen-app .tt-app-currency,
+:root[data-app-theme="dark"] #screen-app .tt-app-tg,
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn,
+:root[data-app-theme="dark"] #screen-app .tt-top-account {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(203, 171, 82, 0.18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+:root[data-app-theme="dark"] #screen-app .tt-app-currency::before,
+:root[data-app-theme="dark"] #screen-app .tt-app-tg::before,
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn::before,
+:root[data-app-theme="dark"] #screen-app .tt-top-account::before { display: none; }
+:root[data-app-theme="dark"] #screen-app .tt-app-currency strong { color: var(--tt-text); }
+/* Иконка колокольчика была тёмно-зелёной — на тёмном фоне светлим. */
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn { color: #e9efe8; }
+:root[data-app-theme="dark"] #screen-app .tt-notice-btn svg { stroke: #e9efe8; }
+/* Ховер строк таблиц был затемнением (rgba(13,48,42,..)) — на тёмном фоне
+   не виден; заменяем на лёгкое высветление. */
+:root[data-app-theme="dark"] #screen-app .tt-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ======================================================================
    Тёмная тема публичной части (референс — тёмный сайт туров с бирюзой).
    Скоуп именно на #screen-public, а не на :root: кабинет остаётся светлым,
    агентства к нему привыкли, и перекрашивать его никто не просил.
@@ -1171,9 +1239,15 @@ a { color: inherit; }
   outline: 2px solid var(--tt-accent);
   outline-offset: 2px;
 }
-/* показываем ровно одну иконку — ту, что описывает переход */
-:root[data-theme="dark"] .tt-theme-moon,
-:root[data-theme="light"] .tt-theme-sun { display: none; }
+/* Показываем ровно одну иконку — ту, что описывает переход. Скоуп на
+   #theme-toggle (публичная кнопка): иначе правило гасило бы иконку и у
+   кнопки кабинета, у неё те же классы, но своя тема (data-app-theme). */
+:root[data-theme="dark"] #theme-toggle .tt-theme-moon,
+:root[data-theme="light"] #theme-toggle .tt-theme-sun { display: none; }
+/* Кнопка кабинета: по умолчанию (кремовая) — луна «включить тёмную»,
+   в тёмной — солнце «вернуть светлую». */
+:root[data-app-theme="dark"] .tt-app-theme .tt-theme-moon,
+:root:not([data-app-theme="dark"]) .tt-app-theme .tt-theme-sun { display: none; }
 
 /* Бренд в шапке — это <button>, а глобального сброса фона у кнопок в файле
    нет: браузер подставляет свои ButtonFace и ButtonText. Сброс нужен в
@@ -1766,7 +1840,7 @@ select { font-family: inherit; }
   stroke-width: 1.6;
 }
 .tt-account-btn:hover {
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff9ed;
   transform: translateY(-1px);
 }
@@ -3070,7 +3144,7 @@ select { font-family: inherit; }
   font-size: 0.7rem;
 }
 .tt-cat-variant.is-active {
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   border-color: var(--tt-forest);
   color: #fff;
 }
@@ -3229,7 +3303,7 @@ select { font-family: inherit; }
 .tt-flash {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff;
 }
 
@@ -3573,7 +3647,7 @@ select { font-family: inherit; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--tt-forest);
+  background: var(--tt-forest-soft);
   color: #fff;
   font-size: .62rem;
   font-weight: 700;
@@ -3909,7 +3983,7 @@ select { font-family: inherit; }
 .tt-mj-total-lines b { color: var(--tt-text); }
 .tt-mj-total-grand {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest); color: #fff;
+  padding: 12px 14px; border-radius: 10px; background: var(--tt-forest-soft); color: #fff;
 }
 .tt-mj-total-grand span { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; }
 .tt-mj-total-grand strong { font-size: 1.5rem; }

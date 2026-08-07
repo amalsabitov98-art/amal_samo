@@ -346,6 +346,25 @@
   }
   $("logout-top").addEventListener("click", doLogout);
 
+  /* Тема кабинета — своя, отдельно от публичной (data-app-theme на <html>,
+   * ключ turon.app-theme). По умолчанию кремовая; тёмная включается этой
+   * кнопкой. Начальное значение уже проставил инлайн-скрипт в <head>, здесь
+   * только переключение по клику. */
+  var appThemeBtn = document.getElementById("app-theme-toggle");
+  if (appThemeBtn) {
+    appThemeBtn.addEventListener("click", function () {
+      var root = document.documentElement;
+      var dark = root.getAttribute("data-app-theme") === "dark";
+      if (dark) {
+        root.removeAttribute("data-app-theme");
+        try { window.localStorage.setItem("turon.app-theme", "light"); } catch (_) {}
+      } else {
+        root.setAttribute("data-app-theme", "dark");
+        try { window.localStorage.setItem("turon.app-theme", "dark"); } catch (_) {}
+      }
+    });
+  }
+
   /* Колокольчик: открытие панели, закрытие по клику вне и по Esc.
    * Содержимое собирает renderNotices() из загруженных броней. */
   function setNotices(open) {

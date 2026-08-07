@@ -77,6 +77,11 @@ const themeBoot = `<script>
     } catch (e) {
       document.documentElement.setAttribute("data-theme", "dark");
     }
+    try {
+      if (localStorage.getItem("turon.app-theme") === "dark") {
+        document.documentElement.setAttribute("data-app-theme", "dark");
+      }
+    } catch (e) {}
   })();
 </script>`;
 
