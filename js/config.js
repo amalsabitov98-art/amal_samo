@@ -7,24 +7,24 @@ window.TURON_CONFIG = {
   apiBaseUrl: "https://turon-tour-api.turontour.workers.dev",
 };
 
-// Дополнение титульного hero вторым слайдом «Япония» подключаем отдельно,
-// чтобы не переписывать существующий video hero в catalog.js. Фотография
-// хранится как компактный AVIF и разбита на несколько небольших JS-частей:
-// GitHub Pages получает их по порядку, затем запускается сам слайдер.
-(function loadHeroSlider() {
+// Второй экран титульной: отдельный полноэкранный лист «Япония» СРАЗУ ПОД
+// существующим video hero. Первый hero не перестраивается и не превращается
+// в слайдер. Фотография хранится как компактный AVIF, разбитый на несколько
+// небольших JS-частей; после их загрузки подключается модуль второго листа.
+(function loadJapanSecondSheet() {
   "use strict";
 
   var css = document.createElement("link");
   css.rel = "stylesheet";
-  css.href = "hero-slider.css?v=20260807-2";
-  css.setAttribute("data-hero-slider", "");
+  css.href = "hero-slider.css?v=20260807-4";
+  css.setAttribute("data-japan-second-sheet", "");
   document.head.appendChild(css);
 
   var assets = [
-    "js/japan-image-01.js?v=20260807-1",
-    "js/japan-image-02.js?v=20260807-1",
-    "js/japan-image-03.js?v=20260807-1",
-    "js/japan-image-04.js?v=20260807-1",
+    "js/japan-image-01.js?v=20260807-2",
+    "js/japan-image-02.js?v=20260807-2",
+    "js/japan-image-03.js?v=20260807-2",
+    "js/japan-image-04.js?v=20260807-2",
   ];
   var index = 0;
 
@@ -40,14 +40,14 @@ window.TURON_CONFIG = {
   function loadNextImagePart() {
     if (index < assets.length) {
       addScript(assets[index++], loadNextImagePart, function () {
-        // Если хотя бы одна часть фотографии не загрузилась, не запускаем
-        // слайдер вовсе: существующий первый video hero остаётся как есть.
+        // Если хотя бы одна часть фотографии не загрузилась, оставляем
+        // существующую страницу как есть — битый второй лист не показываем.
       });
       return;
     }
 
     if (!window.TURON_JAPAN_IMAGE) return;
-    addScript("js/hero-slider.js?v=20260807-3", function () {}, function () {});
+    addScript("js/hero-slider.js?v=20260807-5", function () {}, function () {});
   }
 
   loadNextImagePart();
