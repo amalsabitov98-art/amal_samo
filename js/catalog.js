@@ -783,16 +783,14 @@
         // Второй полноэкранный лист — тизер Японии сразу под видео. Картинка
         // с готовой типографикой (img/japan-hero.png), поверх — кнопка.
         // has-japan-sheet схлопывает нижний отступ видео, чтобы листы шли встык.
-        var jpOp = global.TuronProvisional && global.TuronProvisional.OPERATOR;
-        var jpHref = (jpOp && jpOp.telegram_href) || "#/";
+        var jpHref = hashFor({ kind: "tours", destination: "Япония" });
         var japanSheet =
           '<section class="tt-japan-sheet" id="japan-2026" aria-label="Япония 2026">' +
             '<img class="tt-japan-sheet-image" src="img/japan-hero.png" ' +
               'alt="Открой Японию — Токио, Киото, Осака, Фудзи" loading="lazy" />' +
             '<div class="tt-japan-sheet-action">' +
-              '<a class="tt-japan-sheet-cta" href="' + esc(jpHref) + '" ' +
-                'target="_blank" rel="noopener">' +
-                "<span>Оставить заявку</span><span aria-hidden=\"true\">→</span>" +
+              '<a class="tt-japan-sheet-cta" href="' + esc(jpHref) + '">' +
+                "<span>В путь</span><span aria-hidden=\"true\">→</span>" +
               "</a>" +
             "</div>" +
           "</section>";
