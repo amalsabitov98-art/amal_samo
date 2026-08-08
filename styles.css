@@ -5134,6 +5134,13 @@ select { font-family: inherit; }
   margin-bottom: 0;
 }
 
+/* Раньше нижний градиент растворял video hero в фоне страницы. Теперь сразу
+   за ним идёт второй полноэкранный кадр, поэтому этот слой создавал светлый
+   шов во время движения. Убираем его только у двухслайдового hero. */
+.tt-public-intro.tt-has-japan-sheet::after {
+  content: none;
+}
+
 @media (min-width: 721px) {
   .tt-public-intro.tt-has-japan-sheet {
     height: 100svh;
