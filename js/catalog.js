@@ -116,49 +116,60 @@
   }
 
   /*
-   * Главная витрина — один экран из трёх фотографий. Здесь намеренно нет
-   * слайдера и перехвата колеса: карточки всегда находятся в DOM, а страница
-   * прокручивается нативно. Это убирает зависания между направлениями.
+   * Главная витрина — Карадениз занимает весь экран, а Умра и Япония лежат
+   * поверх него двумя компактными превью. Это не слайдер: все три перехода
+   * постоянно находятся в DOM и не перехватывают колесо страницы.
    */
   function destinationMosaic(list) {
     var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
     var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
-    var cards = [
-      {
-        cls: "is-karadeniz", destination: "Турция",
-        image: karadeniz.image || "img/hero-rize-batumi.webp",
-        kicker: "Авторский маршрут · № 01", title: "Загадочный Карадениз",
-        text: "Батуми · Ризе · Трабзон", meta: "11 заездов · от $880",
-      },
+    var karadenizPrice = karadeniz.min_price != null
+      ? "от " + money(karadeniz.min_price)
+      : "сезон 2026";
+    var previews = [
       {
         cls: "is-umrah", destination: "Умра",
         image: "img/umrah-showcase.webp",
-        kicker: "Духовное путешествие · № 02", title: "Умра",
-        text: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
+        title: "Умра", meta: "9 программ · от $1200",
       },
       {
         cls: "is-japan", destination: "Япония",
         image: japan.image || "img/japan-programs-bg.webp",
-        kicker: "Сезон 2026 · № 03", title: "Япония",
-        text: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
+        title: "Япония", meta: "4 программы · сезон 2026",
       },
     ];
-    return '<div class="tt-destination-mosaic" aria-label="Главные направления">' +
-      cards.map(function (card) {
+    return '<div class="tt-destination-mosaic" aria-label="Главные направления" ' +
+        'style="--tt-featured-image:url(\'' +
+        esc(karadeniz.image || "img/hero-rize-batumi.webp") + '\')">' +
+      '<button class="tt-mosaic-card is-karadeniz" type="button" data-dest="Турция" ' +
+        'aria-label="Открыть тур Загадочный Карадениз"></button>' +
+      '<span class="tt-featured-shade" aria-hidden="true"></span>' +
+      '<div class="tt-featured-copy">' +
+        '<span class="tt-featured-kicker">Авторский тур · сезон 2026</span>' +
+        '<h2>Загадочный Карадениз</h2>' +
+        '<p>Батуми <i>·</i> Ризе <i>·</i> Трабзон</p>' +
+        '<strong>8 дней <i>·</i> ' + esc(karadenizPrice) + '</strong>' +
+        '<button type="button" class="tt-featured-open" data-dest="Турция">' +
+          'Открыть тур <span aria-hidden="true">→</span></button>' +
+        '<div class="tt-featured-progress" aria-hidden="true">' +
+          '<span>01 / 03</span><i><b></b></i>' +
+        '</div>' +
+      '</div>' +
+      '<div class="tt-mosaic-previews">' +
+      previews.map(function (card) {
         return '<button class="tt-mosaic-card ' + card.cls + '" type="button" ' +
           'data-dest="' + esc(card.destination) + '" ' +
           'style="--tt-mosaic-image:url(\'' + esc(card.image) + '\')">' +
           '<span class="tt-mosaic-image" aria-hidden="true"></span>' +
           '<span class="tt-mosaic-shade" aria-hidden="true"></span>' +
           '<span class="tt-mosaic-copy">' +
-            '<small>' + esc(card.kicker) + '</small>' +
             '<strong>' + esc(card.title) + '</strong>' +
-            '<span>' + esc(card.text) + '</span>' +
             '<em>' + esc(card.meta) + '</em>' +
           '</span>' +
-          '<span class="tt-mosaic-open">Открыть <b aria-hidden="true">↗</b></span>' +
+          '<span class="tt-mosaic-open" aria-hidden="true">→</span>' +
         '</button>';
       }).join("") +
+      '</div>' +
     '</div>';
   }
 

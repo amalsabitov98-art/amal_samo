@@ -24,8 +24,8 @@ body {
 }
 
 /* -------------------------------------------------------------------------
-   Главные направления: один экран, три постоянно видимых изображения.
-   Никакого JS-слайдера и перехвата колеса — только нативная прокрутка. */
+   Главные направления: один полноэкранный Карадениз и два превью поверх.
+   Все переходы постоянно видимы; JS-слайдера и перехвата колеса нет. */
 .tt-public-catalogue {
   position: relative;
   width: 100vw !important;
@@ -39,11 +39,13 @@ body {
   background: #071713;
 }
 .tt-destination-mosaic {
-  display: grid;
-  grid-template-columns: minmax(0, 1.16fr) minmax(0, .84fr);
-  grid-template-rows: 56% 44%;
+  position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  color: #fff;
+  background: #10241f var(--tt-featured-image) center 52% / cover no-repeat;
+  isolation: isolate;
 }
 .tt-mosaic-card {
   position: relative;
@@ -56,12 +58,105 @@ body {
   color: #fff;
   text-align: left;
   cursor: pointer;
-  background: #10241f;
+  background: transparent;
   isolation: isolate;
 }
-.tt-mosaic-card.is-karadeniz { grid-column: 1; grid-row: 1; }
-.tt-mosaic-card.is-umrah { grid-column: 2; grid-row: 1; border-left: 1px solid rgba(255,255,255,.28); }
-.tt-mosaic-card.is-japan { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid rgba(255,255,255,.28); }
+.tt-mosaic-card.is-karadeniz {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+.tt-featured-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(2, 12, 10, .72) 0%, rgba(2, 12, 10, .27) 42%, transparent 72%),
+    linear-gradient(0deg, rgba(2, 12, 10, .84) 0%, rgba(2, 12, 10, .08) 58%, rgba(2, 12, 10, .2) 100%);
+}
+.tt-featured-copy {
+  position: absolute;
+  left: clamp(28px, 4.2vw, 78px);
+  bottom: clamp(30px, 5.2vh, 58px);
+  z-index: 2;
+  width: min(42vw, 650px);
+  pointer-events: none;
+}
+.tt-featured-kicker {
+  display: block;
+  margin-bottom: 14px;
+  color: #e5ca81;
+  font: 700 clamp(.56rem, .66vw, .7rem)/1.3 Manrope, sans-serif;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.tt-featured-copy h2 {
+  margin: 0;
+  color: #fff;
+  font: 500 clamp(2.7rem, 4.5vw, 5.25rem)/.94 Manrope, sans-serif;
+  letter-spacing: -.06em;
+  text-wrap: balance;
+}
+.tt-featured-copy p,
+.tt-featured-copy > strong {
+  display: block;
+  margin: 18px 0 0;
+  color: rgba(255,255,255,.86);
+  font: 500 clamp(.78rem, 1.12vw, 1.05rem)/1.45 Manrope, sans-serif;
+  letter-spacing: .005em;
+}
+.tt-featured-copy > strong { margin-top: 14px; color: #fff; font-weight: 600; }
+.tt-featured-copy i { margin-inline: .38em; color: rgba(255,255,255,.5); font-style: normal; }
+.tt-featured-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 25px;
+  padding: 0 0 7px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.62);
+  background: transparent;
+  color: #fff;
+  font: 600 clamp(.72rem, .88vw, .86rem)/1 Manrope, sans-serif;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: gap .3s ease, border-color .3s ease;
+}
+.tt-featured-open span { font-size: 1.12rem; }
+.tt-featured-open:hover { gap: 20px; border-color: #e5ca81; }
+.tt-featured-open:focus-visible { outline: 2px solid #e5ca81; outline-offset: 5px; }
+.tt-featured-progress {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: min(100%, 580px);
+  margin-top: 30px;
+  color: rgba(255,255,255,.65);
+  font: 600 .64rem/1 Manrope, sans-serif;
+}
+.tt-featured-progress > i {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  margin: 0;
+  background: rgba(255,255,255,.3);
+}
+.tt-featured-progress b { display: block; width: 16%; height: 2px; background: #fff; transform: translateY(-.5px); }
+.tt-mosaic-previews {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(58vw, 1020px);
+  height: clamp(185px, 25svh, 265px);
+  box-shadow: 0 -12px 44px rgba(1, 9, 8, .18);
+}
+.tt-mosaic-previews .tt-mosaic-card + .tt-mosaic-card { border-left: 1px solid rgba(255,255,255,.34); }
 .tt-mosaic-image,
 .tt-mosaic-shade {
   position: absolute;
@@ -74,7 +169,6 @@ body {
   transform: scale(1.001);
   transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter .55s ease;
 }
-.tt-mosaic-card.is-karadeniz .tt-mosaic-image { background-position: center 54%; }
 .tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 65% 55%; }
 .tt-mosaic-card.is-japan .tt-mosaic-image { background-position: center 48%; }
 .tt-mosaic-shade {
@@ -92,61 +186,39 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: min(620px, 72%);
-}
-.tt-mosaic-copy small {
-  margin-bottom: 8px;
-  color: #e4cb82;
-  font: 700 clamp(.55rem, .68vw, .72rem)/1.25 Manrope, sans-serif;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+  max-width: calc(100% - 70px);
 }
 .tt-mosaic-copy strong {
   color: #fff;
-  font: 600 clamp(2rem, 3.25vw, 4.15rem)/.94 Manrope, sans-serif;
-  letter-spacing: -.055em;
+  font: 500 clamp(1.5rem, 2vw, 2.25rem)/1 Manrope, sans-serif;
+  letter-spacing: -.045em;
   text-wrap: balance;
 }
-.tt-mosaic-card.is-umrah .tt-mosaic-copy strong { font-size: clamp(2rem, 2.75vw, 3.35rem); }
-.tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(2rem, 2.8vw, 3.6rem); }
-.tt-mosaic-copy > span {
-  margin-top: 11px;
-  color: rgba(255,255,255,.78);
-  font: 500 clamp(.68rem, .82vw, .86rem)/1.4 Manrope, sans-serif;
-}
 .tt-mosaic-copy em {
-  margin-top: 10px;
-  color: rgba(255,255,255,.94);
-  font: 700 clamp(.6rem, .72vw, .75rem)/1.4 Manrope, sans-serif;
+  margin-top: 8px;
+  color: rgba(255,255,255,.7);
+  font: 600 clamp(.56rem, .66vw, .68rem)/1.4 Manrope, sans-serif;
   font-style: normal;
   letter-spacing: .02em;
 }
 .tt-mosaic-open {
   position: absolute;
   right: clamp(20px, 3vw, 46px);
-  bottom: clamp(22px, 4.4vh, 48px);
+  bottom: clamp(24px, 4.4vh, 44px);
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 11px 10px 18px;
-  border: 1px solid rgba(255,255,255,.48);
-  border-radius: 999px;
-  background: rgba(7,19,16,.28);
-  backdrop-filter: blur(10px);
-  color: #fff;
-  font: 700 .64rem/1 Manrope, sans-serif;
-  transition: border-color .3s ease, background .3s ease, transform .3s ease;
-}
-.tt-mosaic-open b {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.55);
   border-radius: 50%;
-  background: #e5ca81;
-  color: #14211e;
-  font-size: .9rem;
+  background: rgba(7,19,16,.22);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font: 500 1rem/1 Manrope, sans-serif;
+  transition: border-color .3s ease, background .3s ease, transform .3s ease;
 }
 .tt-mosaic-card:hover .tt-mosaic-image,
 .tt-mosaic-card:focus-visible .tt-mosaic-image { transform: scale(1.035); filter: saturate(1.04); }
@@ -312,12 +384,13 @@ body {
 .tt-umrah-contact > a span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #10211c; background: #e4ca83; }
 
 @media (max-width: 880px) {
-  .tt-destination-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: 55% 45%; }
-  .tt-mosaic-copy { max-width: calc(100% - 42px); left: 21px; bottom: 22px; }
-  .tt-mosaic-copy strong { font-size: clamp(1.55rem, 5.3vw, 2.6rem); }
-  .tt-mosaic-open { top: 18px; right: 18px; bottom: auto; padding: 6px; }
-  .tt-mosaic-open > :not(b) { display: none; }
-  .tt-mosaic-open b { width: 28px; height: 28px; }
+  .tt-featured-copy { width: 40vw; }
+  .tt-featured-copy h2 { font-size: clamp(2.35rem, 5.3vw, 3.8rem); }
+  .tt-mosaic-previews { width: 57vw; height: clamp(170px, 23svh, 225px); }
+  .tt-mosaic-copy { max-width: calc(100% - 30px); left: 18px; bottom: 18px; }
+  .tt-mosaic-copy strong { font-size: clamp(1.25rem, 2.8vw, 1.8rem); }
+  .tt-mosaic-copy em { display: none; }
+  .tt-mosaic-open { top: 16px; right: 16px; bottom: auto; }
   .tt-umrah-program summary > span { grid-template-columns: 100px 180px 1fr; }
   .tt-umrah-program-body { padding-left: 0; }
 }
@@ -325,24 +398,26 @@ body {
 @media (max-width: 620px) {
   .tt-public-catalogue { height: auto; min-height: 0; overflow: visible; }
   .tt-destination-mosaic {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 46svh 34svh 38svh;
-    min-height: 118svh;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: visible;
+    background-position: 47% center;
   }
-  .tt-mosaic-card.is-karadeniz,
-  .tt-mosaic-card.is-umrah,
-  .tt-mosaic-card.is-japan { grid-column: 1; border-left: 0; border-top: 1px solid rgba(255,255,255,.25); }
-  .tt-mosaic-card.is-karadeniz { grid-row: 1; border-top: 0; }
-  .tt-mosaic-card.is-umrah { grid-row: 2; }
-  .tt-mosaic-card.is-japan { grid-row: 3; }
+  .tt-mosaic-card.is-karadeniz { height: 72svh; }
+  .tt-featured-shade { height: 72svh; bottom: auto; }
+  .tt-featured-copy { position: relative; left: auto; bottom: auto; z-index: 2; width: auto; min-height: 72svh; padding: 0 21px 28px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .tt-featured-copy h2 { max-width: 340px; font-size: clamp(2.45rem, 12vw, 4rem); }
+  .tt-featured-copy p { margin-top: 12px; }
+  .tt-featured-copy > strong { margin-top: 8px; }
+  .tt-featured-open { margin-top: 20px; width: fit-content; }
+  .tt-featured-progress { margin-top: 24px; }
+  .tt-mosaic-previews { position: relative; right: auto; bottom: auto; z-index: 3; grid-template-columns: 1fr; width: 100%; height: auto; }
+  .tt-mosaic-previews .tt-mosaic-card { min-height: 34svh; border-top: 1px solid rgba(255,255,255,.28); }
+  .tt-mosaic-previews .tt-mosaic-card + .tt-mosaic-card { border-left: 0; }
   .tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 66% 58%; }
-  .tt-mosaic-copy { bottom: 18px; }
-  .tt-mosaic-copy small { font-size: .5rem; }
-  .tt-mosaic-copy strong,
-  .tt-mosaic-card.is-umrah .tt-mosaic-copy strong,
-  .tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(1.55rem, 8vw, 2.3rem); }
-  .tt-mosaic-copy > span { margin-top: 6px; }
+  .tt-mosaic-copy { bottom: 22px; }
+  .tt-mosaic-copy strong { font-size: clamp(1.7rem, 8vw, 2.4rem); }
   .tt-mosaic-copy em { margin-top: 5px; }
   .tt-umrah-hero { min-height: 78svh; background-position: 68% 50%; }
   .tt-umrah-hero-copy { padding: 130px 20px 48px; }

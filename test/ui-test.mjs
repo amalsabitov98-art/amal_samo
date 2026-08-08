@@ -76,7 +76,11 @@ console.log("\nТитульная страница");
   check("Карадениз стоит первым и назван главным продуктом",
         await page.locator(".tt-mosaic-card").first().evaluate((el) =>
           el.classList.contains("is-karadeniz") &&
-          el.textContent.includes("Загадочный Карадениз")));
+          el.parentElement.textContent.includes("Загадочный Карадениз")));
+  check("Умра и Япония собраны двумя превью поверх Карадениза",
+        await page.locator(".tt-mosaic-previews").evaluate((el) =>
+          el.children.length === 2 &&
+          getComputedStyle(el).position === "absolute"));
   check("витрина занимает ровно ширину и высоту окна",
         await page.locator(".tt-public-catalogue").evaluate((el) => {
           const r = el.getBoundingClientRect();
