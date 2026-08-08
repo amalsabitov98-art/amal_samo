@@ -1919,7 +1919,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -3464,7 +3464,7 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
   .tt-app-container { padding: 20px 14px 60px; }
@@ -5124,7 +5124,7 @@ select { font-family: inherit; }
 
 /* ================================================= Япония — второй лист
    Полноэкранный тизер сразу под видео-героем. Картинка с готовой
-   типографикой (img/japan-hero.avif), поверх — кнопка. Перенесено из
+   типографикой (img/japan-hero.png), поверх — кнопка. Перенесено из
    бывшего hero-slider.css. */
 /* ======================================================== Japan second sheet
    Первый video hero остаётся исходным. Ниже — отдельный полноэкранный лист
