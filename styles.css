@@ -5156,6 +5156,16 @@ select { font-family: inherit; }
      запасом справа у пагоды. На 16:9 (≈1.78, как сам постер) обрезки нет. */
   object-position: 28% center;
   image-rendering: auto;
+  transform: scale(1.035);
+  filter: brightness(.86);
+  transition:
+    transform 1.05s cubic-bezier(.2, .72, .22, 1),
+    filter .85s ease;
+}
+
+.tt-japan-sheet.is-scroll-active .tt-japan-sheet-image {
+  transform: scale(1);
+  filter: brightness(1);
 }
 
 .tt-japan-sheet-action {
@@ -5163,6 +5173,16 @@ select { font-family: inherit; }
   z-index: 2;
   left: clamp(46px, 6vw, 112px);
   bottom: clamp(62px, 11vh, 126px);
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity .58s ease .18s,
+    transform .7s cubic-bezier(.2, .72, .22, 1) .18s;
+}
+
+.tt-japan-sheet.is-scroll-active .tt-japan-sheet-action {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .tt-japan-sheet-cta {
@@ -5212,12 +5232,20 @@ select { font-family: inherit; }
   }
 
   /* На портретном экране держим в кадре левую типографику постера. */
-  .tt-japan-sheet-image { object-position: 28% center; }
+  .tt-japan-sheet-image {
+    object-position: 28% center;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 
   .tt-japan-sheet-action {
     left: 22px;
     right: 22px;
     bottom: 34px;
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
   .tt-japan-sheet-cta {
@@ -5229,6 +5257,13 @@ select { font-family: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tt-japan-sheet-image,
+  .tt-japan-sheet-action {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
   .tt-japan-sheet-cta,
   .tt-japan-sheet-cta span:last-child { transition: none; }
 }

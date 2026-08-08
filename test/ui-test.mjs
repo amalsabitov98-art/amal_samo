@@ -78,6 +78,16 @@ console.log("\nТитульная страница");
         await page.locator(".tt-japan-sheet-cta").evaluate((el) =>
           el.textContent.includes("В путь") &&
           el.getAttribute("href") === "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F"));
+  await page.mouse.wheel(0, 240);
+  await page.waitForTimeout(1100);
+  check("колесо плавно переводит с видео на слайд Японии",
+        await page.locator(".tt-japan-sheet").evaluate((el) =>
+          Math.abs(el.getBoundingClientRect().top) < 12));
+  await page.mouse.wheel(0, -240);
+  await page.waitForTimeout(1100);
+  check("обратный скролл возвращает к видеослайду",
+        await page.locator(".tt-public-intro").evaluate((el) =>
+          Math.abs(el.getBoundingClientRect().top) < 12));
 
   // выпадающие списки строятся из заездов, а не зашиты в разметку
   const months = await page.locator("#ts-month option").count();

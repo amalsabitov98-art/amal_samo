@@ -551,6 +551,75 @@
   }
 
   var revealObserver = null;
+  var heroScrollCleanup = null;
+
+  /* Первый экран намеренно выше окна, чтобы широкоформатное видео не резало
+   * важные детали. Из-за этого обычным колесом до Японии приходится долго
+   * прокручивать пустой хвост ролика. На гостевой титульной один уверенный
+   * жест переводит ровно к следующему листу; дальше страница снова скроллится
+   * как обычно. На тач-экранах не вмешиваемся — там естественный свайп точнее
+   * программного перехвата. */
+  function initHeroScroll(container) {
+    if (heroScrollCleanup) heroScrollCleanup();
+    heroScrollCleanup = null;
+
+    var hero = container.querySelector(".tt-public-intro.tt-has-japan-sheet");
+    var japan = container.querySelector(".tt-japan-sheet");
+    if (!hero || !japan) return;
+
+    var reduced = global.matchMedia &&
+      global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var coarse = global.matchMedia && global.matchMedia("(pointer: coarse)").matches;
+    var locked = false;
+    var unlockTimer = 0;
+
+    function activateJapan(active) {
+      japan.classList.toggle("is-scroll-active", active);
+    }
+
+    var observer = null;
+    if (!reduced && "IntersectionObserver" in global) {
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          activateJapan(entry.isIntersecting && entry.intersectionRatio >= 0.28);
+        });
+      }, { threshold: [0, 0.28, 0.7] });
+      observer.observe(japan);
+    } else {
+      activateJapan(true);
+    }
+
+    function glideTo(target) {
+      locked = true;
+      target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      global.clearTimeout(unlockTimer);
+      unlockTimer = global.setTimeout(function () { locked = false; }, reduced ? 0 : 900);
+    }
+
+    function onWheel(event) {
+      if (coarse || locked || event.ctrlKey || Math.abs(event.deltaY) < 4) return;
+      if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
+
+      var heroRect = hero.getBoundingClientRect();
+      var japanRect = japan.getBoundingClientRect();
+      var nearJapanTop = Math.abs(japanRect.top) <= 10;
+
+      if (event.deltaY > 0 && heroRect.top <= 10 && japanRect.top > 10) {
+        event.preventDefault();
+        glideTo(japan);
+      } else if (event.deltaY < 0 && nearJapanTop) {
+        event.preventDefault();
+        glideTo(hero);
+      }
+    }
+
+    global.addEventListener("wheel", onWheel, { passive: false });
+    heroScrollCleanup = function () {
+      global.removeEventListener("wheel", onWheel);
+      global.clearTimeout(unlockTimer);
+      if (observer) observer.disconnect();
+    };
+  }
 
   function initReveal(container) {
     if (revealObserver) revealObserver.disconnect();
@@ -581,7 +650,9 @@
   }
 
   function enhance(container) {
-    initReveal(container || document);
+    container = container || document;
+    initReveal(container);
+    initHeroScroll(container);
   }
 
   document.addEventListener("click", function (event) {
