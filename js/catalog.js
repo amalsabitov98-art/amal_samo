@@ -858,12 +858,17 @@
     function renderTours(destination) {
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        var isJapan = destination === "Япония";
         root.innerHTML =
+          '<section class="tt-destination-page' +
+            (isJapan ? " tt-destination-japan" : "") + '">' +
+          '<div class="tt-destination-inner">' +
           crumbs([{ text: "Каталог", go: "root" }, { text: destination }]) +
           '<h1 class="tt-cat-h1">' + esc(destination) + "</h1>" +
           (list.length
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
-            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>');
+            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>') +
+          "</div></section>";
       }).catch(errorBox);
     }
 

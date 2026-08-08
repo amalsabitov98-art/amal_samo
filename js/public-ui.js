@@ -572,6 +572,13 @@
 
     var locked = false;
     var animationFrame = 0;
+    var unlockTimer = 0;
+
+    function unlock() {
+      locked = false;
+      if (unlockTimer) global.clearTimeout(unlockTimer);
+      unlockTimer = 0;
+    }
 
     function easeInOutCubic(progress) {
       return progress < 0.5
@@ -585,9 +592,13 @@
       var duration = reduced ? 0 : 920;
 
       locked = true;
+      // requestAnimationFrame может остановиться при сворачивании вкладки.
+      // Без страховки locked оставался true и глобально «съедал» колесо
+      // даже после возврата на страницу.
+      unlockTimer = global.setTimeout(unlock, duration + 250);
       if (!duration) {
         global.scrollTo(0, targetY);
-        locked = false;
+        unlock();
         return;
       }
 
@@ -601,22 +612,31 @@
           animationFrame = global.requestAnimationFrame(frame);
         } else {
           animationFrame = 0;
-          locked = false;
+          unlock();
         }
       }
       animationFrame = global.requestAnimationFrame(frame);
     }
 
     function onWheel(event) {
+      // Слушатель стоит на window, но управлять ему разрешено только гостевым
+      // каталогом и только пока в окне находится пара hero-слайдов. В кабинете,
+      // модалках и ниже Японии колесо всегда остаётся нативным.
+      if (!container.contains(event.target)) return;
+      var heroRect = hero.getBoundingClientRect();
+      var japanRect = japan.getBoundingClientRect();
+      var withinHeroPair = heroRect.bottom >= -12 &&
+        japanRect.top <= (global.innerHeight || 0) + 12;
+
       if (locked) {
-        event.preventDefault();
+        if (withinHeroPair) event.preventDefault();
+        else unlock();
         return;
       }
       if (event.ctrlKey || Math.abs(event.deltaY) < 4) return;
       if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
+      if (!withinHeroPair) return;
 
-      var heroRect = hero.getBoundingClientRect();
-      var japanRect = japan.getBoundingClientRect();
       var nearHeroTop = Math.abs(heroRect.top) <= 12;
       var nearJapanTop = Math.abs(japanRect.top) <= 12;
 
@@ -633,7 +653,9 @@
     heroScrollCleanup = function () {
       global.removeEventListener("wheel", onWheel);
       if (animationFrame) global.cancelAnimationFrame(animationFrame);
+      if (unlockTimer) global.clearTimeout(unlockTimer);
       animationFrame = 0;
+      unlockTimer = 0;
       locked = false;
     };
   }

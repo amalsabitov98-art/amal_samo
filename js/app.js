@@ -173,6 +173,13 @@
     $("offline-screen").hidden = true;
     fadeIn(name === "public" ? "screen-public"
          : name === "login" ? "screen-login" : "screen-app");
+    // Полноэкранная галерея временно запрещает прокрутку body. Если экран
+    // сменили в момент закрытия/сворачивания fullscreen, событие выхода
+    // иногда не успевало вернуть overflow — и кабинет оставался без колеса.
+    if (name === "app" && !document.fullscreenElement) {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
     window.scrollTo(0, 0);
     return true;
   }

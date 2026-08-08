@@ -1919,10 +1919,49 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
+}
+
+/* Страница программ Японии — отдельный полноширинный кадр. Фотография
+   остаётся фоном раздела, а не карточкой: поверх неё лежит спокойная тёмная
+   вуаль, чтобы четыре программы читались при любой ширине десктопа. */
+#screen-public .tt-destination-page {
+  width: 100%;
+}
+#screen-public .tt-destination-inner {
+  width: min(1380px, 100%);
+  margin-inline: auto;
+  padding: clamp(42px, 5vw, 72px) clamp(20px, 4vw, 64px) clamp(64px, 8vw, 112px);
+}
+#screen-public .tt-destination-japan {
+  min-height: calc(100vh - 138px);
+  color: #f4f8fa;
+  background:
+    linear-gradient(90deg, rgba(3, 9, 13, 0.88) 0%, rgba(3, 10, 15, 0.76) 47%, rgba(3, 9, 13, 0.58) 100%),
+    linear-gradient(180deg, rgba(3, 9, 13, 0.42) 0%, rgba(3, 9, 13, 0.12) 38%, rgba(3, 9, 13, 0.78) 100%),
+    url("img/japan-programs-bg.webp") center 42% / cover no-repeat;
+}
+#screen-public .tt-destination-japan .tt-crumbs,
+#screen-public .tt-destination-japan .tt-muted-note {
+  color: rgba(231, 241, 245, 0.72);
+}
+#screen-public .tt-destination-japan .tt-cat-h1 {
+  margin-top: 0;
+  color: #ffffff;
+  text-shadow: 0 3px 28px rgba(0, 0, 0, 0.48);
+}
+#screen-public .tt-destination-japan .tt-cat-tour {
+  border-color: rgba(163, 218, 231, 0.2);
+  background: rgba(8, 17, 22, 0.78);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(12px);
+}
+#screen-public .tt-destination-japan .tt-cat-tour:hover {
+  border-color: rgba(79, 214, 232, 0.48);
+  background: rgba(8, 19, 24, 0.88);
 }
 
 /* ---------------------------------------------------------- app shell */
@@ -3464,7 +3503,8 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) { padding-inline: 15px; }
+  #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
   .tt-app-container { padding: 20px 14px 60px; }
