@@ -71,6 +71,13 @@ console.log("\nТитульная страница");
   check("каруселей с картинками больше нет",
         (await page.locator(".tt-hero-slide").count()) === 0);
   check("панель поиска на месте", await page.locator("#tour-search").isVisible());
+  check("слайд Японии занимает всю ширину окна",
+        await page.locator(".tt-japan-sheet").evaluate((el) =>
+          Math.abs(el.getBoundingClientRect().width - window.innerWidth) < 1));
+  check("кнопка «В путь» ведёт в каталог Японии",
+        await page.locator(".tt-japan-sheet-cta").evaluate((el) =>
+          el.textContent.includes("В путь") &&
+          el.getAttribute("href") === "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F"));
 
   // выпадающие списки строятся из заездов, а не зашиты в разметку
   const months = await page.locator("#ts-month option").count();
