@@ -553,12 +553,10 @@
   var revealObserver = null;
   var heroScrollCleanup = null;
 
-  /* Первый экран намеренно выше окна, чтобы широкоформатное видео не резало
-   * важные детали. Из-за этого обычным колесом до Японии приходится долго
-   * прокручивать пустой хвост ролика. На гостевой титульной один уверенный
-   * жест переводит ровно к следующему листу; дальше страница снова скроллится
-   * как обычно. На тач-экранах не вмешиваемся — там естественный свайп точнее
-   * программного перехвата. */
+  /* На десктопе два hero-листа переключаются одним движением колеса. Переход
+   * управляем сами, потому что native smooth scroll имеет разную скорость в
+   * браузерах и часто ощущается как обычная прокрутка страницы. Здесь оба
+   * полноэкранных листа движутся одним непрерывным вертикальным кадром. */
   function initHeroScroll(container) {
     if (heroScrollCleanup) heroScrollCleanup();
     heroScrollCleanup = null;
@@ -569,42 +567,60 @@
 
     var reduced = global.matchMedia &&
       global.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var coarse = global.matchMedia && global.matchMedia("(pointer: coarse)").matches;
+    var desktop = !global.matchMedia || global.matchMedia("(min-width: 721px)").matches;
+    if (!desktop) return;
+
     var locked = false;
-    var unlockTimer = 0;
+    var animationFrame = 0;
 
-    function activateJapan(active) {
-      japan.classList.toggle("is-scroll-active", active);
-    }
-
-    var observer = null;
-    if (!reduced && "IntersectionObserver" in global) {
-      observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          activateJapan(entry.isIntersecting && entry.intersectionRatio >= 0.28);
-        });
-      }, { threshold: [0, 0.28, 0.7] });
-      observer.observe(japan);
-    } else {
-      activateJapan(true);
+    function easeInOutCubic(progress) {
+      return progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
     }
 
     function glideTo(target) {
+      var startY = global.scrollY || global.pageYOffset || 0;
+      var targetY = startY + target.getBoundingClientRect().top;
+      var duration = reduced ? 0 : 920;
+
       locked = true;
-      target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-      global.clearTimeout(unlockTimer);
-      unlockTimer = global.setTimeout(function () { locked = false; }, reduced ? 0 : 900);
+      if (!duration) {
+        global.scrollTo(0, targetY);
+        locked = false;
+        return;
+      }
+
+      var startedAt = null;
+      function frame(timestamp) {
+        if (startedAt === null) startedAt = timestamp;
+        var progress = Math.min((timestamp - startedAt) / duration, 1);
+        var eased = easeInOutCubic(progress);
+        global.scrollTo(0, startY + (targetY - startY) * eased);
+        if (progress < 1) {
+          animationFrame = global.requestAnimationFrame(frame);
+        } else {
+          animationFrame = 0;
+          locked = false;
+        }
+      }
+      animationFrame = global.requestAnimationFrame(frame);
     }
 
     function onWheel(event) {
-      if (coarse || locked || event.ctrlKey || Math.abs(event.deltaY) < 4) return;
+      if (locked) {
+        event.preventDefault();
+        return;
+      }
+      if (event.ctrlKey || Math.abs(event.deltaY) < 4) return;
       if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
 
       var heroRect = hero.getBoundingClientRect();
       var japanRect = japan.getBoundingClientRect();
-      var nearJapanTop = Math.abs(japanRect.top) <= 10;
+      var nearHeroTop = Math.abs(heroRect.top) <= 12;
+      var nearJapanTop = Math.abs(japanRect.top) <= 12;
 
-      if (event.deltaY > 0 && heroRect.top <= 10 && japanRect.top > 10) {
+      if (event.deltaY > 0 && nearHeroTop) {
         event.preventDefault();
         glideTo(japan);
       } else if (event.deltaY < 0 && nearJapanTop) {
@@ -616,8 +632,9 @@
     global.addEventListener("wheel", onWheel, { passive: false });
     heroScrollCleanup = function () {
       global.removeEventListener("wheel", onWheel);
-      global.clearTimeout(unlockTimer);
-      if (observer) observer.disconnect();
+      if (animationFrame) global.cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      locked = false;
     };
   }
 

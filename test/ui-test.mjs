@@ -78,6 +78,16 @@ console.log("\nТитульная страница");
         await page.locator(".tt-japan-sheet-cta").evaluate((el) =>
           el.textContent.includes("В путь") &&
           el.getAttribute("href") === "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F"));
+  check("оба hero-слайда имеют одинаковую высоту окна",
+        await page.locator(".tt-public-intro, .tt-japan-sheet").evaluateAll((els) =>
+          els.length === 2 && els.every((el) =>
+            Math.abs(el.getBoundingClientRect().height - window.innerHeight) < 1)));
+  check("на японском слайде нет зума и fade-анимации",
+        await page.locator(".tt-japan-sheet-image, .tt-japan-sheet-action").evaluateAll((els) =>
+          els.every((el) => {
+            const style = getComputedStyle(el);
+            return style.transform === "none" && style.opacity === "1";
+          })));
   await page.mouse.wheel(0, 240);
   await page.waitForTimeout(1100);
   check("колесо плавно переводит с видео на слайд Японии",
