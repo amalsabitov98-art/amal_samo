@@ -1940,8 +1940,8 @@ select { font-family: inherit; }
   min-height: calc(100vh - 138px);
   color: #f4f8fa;
   background:
-    linear-gradient(90deg, rgba(3, 9, 13, 0.88) 0%, rgba(3, 10, 15, 0.76) 47%, rgba(3, 9, 13, 0.58) 100%),
-    linear-gradient(180deg, rgba(3, 9, 13, 0.42) 0%, rgba(3, 9, 13, 0.12) 38%, rgba(3, 9, 13, 0.78) 100%),
+    linear-gradient(90deg, rgba(3, 9, 13, 0.48) 0%, rgba(3, 10, 15, 0.28) 50%, rgba(3, 9, 13, 0.12) 100%),
+    linear-gradient(180deg, rgba(3, 9, 13, 0.18) 0%, rgba(3, 9, 13, 0.04) 42%, rgba(3, 9, 13, 0.46) 100%),
     url("img/japan-programs-bg.webp") center 42% / cover no-repeat;
 }
 #screen-public .tt-destination-japan .tt-crumbs,
