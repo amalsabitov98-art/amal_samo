@@ -71,33 +71,40 @@ console.log("\nТитульная страница");
   check("каруселей с картинками больше нет",
         (await page.locator(".tt-hero-slide").count()) === 0);
   check("панель поиска на месте", await page.locator("#tour-search").isVisible());
-  check("слайд Японии занимает всю ширину окна",
-        await page.locator(".tt-japan-sheet").evaluate((el) =>
-          Math.abs(el.getBoundingClientRect().width - window.innerWidth) < 1));
-  check("кнопка «В путь» ведёт в каталог Японии",
-        await page.locator(".tt-japan-sheet-cta").evaluate((el) =>
-          el.textContent.includes("В путь") &&
-          el.getAttribute("href") === "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F"));
-  check("оба hero-слайда имеют одинаковую высоту окна",
-        await page.locator(".tt-public-intro, .tt-japan-sheet").evaluateAll((els) =>
-          els.length === 2 && els.every((el) =>
-            Math.abs(el.getBoundingClientRect().height - window.innerHeight) < 1)));
-  check("на японском слайде нет зума и fade-анимации",
-        await page.locator(".tt-japan-sheet-image, .tt-japan-sheet-action").evaluateAll((els) =>
-          els.every((el) => {
-            const style = getComputedStyle(el);
-            return style.transform === "none" && style.opacity === "1";
-          })));
-  await page.mouse.wheel(0, 240);
-  await page.waitForTimeout(1100);
-  check("колесо плавно переводит с видео на слайд Японии",
-        await page.locator(".tt-japan-sheet").evaluate((el) =>
-          Math.abs(el.getBoundingClientRect().top) < 12));
-  await page.mouse.wheel(0, -240);
-  await page.waitForTimeout(1100);
-  check("обратный скролл возвращает к видеослайду",
-        await page.locator(".tt-public-intro").evaluate((el) =>
-          Math.abs(el.getBoundingClientRect().top) < 12));
+  check("на одном экране три главных направления",
+        (await page.locator(".tt-destination-mosaic .tt-mosaic-card").count()) === 3);
+  check("Карадениз стоит первым и назван главным продуктом",
+        await page.locator(".tt-mosaic-card").first().evaluate((el) =>
+          el.classList.contains("is-karadeniz") &&
+          el.textContent.includes("Загадочный Карадениз")));
+  check("витрина занимает ровно ширину и высоту окна",
+        await page.locator(".tt-public-catalogue").evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return Math.abs(r.width - window.innerWidth) < 1 &&
+            Math.abs(r.height - window.innerHeight) < 1;
+        }));
+  check("отдельный японский слайд удалён",
+        (await page.locator(".tt-japan-sheet").count()) === 0);
+
+  await page.locator('.tt-mosaic-card[data-dest="Умра"]').click();
+  await page.waitForTimeout(500);
+  check("Умра открывается как отдельное направление",
+        (await page.evaluate(() => location.hash)).includes("%D0%A3%D0%BC%D1%80%D0%B0"));
+  check("в Умре заполнены девять программ",
+        (await page.locator(".tt-umrah-program").count()) === 9);
+  check("в программе есть рейсы, отели, даты и цены",
+        await page.locator(".tt-umrah-program").first().evaluate((el) => {
+          el.open = true;
+          const text = el.textContent;
+          return text.includes("TAS–JED") && text.includes("Taj Park") &&
+            text.includes("Даты вылетов 2026") && text.includes("QUAD $1200");
+        }));
+  await page.evaluate(() => { window.location.hash = "#/"; });
+  await page.waitForTimeout(500);
+
+  const nativeWheel = await page.locator("#public-catalog").evaluate((el) =>
+    el.dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: 240 })));
+  check("колесо не перехватывается витриной направлений", nativeWheel);
 
   // Переход по hash не меняет screen, поэтому именно здесь раньше мог
   // сохраниться overflow:hidden от hero/fullscreen и «умереть» колесо на

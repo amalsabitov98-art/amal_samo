@@ -44,6 +44,352 @@ body {
   line-height: 1.45;
 }
 
+/* -------------------------------------------------------------------------
+   Главные направления: один экран, три постоянно видимых изображения.
+   Никакого JS-слайдера и перехвата колеса — только нативная прокрутка. */
+.tt-public-catalogue {
+  position: relative;
+  width: 100vw !important;
+  height: 100vh;
+  height: 100svh;
+  min-height: 680px;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #071713;
+}
+.tt-destination-mosaic {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, .84fr);
+  grid-template-rows: 56% 44%;
+  width: 100%;
+  height: 100%;
+}
+.tt-mosaic-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  background: #10241f;
+  isolation: isolate;
+}
+.tt-mosaic-card.is-karadeniz { grid-column: 1; grid-row: 1; }
+.tt-mosaic-card.is-umrah { grid-column: 2; grid-row: 1; border-left: 1px solid rgba(255,255,255,.28); }
+.tt-mosaic-card.is-japan { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid rgba(255,255,255,.28); }
+.tt-mosaic-image,
+.tt-mosaic-shade {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.tt-mosaic-image {
+  z-index: -2;
+  background: var(--tt-mosaic-image) center / cover no-repeat;
+  transform: scale(1.001);
+  transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter .55s ease;
+}
+.tt-mosaic-card.is-karadeniz .tt-mosaic-image { background-position: center 54%; }
+.tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 65% 55%; }
+.tt-mosaic-card.is-japan .tt-mosaic-image { background-position: center 48%; }
+.tt-mosaic-shade {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(3,13,11,.13) 0%, rgba(3,13,11,.08) 38%, rgba(3,13,11,.82) 100%),
+    linear-gradient(90deg, rgba(3,13,11,.48), transparent 62%);
+  transition: background .45s ease;
+}
+.tt-mosaic-copy {
+  position: absolute;
+  left: clamp(24px, 4.2vw, 76px);
+  bottom: clamp(24px, 5vh, 52px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(620px, 72%);
+}
+.tt-mosaic-copy small {
+  margin-bottom: 8px;
+  color: #e4cb82;
+  font: 700 clamp(.55rem, .68vw, .72rem)/1.25 Manrope, sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tt-mosaic-copy strong {
+  color: #fff;
+  font: 600 clamp(2rem, 3.25vw, 4.15rem)/.94 Manrope, sans-serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.tt-mosaic-card.is-umrah .tt-mosaic-copy strong { font-size: clamp(2rem, 2.75vw, 3.35rem); }
+.tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(2rem, 2.8vw, 3.6rem); }
+.tt-mosaic-copy > span {
+  margin-top: 11px;
+  color: rgba(255,255,255,.78);
+  font: 500 clamp(.68rem, .82vw, .86rem)/1.4 Manrope, sans-serif;
+}
+.tt-mosaic-copy em {
+  margin-top: 10px;
+  color: rgba(255,255,255,.94);
+  font: 700 clamp(.6rem, .72vw, .75rem)/1.4 Manrope, sans-serif;
+  font-style: normal;
+  letter-spacing: .02em;
+}
+.tt-mosaic-open {
+  position: absolute;
+  right: clamp(20px, 3vw, 46px);
+  bottom: clamp(22px, 4.4vh, 48px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 11px 10px 18px;
+  border: 1px solid rgba(255,255,255,.48);
+  border-radius: 999px;
+  background: rgba(7,19,16,.28);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font: 700 .64rem/1 Manrope, sans-serif;
+  transition: border-color .3s ease, background .3s ease, transform .3s ease;
+}
+.tt-mosaic-open b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e5ca81;
+  color: #14211e;
+  font-size: .9rem;
+}
+.tt-mosaic-card:hover .tt-mosaic-image,
+.tt-mosaic-card:focus-visible .tt-mosaic-image { transform: scale(1.035); filter: saturate(1.04); }
+.tt-mosaic-card:hover .tt-mosaic-open,
+.tt-mosaic-card:focus-visible .tt-mosaic-open { transform: translateY(-3px); border-color: #e5ca81; background: rgba(7,19,16,.58); }
+.tt-mosaic-card:focus-visible { outline: 3px solid #e5ca81; outline-offset: -3px; z-index: 5; }
+
+/* -------------------------------------------------------------------------
+   Направление «Умра»: отдельная заполненная страница программ. */
+.tt-umrah-page {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  color: #eaf0ed;
+  background: #071713;
+}
+.tt-umrah-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: min(88svh, 880px);
+  overflow: hidden;
+  background: url("img/umrah-showcase.webp") 65% 52% / cover no-repeat;
+}
+.tt-umrah-hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3,14,18,.94) 0%, rgba(3,14,18,.63) 38%, rgba(3,14,18,.08) 75%),
+    linear-gradient(0deg, rgba(3,14,18,.88), transparent 55%);
+}
+.tt-umrah-hero-copy {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 100%);
+  padding: clamp(120px, 18vh, 190px) clamp(24px, 7vw, 112px) clamp(60px, 9vh, 100px);
+}
+.tt-umrah-hero .tt-crumbs { margin-bottom: clamp(42px, 8vh, 82px); }
+.tt-umrah-hero .tt-crumbs,
+.tt-umrah-hero .tt-crumbs button { color: rgba(255,255,255,.72); }
+.tt-umrah-hero-copy h1 {
+  margin: 8px 0 18px;
+  color: #fff;
+  font: 600 clamp(4.5rem, 10vw, 9.5rem)/.8 Manrope, sans-serif;
+  letter-spacing: -.075em;
+}
+.tt-umrah-hero-copy > p {
+  max-width: 660px;
+  color: rgba(255,255,255,.78);
+  font: 500 clamp(.82rem, 1.1vw, 1.08rem)/1.75 Manrope, sans-serif;
+}
+.tt-umrah-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 26px;
+  color: rgba(255,255,255,.82);
+  font: 700 .72rem/1.4 Manrope, sans-serif;
+}
+.tt-umrah-hero-meta span + span::before,
+.tt-umrah-hero-meta strong::before { content: "·"; margin-right: 22px; color: #d7b964; }
+.tt-umrah-hero-meta strong { color: #e8ce86; }
+.tt-umrah-inner {
+  width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: clamp(70px, 9vw, 128px) 0;
+}
+.tt-umrah-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, .65fr);
+  gap: clamp(36px, 8vw, 120px);
+  align-items: end;
+}
+.tt-umrah-intro h2,
+.tt-umrah-contact h2 {
+  margin: 8px 0 0;
+  color: #fff;
+  font: 600 clamp(2.25rem, 4.8vw, 5.2rem)/.96 Manrope, sans-serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.tt-umrah-intro > p,
+.tt-umrah-contact p {
+  color: rgba(234,240,237,.63);
+  font: 500 .86rem/1.75 Manrope, sans-serif;
+}
+.tt-umrah-gifts {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin: clamp(46px, 7vw, 88px) 0 0;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255,255,255,.14);
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.65);
+  font: 500 .75rem/1.5 Manrope, sans-serif;
+}
+.tt-umrah-gifts strong { color: #e4ca83; text-transform: uppercase; letter-spacing: .12em; }
+.tt-umrah-group { margin-top: clamp(70px, 9vw, 120px); }
+.tt-umrah-group-title {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 26px;
+}
+.tt-umrah-group-title > span { padding-top: 7px; color: #d8bb69; font: 700 .7rem/1 Manrope, sans-serif; }
+.tt-umrah-group-title h2 { margin: 0; color: #fff; font: 600 clamp(1.7rem, 3vw, 3rem)/1 Manrope, sans-serif; letter-spacing: -.04em; }
+.tt-umrah-group-title p { margin-top: 8px; color: rgba(255,255,255,.47); font: 500 .76rem/1.4 Manrope, sans-serif; }
+.tt-umrah-program { border-top: 1px solid rgba(255,255,255,.14); }
+.tt-umrah-program:last-child { border-bottom: 1px solid rgba(255,255,255,.14); }
+.tt-umrah-program summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 34px;
+  gap: 24px;
+  align-items: center;
+  min-height: 122px;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.tt-umrah-program summary::-webkit-details-marker { display: none; }
+.tt-umrah-program summary > span { display: grid; grid-template-columns: 115px minmax(150px, 220px) minmax(230px, 1fr); gap: 22px; align-items: center; }
+.tt-umrah-program summary small { color: #d8bb69; font: 700 .62rem/1.35 Manrope, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.tt-umrah-program summary strong { color: #fff; font: 600 clamp(1.15rem, 2vw, 1.75rem)/1 Manrope, sans-serif; letter-spacing: -.035em; }
+.tt-umrah-program summary em { color: rgba(255,255,255,.52); font: 500 .72rem/1.5 Manrope, sans-serif; font-style: normal; }
+.tt-umrah-program summary > b { color: #fff; font: 700 1rem/1 Manrope, sans-serif; }
+.tt-umrah-program summary > i { color: #e4ca83; font: 400 1.2rem/1 sans-serif; font-style: normal; transition: transform .3s ease; }
+.tt-umrah-program[open] summary > i { transform: rotate(45deg); }
+.tt-umrah-program-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 64px;
+  padding: 4px 58px 44px 139px;
+}
+.tt-umrah-program-body h3 { margin: 0 0 8px; color: #d8bb69; font: 700 .62rem/1.3 Manrope, sans-serif; text-transform: uppercase; letter-spacing: .12em; }
+.tt-umrah-program-body p,
+.tt-umrah-program-body li { color: rgba(255,255,255,.68); font: 500 .77rem/1.7 Manrope, sans-serif; }
+.tt-umrah-program-body ul { margin: 0; padding-left: 17px; }
+.tt-umrah-prices { grid-column: 1 / -1; padding: 20px 24px; background: rgba(229,202,129,.08); border: 1px solid rgba(229,202,129,.2); }
+.tt-umrah-prices p { color: #f2e5c0; }
+.tt-umrah-contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(40px, 8vw, 130px);
+  align-items: end;
+  margin-top: clamp(86px, 12vw, 160px);
+  padding: clamp(42px, 6vw, 78px);
+  background: linear-gradient(135deg, #102821, #0a1c18);
+  border: 1px solid rgba(229,202,129,.22);
+}
+.tt-umrah-contact h2 { max-width: 800px; font-size: clamp(2rem, 4vw, 4.4rem); }
+.tt-umrah-contact p { max-width: 720px; margin-top: 20px; }
+.tt-umrah-contact > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding: 13px 14px 13px 22px;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  color: #fff;
+  white-space: nowrap;
+  font: 700 .7rem/1 Manrope, sans-serif;
+}
+.tt-umrah-contact > a span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #10211c; background: #e4ca83; }
+
+@media (max-width: 880px) {
+  .tt-destination-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: 55% 45%; }
+  .tt-mosaic-copy { max-width: calc(100% - 42px); left: 21px; bottom: 22px; }
+  .tt-mosaic-copy strong { font-size: clamp(1.55rem, 5.3vw, 2.6rem); }
+  .tt-mosaic-open { top: 18px; right: 18px; bottom: auto; padding: 6px; }
+  .tt-mosaic-open > :not(b) { display: none; }
+  .tt-mosaic-open b { width: 28px; height: 28px; }
+  .tt-umrah-program summary > span { grid-template-columns: 100px 180px 1fr; }
+  .tt-umrah-program-body { padding-left: 0; }
+}
+
+@media (max-width: 620px) {
+  .tt-public-catalogue { height: auto; min-height: 0; overflow: visible; }
+  .tt-destination-mosaic {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 46svh 34svh 38svh;
+    min-height: 118svh;
+  }
+  .tt-mosaic-card.is-karadeniz,
+  .tt-mosaic-card.is-umrah,
+  .tt-mosaic-card.is-japan { grid-column: 1; border-left: 0; border-top: 1px solid rgba(255,255,255,.25); }
+  .tt-mosaic-card.is-karadeniz { grid-row: 1; border-top: 0; }
+  .tt-mosaic-card.is-umrah { grid-row: 2; }
+  .tt-mosaic-card.is-japan { grid-row: 3; }
+  .tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 66% 58%; }
+  .tt-mosaic-copy { bottom: 18px; }
+  .tt-mosaic-copy small { font-size: .5rem; }
+  .tt-mosaic-copy strong,
+  .tt-mosaic-card.is-umrah .tt-mosaic-copy strong,
+  .tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(1.55rem, 8vw, 2.3rem); }
+  .tt-mosaic-copy > span { margin-top: 6px; }
+  .tt-mosaic-copy em { margin-top: 5px; }
+  .tt-umrah-hero { min-height: 78svh; background-position: 68% 50%; }
+  .tt-umrah-hero-copy { padding: 130px 20px 48px; }
+  .tt-umrah-hero-copy h1 { font-size: clamp(4.2rem, 23vw, 6.8rem); }
+  .tt-umrah-hero-meta span + span::before,
+  .tt-umrah-hero-meta strong::before { display: none; }
+  .tt-umrah-inner { width: calc(100% - 36px); padding: 60px 0; }
+  .tt-umrah-intro,
+  .tt-umrah-contact { grid-template-columns: 1fr; }
+  .tt-umrah-gifts { flex-direction: column; gap: 8px; }
+  .tt-umrah-program summary { grid-template-columns: 1fr auto 24px; gap: 10px; min-height: 112px; }
+  .tt-umrah-program summary > span { grid-template-columns: 1fr; gap: 5px; }
+  .tt-umrah-program summary em { display: none; }
+  .tt-umrah-program summary > b { font-size: .84rem; }
+  .tt-umrah-program-body { grid-template-columns: 1fr; gap: 24px; padding: 4px 0 34px; }
+  .tt-umrah-prices { grid-column: 1; }
+  .tt-umrah-contact { padding: 30px 24px; }
+  .tt-umrah-contact > a { justify-content: space-between; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-mosaic-image,
+  .tt-mosaic-open,
+  .tt-umrah-program summary > i { transition: none; }
+}
+
 a { color: inherit; }
 
 .tt-header {
@@ -5607,6 +5953,26 @@ select { font-family: inherit; }
   .tt-japan-sheet-cta span:last-child { transition: none; }
 }
 
+/* Каскадный финал новой витрины: старые правила ниже по файлу сохранены для
+   прежних компонентов, поэтому размеры нового блока закрепляем последними. */
+.tt-public-catalogue:has(.tt-destination-mosaic) {
+  width: 100vw !important;
+  height: 100vh;
+  height: 100svh;
+  min-height: 680px;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+@media (max-width: 620px) {
+  .tt-public-catalogue:has(.tt-destination-mosaic) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -10701,118 +11067,50 @@ window.TURON_DESTINATIONS = [
   }
 
   /*
-   * Главная витрина направлений: один крупный кадр вместо сетки одинаковых
-   * карточек. Все цифры берём из API, а маршрут и локальную обложку задаём
-   * только для известных направлений — новые страны получат безопасный
-   * универсальный вариант и всё равно появятся в списке.
+   * Главная витрина — один экран из трёх фотографий. Здесь намеренно нет
+   * слайдера и перехвата колеса: карточки всегда находятся в DOM, а страница
+   * прокручивается нативно. Это убирает зависания между направлениями.
    */
-  function destinationPresentation(d) {
-    if (d.name === "Япония") {
-      return {
-        kicker: "Япония · сезон 2026",
-        image: d.image || "img/japan-programs-bg.webp",
-        cities: ["Токио", "Киото", "Нара", "Хаконэ"],
-      };
-    }
-    if (d.name === "Турция") {
-      return {
-        kicker: "Черноморский маршрут",
-        image: d.image || "img/hero-rize-batumi.webp",
-        cities: ["Батуми", "Ризе", "Трабзон"],
-      };
-    }
-    return {
-      kicker: "Авторские маршруты",
-      image: d.image || "img/hero-karadeniz.webp",
-      cities: [d.name],
-    };
-  }
-
-  function destinationShowcase(list) {
-    var tabs = list.map(function (d, i) {
-      var p = destinationPresentation(d);
-      return '<button class="tt-route-tab' + (i === 0 ? " is-active" : "") +
-        '" type="button" role="tab" aria-selected="' + (i === 0 ? "true" : "false") +
-        '" aria-controls="tt-route-panel-' + i + '" id="tt-route-tab-' + i +
-        '" data-route-index="' + i + '">' +
-          '<span class="tt-route-number">' + String(i + 1).padStart(2, "0") + '</span>' +
-          '<span class="tt-route-tab-copy"><strong>' + esc(d.title) + '</strong>' +
-            '<small>' + esc(p.cities.join(" · ")) + '</small></span>' +
-          '<span class="tt-route-tab-arrow" aria-hidden="true">↗</span>' +
+  function destinationMosaic(list) {
+    var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
+    var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
+    var cards = [
+      {
+        cls: "is-karadeniz", destination: "Турция",
+        image: karadeniz.image || "img/hero-rize-batumi.webp",
+        kicker: "Авторский маршрут · № 01", title: "Загадочный Карадениз",
+        text: "Батуми · Ризе · Трабзон", meta: "11 заездов · от $880",
+      },
+      {
+        cls: "is-umrah", destination: "Умра",
+        image: "img/umrah-showcase.webp",
+        kicker: "Духовное путешествие · № 02", title: "Умра",
+        text: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
+      },
+      {
+        cls: "is-japan", destination: "Япония",
+        image: japan.image || "img/japan-programs-bg.webp",
+        kicker: "Сезон 2026 · № 03", title: "Япония",
+        text: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
+      },
+    ];
+    return '<div class="tt-destination-mosaic" aria-label="Главные направления">' +
+      cards.map(function (card) {
+        return '<button class="tt-mosaic-card ' + card.cls + '" type="button" ' +
+          'data-dest="' + esc(card.destination) + '" ' +
+          'style="--tt-mosaic-image:url(\'' + esc(card.image) + '\')">' +
+          '<span class="tt-mosaic-image" aria-hidden="true"></span>' +
+          '<span class="tt-mosaic-shade" aria-hidden="true"></span>' +
+          '<span class="tt-mosaic-copy">' +
+            '<small>' + esc(card.kicker) + '</small>' +
+            '<strong>' + esc(card.title) + '</strong>' +
+            '<span>' + esc(card.text) + '</span>' +
+            '<em>' + esc(card.meta) + '</em>' +
+          '</span>' +
+          '<span class="tt-mosaic-open">Открыть <b aria-hidden="true">↗</b></span>' +
         '</button>';
-    }).join("");
-
-    var panels = list.map(function (d, i) {
-      var p = destinationPresentation(d);
-      var count = d.tours_count + " " + plural(d.tours_count, "программа", "программы", "программ");
-      var availability = d.departures_count
-        ? d.departures_count + " " + plural(d.departures_count, "заезд", "заезда", "заездов")
-        : "Сезон 2026";
-      return '<article class="tt-route-panel' + (i === 0 ? " is-active" : "") +
-        '" id="tt-route-panel-' + i + '" role="tabpanel" aria-labelledby="tt-route-tab-' + i +
-        '" data-route-panel="' + i + '"' + (i === 0 ? "" : " hidden") +
-        ' style="--tt-route-image:url(\'' + esc(p.image) + '\')">' +
-          '<div class="tt-route-shade" aria-hidden="true"></div>' +
-          '<div class="tt-route-panel-copy">' +
-            '<span class="tt-route-kicker">' + esc(p.kicker) + '</span>' +
-            '<h3>' + esc(d.title) + '</h3>' +
-            '<p>' + esc(d.blurb || p.cities.join(" · ")) + '</p>' +
-            '<div class="tt-route-meta"><span>' + esc(count) + '</span><i></i><span>' +
-              esc(availability) + '</span>' +
-              (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
-            '</div>' +
-            '<p class="tt-showcase-route" aria-label="Маршрут">' +
-              esc(p.cities.join(" → ")) +
-            '</p>' +
-          '</div>' +
-          '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
-            '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
-          '</button>' +
-        '</article>';
-    }).join("");
-
-    return '<div class="tt-route-showcase">' +
-      '<div class="tt-route-tabs" role="tablist" aria-label="Направления">' + tabs + '</div>' +
-      '<div class="tt-route-stage">' + panels + '</div>' +
+      }).join("") +
     '</div>';
-  }
-
-  function initDestinationShowcase(scope) {
-    var showcase = scope.querySelector(".tt-route-showcase");
-    if (!showcase) return;
-    var tabs = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-index]"));
-    var panels = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-panel]"));
-
-    function activate(index, focus) {
-      tabs.forEach(function (tab, i) {
-        var active = i === index;
-        tab.classList.toggle("is-active", active);
-        tab.setAttribute("aria-selected", active ? "true" : "false");
-        tab.tabIndex = active ? 0 : -1;
-        if (active && focus) tab.focus();
-      });
-      panels.forEach(function (panel, i) {
-        var active = i === index;
-        panel.hidden = !active;
-        panel.classList.toggle("is-active", active);
-      });
-    }
-
-    tabs.forEach(function (tab, index) {
-      tab.addEventListener("click", function () { activate(index, false); });
-      tab.addEventListener("pointerenter", function (event) {
-        if (event.pointerType !== "touch") activate(index, false);
-      });
-      tab.addEventListener("focus", function () { activate(index, false); });
-      tab.addEventListener("keydown", function (event) {
-        if (event.key !== "ArrowDown" && event.key !== "ArrowUp" &&
-            event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        var step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
-        activate((index + step + tabs.length) % tabs.length, true);
-      });
-    });
-    activate(0, false);
   }
 
   function tourRow(t) {
@@ -11466,38 +11764,16 @@ window.TURON_DESTINATIONS = [
       return TuronApi.catalogDestinations().then(function (list) {
         var catalogue =
           '<section class="tt-public-catalogue" id="tour-catalog">' +
-            '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
-              esc(tr("catalog.kicker")) + "</span><h2>" +
-              esc(tr("catalog.title")) + "</h2></div><p>" +
-              esc(tr("catalog.text")) + "</p></div>" +
-            (list.length
-              ? destinationShowcase(list)
-              : '<div class="tt-empty-state">Направления пока не заведены.</div>') +
+            destinationMosaic(list || []) +
           "</section>";
 
         if (cfg.canBook) {
           root.innerHTML = catalogue;
-          initDestinationShowcase(root);
           return;
         }
 
-        // Второй полноэкранный лист — тизер Японии сразу под видео. Картинка
-        // с готовой типографикой (img/japan-hero.png), поверх — кнопка.
-        // has-japan-sheet схлопывает нижний отступ видео, чтобы листы шли встык.
-        var jpHref = hashFor({ kind: "tours", destination: "Япония" });
-        var japanSheet =
-          '<section class="tt-japan-sheet" id="japan-2026" aria-label="Япония 2026">' +
-            '<img class="tt-japan-sheet-image" src="img/japan-hero.png" ' +
-              'alt="Открой Японию — Токио, Киото, Осака, Фудзи" loading="lazy" />' +
-            '<div class="tt-japan-sheet-action">' +
-              '<a class="tt-japan-sheet-cta" href="' + esc(jpHref) + '">' +
-                "<span>В путь</span><span aria-hidden=\"true\">→</span>" +
-              "</a>" +
-            "</div>" +
-          "</section>";
-
         root.innerHTML =
-          '<section class="tt-public-intro tt-has-japan-sheet" id="excursion-tours">' +
+          '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
               'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
               'aria-hidden="true" tabindex="-1">' +
@@ -11513,7 +11789,6 @@ window.TURON_DESTINATIONS = [
               searchPanelHtml() +
             "</div>" +
           "</section>" +
-          japanSheet +
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
@@ -11550,11 +11825,141 @@ window.TURON_DESTINATIONS = [
           keepHeroPlaying(video);
         }
         initSearch();
-        initDestinationShowcase(root);
       }).catch(errorBox);
     }
 
+    var UMRAH_PROGRAMS = [
+      {
+        name: "TAJ-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Taj Park · 990 м до Харама · 8 ночей", "Медина · Grand Al Shahba · 250 м до мечети Пророка · 3 ночи"],
+        service: "Автобус Мекка—Медина · трёхразовое питание в Мекке и Медине · 1 питание в Джидде · руководители группы и врачи",
+        dates: "1, 8, 15, 22, 29 августа; 5, 12, 19, 26 сентября; еженедельно с 3 октября по 5 декабря",
+        price: "от $1200", prices: "Август—сентябрь: QUAD $1200 · TRPL $1250 · DBL $1350. Октябрь—декабрь: QUAD $1300 · TRPL $1350 · DBL $1450",
+      },
+      {
+        name: "TAJ-13+", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Taj Park · 990 м до Харама · 8 ночей", "Медина · Mukhtara Plaza · 250 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 3 раза, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "18 и 25 июля; 1, 8, 15 и 22 августа",
+        price: "от $1250", prices: "QUAD $1250 · TRPL $1300 · DBL $1400",
+      },
+      {
+        name: "ANJUM-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Anjum · 250 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1600", prices: "QUAD $1600 · TRPL $1700 · DBL $1800",
+      },
+      {
+        name: "SHOHADA-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Al Shohada · 250 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка и Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1650", prices: "QUAD $1650 · TRPL $1750 · DBL $1850",
+      },
+      {
+        name: "JUMEIRAH-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Jumeirah Hotel · 100 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1900", prices: "QUAD $1900 · TRPL $2000 · DBL $2200",
+      },
+      {
+        name: "SAJA-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Saja Al-Madinah · 250 м до мечети Пророка · 4 ночи", "Мекка · Taj Park · 990 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · трёхразовое питание · виза · руководители группы и врачи",
+        dates: "30 июля; 6, 13, 20, 27 августа; 3, 10, 17, 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1250", prices: "Июль—сентябрь: QUAD $1250 · TRPL $1350 · DBL $1450. Октябрь—декабрь: QUAD $1400 · TRPL $1500 · DBL $1600",
+      },
+      {
+        name: "SWISSOTEL-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Swissotel Makkah · 50 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание: Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1650", prices: "Июль—сентябрь: QUAD $1650 · TRPL $1750 · DBL $1900. Октябрь—декабрь: QUAD $1900 · TRPL $2000 · DBL $2200",
+      },
+      {
+        name: "ANJUM-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Anjum Makkah · 250 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание: Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1600", prices: "Июль—сентябрь: TRPL $1600 · DBL $1700. Октябрь—декабрь: TRPL $1800 · DBL $1900",
+      },
+      {
+        name: "JUMEIRAH-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Jumeirah Jabal Omar · 100 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание в Мекке и Медине 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1750", prices: "Июль—сентябрь: QUAD $1750 · TRPL $1890 · DBL $1990. Октябрь—декабрь: QUAD $1990 · TRPL $2090 · DBL $2390",
+      },
+    ];
+
+    function umrahProgrammeCard(p) {
+      return '<details class="tt-umrah-program">' +
+        '<summary><span><small>' + esc(p.days) + '</small><strong>' + esc(p.name) +
+          '</strong><em>' + esc(p.route) + '</em></span><b>' + esc(p.price) + '</b>' +
+          '<i aria-hidden="true">＋</i></summary>' +
+        '<div class="tt-umrah-program-body">' +
+          '<div><h3>Перелёт</h3><p>' + esc(p.flight) + '</p></div>' +
+          '<div><h3>Отели</h3><ul>' + p.hotels.map(function (h) {
+            return '<li>' + esc(h) + '</li>';
+          }).join("") + '</ul></div>' +
+          '<div><h3>В пакет входит</h3><p>' + esc(p.service) + '</p></div>' +
+          '<div><h3>Даты вылетов 2026</h3><p>' + esc(p.dates) + '</p></div>' +
+          '<div class="tt-umrah-prices"><h3>Стоимость</h3><p>' + esc(p.prices) + '</p></div>' +
+        '</div>' +
+      '</details>';
+    }
+
+    function renderUmrah() {
+      var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
+      var contact = op.telegram_href || (op.phone_href ? "tel:" + op.phone_href : "#/login");
+      root.innerHTML =
+        '<section class="tt-umrah-page">' +
+          '<header class="tt-umrah-hero">' +
+            '<div class="tt-umrah-hero-shade"></div>' +
+            '<div class="tt-umrah-hero-copy">' +
+              crumbs([{ text: "Каталог", go: "root" }, { text: "Умра" }]) +
+              '<span class="tt-eyebrow">Путь к святыням · сезон 2026</span>' +
+              '<h1>Умра</h1>' +
+              '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
+                'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
+              '<div class="tt-umrah-hero-meta"><span>9 программ</span><span>10 или 13 дней</span><strong>от $1200</strong></div>' +
+            '</div>' +
+          '</header>' +
+          '<div class="tt-umrah-inner">' +
+            '<div class="tt-umrah-intro"><div><span class="tt-eyebrow">Программы</span>' +
+              '<h2>Выберите свой формат поездки</h2></div>' +
+              '<p>Две логики маршрута: 13 дней через Джидду или 10 дней через Медину. ' +
+                'Откройте программу, чтобы сравнить перелёт, отели, питание, даты и стоимость.</p></div>' +
+            '<div class="tt-umrah-gifts"><strong>В каждой программе</strong>' +
+              '<span>Сумка · чемодан · ихрам · бейдж · Зам-зам</span></div>' +
+            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>01</span>' +
+              '<div><h2>13-дневные программы</h2><p>Джидда → Мекка → Медина</p></div></div>' +
+              UMRAH_PROGRAMS.slice(0, 5).map(umrahProgrammeCard).join("") + '</section>' +
+            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>02</span>' +
+              '<div><h2>10-дневные программы</h2><p>Медина → Мекка → Джидда</p></div></div>' +
+              UMRAH_PROGRAMS.slice(5).map(umrahProgrammeCard).join("") + '</section>' +
+            '<aside class="tt-umrah-contact"><div><span class="tt-eyebrow">Подбор программы</span>' +
+              '<h2>Уточним места и актуальную дату</h2><p>Расписание и стоимость перенесены из материалов оператора. ' +
+                'Перед оплатой подтвердим наличие мест и выбранный тип размещения.</p></div>' +
+              '<a href="' + esc(contact) + '" target="_blank" rel="noopener">Связаться с оператором <span>→</span></a></aside>' +
+          '</div>' +
+        '</section>' + footerHtml();
+      return Promise.resolve();
+    }
+
     function renderTours(destination) {
+      if (destination === "Умра") return renderUmrah();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
         var isJapan = destination === "Япония";

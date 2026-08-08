@@ -23,6 +23,352 @@ body {
   line-height: 1.45;
 }
 
+/* -------------------------------------------------------------------------
+   Главные направления: один экран, три постоянно видимых изображения.
+   Никакого JS-слайдера и перехвата колеса — только нативная прокрутка. */
+.tt-public-catalogue {
+  position: relative;
+  width: 100vw !important;
+  height: 100vh;
+  height: 100svh;
+  min-height: 680px;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #071713;
+}
+.tt-destination-mosaic {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, .84fr);
+  grid-template-rows: 56% 44%;
+  width: 100%;
+  height: 100%;
+}
+.tt-mosaic-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  background: #10241f;
+  isolation: isolate;
+}
+.tt-mosaic-card.is-karadeniz { grid-column: 1; grid-row: 1; }
+.tt-mosaic-card.is-umrah { grid-column: 2; grid-row: 1; border-left: 1px solid rgba(255,255,255,.28); }
+.tt-mosaic-card.is-japan { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid rgba(255,255,255,.28); }
+.tt-mosaic-image,
+.tt-mosaic-shade {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.tt-mosaic-image {
+  z-index: -2;
+  background: var(--tt-mosaic-image) center / cover no-repeat;
+  transform: scale(1.001);
+  transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter .55s ease;
+}
+.tt-mosaic-card.is-karadeniz .tt-mosaic-image { background-position: center 54%; }
+.tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 65% 55%; }
+.tt-mosaic-card.is-japan .tt-mosaic-image { background-position: center 48%; }
+.tt-mosaic-shade {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(3,13,11,.13) 0%, rgba(3,13,11,.08) 38%, rgba(3,13,11,.82) 100%),
+    linear-gradient(90deg, rgba(3,13,11,.48), transparent 62%);
+  transition: background .45s ease;
+}
+.tt-mosaic-copy {
+  position: absolute;
+  left: clamp(24px, 4.2vw, 76px);
+  bottom: clamp(24px, 5vh, 52px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(620px, 72%);
+}
+.tt-mosaic-copy small {
+  margin-bottom: 8px;
+  color: #e4cb82;
+  font: 700 clamp(.55rem, .68vw, .72rem)/1.25 Manrope, sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tt-mosaic-copy strong {
+  color: #fff;
+  font: 600 clamp(2rem, 3.25vw, 4.15rem)/.94 Manrope, sans-serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.tt-mosaic-card.is-umrah .tt-mosaic-copy strong { font-size: clamp(2rem, 2.75vw, 3.35rem); }
+.tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(2rem, 2.8vw, 3.6rem); }
+.tt-mosaic-copy > span {
+  margin-top: 11px;
+  color: rgba(255,255,255,.78);
+  font: 500 clamp(.68rem, .82vw, .86rem)/1.4 Manrope, sans-serif;
+}
+.tt-mosaic-copy em {
+  margin-top: 10px;
+  color: rgba(255,255,255,.94);
+  font: 700 clamp(.6rem, .72vw, .75rem)/1.4 Manrope, sans-serif;
+  font-style: normal;
+  letter-spacing: .02em;
+}
+.tt-mosaic-open {
+  position: absolute;
+  right: clamp(20px, 3vw, 46px);
+  bottom: clamp(22px, 4.4vh, 48px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 11px 10px 18px;
+  border: 1px solid rgba(255,255,255,.48);
+  border-radius: 999px;
+  background: rgba(7,19,16,.28);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font: 700 .64rem/1 Manrope, sans-serif;
+  transition: border-color .3s ease, background .3s ease, transform .3s ease;
+}
+.tt-mosaic-open b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e5ca81;
+  color: #14211e;
+  font-size: .9rem;
+}
+.tt-mosaic-card:hover .tt-mosaic-image,
+.tt-mosaic-card:focus-visible .tt-mosaic-image { transform: scale(1.035); filter: saturate(1.04); }
+.tt-mosaic-card:hover .tt-mosaic-open,
+.tt-mosaic-card:focus-visible .tt-mosaic-open { transform: translateY(-3px); border-color: #e5ca81; background: rgba(7,19,16,.58); }
+.tt-mosaic-card:focus-visible { outline: 3px solid #e5ca81; outline-offset: -3px; z-index: 5; }
+
+/* -------------------------------------------------------------------------
+   Направление «Умра»: отдельная заполненная страница программ. */
+.tt-umrah-page {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  color: #eaf0ed;
+  background: #071713;
+}
+.tt-umrah-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: min(88svh, 880px);
+  overflow: hidden;
+  background: url("img/umrah-showcase.webp") 65% 52% / cover no-repeat;
+}
+.tt-umrah-hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3,14,18,.94) 0%, rgba(3,14,18,.63) 38%, rgba(3,14,18,.08) 75%),
+    linear-gradient(0deg, rgba(3,14,18,.88), transparent 55%);
+}
+.tt-umrah-hero-copy {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 100%);
+  padding: clamp(120px, 18vh, 190px) clamp(24px, 7vw, 112px) clamp(60px, 9vh, 100px);
+}
+.tt-umrah-hero .tt-crumbs { margin-bottom: clamp(42px, 8vh, 82px); }
+.tt-umrah-hero .tt-crumbs,
+.tt-umrah-hero .tt-crumbs button { color: rgba(255,255,255,.72); }
+.tt-umrah-hero-copy h1 {
+  margin: 8px 0 18px;
+  color: #fff;
+  font: 600 clamp(4.5rem, 10vw, 9.5rem)/.8 Manrope, sans-serif;
+  letter-spacing: -.075em;
+}
+.tt-umrah-hero-copy > p {
+  max-width: 660px;
+  color: rgba(255,255,255,.78);
+  font: 500 clamp(.82rem, 1.1vw, 1.08rem)/1.75 Manrope, sans-serif;
+}
+.tt-umrah-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 26px;
+  color: rgba(255,255,255,.82);
+  font: 700 .72rem/1.4 Manrope, sans-serif;
+}
+.tt-umrah-hero-meta span + span::before,
+.tt-umrah-hero-meta strong::before { content: "·"; margin-right: 22px; color: #d7b964; }
+.tt-umrah-hero-meta strong { color: #e8ce86; }
+.tt-umrah-inner {
+  width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: clamp(70px, 9vw, 128px) 0;
+}
+.tt-umrah-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, .65fr);
+  gap: clamp(36px, 8vw, 120px);
+  align-items: end;
+}
+.tt-umrah-intro h2,
+.tt-umrah-contact h2 {
+  margin: 8px 0 0;
+  color: #fff;
+  font: 600 clamp(2.25rem, 4.8vw, 5.2rem)/.96 Manrope, sans-serif;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.tt-umrah-intro > p,
+.tt-umrah-contact p {
+  color: rgba(234,240,237,.63);
+  font: 500 .86rem/1.75 Manrope, sans-serif;
+}
+.tt-umrah-gifts {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin: clamp(46px, 7vw, 88px) 0 0;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255,255,255,.14);
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.65);
+  font: 500 .75rem/1.5 Manrope, sans-serif;
+}
+.tt-umrah-gifts strong { color: #e4ca83; text-transform: uppercase; letter-spacing: .12em; }
+.tt-umrah-group { margin-top: clamp(70px, 9vw, 120px); }
+.tt-umrah-group-title {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 26px;
+}
+.tt-umrah-group-title > span { padding-top: 7px; color: #d8bb69; font: 700 .7rem/1 Manrope, sans-serif; }
+.tt-umrah-group-title h2 { margin: 0; color: #fff; font: 600 clamp(1.7rem, 3vw, 3rem)/1 Manrope, sans-serif; letter-spacing: -.04em; }
+.tt-umrah-group-title p { margin-top: 8px; color: rgba(255,255,255,.47); font: 500 .76rem/1.4 Manrope, sans-serif; }
+.tt-umrah-program { border-top: 1px solid rgba(255,255,255,.14); }
+.tt-umrah-program:last-child { border-bottom: 1px solid rgba(255,255,255,.14); }
+.tt-umrah-program summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 34px;
+  gap: 24px;
+  align-items: center;
+  min-height: 122px;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.tt-umrah-program summary::-webkit-details-marker { display: none; }
+.tt-umrah-program summary > span { display: grid; grid-template-columns: 115px minmax(150px, 220px) minmax(230px, 1fr); gap: 22px; align-items: center; }
+.tt-umrah-program summary small { color: #d8bb69; font: 700 .62rem/1.35 Manrope, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.tt-umrah-program summary strong { color: #fff; font: 600 clamp(1.15rem, 2vw, 1.75rem)/1 Manrope, sans-serif; letter-spacing: -.035em; }
+.tt-umrah-program summary em { color: rgba(255,255,255,.52); font: 500 .72rem/1.5 Manrope, sans-serif; font-style: normal; }
+.tt-umrah-program summary > b { color: #fff; font: 700 1rem/1 Manrope, sans-serif; }
+.tt-umrah-program summary > i { color: #e4ca83; font: 400 1.2rem/1 sans-serif; font-style: normal; transition: transform .3s ease; }
+.tt-umrah-program[open] summary > i { transform: rotate(45deg); }
+.tt-umrah-program-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 64px;
+  padding: 4px 58px 44px 139px;
+}
+.tt-umrah-program-body h3 { margin: 0 0 8px; color: #d8bb69; font: 700 .62rem/1.3 Manrope, sans-serif; text-transform: uppercase; letter-spacing: .12em; }
+.tt-umrah-program-body p,
+.tt-umrah-program-body li { color: rgba(255,255,255,.68); font: 500 .77rem/1.7 Manrope, sans-serif; }
+.tt-umrah-program-body ul { margin: 0; padding-left: 17px; }
+.tt-umrah-prices { grid-column: 1 / -1; padding: 20px 24px; background: rgba(229,202,129,.08); border: 1px solid rgba(229,202,129,.2); }
+.tt-umrah-prices p { color: #f2e5c0; }
+.tt-umrah-contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(40px, 8vw, 130px);
+  align-items: end;
+  margin-top: clamp(86px, 12vw, 160px);
+  padding: clamp(42px, 6vw, 78px);
+  background: linear-gradient(135deg, #102821, #0a1c18);
+  border: 1px solid rgba(229,202,129,.22);
+}
+.tt-umrah-contact h2 { max-width: 800px; font-size: clamp(2rem, 4vw, 4.4rem); }
+.tt-umrah-contact p { max-width: 720px; margin-top: 20px; }
+.tt-umrah-contact > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding: 13px 14px 13px 22px;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  color: #fff;
+  white-space: nowrap;
+  font: 700 .7rem/1 Manrope, sans-serif;
+}
+.tt-umrah-contact > a span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #10211c; background: #e4ca83; }
+
+@media (max-width: 880px) {
+  .tt-destination-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: 55% 45%; }
+  .tt-mosaic-copy { max-width: calc(100% - 42px); left: 21px; bottom: 22px; }
+  .tt-mosaic-copy strong { font-size: clamp(1.55rem, 5.3vw, 2.6rem); }
+  .tt-mosaic-open { top: 18px; right: 18px; bottom: auto; padding: 6px; }
+  .tt-mosaic-open > :not(b) { display: none; }
+  .tt-mosaic-open b { width: 28px; height: 28px; }
+  .tt-umrah-program summary > span { grid-template-columns: 100px 180px 1fr; }
+  .tt-umrah-program-body { padding-left: 0; }
+}
+
+@media (max-width: 620px) {
+  .tt-public-catalogue { height: auto; min-height: 0; overflow: visible; }
+  .tt-destination-mosaic {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 46svh 34svh 38svh;
+    min-height: 118svh;
+  }
+  .tt-mosaic-card.is-karadeniz,
+  .tt-mosaic-card.is-umrah,
+  .tt-mosaic-card.is-japan { grid-column: 1; border-left: 0; border-top: 1px solid rgba(255,255,255,.25); }
+  .tt-mosaic-card.is-karadeniz { grid-row: 1; border-top: 0; }
+  .tt-mosaic-card.is-umrah { grid-row: 2; }
+  .tt-mosaic-card.is-japan { grid-row: 3; }
+  .tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 66% 58%; }
+  .tt-mosaic-copy { bottom: 18px; }
+  .tt-mosaic-copy small { font-size: .5rem; }
+  .tt-mosaic-copy strong,
+  .tt-mosaic-card.is-umrah .tt-mosaic-copy strong,
+  .tt-mosaic-card.is-japan .tt-mosaic-copy strong { font-size: clamp(1.55rem, 8vw, 2.3rem); }
+  .tt-mosaic-copy > span { margin-top: 6px; }
+  .tt-mosaic-copy em { margin-top: 5px; }
+  .tt-umrah-hero { min-height: 78svh; background-position: 68% 50%; }
+  .tt-umrah-hero-copy { padding: 130px 20px 48px; }
+  .tt-umrah-hero-copy h1 { font-size: clamp(4.2rem, 23vw, 6.8rem); }
+  .tt-umrah-hero-meta span + span::before,
+  .tt-umrah-hero-meta strong::before { display: none; }
+  .tt-umrah-inner { width: calc(100% - 36px); padding: 60px 0; }
+  .tt-umrah-intro,
+  .tt-umrah-contact { grid-template-columns: 1fr; }
+  .tt-umrah-gifts { flex-direction: column; gap: 8px; }
+  .tt-umrah-program summary { grid-template-columns: 1fr auto 24px; gap: 10px; min-height: 112px; }
+  .tt-umrah-program summary > span { grid-template-columns: 1fr; gap: 5px; }
+  .tt-umrah-program summary em { display: none; }
+  .tt-umrah-program summary > b { font-size: .84rem; }
+  .tt-umrah-program-body { grid-template-columns: 1fr; gap: 24px; padding: 4px 0 34px; }
+  .tt-umrah-prices { grid-column: 1; }
+  .tt-umrah-contact { padding: 30px 24px; }
+  .tt-umrah-contact > a { justify-content: space-between; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-mosaic-image,
+  .tt-mosaic-open,
+  .tt-umrah-program summary > i { transition: none; }
+}
+
 a { color: inherit; }
 
 .tt-header {
@@ -5584,4 +5930,33 @@ select { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .tt-japan-sheet-cta,
   .tt-japan-sheet-cta span:last-child { transition: none; }
+}
+
+/* Каскадный финал новой витрины: старые правила ниже по файлу сохранены для
+   прежних компонентов, поэтому размеры нового блока закрепляем последними. */
+.tt-public-catalogue:has(.tt-destination-mosaic) {
+  width: 100vw !important;
+  height: 100vh;
+  height: 100svh;
+  min-height: 680px;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+#screen-public > .tt-container > .tt-public-catalogue,
+#screen-public > .tt-container > .tt-umrah-page {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-inline: 0;
+}
+
+@media (max-width: 620px) {
+  .tt-public-catalogue:has(.tt-destination-mosaic) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
 }

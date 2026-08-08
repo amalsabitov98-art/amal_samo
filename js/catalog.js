@@ -116,118 +116,50 @@
   }
 
   /*
-   * Главная витрина направлений: один крупный кадр вместо сетки одинаковых
-   * карточек. Все цифры берём из API, а маршрут и локальную обложку задаём
-   * только для известных направлений — новые страны получат безопасный
-   * универсальный вариант и всё равно появятся в списке.
+   * Главная витрина — один экран из трёх фотографий. Здесь намеренно нет
+   * слайдера и перехвата колеса: карточки всегда находятся в DOM, а страница
+   * прокручивается нативно. Это убирает зависания между направлениями.
    */
-  function destinationPresentation(d) {
-    if (d.name === "Япония") {
-      return {
-        kicker: "Япония · сезон 2026",
-        image: d.image || "img/japan-programs-bg.webp",
-        cities: ["Токио", "Киото", "Нара", "Хаконэ"],
-      };
-    }
-    if (d.name === "Турция") {
-      return {
-        kicker: "Черноморский маршрут",
-        image: d.image || "img/hero-rize-batumi.webp",
-        cities: ["Батуми", "Ризе", "Трабзон"],
-      };
-    }
-    return {
-      kicker: "Авторские маршруты",
-      image: d.image || "img/hero-karadeniz.webp",
-      cities: [d.name],
-    };
-  }
-
-  function destinationShowcase(list) {
-    var tabs = list.map(function (d, i) {
-      var p = destinationPresentation(d);
-      return '<button class="tt-route-tab' + (i === 0 ? " is-active" : "") +
-        '" type="button" role="tab" aria-selected="' + (i === 0 ? "true" : "false") +
-        '" aria-controls="tt-route-panel-' + i + '" id="tt-route-tab-' + i +
-        '" data-route-index="' + i + '">' +
-          '<span class="tt-route-number">' + String(i + 1).padStart(2, "0") + '</span>' +
-          '<span class="tt-route-tab-copy"><strong>' + esc(d.title) + '</strong>' +
-            '<small>' + esc(p.cities.join(" · ")) + '</small></span>' +
-          '<span class="tt-route-tab-arrow" aria-hidden="true">↗</span>' +
+  function destinationMosaic(list) {
+    var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
+    var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
+    var cards = [
+      {
+        cls: "is-karadeniz", destination: "Турция",
+        image: karadeniz.image || "img/hero-rize-batumi.webp",
+        kicker: "Авторский маршрут · № 01", title: "Загадочный Карадениз",
+        text: "Батуми · Ризе · Трабзон", meta: "11 заездов · от $880",
+      },
+      {
+        cls: "is-umrah", destination: "Умра",
+        image: "img/umrah-showcase.webp",
+        kicker: "Духовное путешествие · № 02", title: "Умра",
+        text: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
+      },
+      {
+        cls: "is-japan", destination: "Япония",
+        image: japan.image || "img/japan-programs-bg.webp",
+        kicker: "Сезон 2026 · № 03", title: "Япония",
+        text: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
+      },
+    ];
+    return '<div class="tt-destination-mosaic" aria-label="Главные направления">' +
+      cards.map(function (card) {
+        return '<button class="tt-mosaic-card ' + card.cls + '" type="button" ' +
+          'data-dest="' + esc(card.destination) + '" ' +
+          'style="--tt-mosaic-image:url(\'' + esc(card.image) + '\')">' +
+          '<span class="tt-mosaic-image" aria-hidden="true"></span>' +
+          '<span class="tt-mosaic-shade" aria-hidden="true"></span>' +
+          '<span class="tt-mosaic-copy">' +
+            '<small>' + esc(card.kicker) + '</small>' +
+            '<strong>' + esc(card.title) + '</strong>' +
+            '<span>' + esc(card.text) + '</span>' +
+            '<em>' + esc(card.meta) + '</em>' +
+          '</span>' +
+          '<span class="tt-mosaic-open">Открыть <b aria-hidden="true">↗</b></span>' +
         '</button>';
-    }).join("");
-
-    var panels = list.map(function (d, i) {
-      var p = destinationPresentation(d);
-      var count = d.tours_count + " " + plural(d.tours_count, "программа", "программы", "программ");
-      var availability = d.departures_count
-        ? d.departures_count + " " + plural(d.departures_count, "заезд", "заезда", "заездов")
-        : "Сезон 2026";
-      return '<article class="tt-route-panel' + (i === 0 ? " is-active" : "") +
-        '" id="tt-route-panel-' + i + '" role="tabpanel" aria-labelledby="tt-route-tab-' + i +
-        '" data-route-panel="' + i + '"' + (i === 0 ? "" : " hidden") +
-        ' style="--tt-route-image:url(\'' + esc(p.image) + '\')">' +
-          '<div class="tt-route-shade" aria-hidden="true"></div>' +
-          '<div class="tt-route-panel-copy">' +
-            '<span class="tt-route-kicker">' + esc(p.kicker) + '</span>' +
-            '<h3>' + esc(d.title) + '</h3>' +
-            '<p>' + esc(d.blurb || p.cities.join(" · ")) + '</p>' +
-            '<div class="tt-route-meta"><span>' + esc(count) + '</span><i></i><span>' +
-              esc(availability) + '</span>' +
-              (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
-            '</div>' +
-            '<p class="tt-showcase-route" aria-label="Маршрут">' +
-              esc(p.cities.join(" → ")) +
-            '</p>' +
-          '</div>' +
-          '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
-            '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
-          '</button>' +
-        '</article>';
-    }).join("");
-
-    return '<div class="tt-route-showcase">' +
-      '<div class="tt-route-tabs" role="tablist" aria-label="Направления">' + tabs + '</div>' +
-      '<div class="tt-route-stage">' + panels + '</div>' +
+      }).join("") +
     '</div>';
-  }
-
-  function initDestinationShowcase(scope) {
-    var showcase = scope.querySelector(".tt-route-showcase");
-    if (!showcase) return;
-    var tabs = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-index]"));
-    var panels = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-panel]"));
-
-    function activate(index, focus) {
-      tabs.forEach(function (tab, i) {
-        var active = i === index;
-        tab.classList.toggle("is-active", active);
-        tab.setAttribute("aria-selected", active ? "true" : "false");
-        tab.tabIndex = active ? 0 : -1;
-        if (active && focus) tab.focus();
-      });
-      panels.forEach(function (panel, i) {
-        var active = i === index;
-        panel.hidden = !active;
-        panel.classList.toggle("is-active", active);
-      });
-    }
-
-    tabs.forEach(function (tab, index) {
-      tab.addEventListener("click", function () { activate(index, false); });
-      tab.addEventListener("pointerenter", function (event) {
-        if (event.pointerType !== "touch") activate(index, false);
-      });
-      tab.addEventListener("focus", function () { activate(index, false); });
-      tab.addEventListener("keydown", function (event) {
-        if (event.key !== "ArrowDown" && event.key !== "ArrowUp" &&
-            event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        var step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
-        activate((index + step + tabs.length) % tabs.length, true);
-      });
-    });
-    activate(0, false);
   }
 
   function tourRow(t) {
@@ -881,38 +813,16 @@
       return TuronApi.catalogDestinations().then(function (list) {
         var catalogue =
           '<section class="tt-public-catalogue" id="tour-catalog">' +
-            '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
-              esc(tr("catalog.kicker")) + "</span><h2>" +
-              esc(tr("catalog.title")) + "</h2></div><p>" +
-              esc(tr("catalog.text")) + "</p></div>" +
-            (list.length
-              ? destinationShowcase(list)
-              : '<div class="tt-empty-state">Направления пока не заведены.</div>') +
+            destinationMosaic(list || []) +
           "</section>";
 
         if (cfg.canBook) {
           root.innerHTML = catalogue;
-          initDestinationShowcase(root);
           return;
         }
 
-        // Второй полноэкранный лист — тизер Японии сразу под видео. Картинка
-        // с готовой типографикой (img/japan-hero.png), поверх — кнопка.
-        // has-japan-sheet схлопывает нижний отступ видео, чтобы листы шли встык.
-        var jpHref = hashFor({ kind: "tours", destination: "Япония" });
-        var japanSheet =
-          '<section class="tt-japan-sheet" id="japan-2026" aria-label="Япония 2026">' +
-            '<img class="tt-japan-sheet-image" src="img/japan-hero.png" ' +
-              'alt="Открой Японию — Токио, Киото, Осака, Фудзи" loading="lazy" />' +
-            '<div class="tt-japan-sheet-action">' +
-              '<a class="tt-japan-sheet-cta" href="' + esc(jpHref) + '">' +
-                "<span>В путь</span><span aria-hidden=\"true\">→</span>" +
-              "</a>" +
-            "</div>" +
-          "</section>";
-
         root.innerHTML =
-          '<section class="tt-public-intro tt-has-japan-sheet" id="excursion-tours">' +
+          '<section class="tt-public-intro" id="excursion-tours">' +
             '<video class="tt-hero-video" autoplay muted loop playsinline ' +
               'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
               'aria-hidden="true" tabindex="-1">' +
@@ -928,7 +838,6 @@
               searchPanelHtml() +
             "</div>" +
           "</section>" +
-          japanSheet +
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
@@ -965,11 +874,141 @@
           keepHeroPlaying(video);
         }
         initSearch();
-        initDestinationShowcase(root);
       }).catch(errorBox);
     }
 
+    var UMRAH_PROGRAMS = [
+      {
+        name: "TAJ-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Taj Park · 990 м до Харама · 8 ночей", "Медина · Grand Al Shahba · 250 м до мечети Пророка · 3 ночи"],
+        service: "Автобус Мекка—Медина · трёхразовое питание в Мекке и Медине · 1 питание в Джидде · руководители группы и врачи",
+        dates: "1, 8, 15, 22, 29 августа; 5, 12, 19, 26 сентября; еженедельно с 3 октября по 5 декабря",
+        price: "от $1200", prices: "Август—сентябрь: QUAD $1200 · TRPL $1250 · DBL $1350. Октябрь—декабрь: QUAD $1300 · TRPL $1350 · DBL $1450",
+      },
+      {
+        name: "TAJ-13+", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Taj Park · 990 м до Харама · 8 ночей", "Медина · Mukhtara Plaza · 250 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 3 раза, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "18 и 25 июля; 1, 8, 15 и 22 августа",
+        price: "от $1250", prices: "QUAD $1250 · TRPL $1300 · DBL $1400",
+      },
+      {
+        name: "ANJUM-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Anjum · 250 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1600", prices: "QUAD $1600 · TRPL $1700 · DBL $1800",
+      },
+      {
+        name: "SHOHADA-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Al Shohada · 250 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка и Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1650", prices: "QUAD $1650 · TRPL $1750 · DBL $1850",
+      },
+      {
+        name: "JUMEIRAH-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
+        flight: "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+        hotels: ["Джидда · Hawada Hotel Jeddah · 1 ночь", "Мекка · Jumeirah Hotel · 100 м до Харама · 8 ночей", "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи"],
+        service: "Скоростной поезд Мекка—Медина · питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "1, 8, 15 и 22 августа",
+        price: "от $1900", prices: "QUAD $1900 · TRPL $2000 · DBL $2200",
+      },
+      {
+        name: "SAJA-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Saja Al-Madinah · 250 м до мечети Пророка · 4 ночи", "Мекка · Taj Park · 990 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · трёхразовое питание · виза · руководители группы и врачи",
+        dates: "30 июля; 6, 13, 20, 27 августа; 3, 10, 17, 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1250", prices: "Июль—сентябрь: QUAD $1250 · TRPL $1350 · DBL $1450. Октябрь—декабрь: QUAD $1400 · TRPL $1500 · DBL $1600",
+      },
+      {
+        name: "SWISSOTEL-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Swissotel Makkah · 50 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание: Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1650", prices: "Июль—сентябрь: QUAD $1650 · TRPL $1750 · DBL $1900. Октябрь—декабрь: QUAD $1900 · TRPL $2000 · DBL $2200",
+      },
+      {
+        name: "ANJUM-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Anjum Makkah · 250 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание: Мекка 1 раз, Медина 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1600", prices: "Июль—сентябрь: TRPL $1600 · DBL $1700. Октябрь—декабрь: TRPL $1800 · DBL $1900",
+      },
+      {
+        name: "JUMEIRAH-10", days: "10 дней / 9 ночей", route: "Ташкент → Медина → Мекка → Джидда → Ташкент",
+        flight: "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+        hotels: ["Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи", "Мекка · Jumeirah Jabal Omar · 100 м до Харама · 5 ночей"],
+        service: "Скоростной поезд Медина—Мекка · питание в Мекке и Медине 2 раза (шведский стол) · виза · руководители группы и врачи",
+        dates: "30 июля; еженедельно с 6 августа по 24 сентября; еженедельно с 1 октября по 3 декабря",
+        price: "от $1750", prices: "Июль—сентябрь: QUAD $1750 · TRPL $1890 · DBL $1990. Октябрь—декабрь: QUAD $1990 · TRPL $2090 · DBL $2390",
+      },
+    ];
+
+    function umrahProgrammeCard(p) {
+      return '<details class="tt-umrah-program">' +
+        '<summary><span><small>' + esc(p.days) + '</small><strong>' + esc(p.name) +
+          '</strong><em>' + esc(p.route) + '</em></span><b>' + esc(p.price) + '</b>' +
+          '<i aria-hidden="true">＋</i></summary>' +
+        '<div class="tt-umrah-program-body">' +
+          '<div><h3>Перелёт</h3><p>' + esc(p.flight) + '</p></div>' +
+          '<div><h3>Отели</h3><ul>' + p.hotels.map(function (h) {
+            return '<li>' + esc(h) + '</li>';
+          }).join("") + '</ul></div>' +
+          '<div><h3>В пакет входит</h3><p>' + esc(p.service) + '</p></div>' +
+          '<div><h3>Даты вылетов 2026</h3><p>' + esc(p.dates) + '</p></div>' +
+          '<div class="tt-umrah-prices"><h3>Стоимость</h3><p>' + esc(p.prices) + '</p></div>' +
+        '</div>' +
+      '</details>';
+    }
+
+    function renderUmrah() {
+      var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
+      var contact = op.telegram_href || (op.phone_href ? "tel:" + op.phone_href : "#/login");
+      root.innerHTML =
+        '<section class="tt-umrah-page">' +
+          '<header class="tt-umrah-hero">' +
+            '<div class="tt-umrah-hero-shade"></div>' +
+            '<div class="tt-umrah-hero-copy">' +
+              crumbs([{ text: "Каталог", go: "root" }, { text: "Умра" }]) +
+              '<span class="tt-eyebrow">Путь к святыням · сезон 2026</span>' +
+              '<h1>Умра</h1>' +
+              '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
+                'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
+              '<div class="tt-umrah-hero-meta"><span>9 программ</span><span>10 или 13 дней</span><strong>от $1200</strong></div>' +
+            '</div>' +
+          '</header>' +
+          '<div class="tt-umrah-inner">' +
+            '<div class="tt-umrah-intro"><div><span class="tt-eyebrow">Программы</span>' +
+              '<h2>Выберите свой формат поездки</h2></div>' +
+              '<p>Две логики маршрута: 13 дней через Джидду или 10 дней через Медину. ' +
+                'Откройте программу, чтобы сравнить перелёт, отели, питание, даты и стоимость.</p></div>' +
+            '<div class="tt-umrah-gifts"><strong>В каждой программе</strong>' +
+              '<span>Сумка · чемодан · ихрам · бейдж · Зам-зам</span></div>' +
+            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>01</span>' +
+              '<div><h2>13-дневные программы</h2><p>Джидда → Мекка → Медина</p></div></div>' +
+              UMRAH_PROGRAMS.slice(0, 5).map(umrahProgrammeCard).join("") + '</section>' +
+            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>02</span>' +
+              '<div><h2>10-дневные программы</h2><p>Медина → Мекка → Джидда</p></div></div>' +
+              UMRAH_PROGRAMS.slice(5).map(umrahProgrammeCard).join("") + '</section>' +
+            '<aside class="tt-umrah-contact"><div><span class="tt-eyebrow">Подбор программы</span>' +
+              '<h2>Уточним места и актуальную дату</h2><p>Расписание и стоимость перенесены из материалов оператора. ' +
+                'Перед оплатой подтвердим наличие мест и выбранный тип размещения.</p></div>' +
+              '<a href="' + esc(contact) + '" target="_blank" rel="noopener">Связаться с оператором <span>→</span></a></aside>' +
+          '</div>' +
+        '</section>' + footerHtml();
+      return Promise.resolve();
+    }
+
     function renderTours(destination) {
+      if (destination === "Умра") return renderUmrah();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
         var isJapan = destination === "Япония";
