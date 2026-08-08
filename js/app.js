@@ -258,6 +258,16 @@
   }
 
   function showApp(tab) {
+    // Кабинет всегда должен использовать обычную прокрутку страницы. Если
+    // пользователь ушёл с полноэкранной галереи нестандартным путём (history,
+    // смена hash/экрана, сворачивание вкладки), её fallback-класс и inline
+    // overflow могли остаться активными и полностью «убить» колесо мыши.
+    // Сбрасываем это при КАЖДОМ открытии вкладки, даже когда screen уже app.
+    if (media && media.classList.contains("is-fullscreen")) {
+      setMediaFullscreen(false);
+    }
+    document.body.style.removeProperty("overflow");
+    document.documentElement.style.removeProperty("overflow");
     setScreen("app");
     ensureCabinet();   // здесь же выставляются флаги видимости вкладок по роли
     var name = tab && tabAllowed(tab) ? tab : defaultTab();

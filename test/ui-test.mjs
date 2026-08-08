@@ -136,6 +136,14 @@ console.log("\nКабинет агентства");
 {
   const { page, errors } = await session("umida");
   check("вход выполнен", await page.locator("#screen-app").isVisible());
+  check("колесо в кабинете не перехватывается hero-слайдером",
+        await page.locator("#screen-app").evaluate((app) => {
+          const allowed = app.dispatchEvent(new WheelEvent("wheel", {
+            bubbles: true, cancelable: true, deltaY: 240
+          }));
+          return allowed && document.body.style.overflow === "" &&
+            document.documentElement.style.overflow === "";
+        }));
 
   // постоянная верхняя панель
   check("в шапке есть кнопка «Выход»", await page.locator("#logout-top").isVisible());

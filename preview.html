@@ -1940,10 +1940,49 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
+}
+
+/* Страница программ Японии — отдельный полноширинный кадр. Фотография
+   остаётся фоном раздела, а не карточкой: поверх неё лежит спокойная тёмная
+   вуаль, чтобы четыре программы читались при любой ширине десктопа. */
+#screen-public .tt-destination-page {
+  width: 100%;
+}
+#screen-public .tt-destination-inner {
+  width: min(1380px, 100%);
+  margin-inline: auto;
+  padding: clamp(42px, 5vw, 72px) clamp(20px, 4vw, 64px) clamp(64px, 8vw, 112px);
+}
+#screen-public .tt-destination-japan {
+  min-height: calc(100vh - 138px);
+  color: #f4f8fa;
+  background:
+    linear-gradient(90deg, rgba(3, 9, 13, 0.48) 0%, rgba(3, 10, 15, 0.28) 50%, rgba(3, 9, 13, 0.12) 100%),
+    linear-gradient(180deg, rgba(3, 9, 13, 0.18) 0%, rgba(3, 9, 13, 0.04) 42%, rgba(3, 9, 13, 0.46) 100%),
+    url("img/japan-programs-bg.webp") center 42% / cover no-repeat;
+}
+#screen-public .tt-destination-japan .tt-crumbs,
+#screen-public .tt-destination-japan .tt-muted-note {
+  color: rgba(231, 241, 245, 0.72);
+}
+#screen-public .tt-destination-japan .tt-cat-h1 {
+  margin-top: 0;
+  color: #ffffff;
+  text-shadow: 0 3px 28px rgba(0, 0, 0, 0.48);
+}
+#screen-public .tt-destination-japan .tt-cat-tour {
+  border-color: rgba(163, 218, 231, 0.2);
+  background: rgba(8, 17, 22, 0.78);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(12px);
+}
+#screen-public .tt-destination-japan .tt-cat-tour:hover {
+  border-color: rgba(79, 214, 232, 0.48);
+  background: rgba(8, 19, 24, 0.88);
 }
 
 /* ---------------------------------------------------------- app shell */
@@ -3485,7 +3524,8 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) { padding-inline: 15px; }
+  #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
   .tt-app-container { padding: 20px 14px 60px; }
@@ -5153,6 +5193,13 @@ select { font-family: inherit; }
 
 .tt-public-intro.tt-has-japan-sheet {
   margin-bottom: 0;
+}
+
+/* Раньше нижний градиент растворял video hero в фоне страницы. Теперь сразу
+   за ним идёт второй полноэкранный кадр, поэтому этот слой создавал светлый
+   шов во время движения. Убираем его только у двухслайдового hero. */
+.tt-public-intro.tt-has-japan-sheet::after {
+  content: none;
 }
 
 @media (min-width: 721px) {
@@ -10061,6 +10108,13 @@ window.TURON_DESTINATIONS = [
 
     var locked = false;
     var animationFrame = 0;
+    var unlockTimer = 0;
+
+    function unlock() {
+      locked = false;
+      if (unlockTimer) global.clearTimeout(unlockTimer);
+      unlockTimer = 0;
+    }
 
     function easeInOutCubic(progress) {
       return progress < 0.5
@@ -10074,9 +10128,13 @@ window.TURON_DESTINATIONS = [
       var duration = reduced ? 0 : 920;
 
       locked = true;
+      // requestAnimationFrame может остановиться при сворачивании вкладки.
+      // Без страховки locked оставался true и глобально «съедал» колесо
+      // даже после возврата на страницу.
+      unlockTimer = global.setTimeout(unlock, duration + 250);
       if (!duration) {
         global.scrollTo(0, targetY);
-        locked = false;
+        unlock();
         return;
       }
 
@@ -10090,22 +10148,31 @@ window.TURON_DESTINATIONS = [
           animationFrame = global.requestAnimationFrame(frame);
         } else {
           animationFrame = 0;
-          locked = false;
+          unlock();
         }
       }
       animationFrame = global.requestAnimationFrame(frame);
     }
 
     function onWheel(event) {
+      // Слушатель закреплён на контейнере гостевого каталога, поэтому события
+      // кабинета до него физически не доходят. Дополнительная проверка нужна
+      // только на случай синтетического события с чужой целью.
+      if (!container.contains(event.target)) return;
+      var heroRect = hero.getBoundingClientRect();
+      var japanRect = japan.getBoundingClientRect();
+      var withinHeroPair = heroRect.bottom >= -12 &&
+        japanRect.top <= (global.innerHeight || 0) + 12;
+
       if (locked) {
-        event.preventDefault();
+        if (withinHeroPair) event.preventDefault();
+        else unlock();
         return;
       }
       if (event.ctrlKey || Math.abs(event.deltaY) < 4) return;
       if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
+      if (!withinHeroPair) return;
 
-      var heroRect = hero.getBoundingClientRect();
-      var japanRect = japan.getBoundingClientRect();
       var nearHeroTop = Math.abs(heroRect.top) <= 12;
       var nearJapanTop = Math.abs(japanRect.top) <= 12;
 
@@ -10118,11 +10185,13 @@ window.TURON_DESTINATIONS = [
       }
     }
 
-    global.addEventListener("wheel", onWheel, { passive: false });
+    container.addEventListener("wheel", onWheel, { passive: false });
     heroScrollCleanup = function () {
-      global.removeEventListener("wheel", onWheel);
+      container.removeEventListener("wheel", onWheel);
       if (animationFrame) global.cancelAnimationFrame(animationFrame);
+      if (unlockTimer) global.clearTimeout(unlockTimer);
       animationFrame = 0;
+      unlockTimer = 0;
       locked = false;
     };
   }
@@ -11050,12 +11119,17 @@ window.TURON_DESTINATIONS = [
     function renderTours(destination) {
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        var isJapan = destination === "Япония";
         root.innerHTML =
+          '<section class="tt-destination-page' +
+            (isJapan ? " tt-destination-japan" : "") + '">' +
+          '<div class="tt-destination-inner">' +
           crumbs([{ text: "Каталог", go: "root" }, { text: destination }]) +
           '<h1 class="tt-cat-h1">' + esc(destination) + "</h1>" +
           (list.length
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
-            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>');
+            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>') +
+          "</div></section>";
       }).catch(errorBox);
     }
 
@@ -12015,6 +12089,13 @@ window.TURON_DESTINATIONS = [
     $("offline-screen").hidden = true;
     fadeIn(name === "public" ? "screen-public"
          : name === "login" ? "screen-login" : "screen-app");
+    // Полноэкранная галерея временно запрещает прокрутку body. Если экран
+    // сменили в момент закрытия/сворачивания fullscreen, событие выхода
+    // иногда не успевало вернуть overflow — и кабинет оставался без колеса.
+    if (name === "app" && !document.fullscreenElement) {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
     window.scrollTo(0, 0);
     return true;
   }
@@ -12093,6 +12174,16 @@ window.TURON_DESTINATIONS = [
   }
 
   function showApp(tab) {
+    // Кабинет всегда должен использовать обычную прокрутку страницы. Если
+    // пользователь ушёл с полноэкранной галереи нестандартным путём (history,
+    // смена hash/экрана, сворачивание вкладки), её fallback-класс и inline
+    // overflow могли остаться активными и полностью «убить» колесо мыши.
+    // Сбрасываем это при КАЖДОМ открытии вкладки, даже когда screen уже app.
+    if (media && media.classList.contains("is-fullscreen")) {
+      setMediaFullscreen(false);
+    }
+    document.body.style.removeProperty("overflow");
+    document.documentElement.style.removeProperty("overflow");
     setScreen("app");
     ensureCabinet();   // здесь же выставляются флаги видимости вкладок по роли
     var name = tab && tabAllowed(tab) ? tab : defaultTab();

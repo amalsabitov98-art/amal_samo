@@ -619,9 +619,9 @@
     }
 
     function onWheel(event) {
-      // Слушатель стоит на window, но управлять ему разрешено только гостевым
-      // каталогом и только пока в окне находится пара hero-слайдов. В кабинете,
-      // модалках и ниже Японии колесо всегда остаётся нативным.
+      // Слушатель закреплён на контейнере гостевого каталога, поэтому события
+      // кабинета до него физически не доходят. Дополнительная проверка нужна
+      // только на случай синтетического события с чужой целью.
       if (!container.contains(event.target)) return;
       var heroRect = hero.getBoundingClientRect();
       var japanRect = japan.getBoundingClientRect();
@@ -649,9 +649,9 @@
       }
     }
 
-    global.addEventListener("wheel", onWheel, { passive: false });
+    container.addEventListener("wheel", onWheel, { passive: false });
     heroScrollCleanup = function () {
-      global.removeEventListener("wheel", onWheel);
+      container.removeEventListener("wheel", onWheel);
       if (animationFrame) global.cancelAnimationFrame(animationFrame);
       if (unlockTimer) global.clearTimeout(unlockTimer);
       animationFrame = 0;
