@@ -115,6 +115,124 @@
     );
   }
 
+  /*
+   * Главная витрина направлений: один крупный кадр вместо сетки одинаковых
+   * карточек. Все цифры берём из API, а маршрут и локальную обложку задаём
+   * только для известных направлений — новые страны получат безопасный
+   * универсальный вариант и всё равно появятся в списке.
+   */
+  function destinationPresentation(d) {
+    if (d.name === "Япония") {
+      return {
+        kicker: "Япония · сезон 2026",
+        image: d.image || "img/japan-programs-bg.webp",
+        cities: ["Токио", "Киото", "Нара", "Хаконэ"],
+      };
+    }
+    if (d.name === "Турция") {
+      return {
+        kicker: "Черноморский маршрут",
+        image: d.image || "img/hero-rize-batumi.webp",
+        cities: ["Батуми", "Ризе", "Трабзон"],
+      };
+    }
+    return {
+      kicker: "Авторские маршруты",
+      image: d.image || "img/hero-karadeniz.webp",
+      cities: [d.name],
+    };
+  }
+
+  function destinationShowcase(list) {
+    var tabs = list.map(function (d, i) {
+      var p = destinationPresentation(d);
+      return '<button class="tt-route-tab' + (i === 0 ? " is-active" : "") +
+        '" type="button" role="tab" aria-selected="' + (i === 0 ? "true" : "false") +
+        '" aria-controls="tt-route-panel-' + i + '" id="tt-route-tab-' + i +
+        '" data-route-index="' + i + '">' +
+          '<span class="tt-route-number">' + String(i + 1).padStart(2, "0") + '</span>' +
+          '<span class="tt-route-tab-copy"><strong>' + esc(d.title) + '</strong>' +
+            '<small>' + esc(p.cities.join(" · ")) + '</small></span>' +
+          '<span class="tt-route-tab-arrow" aria-hidden="true">↗</span>' +
+        '</button>';
+    }).join("");
+
+    var panels = list.map(function (d, i) {
+      var p = destinationPresentation(d);
+      var count = d.tours_count + " " + plural(d.tours_count, "программа", "программы", "программ");
+      var availability = d.departures_count
+        ? d.departures_count + " " + plural(d.departures_count, "заезд", "заезда", "заездов")
+        : "Сезон 2026";
+      return '<article class="tt-route-panel' + (i === 0 ? " is-active" : "") +
+        '" id="tt-route-panel-' + i + '" role="tabpanel" aria-labelledby="tt-route-tab-' + i +
+        '" data-route-panel="' + i + '"' + (i === 0 ? "" : " hidden") +
+        ' style="--tt-route-image:url(\'' + esc(p.image) + '\')">' +
+          '<div class="tt-route-shade" aria-hidden="true"></div>' +
+          '<div class="tt-route-panel-copy">' +
+            '<span class="tt-route-kicker">' + esc(p.kicker) + '</span>' +
+            '<h3>' + esc(d.title) + '</h3>' +
+            '<p>' + esc(d.blurb || p.cities.join(" · ")) + '</p>' +
+            '<div class="tt-route-meta"><span>' + esc(count) + '</span><i></i><span>' +
+              esc(availability) + '</span>' +
+              (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
+            '</div>' +
+            '<div class="tt-route-cities" aria-label="Маршрут">' +
+              p.cities.map(function (city, cityIndex) {
+                return '<span><b></b>' + esc(city) + '</span>' +
+                  (cityIndex < p.cities.length - 1 ? '<i></i>' : '');
+              }).join("") +
+            '</div>' +
+          '</div>' +
+          '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
+            '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
+          '</button>' +
+        '</article>';
+    }).join("");
+
+    return '<div class="tt-route-showcase">' +
+      '<div class="tt-route-tabs" role="tablist" aria-label="Направления">' + tabs + '</div>' +
+      '<div class="tt-route-stage">' + panels + '</div>' +
+    '</div>';
+  }
+
+  function initDestinationShowcase(scope) {
+    var showcase = scope.querySelector(".tt-route-showcase");
+    if (!showcase) return;
+    var tabs = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-index]"));
+    var panels = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-panel]"));
+
+    function activate(index, focus) {
+      tabs.forEach(function (tab, i) {
+        var active = i === index;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        tab.tabIndex = active ? 0 : -1;
+        if (active && focus) tab.focus();
+      });
+      panels.forEach(function (panel, i) {
+        var active = i === index;
+        panel.hidden = !active;
+        panel.classList.toggle("is-active", active);
+      });
+    }
+
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener("click", function () { activate(index, false); });
+      tab.addEventListener("pointerenter", function (event) {
+        if (event.pointerType !== "touch") activate(index, false);
+      });
+      tab.addEventListener("focus", function () { activate(index, false); });
+      tab.addEventListener("keydown", function (event) {
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp" &&
+            event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        var step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
+        activate((index + step + tabs.length) % tabs.length, true);
+      });
+    });
+    activate(0, false);
+  }
+
   function tourRow(t) {
     var closed = !t.is_bookable || t.departures_count === 0;
     var meta = [];
@@ -771,12 +889,13 @@
               esc(tr("catalog.title")) + "</h2></div><p>" +
               esc(tr("catalog.text")) + "</p></div>" +
             (list.length
-              ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
+              ? destinationShowcase(list)
               : '<div class="tt-empty-state">Направления пока не заведены.</div>') +
           "</section>";
 
         if (cfg.canBook) {
           root.innerHTML = catalogue;
+          initDestinationShowcase(root);
           return;
         }
 
@@ -849,6 +968,7 @@
           keepHeroPlaying(video);
         }
         initSearch();
+        initDestinationShowcase(root);
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
           global.TuronPublicUi.enhance(root);
         }

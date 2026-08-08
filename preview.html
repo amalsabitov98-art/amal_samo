@@ -2986,6 +2986,269 @@ select { font-family: inherit; }
   font-size: 0.76rem;
 }
 
+/* Маршрутная витрина: список направлений управляет одним крупным кадром.
+   Здесь намеренно нет декоративной антиквы — интерфейсная типографика
+   должна выглядеть собранной в браузере, а не нарисованной на постере. */
+.tt-route-showcase {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.72fr);
+  min-height: 540px;
+  overflow: hidden;
+  border: 1px solid rgba(13, 48, 42, 0.12);
+  border-radius: 28px;
+  background: #0b2420;
+  box-shadow: 0 28px 80px rgba(7, 37, 31, 0.18);
+}
+.tt-route-tabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 44px 0 44px 38px;
+  background: linear-gradient(155deg, #103f36 0%, #082a24 100%);
+}
+.tt-route-tabs::before {
+  content: "Выберите маршрут";
+  margin: 0 28px 28px 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tt-route-tab {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr) 24px;
+  gap: 13px;
+  align-items: center;
+  padding: 24px 24px 24px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.25s ease, padding-left 0.25s ease;
+}
+.tt-route-tab:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.tt-route-tab::before {
+  content: "";
+  position: absolute;
+  left: -38px;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 2px;
+  background: #e5c987;
+  transform: translateY(-50%);
+  transition: height 0.25s ease;
+}
+.tt-route-tab:hover,
+.tt-route-tab.is-active { color: #fff; padding-left: 7px; }
+.tt-route-tab.is-active::before { height: 58%; }
+.tt-route-tab:focus-visible { outline: 2px solid #e5c987; outline-offset: -4px; }
+.tt-route-number {
+  color: #e5c987;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.tt-route-tab-copy { min-width: 0; }
+.tt-route-tab-copy strong {
+  display: block;
+  overflow: hidden;
+  color: inherit;
+  font-size: clamp(0.98rem, 1.3vw, 1.22rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-route-tab-copy small {
+  display: block;
+  overflow: hidden;
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.56rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-route-tab-arrow { opacity: 0; transform: translate(-5px, 5px); transition: 0.25s ease; }
+.tt-route-tab.is-active .tt-route-tab-arrow { opacity: 1; transform: none; }
+.tt-route-stage { position: relative; min-width: 0; min-height: 540px; }
+.tt-route-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: clamp(36px, 5vw, 72px);
+  background: var(--tt-route-image) center / cover no-repeat;
+  color: #fff;
+}
+.tt-route-panel[hidden] { display: none; }
+.tt-route-panel.is-active { animation: tt-route-reveal 0.45s ease both; }
+@keyframes tt-route-reveal {
+  from { opacity: 0; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+.tt-route-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 19, 17, 0.52), rgba(4, 19, 17, 0.08) 67%),
+    linear-gradient(0deg, rgba(3, 17, 15, 0.9) 0%, rgba(3, 17, 15, 0.12) 72%);
+}
+.tt-route-panel-copy,
+.tt-route-open { position: relative; z-index: 1; }
+.tt-route-panel-copy { max-width: 700px; }
+.tt-route-kicker {
+  display: block;
+  margin-bottom: 14px;
+  color: #e5c987;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.61rem;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.tt-route-panel h3 {
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.tt-route-panel-copy > p {
+  max-width: 570px;
+  margin: 17px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+.tt-route-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 22px;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.64rem;
+  font-weight: 650;
+}
+.tt-route-meta i { width: 3px; height: 3px; border-radius: 50%; background: rgba(255, 255, 255, 0.38); }
+.tt-route-meta strong { color: #fff; font-size: 0.72rem; }
+.tt-route-cities {
+  display: flex;
+  align-items: center;
+  width: min(100%, 560px);
+  margin-top: 31px;
+}
+.tt-route-cities span {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.55rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.tt-route-cities span b {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #e5c987;
+  border-radius: 50%;
+  background: #153d35;
+}
+.tt-route-cities > i { flex: 1 1 44px; height: 1px; margin: -16px 8px 0; background: rgba(229, 201, 135, 0.48); }
+.tt-route-open {
+  position: absolute;
+  right: clamp(30px, 4vw, 58px);
+  bottom: clamp(34px, 5vw, 66px);
+  display: inline-flex;
+  align-items: center;
+  gap: 17px;
+  min-height: 48px;
+  padding: 0 7px 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(5, 24, 21, 0.52);
+  color: #fff;
+  font: 650 0.62rem/1 "Manrope", "Segoe UI", sans-serif;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.tt-route-open b { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #e5c987; color: #173b33; font-size: 1rem; }
+.tt-route-open:hover { transform: translateY(-2px); background: rgba(5, 24, 21, 0.76); }
+.tt-route-open:focus-visible { outline: 2px solid #e5c987; outline-offset: 3px; }
+
+@media (max-width: 980px) {
+  .tt-route-showcase { grid-template-columns: 245px minmax(0, 1fr); min-height: 500px; }
+  .tt-route-tabs { padding: 34px 0 34px 25px; }
+  .tt-route-tab::before { left: -25px; }
+  .tt-route-stage { min-height: 500px; }
+  .tt-route-panel { padding: 42px 34px; }
+  .tt-route-open { right: 28px; bottom: 38px; }
+  .tt-route-cities { width: min(100%, 430px); padding-right: 150px; }
+}
+
+@media (max-width: 720px) {
+  .tt-route-showcase {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-radius: 22px;
+  }
+  .tt-route-tabs {
+    display: grid;
+    grid-auto-columns: minmax(210px, 1fr);
+    grid-auto-flow: column;
+    overflow-x: auto;
+    padding: 18px 18px 0;
+    scrollbar-width: none;
+  }
+  .tt-route-tabs::-webkit-scrollbar { display: none; }
+  .tt-route-tabs::before { display: none; }
+  .tt-route-tab {
+    min-width: 210px;
+    grid-template-columns: 25px minmax(0, 1fr);
+    padding: 15px 14px 16px 0;
+    border-top: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+  }
+  .tt-route-tab:last-child { border-bottom: 2px solid rgba(255, 255, 255, 0.12); }
+  .tt-route-tab::before { left: 0; top: auto; bottom: -2px; width: 0; height: 2px; transform: none; transition: width 0.25s ease; }
+  .tt-route-tab.is-active::before { width: calc(100% - 14px); height: 2px; }
+  .tt-route-tab:hover,
+  .tt-route-tab.is-active { padding-left: 0; }
+  .tt-route-tab-arrow { display: none; }
+  .tt-route-tab-copy strong { font-size: 0.9rem; }
+  .tt-route-stage { min-height: 480px; }
+  .tt-route-panel { padding: 34px 23px 29px; }
+  .tt-route-panel h3 { max-width: 310px; font-size: clamp(1.9rem, 9vw, 2.8rem); }
+  .tt-route-panel-copy > p { max-width: 420px; font-size: 0.7rem; }
+  .tt-route-meta { max-width: 310px; }
+  .tt-route-cities { width: 100%; margin-top: 24px; padding-right: 0; }
+  .tt-route-cities > i { min-width: 12px; margin-inline: 5px; }
+  .tt-route-cities span { font-size: 0.49rem; }
+  .tt-route-open {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    align-self: flex-start;
+    margin-top: 27px;
+  }
+}
+
 .tt-about-company {
   position: relative;
   min-height: 520px;
@@ -10391,6 +10654,124 @@ window.TURON_DESTINATIONS = [
     );
   }
 
+  /*
+   * Главная витрина направлений: один крупный кадр вместо сетки одинаковых
+   * карточек. Все цифры берём из API, а маршрут и локальную обложку задаём
+   * только для известных направлений — новые страны получат безопасный
+   * универсальный вариант и всё равно появятся в списке.
+   */
+  function destinationPresentation(d) {
+    if (d.name === "Япония") {
+      return {
+        kicker: "Япония · сезон 2026",
+        image: d.image || "img/japan-programs-bg.webp",
+        cities: ["Токио", "Киото", "Нара", "Хаконэ"],
+      };
+    }
+    if (d.name === "Турция") {
+      return {
+        kicker: "Черноморский маршрут",
+        image: d.image || "img/hero-rize-batumi.webp",
+        cities: ["Батуми", "Ризе", "Трабзон"],
+      };
+    }
+    return {
+      kicker: "Авторские маршруты",
+      image: d.image || "img/hero-karadeniz.webp",
+      cities: [d.name],
+    };
+  }
+
+  function destinationShowcase(list) {
+    var tabs = list.map(function (d, i) {
+      var p = destinationPresentation(d);
+      return '<button class="tt-route-tab' + (i === 0 ? " is-active" : "") +
+        '" type="button" role="tab" aria-selected="' + (i === 0 ? "true" : "false") +
+        '" aria-controls="tt-route-panel-' + i + '" id="tt-route-tab-' + i +
+        '" data-route-index="' + i + '">' +
+          '<span class="tt-route-number">' + String(i + 1).padStart(2, "0") + '</span>' +
+          '<span class="tt-route-tab-copy"><strong>' + esc(d.title) + '</strong>' +
+            '<small>' + esc(p.cities.join(" · ")) + '</small></span>' +
+          '<span class="tt-route-tab-arrow" aria-hidden="true">↗</span>' +
+        '</button>';
+    }).join("");
+
+    var panels = list.map(function (d, i) {
+      var p = destinationPresentation(d);
+      var count = d.tours_count + " " + plural(d.tours_count, "программа", "программы", "программ");
+      var availability = d.departures_count
+        ? d.departures_count + " " + plural(d.departures_count, "заезд", "заезда", "заездов")
+        : "Сезон 2026";
+      return '<article class="tt-route-panel' + (i === 0 ? " is-active" : "") +
+        '" id="tt-route-panel-' + i + '" role="tabpanel" aria-labelledby="tt-route-tab-' + i +
+        '" data-route-panel="' + i + '"' + (i === 0 ? "" : " hidden") +
+        ' style="--tt-route-image:url(\'' + esc(p.image) + '\')">' +
+          '<div class="tt-route-shade" aria-hidden="true"></div>' +
+          '<div class="tt-route-panel-copy">' +
+            '<span class="tt-route-kicker">' + esc(p.kicker) + '</span>' +
+            '<h3>' + esc(d.title) + '</h3>' +
+            '<p>' + esc(d.blurb || p.cities.join(" · ")) + '</p>' +
+            '<div class="tt-route-meta"><span>' + esc(count) + '</span><i></i><span>' +
+              esc(availability) + '</span>' +
+              (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
+            '</div>' +
+            '<div class="tt-route-cities" aria-label="Маршрут">' +
+              p.cities.map(function (city, cityIndex) {
+                return '<span><b></b>' + esc(city) + '</span>' +
+                  (cityIndex < p.cities.length - 1 ? '<i></i>' : '');
+              }).join("") +
+            '</div>' +
+          '</div>' +
+          '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
+            '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
+          '</button>' +
+        '</article>';
+    }).join("");
+
+    return '<div class="tt-route-showcase">' +
+      '<div class="tt-route-tabs" role="tablist" aria-label="Направления">' + tabs + '</div>' +
+      '<div class="tt-route-stage">' + panels + '</div>' +
+    '</div>';
+  }
+
+  function initDestinationShowcase(scope) {
+    var showcase = scope.querySelector(".tt-route-showcase");
+    if (!showcase) return;
+    var tabs = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-index]"));
+    var panels = Array.prototype.slice.call(showcase.querySelectorAll("[data-route-panel]"));
+
+    function activate(index, focus) {
+      tabs.forEach(function (tab, i) {
+        var active = i === index;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        tab.tabIndex = active ? 0 : -1;
+        if (active && focus) tab.focus();
+      });
+      panels.forEach(function (panel, i) {
+        var active = i === index;
+        panel.hidden = !active;
+        panel.classList.toggle("is-active", active);
+      });
+    }
+
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener("click", function () { activate(index, false); });
+      tab.addEventListener("pointerenter", function (event) {
+        if (event.pointerType !== "touch") activate(index, false);
+      });
+      tab.addEventListener("focus", function () { activate(index, false); });
+      tab.addEventListener("keydown", function (event) {
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp" &&
+            event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        var step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
+        activate((index + step + tabs.length) % tabs.length, true);
+      });
+    });
+    activate(0, false);
+  }
+
   function tourRow(t) {
     var closed = !t.is_bookable || t.departures_count === 0;
     var meta = [];
@@ -11047,12 +11428,13 @@ window.TURON_DESTINATIONS = [
               esc(tr("catalog.title")) + "</h2></div><p>" +
               esc(tr("catalog.text")) + "</p></div>" +
             (list.length
-              ? '<div class="tt-cat-grid">' + list.map(destinationTile).join("") + "</div>"
+              ? destinationShowcase(list)
               : '<div class="tt-empty-state">Направления пока не заведены.</div>') +
           "</section>";
 
         if (cfg.canBook) {
           root.innerHTML = catalogue;
+          initDestinationShowcase(root);
           return;
         }
 
@@ -11125,6 +11507,7 @@ window.TURON_DESTINATIONS = [
           keepHeroPlaying(video);
         }
         initSearch();
+        initDestinationShowcase(root);
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
           global.TuronPublicUi.enhance(root);
         }
