@@ -176,12 +176,9 @@
               esc(availability) + '</span>' +
               (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
             '</div>' +
-            '<div class="tt-route-cities" aria-label="Маршрут">' +
-              p.cities.map(function (city, cityIndex) {
-                return '<span><b></b>' + esc(city) + '</span>' +
-                  (cityIndex < p.cities.length - 1 ? '<i></i>' : '');
-              }).join("") +
-            '</div>' +
+            '<p class="tt-showcase-route" aria-label="Маршрут">' +
+              esc(p.cities.join(" → ")) +
+            '</p>' +
           '</div>' +
           '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
             '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
@@ -969,9 +966,6 @@
         }
         initSearch();
         initDestinationShowcase(root);
-        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
-          global.TuronPublicUi.enhance(root);
-        }
       }).catch(errorBox);
     }
 
@@ -1124,7 +1118,22 @@
       var done = view.kind === "tours" ? renderTours(view.destination)
                : view.kind === "tour" ? renderTour(view.code)
                : renderDestinations();
-      return Promise.resolve(done).then(markHero, markHero);
+      return Promise.resolve(done).then(function () {
+        markHero();
+        // enhance отвечает не только за анимации, но и за жизненный цикл
+        // wheel-обработчика hero. Вызываем его после КАЖДОГО hash-маршрута:
+        // на внутренних страницах старый обработчик будет снят, а новый не
+        // подключится, потому что там нет пары hero-листов.
+        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
+          global.TuronPublicUi.enhance(root);
+        }
+      }, function (error) {
+        markHero();
+        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
+          global.TuronPublicUi.enhance(root);
+        }
+        throw error;
+      });
     }
 
     function go(next, push) {

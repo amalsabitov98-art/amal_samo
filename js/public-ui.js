@@ -589,7 +589,11 @@
     function glideTo(target) {
       var startY = global.scrollY || global.pageYOffset || 0;
       var targetY = startY + target.getBoundingClientRect().top;
-      var duration = reduced ? 0 : 920;
+      var viewport = Math.max(global.innerHeight || 1, 1);
+      var distance = Math.abs(targetY - startY);
+      // Из промежуточного положения доезжаем быстрее, чем через весь экран.
+      // Так колесо ощущается продолжением движения, а не новой анимацией.
+      var duration = reduced ? 0 : Math.max(360, Math.min(880, 880 * distance / viewport));
 
       locked = true;
       // requestAnimationFrame может остановиться при сворачивании вкладки.
@@ -623,27 +627,37 @@
       // кабинета до него физически не доходят. Дополнительная проверка нужна
       // только на случай синтетического события с чужой целью.
       if (!container.contains(event.target)) return;
+      // Если каталог уже перерисовал маршрут, старые узлы отсоединены от DOM.
+      // В таком состоянии их rect равен нулю и прежняя проверка ошибочно
+      // считала, что пользователь всё ещё находится в hero.
+      if (!hero.isConnected || !japan.isConnected ||
+          !container.contains(hero) || !container.contains(japan)) {
+        if (heroScrollCleanup) heroScrollCleanup();
+        return;
+      }
+
       var heroRect = hero.getBoundingClientRect();
       var japanRect = japan.getBoundingClientRect();
-      var withinHeroPair = heroRect.bottom >= -12 &&
-        japanRect.top <= (global.innerHeight || 0) + 12;
+      var currentY = global.scrollY || global.pageYOffset || 0;
+      var heroY = currentY + heroRect.top;
+      var japanY = currentY + japanRect.top;
+      var betweenSlideTops = currentY >= heroY - 12 && currentY <= japanY + 12;
 
       if (locked) {
-        if (withinHeroPair) event.preventDefault();
+        if (betweenSlideTops) event.preventDefault();
         else unlock();
         return;
       }
       if (event.ctrlKey || Math.abs(event.deltaY) < 4) return;
       if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
-      if (!withinHeroPair) return;
+      if (!betweenSlideTops) return;
 
-      var nearHeroTop = Math.abs(heroRect.top) <= 12;
-      var nearJapanTop = Math.abs(japanRect.top) <= 12;
-
-      if (event.deltaY > 0 && nearHeroTop) {
+      // Подхватываем движение из любой точки между листами. Это исключает
+      // зависание на полуразрезанном кадре после резкого колеса/тачпада.
+      if (event.deltaY > 0 && currentY < japanY - 2) {
         event.preventDefault();
         glideTo(japan);
-      } else if (event.deltaY < 0 && nearJapanTop) {
+      } else if (event.deltaY < 0 && currentY > heroY + 2) {
         event.preventDefault();
         glideTo(hero);
       }

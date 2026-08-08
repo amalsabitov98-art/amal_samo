@@ -2963,13 +2963,20 @@ select { font-family: inherit; }
 .tt-search-price strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .tt-public-catalogue {
   scroll-margin-top: 150px;
+  width: 100vw !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
 }
 .tt-cat-heading {
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: 24px;
+  width: min(1380px, 100%);
+  margin-inline: auto;
   margin-bottom: 24px;
+  padding-inline: clamp(20px, 4vw, 64px);
 }
 .tt-cat-heading h2 {
   margin: 3px 0 0;
@@ -2990,22 +2997,26 @@ select { font-family: inherit; }
    Здесь намеренно нет декоративной антиквы — интерфейсная типографика
    должна выглядеть собранной в браузере, а не нарисованной на постере. */
 .tt-route-showcase {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.72fr);
-  min-height: 540px;
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 100svh;
   overflow: hidden;
-  border: 1px solid rgba(13, 48, 42, 0.12);
-  border-radius: 28px;
+  border: 0;
+  border-radius: 0;
   background: #0b2420;
-  box-shadow: 0 28px 80px rgba(7, 37, 31, 0.18);
+  box-shadow: none;
 }
 .tt-route-tabs {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  z-index: 3;
+  inset: 0 auto 0 0;
+  width: min(390px, 34vw);
   display: flex;
   flex-direction: column;
-  padding: 44px 0 44px 38px;
-  background: linear-gradient(155deg, #103f36 0%, #082a24 100%);
+  justify-content: center;
+  padding: 44px 34px 44px clamp(28px, 5vw, 76px);
+  background: linear-gradient(90deg, rgba(4, 24, 20, .94) 0%, rgba(4, 24, 20, .76) 70%, transparent 100%);
 }
 .tt-route-tabs::before {
   content: "Выберите маршрут";
@@ -3080,7 +3091,7 @@ select { font-family: inherit; }
 }
 .tt-route-tab-arrow { opacity: 0; transform: translate(-5px, 5px); transition: 0.25s ease; }
 .tt-route-tab.is-active .tt-route-tab-arrow { opacity: 1; transform: none; }
-.tt-route-stage { position: relative; min-width: 0; min-height: 540px; }
+.tt-route-stage { position: relative; min-width: 0; min-height: 100svh; }
 .tt-route-panel {
   position: absolute;
   inset: 0;
@@ -3088,7 +3099,9 @@ select { font-family: inherit; }
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
-  padding: clamp(36px, 5vw, 72px);
+  min-height: 100svh;
+  padding: clamp(48px, 7vw, 104px) clamp(34px, 6vw, 92px)
+           clamp(56px, 8vw, 116px) clamp(360px, 36vw, 540px);
   background: var(--tt-route-image) center / cover no-repeat;
   color: #fff;
 }
@@ -3146,29 +3159,14 @@ select { font-family: inherit; }
 }
 .tt-route-meta i { width: 3px; height: 3px; border-radius: 50%; background: rgba(255, 255, 255, 0.38); }
 .tt-route-meta strong { color: #fff; font-size: 0.72rem; }
-.tt-route-cities {
-  display: flex;
-  align-items: center;
-  width: min(100%, 560px);
-  margin-top: 31px;
-}
-.tt-route-cities span {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.tt-showcase-route {
+  margin: 28px 0 0;
   color: rgba(255, 255, 255, 0.64);
-  font-size: 0.55rem;
-  font-weight: 650;
-  white-space: nowrap;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(.62rem, .9vw, .78rem);
+  font-weight: 700;
+  letter-spacing: .035em;
 }
-.tt-route-cities span b {
-  width: 8px;
-  height: 8px;
-  border: 2px solid #e5c987;
-  border-radius: 50%;
-  background: #153d35;
-}
-.tt-route-cities > i { flex: 1 1 44px; height: 1px; margin: -16px 8px 0; background: rgba(229, 201, 135, 0.48); }
 .tt-route-open {
   position: absolute;
   right: clamp(30px, 4vw, 58px);
@@ -3192,13 +3190,12 @@ select { font-family: inherit; }
 .tt-route-open:focus-visible { outline: 2px solid #e5c987; outline-offset: 3px; }
 
 @media (max-width: 980px) {
-  .tt-route-showcase { grid-template-columns: 245px minmax(0, 1fr); min-height: 500px; }
-  .tt-route-tabs { padding: 34px 0 34px 25px; }
+  .tt-route-showcase { min-height: 100svh; }
+  .tt-route-tabs { width: 280px; padding: 34px 28px; }
   .tt-route-tab::before { left: -25px; }
-  .tt-route-stage { min-height: 500px; }
-  .tt-route-panel { padding: 42px 34px; }
+  .tt-route-stage { min-height: 100svh; }
+  .tt-route-panel { padding: 58px 34px 58px 310px; }
   .tt-route-open { right: 28px; bottom: 38px; }
-  .tt-route-cities { width: min(100%, 430px); padding-right: 150px; }
 }
 
 @media (max-width: 720px) {
@@ -3206,9 +3203,12 @@ select { font-family: inherit; }
     display: flex;
     flex-direction: column;
     min-height: 0;
-    border-radius: 22px;
+    border-radius: 0;
   }
   .tt-route-tabs {
+    position: relative;
+    inset: auto;
+    width: 100%;
     display: grid;
     grid-auto-columns: minmax(210px, 1fr);
     grid-auto-flow: column;
@@ -3237,9 +3237,7 @@ select { font-family: inherit; }
   .tt-route-panel h3 { max-width: 310px; font-size: clamp(1.9rem, 9vw, 2.8rem); }
   .tt-route-panel-copy > p { max-width: 420px; font-size: 0.7rem; }
   .tt-route-meta { max-width: 310px; }
-  .tt-route-cities { width: 100%; margin-top: 24px; padding-right: 0; }
-  .tt-route-cities > i { min-width: 12px; margin-inline: 5px; }
-  .tt-route-cities span { font-size: 0.49rem; }
+  .tt-showcase-route { margin-top: 22px; }
   .tt-route-open {
     position: relative;
     right: auto;
@@ -10388,7 +10386,11 @@ window.TURON_DESTINATIONS = [
     function glideTo(target) {
       var startY = global.scrollY || global.pageYOffset || 0;
       var targetY = startY + target.getBoundingClientRect().top;
-      var duration = reduced ? 0 : 920;
+      var viewport = Math.max(global.innerHeight || 1, 1);
+      var distance = Math.abs(targetY - startY);
+      // Из промежуточного положения доезжаем быстрее, чем через весь экран.
+      // Так колесо ощущается продолжением движения, а не новой анимацией.
+      var duration = reduced ? 0 : Math.max(360, Math.min(880, 880 * distance / viewport));
 
       locked = true;
       // requestAnimationFrame может остановиться при сворачивании вкладки.
@@ -10422,27 +10424,37 @@ window.TURON_DESTINATIONS = [
       // кабинета до него физически не доходят. Дополнительная проверка нужна
       // только на случай синтетического события с чужой целью.
       if (!container.contains(event.target)) return;
+      // Если каталог уже перерисовал маршрут, старые узлы отсоединены от DOM.
+      // В таком состоянии их rect равен нулю и прежняя проверка ошибочно
+      // считала, что пользователь всё ещё находится в hero.
+      if (!hero.isConnected || !japan.isConnected ||
+          !container.contains(hero) || !container.contains(japan)) {
+        if (heroScrollCleanup) heroScrollCleanup();
+        return;
+      }
+
       var heroRect = hero.getBoundingClientRect();
       var japanRect = japan.getBoundingClientRect();
-      var withinHeroPair = heroRect.bottom >= -12 &&
-        japanRect.top <= (global.innerHeight || 0) + 12;
+      var currentY = global.scrollY || global.pageYOffset || 0;
+      var heroY = currentY + heroRect.top;
+      var japanY = currentY + japanRect.top;
+      var betweenSlideTops = currentY >= heroY - 12 && currentY <= japanY + 12;
 
       if (locked) {
-        if (withinHeroPair) event.preventDefault();
+        if (betweenSlideTops) event.preventDefault();
         else unlock();
         return;
       }
       if (event.ctrlKey || Math.abs(event.deltaY) < 4) return;
       if (event.target.closest("select, input, textarea, [contenteditable='true']")) return;
-      if (!withinHeroPair) return;
+      if (!betweenSlideTops) return;
 
-      var nearHeroTop = Math.abs(heroRect.top) <= 12;
-      var nearJapanTop = Math.abs(japanRect.top) <= 12;
-
-      if (event.deltaY > 0 && nearHeroTop) {
+      // Подхватываем движение из любой точки между листами. Это исключает
+      // зависание на полуразрезанном кадре после резкого колеса/тачпада.
+      if (event.deltaY > 0 && currentY < japanY - 2) {
         event.preventDefault();
         glideTo(japan);
-      } else if (event.deltaY < 0 && nearJapanTop) {
+      } else if (event.deltaY < 0 && currentY > heroY + 2) {
         event.preventDefault();
         glideTo(hero);
       }
@@ -10715,12 +10727,9 @@ window.TURON_DESTINATIONS = [
               esc(availability) + '</span>' +
               (d.min_price != null ? '<i></i><strong>от ' + money(d.min_price) + '</strong>' : '') +
             '</div>' +
-            '<div class="tt-route-cities" aria-label="Маршрут">' +
-              p.cities.map(function (city, cityIndex) {
-                return '<span><b></b>' + esc(city) + '</span>' +
-                  (cityIndex < p.cities.length - 1 ? '<i></i>' : '');
-              }).join("") +
-            '</div>' +
+            '<p class="tt-showcase-route" aria-label="Маршрут">' +
+              esc(p.cities.join(" → ")) +
+            '</p>' +
           '</div>' +
           '<button class="tt-route-open" type="button" data-dest="' + esc(d.name) + '">' +
             '<span>Смотреть программы</span><b aria-hidden="true">→</b>' +
@@ -11508,9 +11517,6 @@ window.TURON_DESTINATIONS = [
         }
         initSearch();
         initDestinationShowcase(root);
-        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
-          global.TuronPublicUi.enhance(root);
-        }
       }).catch(errorBox);
     }
 
@@ -11663,7 +11669,22 @@ window.TURON_DESTINATIONS = [
       var done = view.kind === "tours" ? renderTours(view.destination)
                : view.kind === "tour" ? renderTour(view.code)
                : renderDestinations();
-      return Promise.resolve(done).then(markHero, markHero);
+      return Promise.resolve(done).then(function () {
+        markHero();
+        // enhance отвечает не только за анимации, но и за жизненный цикл
+        // wheel-обработчика hero. Вызываем его после КАЖДОГО hash-маршрута:
+        // на внутренних страницах старый обработчик будет снят, а новый не
+        // подключится, потому что там нет пары hero-листов.
+        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
+          global.TuronPublicUi.enhance(root);
+        }
+      }, function (error) {
+        markHero();
+        if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
+          global.TuronPublicUi.enhance(root);
+        }
+        throw error;
+      });
     }
 
     function go(next, push) {
