@@ -99,6 +99,32 @@ console.log("\nТитульная страница");
         await page.locator(".tt-public-intro").evaluate((el) =>
           Math.abs(el.getBoundingClientRect().top) < 12));
 
+  // Переход по hash не меняет screen, поэтому именно здесь раньше мог
+  // сохраниться overflow:hidden от hero/fullscreen и «умереть» колесо на
+  // странице направления. Имитируем зависшее состояние и проверяем не
+  // только CSS, но и фактическое движение страницы колёсиком.
+  await page.evaluate(() => {
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflowY = "hidden";
+    window.location.hash = "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F";
+  });
+  await page.waitForTimeout(700);
+  check("страница Японии снимает зависшую блокировку прокрутки",
+        await page.evaluate(() =>
+          document.body.style.overflow === "" &&
+          document.documentElement.style.overflowY === ""));
+  const japanScrollBefore = await page.evaluate(() => window.scrollY);
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(250);
+  const japanScrollAfter = await page.evaluate(() => window.scrollY);
+  check("колесо прокручивает страницу направления",
+        japanScrollAfter > japanScrollBefore,
+        `${japanScrollBefore} -> ${japanScrollAfter}`);
+
+  // Для остальных проверок титульной возвращаемся на главный маршрут.
+  await page.evaluate(() => { window.location.hash = "#/"; });
+  await page.waitForTimeout(700);
+
   // выпадающие списки строятся из заездов, а не зашиты в разметку
   const months = await page.locator("#ts-month option").count();
   const airports = await page.locator("#ts-airport option").count();
