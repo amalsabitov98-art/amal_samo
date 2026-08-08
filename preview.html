@@ -10226,6 +10226,21 @@ window.TURON_DESTINATIONS = [
 
   function enhance(container) {
     container = container || document;
+
+    // Публичный каталог перерисовывается внутри того же screen при переходах
+    // по hash (например, Главная -> Япония). Поэтому setScreen() в app.js в
+    // этот момент не вызывается и оставшийся после fullscreen/hero inline
+    // overflow мог полностью блокировать колесо на новой странице. Возвращаем
+    // нативную прокрутку при КАЖДОЙ отрисовке публичного маршрута. Настоящий
+    // browser fullscreen не трогаем: его состоянием управляет сам браузер.
+    var publicScreen = document.getElementById("screen-public");
+    if (publicScreen && !publicScreen.hidden && !document.fullscreenElement) {
+      document.body.style.removeProperty("overflow");
+      document.documentElement.style.removeProperty("overflow");
+      document.body.style.removeProperty("overflow-y");
+      document.documentElement.style.removeProperty("overflow-y");
+    }
+
     initReveal(container);
     initHeroScroll(container);
   }
