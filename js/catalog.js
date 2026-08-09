@@ -269,7 +269,7 @@
         box.setAttribute("data-direction", source === "prev" ? "prev" : "next");
         animationTimer = global.setTimeout(function () {
           slides.forEach(function (slide) { slide.classList.remove("is-leaving", "is-entering"); });
-        }, 1050);
+        }, 600);
       }
       box.dataset.activeIndex = String(active);
       count.textContent = "0" + (active + 1) + " / 03";
