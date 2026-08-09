@@ -88,7 +88,7 @@ body {
     linear-gradient(0deg, rgba(2, 12, 10, .9) 0%, rgba(2, 12, 10, .05) 58%, rgba(2, 12, 10, .28) 100%);
 }
 .tt-showcase-slide.is-entering {
-  animation: tt-showcase-reveal .95s cubic-bezier(.68, 0, .2, 1) both;
+  animation: tt-showcase-reveal .5s cubic-bezier(.68, 0, .2, 1) both;
 }
 [data-direction="prev"] .tt-showcase-slide.is-entering {
   animation-name: tt-showcase-reveal-prev;
@@ -101,12 +101,12 @@ body {
   width: min(44vw, 690px);
 }
 .tt-showcase-slide.is-active .tt-showcase-copy > * {
-  animation: tt-copy-enter .7s cubic-bezier(.2,.78,.2,1) both;
+  animation: tt-copy-enter .45s cubic-bezier(.2,.78,.2,1) both;
 }
-.tt-showcase-slide.is-active .tt-showcase-copy h2 { animation-delay: .08s; }
-.tt-showcase-slide.is-active .tt-showcase-copy p { animation-delay: .15s; }
-.tt-showcase-slide.is-active .tt-showcase-copy > strong { animation-delay: .2s; }
-.tt-showcase-slide.is-active .tt-showcase-open { animation-delay: .25s; }
+.tt-showcase-slide.is-active .tt-showcase-copy h2 { animation-delay: .04s; }
+.tt-showcase-slide.is-active .tt-showcase-copy p { animation-delay: .08s; }
+.tt-showcase-slide.is-active .tt-showcase-copy > strong { animation-delay: .11s; }
+.tt-showcase-slide.is-active .tt-showcase-open { animation-delay: .14s; }
 .tt-showcase-kicker {
   display: block;
   width: fit-content;
@@ -178,7 +178,7 @@ body {
   color: #fff;
   text-align: left;
   cursor: pointer;
-  animation: tt-card-enter .65s .22s cubic-bezier(.2,.75,.2,1) both;
+  animation: tt-card-enter .42s .1s cubic-bezier(.2,.75,.2,1) both;
 }
 .tt-showcase-card[hidden] { display: none; }
 .tt-showcase-card-image,
