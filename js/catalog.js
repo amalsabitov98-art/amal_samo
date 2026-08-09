@@ -115,62 +115,225 @@
     );
   }
 
-  /*
-   * Главная витрина — Карадениз занимает весь экран, а Умра и Япония лежат
-   * поверх него двумя компактными превью. Это не слайдер: все три перехода
-   * постоянно находятся в DOM и не перехватывают колесо страницы.
-   */
+  /* Главная витрина: три направления меняются внутри одного полноэкранного
+   * кадра. Колесо страницы не трогаем — слайдер управляется таймером,
+   * стрелками и превью. */
   function destinationMosaic(list) {
     var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
     var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
     var karadenizPrice = karadeniz.min_price != null
       ? "от " + money(karadeniz.min_price)
       : "сезон 2026";
-    var previews = [
+    var slides = [
+      {
+        cls: "is-karadeniz", destination: "Турция",
+        image: karadeniz.image || "img/hero-rize-batumi.webp",
+        kicker: "Авторский тур · сезон 2026", title: "Загадочный Карадениз",
+        route: "Батуми · Ризе · Трабзон", meta: "8 дней · " + karadenizPrice,
+        action: "Открыть маршрут", duration: 6000,
+      },
       {
         cls: "is-umrah", destination: "Умра",
         image: "img/umrah-showcase.webp",
-        title: "Умра", meta: "9 программ · от $1200",
+        kicker: "Духовное путешествие · 2026", title: "Путь к святыням",
+        route: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
+        action: "Выбрать программу", duration: 5000,
       },
       {
         cls: "is-japan", destination: "Япония",
         image: japan.image || "img/japan-programs-bg.webp",
-        title: "Япония", meta: "4 программы · сезон 2026",
+        kicker: "Авторские программы · сезон 2026", title: "Япония",
+        route: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
+        action: "Открыть Японию", duration: 5000,
       },
     ];
-    return '<div class="tt-destination-mosaic" aria-label="Главные направления" ' +
-        'style="--tt-featured-image:url(\'' +
-        esc(karadeniz.image || "img/hero-rize-batumi.webp") + '\')">' +
-      '<button class="tt-mosaic-card is-karadeniz" type="button" data-dest="Турция" ' +
-        'aria-label="Открыть тур Загадочный Карадениз"></button>' +
-      '<span class="tt-featured-shade" aria-hidden="true"></span>' +
-      '<div class="tt-featured-copy">' +
-        '<span class="tt-featured-kicker">Авторский тур · сезон 2026</span>' +
-        '<h2>Загадочный Карадениз</h2>' +
-        '<p>Батуми <i>·</i> Ризе <i>·</i> Трабзон</p>' +
-        '<strong>8 дней <i>·</i> ' + esc(karadenizPrice) + '</strong>' +
-        '<button type="button" class="tt-featured-open" data-dest="Турция">' +
-          'Открыть тур <span aria-hidden="true">→</span></button>' +
-        '<div class="tt-featured-progress" aria-hidden="true">' +
-          '<span>01 / 03</span><i><b></b></i>' +
+    return '<div class="tt-destination-showcase" data-showcase data-active-index="0" ' +
+      'role="region" aria-roledescription="carousel" aria-label="Главные направления">' +
+      '<div class="tt-showcase-stage">' +
+        slides.map(function (slide, index) {
+          return '<article class="tt-showcase-slide ' + slide.cls +
+            (index === 0 ? " is-active" : "") + '" data-showcase-slide="' + index +
+            '" data-duration="' + slide.duration + '" aria-hidden="' +
+            (index === 0 ? "false" : "true") + '">' +
+            '<span class="tt-showcase-image" style="--tt-showcase-image:url(\'' +
+              esc(slide.image) + '\')" aria-hidden="true"></span>' +
+            '<span class="tt-showcase-shade" aria-hidden="true"></span>' +
+            '<div class="tt-showcase-copy">' +
+              '<span class="tt-showcase-kicker">' + esc(slide.kicker) + '</span>' +
+              '<h2>' + esc(slide.title) + '</h2>' +
+              '<p>' + esc(slide.route) + '</p>' +
+              '<strong>' + esc(slide.meta) + '</strong>' +
+              '<button type="button" class="tt-showcase-open" data-dest="' +
+                esc(slide.destination) + '">' + esc(slide.action) +
+                ' <span aria-hidden="true">↗</span></button>' +
+            '</div>' +
+          '</article>';
+        }).join("") +
+      '</div>' +
+      '<div class="tt-showcase-previews" aria-label="Следующие направления">' +
+        slides.map(function (slide, index) {
+          return '<button class="tt-showcase-card ' + slide.cls + '" type="button" ' +
+            'data-showcase-card="' + index + '" data-showcase-goto="' + index + '" ' +
+            (index === 0 ? "hidden " : "") + 'aria-label="Показать ' +
+            esc(slide.title) + '" style="--tt-card-image:url(\'' + esc(slide.image) + '\')">' +
+            '<span class="tt-showcase-card-image" aria-hidden="true"></span>' +
+            '<span class="tt-showcase-card-shade" aria-hidden="true"></span>' +
+            '<span class="tt-showcase-card-copy"><small>Следующее направление</small>' +
+              '<strong>' + esc(slide.title) + '</strong><em>' + esc(slide.route) + '</em></span>' +
+            '<span class="tt-showcase-card-arrow" aria-hidden="true">→</span>' +
+          '</button>';
+        }).join("") +
+      '</div>' +
+      '<div class="tt-showcase-controls">' +
+        '<div class="tt-showcase-nav">' +
+          '<button type="button" data-showcase-prev aria-label="Предыдущее направление">←</button>' +
+          '<button type="button" data-showcase-next aria-label="Следующее направление">→</button>' +
+        '</div>' +
+        '<div class="tt-showcase-timer">' +
+          '<span data-showcase-count>01 / 03</span>' +
+          '<i aria-hidden="true"><b data-showcase-progress></b></i>' +
+        '</div>' +
+        '<div class="tt-showcase-dots" role="group" aria-label="Выбрать направление">' +
+          slides.map(function (slide, index) {
+            return '<button type="button" data-showcase-goto="' + index + '" aria-label="' +
+              esc(slide.title) + '"' + (index === 0 ? ' aria-current="true"' : '') + '></button>';
+          }).join("") +
         '</div>' +
       '</div>' +
-      '<div class="tt-mosaic-previews">' +
-      previews.map(function (card) {
-        return '<button class="tt-mosaic-card ' + card.cls + '" type="button" ' +
-          'data-dest="' + esc(card.destination) + '" ' +
-          'style="--tt-mosaic-image:url(\'' + esc(card.image) + '\')">' +
-          '<span class="tt-mosaic-image" aria-hidden="true"></span>' +
-          '<span class="tt-mosaic-shade" aria-hidden="true"></span>' +
-          '<span class="tt-mosaic-copy">' +
-            '<strong>' + esc(card.title) + '</strong>' +
-            '<em>' + esc(card.meta) + '</em>' +
-          '</span>' +
-          '<span class="tt-mosaic-open" aria-hidden="true">→</span>' +
-        '</button>';
-      }).join("") +
-      '</div>' +
+      '<span class="tt-sr-only" data-showcase-status aria-live="polite">' +
+        esc(slides[0].title) + ', слайд 1 из 3</span>' +
     '</div>';
+  }
+
+  function initDestinationShowcase(root) {
+    var box = root.querySelector("[data-showcase]");
+    if (!box) return function () {};
+    var slides = Array.prototype.slice.call(box.querySelectorAll("[data-showcase-slide]"));
+    var cards = Array.prototype.slice.call(box.querySelectorAll("[data-showcase-card]"));
+    var dots = Array.prototype.slice.call(box.querySelectorAll(".tt-showcase-dots [data-showcase-goto]"));
+    var count = box.querySelector("[data-showcase-count]");
+    var progress = box.querySelector("[data-showcase-progress]");
+    var status = box.querySelector("[data-showcase-status]");
+    var reduced = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var active = 0, timer = null, animationTimer = null;
+    var startedAt = 0, remaining = Number(slides[0].dataset.duration) || 6000;
+    var paused = false, destroyed = false;
+
+    function titleOf(index) {
+      var title = slides[index].querySelector("h2");
+      return title ? title.textContent : "Направление";
+    }
+
+    function stopClock() {
+      if (timer) global.clearTimeout(timer);
+      timer = null;
+      if (!paused && startedAt) remaining = Math.max(120, remaining - (Date.now() - startedAt));
+      startedAt = 0;
+      box.classList.add("is-timer-paused");
+    }
+
+    function startClock(delay) {
+      if (destroyed || reduced || paused || global.document.hidden) return;
+      remaining = delay == null ? remaining : delay;
+      startedAt = Date.now();
+      box.style.setProperty("--tt-showcase-duration", remaining + "ms");
+      box.classList.remove("is-timer-running");
+      void progress.offsetWidth;
+      box.classList.remove("is-timer-paused");
+      box.classList.add("is-timer-running");
+      timer = global.setTimeout(function () { show(active + 1, "auto"); }, remaining);
+    }
+
+    function arrangeCards() {
+      cards.forEach(function (card, index) {
+        var distance = (index - active + slides.length) % slides.length;
+        card.hidden = distance === 0;
+        card.style.order = String(distance);
+        card.setAttribute("aria-hidden", distance === 0 ? "true" : "false");
+      });
+    }
+
+    function show(next, source) {
+      next = (next + slides.length) % slides.length;
+      stopClock();
+      var old = active;
+      active = next;
+      if (old !== active) {
+        if (animationTimer) global.clearTimeout(animationTimer);
+        slides[old].classList.remove("is-active", "is-entering");
+        slides[old].classList.add("is-leaving");
+        slides[old].setAttribute("aria-hidden", "true");
+        slides[active].classList.remove("is-leaving");
+        slides[active].classList.add("is-active", "is-entering");
+        slides[active].setAttribute("aria-hidden", "false");
+        box.setAttribute("data-direction", source === "prev" ? "prev" : "next");
+        animationTimer = global.setTimeout(function () {
+          slides.forEach(function (slide) { slide.classList.remove("is-leaving", "is-entering"); });
+        }, 1050);
+      }
+      box.dataset.activeIndex = String(active);
+      count.textContent = "0" + (active + 1) + " / 03";
+      dots.forEach(function (dot, index) {
+        if (index === active) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
+      });
+      arrangeCards();
+      status.textContent = titleOf(active) + ", слайд " + (active + 1) + " из 3";
+      remaining = Number(slides[active].dataset.duration) || 5000;
+      startClock(remaining);
+    }
+
+    function pause() {
+      if (paused) return;
+      stopClock();
+      paused = true;
+    }
+
+    function resume() {
+      if (!paused) return;
+      paused = false;
+      startClock(remaining);
+    }
+
+    function onClick(event) {
+      var target = event.target.closest("[data-showcase-goto], [data-showcase-prev], [data-showcase-next]");
+      if (!target || !box.contains(target)) return;
+      if (target.hasAttribute("data-showcase-prev")) show(active - 1, "prev");
+      else if (target.hasAttribute("data-showcase-next")) show(active + 1, "next");
+      else show(Number(target.dataset.showcaseGoto), "manual");
+    }
+
+    function onKey(event) {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      show(active + (event.key === "ArrowLeft" ? -1 : 1),
+        event.key === "ArrowLeft" ? "prev" : "next");
+    }
+
+    function onVisibility() {
+      if (global.document.hidden) stopClock();
+      else if (!paused) startClock(remaining);
+    }
+
+    box.addEventListener("click", onClick);
+    box.addEventListener("keydown", onKey);
+    box.addEventListener("mouseenter", pause);
+    box.addEventListener("mouseleave", resume);
+    box.addEventListener("focusin", pause);
+    box.addEventListener("focusout", function (event) {
+      if (!box.contains(event.relatedTarget)) resume();
+    });
+    global.document.addEventListener("visibilitychange", onVisibility);
+    arrangeCards();
+    if (!reduced) startClock(remaining);
+    else box.classList.add("is-reduced-motion");
+
+    return function () {
+      destroyed = true;
+      if (timer) global.clearTimeout(timer);
+      if (animationTimer) global.clearTimeout(animationTimer);
+      global.document.removeEventListener("visibilitychange", onVisibility);
+    };
   }
 
   function tourRow(t) {
@@ -489,6 +652,7 @@
     // Слушатели пробуждения видео вешаются на документ, а он один — значит
     // и вешать их надо один раз, а не при каждой отрисовке титульной.
     var heroWakeBound = false;
+    var showcaseCleanup = null;
 
     function seatsLabel(free) {
       if (free <= 0) return { text: "мест нет", level: "is-full" };
@@ -506,6 +670,8 @@
     }
 
     function loading() {
+      if (showcaseCleanup) showcaseCleanup();
+      showcaseCleanup = null;
       root.innerHTML = '<div class="tt-empty-state">Загружаем…</div>';
     }
 
@@ -829,6 +995,7 @@
 
         if (cfg.canBook) {
           root.innerHTML = catalogue;
+          showcaseCleanup = initDestinationShowcase(root);
           return;
         }
 
@@ -870,6 +1037,7 @@
             '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
           footerHtml();
+        showcaseCleanup = initDestinationShowcase(root);
         // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
         // CSS видео не останавливает, поэтому только так.
         var video = root.querySelector(".tt-hero-video");

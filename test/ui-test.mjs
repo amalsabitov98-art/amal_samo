@@ -71,16 +71,24 @@ console.log("\nТитульная страница");
   check("каруселей с картинками больше нет",
         (await page.locator(".tt-hero-slide").count()) === 0);
   check("панель поиска на месте", await page.locator("#tour-search").isVisible());
-  check("на одном экране три главных направления",
-        (await page.locator(".tt-destination-mosaic .tt-mosaic-card").count()) === 3);
+  check("в автослайдере три главных направления",
+        (await page.locator(".tt-destination-showcase .tt-showcase-slide").count()) === 3);
   check("Карадениз стоит первым и назван главным продуктом",
-        await page.locator(".tt-mosaic-card").first().evaluate((el) =>
+        await page.locator(".tt-showcase-slide").first().evaluate((el) =>
           el.classList.contains("is-karadeniz") &&
-          el.parentElement.textContent.includes("Загадочный Карадениз")));
-  check("Умра и Япония собраны двумя превью поверх Карадениза",
-        await page.locator(".tt-mosaic-previews").evaluate((el) =>
-          el.children.length === 2 &&
+          el.classList.contains("is-active") &&
+          el.textContent.includes("Загадочный Карадениз")));
+  check("Умра и Япония собраны двумя следующими превью",
+        await page.locator(".tt-showcase-previews").evaluate((el) =>
+          [...el.children].filter((child) => !child.hidden).length === 2 &&
           getComputedStyle(el).position === "absolute"));
+  check("первый кадр длится 6 секунд, остальные по 5",
+        await page.locator(".tt-showcase-slide").evaluateAll((slides) =>
+          slides.map((el) => Number(el.dataset.duration)).join(",") === "6000,5000,5000"));
+  check("есть таймер, стрелки и три ручных переключателя",
+        (await page.locator("[data-showcase-progress]").count()) === 1 &&
+        (await page.locator("[data-showcase-prev], [data-showcase-next]").count()) === 2 &&
+        (await page.locator(".tt-showcase-dots [data-showcase-goto]").count()) === 3);
   check("витрина занимает ровно ширину и высоту окна",
         await page.locator(".tt-public-catalogue").evaluate((el) => {
           const r = el.getBoundingClientRect();
@@ -90,7 +98,12 @@ console.log("\nТитульная страница");
   check("отдельный японский слайд удалён",
         (await page.locator(".tt-japan-sheet").count()) === 0);
 
-  await page.locator('.tt-mosaic-card[data-dest="Умра"]').click();
+  await page.locator('[data-showcase-card="1"]').click();
+  await page.waitForTimeout(1100);
+  check("превью Умры разворачивается в активный полноэкранный кадр",
+        await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
+          el.classList.contains("is-active") && el.getAttribute("aria-hidden") === "false"));
+  await page.locator('.tt-showcase-slide.is-active [data-dest="Умра"]').click();
   await page.waitForTimeout(500);
   check("Умра открывается как отдельное направление",
         (await page.evaluate(() => location.hash)).includes("%D0%A3%D0%BC%D1%80%D0%B0"));

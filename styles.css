@@ -24,8 +24,8 @@ body {
 }
 
 /* -------------------------------------------------------------------------
-   Главные направления: один полноэкранный Карадениз и два превью поверх.
-   Все переходы постоянно видимы; JS-слайдера и перехвата колеса нет. */
+   Главные направления: кинематографичный автослайдер. Он не перехватывает
+   колесо страницы; движение живёт только внутри самого полноэкранного кадра. */
 .tt-public-catalogue {
   position: relative;
   width: 100vw !important;
@@ -38,193 +38,308 @@ body {
   overflow: hidden;
   background: #071713;
 }
-.tt-destination-mosaic {
+.tt-destination-showcase,
+.tt-showcase-stage {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   color: #fff;
-  background: #10241f var(--tt-featured-image) center 52% / cover no-repeat;
+  background: #071713;
   isolation: isolate;
 }
-.tt-mosaic-card {
-  position: relative;
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  color: #fff;
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  isolation: isolate;
-}
-.tt-mosaic-card.is-karadeniz {
+.tt-showcase-slide {
   position: absolute;
   inset: 0;
   z-index: 0;
-  width: 100%;
-  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
-.tt-featured-shade {
+.tt-showcase-slide.is-active,
+.tt-showcase-slide.is-leaving {
+  opacity: 1;
+  visibility: visible;
+}
+.tt-showcase-slide.is-active { z-index: 2; pointer-events: auto; }
+.tt-showcase-slide.is-leaving { z-index: 1; }
+.tt-showcase-image,
+.tt-showcase-shade {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  display: block;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(2, 12, 10, .72) 0%, rgba(2, 12, 10, .27) 42%, transparent 72%),
-    linear-gradient(0deg, rgba(2, 12, 10, .84) 0%, rgba(2, 12, 10, .08) 58%, rgba(2, 12, 10, .2) 100%);
 }
-.tt-featured-copy {
+.tt-showcase-image {
+  z-index: -2;
+  background: #10241f var(--tt-showcase-image) center 52% / cover no-repeat;
+  transform: scale(1.001);
+}
+.tt-showcase-slide.is-active .tt-showcase-image {
+  animation: tt-showcase-breathe 14s ease-out both;
+}
+.tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 64% 53%; }
+.tt-showcase-slide.is-japan .tt-showcase-image { background-position: 52% 48%; }
+.tt-showcase-shade {
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(2, 12, 10, .78) 0%, rgba(2, 12, 10, .38) 38%, transparent 68%),
+    linear-gradient(0deg, rgba(2, 12, 10, .9) 0%, rgba(2, 12, 10, .05) 58%, rgba(2, 12, 10, .28) 100%);
+}
+.tt-showcase-slide.is-entering {
+  animation: tt-showcase-reveal .95s cubic-bezier(.68, 0, .2, 1) both;
+}
+[data-direction="prev"] .tt-showcase-slide.is-entering {
+  animation-name: tt-showcase-reveal-prev;
+}
+.tt-showcase-copy {
   position: absolute;
   left: clamp(28px, 4.2vw, 78px);
-  bottom: clamp(30px, 5.2vh, 58px);
-  z-index: 2;
-  width: min(42vw, 650px);
-  pointer-events: none;
+  bottom: clamp(118px, 15.5vh, 165px);
+  z-index: 4;
+  width: min(44vw, 690px);
 }
-.tt-featured-kicker {
+.tt-showcase-slide.is-active .tt-showcase-copy > * {
+  animation: tt-copy-enter .7s cubic-bezier(.2,.78,.2,1) both;
+}
+.tt-showcase-slide.is-active .tt-showcase-copy h2 { animation-delay: .08s; }
+.tt-showcase-slide.is-active .tt-showcase-copy p { animation-delay: .15s; }
+.tt-showcase-slide.is-active .tt-showcase-copy > strong { animation-delay: .2s; }
+.tt-showcase-slide.is-active .tt-showcase-open { animation-delay: .25s; }
+.tt-showcase-kicker {
   display: block;
-  margin-bottom: 14px;
+  width: fit-content;
+  margin-bottom: 16px;
   color: #e5ca81;
   font: 700 clamp(.56rem, .66vw, .7rem)/1.3 Manrope, sans-serif;
   letter-spacing: .15em;
   text-transform: uppercase;
 }
-.tt-featured-copy h2 {
+.tt-showcase-copy h2 {
   margin: 0;
   color: #fff;
-  font: 500 clamp(2.7rem, 4.5vw, 5.25rem)/.94 Manrope, sans-serif;
+  font: 500 clamp(3rem, 5.15vw, 6.35rem)/.88 "Cormorant Garamond", Georgia, serif;
   letter-spacing: -.06em;
   text-wrap: balance;
 }
-.tt-featured-copy p,
-.tt-featured-copy > strong {
+.tt-showcase-slide.is-karadeniz .tt-showcase-copy h2 { max-width: 650px; }
+.tt-showcase-copy p,
+.tt-showcase-copy > strong {
   display: block;
-  margin: 18px 0 0;
+  margin: 20px 0 0;
   color: rgba(255,255,255,.86);
-  font: 500 clamp(.78rem, 1.12vw, 1.05rem)/1.45 Manrope, sans-serif;
-  letter-spacing: .005em;
+  font: 500 clamp(.76rem, .98vw, .98rem)/1.45 Manrope, sans-serif;
+  letter-spacing: .04em;
 }
-.tt-featured-copy > strong { margin-top: 14px; color: #fff; font-weight: 600; }
-.tt-featured-copy i { margin-inline: .38em; color: rgba(255,255,255,.5); font-style: normal; }
-.tt-featured-open {
+.tt-showcase-copy > strong { margin-top: 10px; color: #fff; font-weight: 600; }
+.tt-showcase-open {
   display: inline-flex;
   align-items: center;
-  gap: 13px;
-  margin-top: 25px;
-  padding: 0 0 7px;
-  border: 0;
-  border-bottom: 1px solid rgba(255,255,255,.62);
-  background: transparent;
+  justify-content: space-between;
+  gap: 28px;
+  min-width: 190px;
+  margin-top: 28px;
+  padding: 13px 17px;
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 2px;
+  background: rgba(4, 16, 13, .2);
+  backdrop-filter: blur(8px);
   color: #fff;
-  font: 600 clamp(.72rem, .88vw, .86rem)/1 Manrope, sans-serif;
+  font: 600 clamp(.68rem, .78vw, .78rem)/1 Manrope, sans-serif;
   cursor: pointer;
-  pointer-events: auto;
-  transition: gap .3s ease, border-color .3s ease;
+  transition: color .35s ease, background .35s ease, border-color .35s ease;
 }
-.tt-featured-open span { font-size: 1.12rem; }
-.tt-featured-open:hover { gap: 20px; border-color: #e5ca81; }
-.tt-featured-open:focus-visible { outline: 2px solid #e5ca81; outline-offset: 5px; }
-.tt-featured-progress {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  width: min(100%, 580px);
-  margin-top: 30px;
-  color: rgba(255,255,255,.65);
-  font: 600 .64rem/1 Manrope, sans-serif;
-}
-.tt-featured-progress > i {
-  position: relative;
-  flex: 1;
-  height: 1px;
-  margin: 0;
-  background: rgba(255,255,255,.3);
-}
-.tt-featured-progress b { display: block; width: 16%; height: 2px; background: #fff; transform: translateY(-.5px); }
-.tt-mosaic-previews {
+.tt-showcase-open span { font-size: 1rem; transition: transform .35s ease; }
+.tt-showcase-open:hover { color: #13221d; background: #e5ca81; border-color: #e5ca81; }
+.tt-showcase-open:hover span { transform: translate(3px, -3px); }
+.tt-showcase-open:focus-visible { outline: 2px solid #e5ca81; outline-offset: 4px; }
+.tt-showcase-previews {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
+  right: clamp(24px, 3.2vw, 58px);
+  bottom: clamp(88px, 12vh, 124px);
+  z-index: 6;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: min(58vw, 1020px);
-  height: clamp(185px, 25svh, 265px);
-  box-shadow: 0 -12px 44px rgba(1, 9, 8, .18);
+  grid-template-columns: repeat(2, minmax(190px, 1fr));
+  gap: clamp(12px, 1.4vw, 22px);
+  width: min(49vw, 750px);
 }
-.tt-mosaic-previews .tt-mosaic-card + .tt-mosaic-card { border-left: 1px solid rgba(255,255,255,.34); }
-.tt-mosaic-image,
-.tt-mosaic-shade {
+.tt-showcase-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  height: clamp(178px, 24vh, 250px);
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 3px;
+  background: #13231f;
+  box-shadow: 0 18px 52px rgba(0,0,0,.24);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  animation: tt-card-enter .65s .22s cubic-bezier(.2,.75,.2,1) both;
+}
+.tt-showcase-card[hidden] { display: none; }
+.tt-showcase-card-image,
+.tt-showcase-card-shade {
   position: absolute;
   inset: 0;
   display: block;
 }
-.tt-mosaic-image {
-  z-index: -2;
-  background: var(--tt-mosaic-image) center / cover no-repeat;
+.tt-showcase-card-image {
+  background: var(--tt-card-image) center / cover no-repeat;
   transform: scale(1.001);
-  transition: transform 1.4s cubic-bezier(.2,.7,.2,1), filter .55s ease;
+  transition: transform 1.2s cubic-bezier(.2,.7,.2,1), filter .45s ease;
 }
-.tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 65% 55%; }
-.tt-mosaic-card.is-japan .tt-mosaic-image { background-position: center 48%; }
-.tt-mosaic-shade {
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(3,13,11,.13) 0%, rgba(3,13,11,.08) 38%, rgba(3,13,11,.82) 100%),
-    linear-gradient(90deg, rgba(3,13,11,.48), transparent 62%);
-  transition: background .45s ease;
+.tt-showcase-card.is-umrah .tt-showcase-card-image { background-position: 64% 55%; }
+.tt-showcase-card-shade {
+  background: linear-gradient(180deg, rgba(2,12,10,.06), rgba(2,12,10,.16) 35%, rgba(2,12,10,.9));
 }
-.tt-mosaic-copy {
+.tt-showcase-card-copy {
   position: absolute;
-  left: clamp(24px, 4.2vw, 76px);
-  bottom: clamp(24px, 5vh, 52px);
+  left: clamp(18px, 2vw, 30px);
+  right: 54px;
+  bottom: clamp(18px, 2.2vw, 30px);
   z-index: 2;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  max-width: calc(100% - 70px);
 }
-.tt-mosaic-copy strong {
-  color: #fff;
-  font: 500 clamp(1.5rem, 2vw, 2.25rem)/1 Manrope, sans-serif;
-  letter-spacing: -.045em;
-  text-wrap: balance;
+.tt-showcase-card-copy small {
+  margin-bottom: 7px;
+  color: #e5ca81;
+  font: 700 .52rem/1.2 Manrope, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
 }
-.tt-mosaic-copy em {
-  margin-top: 8px;
-  color: rgba(255,255,255,.7);
-  font: 600 clamp(.56rem, .66vw, .68rem)/1.4 Manrope, sans-serif;
+.tt-showcase-card-copy strong {
+  font: 500 clamp(1.35rem, 1.9vw, 2rem)/.95 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.025em;
+}
+.tt-showcase-card-copy em {
+  margin-top: 6px;
+  overflow: hidden;
+  color: rgba(255,255,255,.68);
+  font: 500 .58rem/1.35 Manrope, sans-serif;
   font-style: normal;
-  letter-spacing: .02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.tt-mosaic-open {
+.tt-showcase-card-arrow {
   position: absolute;
-  right: clamp(20px, 3vw, 46px);
-  bottom: clamp(24px, 4.4vh, 44px);
+  right: 19px;
+  bottom: 22px;
   z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  width: 34px;
-  height: 34px;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
   border: 1px solid rgba(255,255,255,.55);
   border-radius: 50%;
-  background: rgba(7,19,16,.22);
-  backdrop-filter: blur(8px);
-  color: #fff;
-  font: 500 1rem/1 Manrope, sans-serif;
-  transition: border-color .3s ease, background .3s ease, transform .3s ease;
+  font: 500 .9rem/1 Manrope, sans-serif;
+  transition: color .35s ease, background .35s ease, transform .35s ease;
 }
-.tt-mosaic-card:hover .tt-mosaic-image,
-.tt-mosaic-card:focus-visible .tt-mosaic-image { transform: scale(1.035); filter: saturate(1.04); }
-.tt-mosaic-card:hover .tt-mosaic-open,
-.tt-mosaic-card:focus-visible .tt-mosaic-open { transform: translateY(-3px); border-color: #e5ca81; background: rgba(7,19,16,.58); }
-.tt-mosaic-card:focus-visible { outline: 3px solid #e5ca81; outline-offset: -3px; z-index: 5; }
+.tt-showcase-card:hover .tt-showcase-card-image,
+.tt-showcase-card:focus-visible .tt-showcase-card-image { transform: scale(1.065); filter: saturate(1.06); }
+.tt-showcase-card:hover .tt-showcase-card-arrow { color: #15241f; background: #e5ca81; transform: translateX(4px); }
+.tt-showcase-card:focus-visible { outline: 3px solid #e5ca81; outline-offset: 3px; }
+.tt-showcase-controls {
+  position: absolute;
+  left: clamp(28px, 4.2vw, 78px);
+  right: clamp(24px, 3.2vw, 58px);
+  bottom: clamp(30px, 4.3vh, 48px);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.1vw, 34px);
+}
+.tt-showcase-nav { display: flex; gap: 8px; }
+.tt-showcase-nav button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.38);
+  border-radius: 50%;
+  background: rgba(4,16,13,.18);
+  color: #fff;
+  cursor: pointer;
+  transition: border-color .3s ease, background .3s ease;
+}
+.tt-showcase-nav button:hover { border-color: #e5ca81; background: rgba(4,16,13,.55); }
+.tt-showcase-nav button:focus-visible,
+.tt-showcase-dots button:focus-visible { outline: 2px solid #e5ca81; outline-offset: 3px; }
+.tt-showcase-timer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(36vw, 520px);
+  color: rgba(255,255,255,.65);
+  font: 600 .64rem/1 Manrope, sans-serif;
+}
+.tt-showcase-timer > i {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.3);
+  overflow: hidden;
+}
+.tt-showcase-timer b {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #e5ca81;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.tt-destination-showcase.is-timer-running .tt-showcase-timer b {
+  animation: tt-showcase-progress var(--tt-showcase-duration, 5000ms) linear forwards;
+}
+.tt-destination-showcase.is-timer-paused .tt-showcase-timer b { animation-play-state: paused; }
+.tt-showcase-dots { display: flex; align-items: center; gap: 9px; margin-left: auto; }
+.tt-showcase-dots button {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.tt-showcase-dots button::before {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: auto;
+  border-radius: 50%;
+  background: rgba(255,255,255,.48);
+  transition: transform .3s ease, background .3s ease;
+}
+.tt-showcase-dots button[aria-current="true"]::before { background: #e5ca81; transform: scale(1.8); }
+
+@keyframes tt-showcase-reveal {
+  from { clip-path: inset(0 0 0 100%); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes tt-showcase-reveal-prev {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes tt-showcase-breathe {
+  from { transform: scale(1.001); }
+  to { transform: scale(1.055); }
+}
+@keyframes tt-showcase-progress { to { transform: scaleX(1); } }
+@keyframes tt-card-enter {
+  from { opacity: 0; transform: translateX(34px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes tt-copy-enter {
+  from { opacity: 0; transform: translateY(24px); clip-path: inset(100% 0 0); }
+  to { opacity: 1; transform: translateY(0); clip-path: inset(0); }
+}
 
 /* -------------------------------------------------------------------------
    Направление «Умра»: отдельная заполненная страница программ. */
@@ -384,41 +499,44 @@ body {
 .tt-umrah-contact > a span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #10211c; background: #e4ca83; }
 
 @media (max-width: 880px) {
-  .tt-featured-copy { width: 40vw; }
-  .tt-featured-copy h2 { font-size: clamp(2.35rem, 5.3vw, 3.8rem); }
-  .tt-mosaic-previews { width: 57vw; height: clamp(170px, 23svh, 225px); }
-  .tt-mosaic-copy { max-width: calc(100% - 30px); left: 18px; bottom: 18px; }
-  .tt-mosaic-copy strong { font-size: clamp(1.25rem, 2.8vw, 1.8rem); }
-  .tt-mosaic-copy em { display: none; }
-  .tt-mosaic-open { top: 16px; right: 16px; bottom: auto; }
+  .tt-showcase-copy { width: 43vw; bottom: 128px; }
+  .tt-showcase-copy h2 { font-size: clamp(2.8rem, 6.6vw, 4.8rem); }
+  .tt-showcase-previews { width: 50vw; grid-template-columns: repeat(2, minmax(145px, 1fr)); }
+  .tt-showcase-card { height: clamp(160px, 22vh, 210px); }
+  .tt-showcase-card-copy { left: 17px; right: 42px; bottom: 18px; }
+  .tt-showcase-card-copy em { display: none; }
+  .tt-showcase-card-arrow { right: 13px; bottom: 17px; width: 27px; height: 27px; }
   .tt-umrah-program summary > span { grid-template-columns: 100px 180px 1fr; }
   .tt-umrah-program-body { padding-left: 0; }
 }
 
 @media (max-width: 620px) {
-  .tt-public-catalogue { height: auto; min-height: 0; overflow: visible; }
-  .tt-destination-mosaic {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: visible;
-    background-position: 47% center;
+  .tt-public-catalogue { height: 100svh; min-height: 620px; }
+  .tt-showcase-slide.is-karadeniz .tt-showcase-image { background-position: 48% center; }
+  .tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 63% center; }
+  .tt-showcase-slide.is-japan .tt-showcase-image { background-position: 57% center; }
+  .tt-showcase-shade {
+    background:
+      linear-gradient(180deg, rgba(2,12,10,.2), transparent 26%, rgba(2,12,10,.44) 54%, rgba(2,12,10,.96) 100%),
+      linear-gradient(90deg, rgba(2,12,10,.42), transparent 72%);
   }
-  .tt-mosaic-card.is-karadeniz { height: 72svh; }
-  .tt-featured-shade { height: 72svh; bottom: auto; }
-  .tt-featured-copy { position: relative; left: auto; bottom: auto; z-index: 2; width: auto; min-height: 72svh; padding: 0 21px 28px; display: flex; flex-direction: column; justify-content: flex-end; }
-  .tt-featured-copy h2 { max-width: 340px; font-size: clamp(2.45rem, 12vw, 4rem); }
-  .tt-featured-copy p { margin-top: 12px; }
-  .tt-featured-copy > strong { margin-top: 8px; }
-  .tt-featured-open { margin-top: 20px; width: fit-content; }
-  .tt-featured-progress { margin-top: 24px; }
-  .tt-mosaic-previews { position: relative; right: auto; bottom: auto; z-index: 3; grid-template-columns: 1fr; width: 100%; height: auto; }
-  .tt-mosaic-previews .tt-mosaic-card { min-height: 34svh; border-top: 1px solid rgba(255,255,255,.28); }
-  .tt-mosaic-previews .tt-mosaic-card + .tt-mosaic-card { border-left: 0; }
-  .tt-mosaic-card.is-umrah .tt-mosaic-image { background-position: 66% 58%; }
-  .tt-mosaic-copy { bottom: 22px; }
-  .tt-mosaic-copy strong { font-size: clamp(1.7rem, 8vw, 2.4rem); }
-  .tt-mosaic-copy em { margin-top: 5px; }
+  .tt-showcase-copy { left: 19px; right: 19px; bottom: 34.5svh; width: auto; }
+  .tt-showcase-kicker { margin-bottom: 9px; font-size: .5rem; }
+  .tt-showcase-copy h2 { max-width: 350px; font-size: clamp(2.65rem, 13.3vw, 4.2rem); line-height: .88; }
+  .tt-showcase-copy p { margin-top: 12px; font-size: .69rem; }
+  .tt-showcase-copy > strong { margin-top: 6px; font-size: .68rem; }
+  .tt-showcase-open { min-width: 0; margin-top: 16px; padding: 10px 13px; font-size: .62rem; }
+  .tt-showcase-previews { left: 15px; right: 15px; bottom: 66px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; width: auto; }
+  .tt-showcase-card { height: clamp(108px, 17svh, 145px); }
+  .tt-showcase-card-copy { left: 12px; right: 32px; bottom: 12px; }
+  .tt-showcase-card-copy small,
+  .tt-showcase-card-copy em { display: none; }
+  .tt-showcase-card-copy strong { font-size: clamp(1.02rem, 5vw, 1.35rem); }
+  .tt-showcase-card-arrow { right: 8px; bottom: 10px; width: 23px; height: 23px; font-size: .7rem; }
+  .tt-showcase-controls { left: 17px; right: 17px; bottom: 18px; gap: 12px; }
+  .tt-showcase-nav { display: none; }
+  .tt-showcase-timer { width: auto; flex: 1; }
+  .tt-showcase-dots { margin-left: 0; }
   .tt-umrah-hero { min-height: 78svh; background-position: 68% 50%; }
   .tt-umrah-hero-copy { padding: 130px 20px 48px; }
   .tt-umrah-hero-copy h1 { font-size: clamp(4.2rem, 23vw, 6.8rem); }
@@ -439,9 +557,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tt-mosaic-image,
-  .tt-mosaic-open,
-  .tt-umrah-program summary > i { transition: none; }
+  .tt-showcase-slide,
+  .tt-showcase-image,
+  .tt-showcase-card,
+  .tt-showcase-card-image,
+  .tt-showcase-card-arrow,
+  .tt-umrah-program summary > i { transition: none; animation: none; }
+  .tt-showcase-timer b { transform: scaleX(1); }
 }
 
 a { color: inherit; }
@@ -6009,8 +6131,8 @@ select { font-family: inherit; }
 
 /* Каскадный финал новой витрины: старые правила ниже по файлу сохранены для
    прежних компонентов, поэтому размеры нового блока закрепляем последними. */
-.tt-public-catalogue:has(.tt-destination-mosaic) {
-  width: 100vw !important;
+.tt-public-catalogue:has(.tt-destination-showcase) {
+  width: 100% !important;
   height: 100vh;
   height: 100svh;
   min-height: 680px;
@@ -6019,7 +6141,13 @@ select { font-family: inherit; }
   overflow: hidden;
 }
 
-#screen-public > .tt-container > .tt-public-catalogue,
+#screen-public > .tt-container > .tt-public-catalogue {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding-inline: 0 !important;
+}
+
 #screen-public > .tt-container > .tt-umrah-page {
   width: 100vw;
   max-width: none;
@@ -6029,9 +6157,9 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 620px) {
-  .tt-public-catalogue:has(.tt-destination-mosaic) {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
+  .tt-public-catalogue:has(.tt-destination-showcase) {
+    height: 100svh;
+    min-height: 620px;
+    overflow: hidden;
   }
 }
