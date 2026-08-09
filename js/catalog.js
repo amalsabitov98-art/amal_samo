@@ -217,7 +217,7 @@
     var reduced = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var active = 0, timer = null, animationTimer = null;
     var startedAt = 0, remaining = Number(slides[0].dataset.duration) || 6000;
-    var paused = false, destroyed = false;
+    var transitioning = false, destroyed = false;
 
     function titleOf(index) {
       var title = slides[index].querySelector("h2");
@@ -227,13 +227,13 @@
     function stopClock() {
       if (timer) global.clearTimeout(timer);
       timer = null;
-      if (!paused && startedAt) remaining = Math.max(120, remaining - (Date.now() - startedAt));
+      if (startedAt) remaining = Math.max(120, remaining - (Date.now() - startedAt));
       startedAt = 0;
       box.classList.add("is-timer-paused");
     }
 
     function startClock(delay) {
-      if (destroyed || reduced || paused || global.document.hidden) return;
+      if (destroyed || reduced || global.document.hidden) return;
       remaining = delay == null ? remaining : delay;
       startedAt = Date.now();
       box.style.setProperty("--tt-showcase-duration", remaining + "ms");
@@ -255,10 +255,12 @@
 
     function show(next, source) {
       next = (next + slides.length) % slides.length;
+      if (transitioning) return;
       stopClock();
       var old = active;
       active = next;
       if (old !== active) {
+        transitioning = true;
         if (animationTimer) global.clearTimeout(animationTimer);
         slides[old].classList.remove("is-active", "is-entering");
         slides[old].classList.add("is-leaving");
@@ -269,6 +271,8 @@
         box.setAttribute("data-direction", source === "prev" ? "prev" : "next");
         animationTimer = global.setTimeout(function () {
           slides.forEach(function (slide) { slide.classList.remove("is-leaving", "is-entering"); });
+          transitioning = false;
+          animationTimer = null;
         }, 600);
       }
       box.dataset.activeIndex = String(active);
@@ -280,18 +284,6 @@
       arrangeCards();
       status.textContent = titleOf(active) + ", слайд " + (active + 1) + " из 3";
       remaining = Number(slides[active].dataset.duration) || 5000;
-      startClock(remaining);
-    }
-
-    function pause() {
-      if (paused) return;
-      stopClock();
-      paused = true;
-    }
-
-    function resume() {
-      if (!paused) return;
-      paused = false;
       startClock(remaining);
     }
 
@@ -312,17 +304,11 @@
 
     function onVisibility() {
       if (global.document.hidden) stopClock();
-      else if (!paused) startClock(remaining);
+      else startClock(remaining);
     }
 
     box.addEventListener("click", onClick);
     box.addEventListener("keydown", onKey);
-    box.addEventListener("mouseenter", pause);
-    box.addEventListener("mouseleave", resume);
-    box.addEventListener("focusin", pause);
-    box.addEventListener("focusout", function (event) {
-      if (!box.contains(event.relatedTarget)) resume();
-    });
     global.document.addEventListener("visibilitychange", onVisibility);
     arrangeCards();
     if (!reduced) startClock(remaining);
