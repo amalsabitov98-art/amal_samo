@@ -3243,7 +3243,7 @@ select { font-family: inherit; }
      ниже — их и открывает прокрутка. */
   min-height: 145svh;
   overflow: hidden;
-  margin-bottom: clamp(72px, 9vw, 124px);
+  /* Стыкуем video-hero и витрину без пустой полосы; небольшой нахлёст\n     исключает субпиксельный шов при масштабировании браузера. */\n  margin-bottom: -1px;
   border-radius: 0;
   background: #082b25;
   isolation: isolate;
