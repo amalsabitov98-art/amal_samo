@@ -1221,7 +1221,6 @@
           '</div>' +
           '<div class="tt-umrah-shell">' +
             '<header class="tt-umrah-hero-copy">' +
-              crumbs([{ text: "Каталог", go: "root" }, { text: "Умра" }]) +
               '<span class="tt-eyebrow">Путь к святыням · сезон 2026</span>' +
               '<h1>Умра</h1>' +
               '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
