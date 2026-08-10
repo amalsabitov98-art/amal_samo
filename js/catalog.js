@@ -138,6 +138,7 @@
         kicker: "Духовное путешествие · 2026", title: "Путь к святыням",
         route: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
         action: "Выбрать программу", duration: 5000,
+        scrollTarget: "tt-umrah-programs",
       },
       {
         cls: "is-japan", destination: "Япония",
@@ -164,7 +165,9 @@
               '<p>' + esc(slide.route) + '</p>' +
               '<strong>' + esc(slide.meta) + '</strong>' +
               '<button type="button" class="tt-showcase-open" data-dest="' +
-                esc(slide.destination) + '">' + esc(slide.action) +
+                esc(slide.destination) + '"' + (slide.scrollTarget
+                  ? ' data-scroll-after-route="' + esc(slide.scrollTarget) + '"'
+                  : '') + '>' + esc(slide.action) +
                 ' <span aria-hidden="true">↗</span></button>' +
             '</div>' +
           '</article>';
@@ -630,6 +633,9 @@
     // viewFromHash может вернуть null (адрес кабинета) — тогда показываем
     // список направлений: каталог всегда должен быть с чего-то начат.
     var view = (cfg.useHash && viewFromHash()) || { kind: "destinations" };
+    // CTA витрины может открыть не верх направления, а конкретный блок.
+    // Храним намерение до hashchange: именно он перерисовывает страницу.
+    var pendingScrollTarget = null;
     // Открытый калькулятор: код заезда и счётчики по тарифам.
     var calc = { code: null, counts: {} };
     // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
@@ -1230,7 +1236,7 @@
                 '<span>' + umrahIcon("duration") + '10 или 13 дней</span>' +
                 '<strong>' + umrahIcon("price") + 'от $1200</strong></div>' +
             '</header>' +
-            '<section class="tt-umrah-catalogue" aria-labelledby="tt-umrah-title">' +
+            '<section class="tt-umrah-catalogue" id="tt-umrah-programs" aria-labelledby="tt-umrah-title">' +
               '<div class="tt-umrah-catalogue-head"><div><span class="tt-eyebrow">Программы</span>' +
                 '<h2 id="tt-umrah-title">Выберите формат поездки</h2></div>' +
                 '<p><span data-umrah-count>5 программ</span> · откройте пакет, чтобы сравнить ' +
@@ -1413,6 +1419,18 @@
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
           global.TuronPublicUi.enhance(root);
         }
+        if (pendingScrollTarget) {
+          var targetId = pendingScrollTarget;
+          pendingScrollTarget = null;
+          var target = global.document.getElementById(targetId);
+          if (target) {
+            var reduced = global.matchMedia &&
+              global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            global.requestAnimationFrame(function () {
+              target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+            });
+          }
+        }
       }, function (error) {
         markHero();
         if (global.TuronPublicUi && global.TuronPublicUi.enhance) {
@@ -1442,7 +1460,10 @@
 
     root.addEventListener("click", function (e) {
       var tile = e.target.closest("[data-dest]");
-      if (tile) return go({ kind: "tours", destination: tile.dataset.dest }, true);
+      if (tile) {
+        pendingScrollTarget = tile.dataset.scrollAfterRoute || null;
+        return go({ kind: "tours", destination: tile.dataset.dest }, true);
+      }
 
       var tour = e.target.closest("[data-tour]");
       if (tour) return go({ kind: "tour", code: tour.dataset.tour, variant: null }, true);
