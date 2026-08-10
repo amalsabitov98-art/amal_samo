@@ -1221,10 +1221,9 @@
           '</div>' +
           '<div class="tt-umrah-shell">' +
             '<header class="tt-umrah-hero-copy">' +
-              '<span class="tt-eyebrow">Путь к святыням · сезон 2026</span>' +
-              '<h1>Умра</h1>' +
-              '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
-                'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
+              '<span class="tt-eyebrow">Умра 2026</span>' +
+              '<h1>Путь к святыням</h1>' +
+              '<p>Продуманное путешествие с заботой и сопровождением на каждом этапе.</p>' +
               '<div class="tt-umrah-hero-meta"><span>' + umrahIcon("programmes") + '9 программ</span>' +
                 '<span>' + umrahIcon("duration") + '10 или 13 дней</span>' +
                 '<strong>' + umrahIcon("price") + 'от $1200</strong></div>' +
