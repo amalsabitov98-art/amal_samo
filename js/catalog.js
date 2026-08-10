@@ -1118,10 +1118,13 @@
     ];
 
     var UMRAH_ICONS = {
-      flight: '<path d="M3 13.5 21 4l-4.8 9.2 4.3 4.3-2 2-5.6-3-4.2 4.2-1.6-.6 1.9-5.7-7-2.1Z"/>',
-      hotel: '<path d="M4 20V6.5A2.5 2.5 0 0 1 6.5 4H13v16M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M7.5 8h2M7.5 12h2M16 13h1M16 16.5h1M2.5 20h19"/>',
-      service: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3 10.8 15l5.4-6M12 3.5v2M12 18.5v2"/>',
-      calendar: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M8 16h7"/>',
+      flight: '<path d="M3 15.5 10.2 13l4.1-8.1c.4-.8 1.2-1.2 2-1l.7.2-2.2 8.4 4.7-1.1c.7-.2 1.4.1 1.8.7l.4.7-7.8 4.1-3.2 4-1.3-.3 1.2-3.5-4.8 1.1Z"/><path d="m6.7 11.2 2.6.8"/>',
+      hotel: '<path d="M4 20V7.2A2.2 2.2 0 0 1 6.2 5h8.3v15M14.5 10h3.7A1.8 1.8 0 0 1 20 11.8V20M2.5 20h19"/><path d="M7.5 9h2M7.5 12.5h2M7.5 16h2M17 13.5v2.5"/><path d="M11.2 5V3.2M9.8 4.1h2.8"/>',
+      service: '<path d="M12 3.5c2.2 1.7 4.6 2.4 7 2.6v5.2c0 4.4-2.5 7.6-7 9.2-4.5-1.6-7-4.8-7-9.2V6.1c2.4-.2 4.8-.9 7-2.6Z"/><path d="m8.6 12.1 2.2 2.2 4.7-5"/><path d="M19.5 3v3M18 4.5h3"/>',
+      calendar: '<rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/>',
+      programmes: '<path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2Z"/><path d="M9 3v16M15 5v16"/><path d="m11.2 11.6 1.4 1.4 2.6-3"/>',
+      duration: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.3 2M5.8 5.8 4.3 4.3M18.2 5.8l1.5-1.5"/>',
+      price: '<path d="M4 7.5h13.5A2.5 2.5 0 0 1 20 10v8.5H6.5A2.5 2.5 0 0 1 4 16Z"/><path d="M4 8V6.5A2.5 2.5 0 0 1 6.5 4H17v3.5M15.5 12h4.5v3h-4.5a1.5 1.5 0 0 1 0-3Z"/>',
     };
 
     function umrahIcon(name) {
@@ -1225,7 +1228,9 @@
               '<h1>Умра</h1>' +
               '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
                 'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
-              '<div class="tt-umrah-hero-meta"><span>9 программ</span><span>10 или 13 дней</span><strong>от $1200</strong></div>' +
+              '<div class="tt-umrah-hero-meta"><span>' + umrahIcon("programmes") + '9 программ</span>' +
+                '<span>' + umrahIcon("duration") + '10 или 13 дней</span>' +
+                '<strong>' + umrahIcon("price") + 'от $1200</strong></div>' +
             '</header>' +
             '<section class="tt-umrah-catalogue" aria-labelledby="tt-umrah-title">' +
               '<div class="tt-umrah-catalogue-head"><div><span class="tt-eyebrow">Программы</span>' +
