@@ -15,6 +15,16 @@
 
 * { box-sizing: border-box; }
 
+/* Акцентная гарнитура страницы Умры. В исходном файле есть только прописные
+   символы, поэтому ниже она используется лишь вместе с uppercase. */
+@font-face {
+  font-family: "Mihey";
+  src: url("fonts/Mihey-v1.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -618,8 +628,9 @@ body {
 .tt-umrah-hero-copy h1 {
   margin: 8px 0 14px;
   color: #fff9ed;
-  font: 600 clamp(3.8rem, 7.3vw, 6.7rem)/.88 "Cormorant Garamond", Georgia, serif;
-  letter-spacing: -.045em;
+  font: 400 clamp(3.7rem, 7vw, 6.45rem)/.9 "Mihey", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
   text-shadow: 0 4px 26px rgba(0,0,0,.2);
 }
 .tt-umrah-hero-copy > p {
@@ -660,8 +671,9 @@ body {
   max-width: 650px;
   margin: 6px 0 0;
   color: #fff9ed;
-  font: 600 clamp(1.8rem, 3.3vw, 3.25rem)/1 "Cormorant Garamond", Georgia, serif;
-  letter-spacing: -.025em;
+  font: 400 clamp(1.65rem, 2.7vw, 2.75rem)/1.02 "Mihey", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.012em;
+  text-transform: uppercase;
   text-shadow: 0 3px 20px rgba(0,0,0,.2);
 }
 .tt-umrah-catalogue-head > p {
@@ -738,8 +750,9 @@ body {
 }
 .tt-umrah-program-title strong {
   color: #fff9ed;
-  font: 600 clamp(1.2rem, 2vw, 1.65rem)/1 Manrope, sans-serif;
-  letter-spacing: -.035em;
+  font: 400 clamp(1.14rem, 1.7vw, 1.48rem)/1.05 "Mihey", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.012em;
+  text-transform: uppercase;
 }
 .tt-umrah-program-title em {
   color: rgba(255,249,237,.58);
