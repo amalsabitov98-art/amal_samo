@@ -615,17 +615,21 @@ body {
   height: 100svh;
   overflow: hidden;
   pointer-events: none;
-  background: #06140f url("img/umrah-showcase.webp") center / cover no-repeat;
+  background: #06140f;
 }
 .tt-umrah-video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   filter: saturate(.96) brightness(.9) contrast(1.02);
 }
 .tt-umrah-hero-shade {
   position: absolute;
+  z-index: 2;
   inset: 0;
   background:
     linear-gradient(180deg, rgba(2,12,9,.48) 0%, rgba(2,12,9,.04) 29%, rgba(2,12,9,.08) 64%, rgba(2,12,9,.3) 100%),
@@ -907,7 +911,6 @@ body {
 }
 
 @media (max-width: 620px) {
-  .tt-umrah-background { background-position: 52% center; }
   .tt-umrah-video { object-fit: cover; object-position: 52% center; filter: saturate(.9) brightness(.76) contrast(1.02); }
   .tt-umrah-hero-shade {
     background: linear-gradient(180deg, rgba(2,12,9,.66), rgba(2,12,9,.08) 30%, rgba(2,12,9,.34) 70%, rgba(2,12,9,.62));
@@ -12740,8 +12743,8 @@ window.TURON_DESTINATIONS = [
       root.innerHTML =
         '<section class="tt-umrah-page">' +
           '<div class="tt-umrah-background" aria-hidden="true">' +
-            '<video class="tt-umrah-video" autoplay muted loop playsinline preload="metadata" ' +
-              'poster="img/umrah-showcase.webp"><source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
+            '<video class="tt-umrah-video" autoplay muted loop playsinline preload="metadata">' +
+              '<source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
             '<div class="tt-umrah-hero-shade"></div>' +
           '</div>' +
           '<div class="tt-umrah-shell">' +
