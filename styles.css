@@ -818,12 +818,17 @@ body {
   text-transform: uppercase;
 }
 .tt-umrah-program-title em {
-  color: #fff;
+  color: var(--tt-umrah-route-color, #fff);
   font: 800 clamp(1.3rem, 1.5vw, 1.55rem)/1.35 Manrope, "Segoe UI", sans-serif;
   font-style: normal;
   letter-spacing: -.018em;
   text-shadow: 0 3px 14px rgba(0, 10, 7, .92), 0 1px 3px #000;
 }
+.tt-umrah-program:nth-child(5n + 1) { --tt-umrah-route-color: #ffe39a; }
+.tt-umrah-program:nth-child(5n + 2) { --tt-umrah-route-color: #9ff0d1; }
+.tt-umrah-program:nth-child(5n + 3) { --tt-umrah-route-color: #a9dcff; }
+.tt-umrah-program:nth-child(5n + 4) { --tt-umrah-route-color: #ffc0aa; }
+.tt-umrah-program:nth-child(5n) { --tt-umrah-route-color: #d7c0ff; }
 .tt-umrah-program summary > b {
   display: flex;
   gap: 5px;
