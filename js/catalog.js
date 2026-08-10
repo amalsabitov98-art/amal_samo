@@ -1366,6 +1366,9 @@
         screen.classList.toggle("has-hero", !!root.querySelector(
           ".tt-public-intro, .tt-umrah-page"
         ));
+        // На странице Умры оставляем в шапке только бренд, язык и вход.
+        // Отдельный класс не затрагивает титульный hero и другие направления.
+        screen.classList.toggle("has-umrah", !!root.querySelector(".tt-umrah-page"));
       }
     }
 
