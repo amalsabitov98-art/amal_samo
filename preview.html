@@ -620,7 +620,7 @@ body {
 .tt-umrah-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   filter: saturate(.96) brightness(.9) contrast(1.02);
 }
@@ -636,11 +636,13 @@ body {
   z-index: 1;
   width: min(1360px, calc(100% - 64px));
   margin: 0 auto;
-  padding: clamp(106px, 12vh, 136px) 0 68px;
+  /* Верхние две строки навигации занимают около 138px. Контент начинается
+     только после них, поэтому слоган физически не может попасть под кнопки. */
+  padding: clamp(168px, 18vh, 196px) 0 68px;
 }
 .tt-umrah-hero-copy {
   width: min(720px, 100%);
-  min-height: clamp(278px, 36svh, 390px);
+  min-height: clamp(260px, 30svh, 320px);
   padding: 0 0 clamp(34px, 5vh, 54px);
 }
 .tt-umrah-hero-copy > .tt-eyebrow,
@@ -668,10 +670,32 @@ body {
 .tt-umrah-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 20px;
+  gap: 12px 15px;
   margin-top: 24px;
   color: rgba(255,249,237,.86);
   font: 700 .78rem/1.4 Manrope, "Segoe UI", sans-serif;
+}
+.tt-umrah-hero-meta > span,
+.tt-umrah-hero-meta > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.tt-umrah-hero-meta svg {
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border: 1px solid rgba(232,202,120,.34);
+  border-radius: 9px;
+  color: #edd48e;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: linear-gradient(145deg, rgba(232,202,120,.14), rgba(255,255,255,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 20px rgba(0,0,0,.16);
 }
 .tt-umrah-hero-meta span + span::before,
 .tt-umrah-hero-meta strong::before { content: "·"; margin-right: 20px; color: #d7b964; }
@@ -810,20 +834,24 @@ body {
   gap: 26px 44px;
   padding: 4px 24px 28px;
 }
-.tt-umrah-fact { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 15px; align-items: start; }
+.tt-umrah-fact { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; align-items: start; }
 .tt-umrah-fact > svg {
-  width: 42px;
-  height: 42px;
-  padding: 10px;
+  width: 48px;
+  height: 48px;
+  padding: 11px;
   overflow: visible;
-  border: 1px solid rgba(228,202,131,.25);
-  border-radius: 13px;
-  color: #e4ca83;
+  border: 1px solid rgba(235,204,118,.38);
+  border-radius: 15px;
+  color: #f0d78f;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.35;
+  stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255,249,220,.16), transparent 36%),
+    linear-gradient(145deg, rgba(228,202,131,.18), rgba(3,20,15,.2));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 24px rgba(0,0,0,.18);
 }
 .tt-umrah-fact h3 { margin: 2px 0 8px; color: #ebcc76; font: 800 .7rem/1.3 Manrope, "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; }
 .tt-umrah-fact p,
@@ -880,15 +908,16 @@ body {
 
 @media (max-width: 620px) {
   .tt-umrah-background { background-position: 52% center; }
-  .tt-umrah-video { object-position: 52% center; filter: saturate(.9) brightness(.76) contrast(1.02); }
+  .tt-umrah-video { object-fit: cover; object-position: 52% center; filter: saturate(.9) brightness(.76) contrast(1.02); }
   .tt-umrah-hero-shade {
     background: linear-gradient(180deg, rgba(2,12,9,.66), rgba(2,12,9,.08) 30%, rgba(2,12,9,.34) 70%, rgba(2,12,9,.62));
   }
-  .tt-umrah-shell { width: calc(100% - 24px); padding: 100px 0 38px; }
+  .tt-umrah-shell { width: calc(100% - 24px); padding: 150px 0 38px; }
   .tt-umrah-hero-copy { min-height: 42svh; padding-bottom: 30px; }
   .tt-umrah-hero-copy h1 { font-size: clamp(3.9rem, 20vw, 5.7rem); }
   .tt-umrah-hero-copy > p { font-size: .9rem; line-height: 1.65; }
   .tt-umrah-hero-meta { gap: 7px 14px; font-size: .72rem; }
+  .tt-umrah-hero-meta svg { width: 26px; height: 26px; }
   .tt-umrah-hero-meta span + span::before,
   .tt-umrah-hero-meta strong::before { display: none; }
   .tt-umrah-catalogue { padding: 22px 14px 18px; border-radius: 20px; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
@@ -903,8 +932,8 @@ body {
   .tt-umrah-program summary > b { font-size: .84rem; }
   .tt-umrah-program summary > i { width: 30px; height: 30px; }
   .tt-umrah-program-body { gap: 22px; padding: 5px 10px 18px; }
-  .tt-umrah-fact { grid-template-columns: 36px minmax(0, 1fr); gap: 11px; }
-  .tt-umrah-fact > svg { width: 36px; height: 36px; padding: 8px; border-radius: 11px; }
+  .tt-umrah-fact { grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+  .tt-umrah-fact > svg { width: 40px; height: 40px; padding: 9px; border-radius: 12px; }
   .tt-umrah-prices { align-items: stretch; flex-direction: column; gap: 18px; padding: 17px; }
   .tt-umrah-prices a { justify-content: space-between; }
   .tt-umrah-gifts { align-items: flex-start; flex-direction: column; gap: 7px; }
@@ -12611,10 +12640,13 @@ window.TURON_DESTINATIONS = [
     ];
 
     var UMRAH_ICONS = {
-      flight: '<path d="M3 13.5 21 4l-4.8 9.2 4.3 4.3-2 2-5.6-3-4.2 4.2-1.6-.6 1.9-5.7-7-2.1Z"/>',
-      hotel: '<path d="M4 20V6.5A2.5 2.5 0 0 1 6.5 4H13v16M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M7.5 8h2M7.5 12h2M16 13h1M16 16.5h1M2.5 20h19"/>',
-      service: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3 10.8 15l5.4-6M12 3.5v2M12 18.5v2"/>',
-      calendar: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M8 16h7"/>',
+      flight: '<path d="M3 15.5 10.2 13l4.1-8.1c.4-.8 1.2-1.2 2-1l.7.2-2.2 8.4 4.7-1.1c.7-.2 1.4.1 1.8.7l.4.7-7.8 4.1-3.2 4-1.3-.3 1.2-3.5-4.8 1.1Z"/><path d="m6.7 11.2 2.6.8"/>',
+      hotel: '<path d="M4 20V7.2A2.2 2.2 0 0 1 6.2 5h8.3v15M14.5 10h3.7A1.8 1.8 0 0 1 20 11.8V20M2.5 20h19"/><path d="M7.5 9h2M7.5 12.5h2M7.5 16h2M17 13.5v2.5"/><path d="M11.2 5V3.2M9.8 4.1h2.8"/>',
+      service: '<path d="M12 3.5c2.2 1.7 4.6 2.4 7 2.6v5.2c0 4.4-2.5 7.6-7 9.2-4.5-1.6-7-4.8-7-9.2V6.1c2.4-.2 4.8-.9 7-2.6Z"/><path d="m8.6 12.1 2.2 2.2 4.7-5"/><path d="M19.5 3v3M18 4.5h3"/>',
+      calendar: '<rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/>',
+      programmes: '<path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2Z"/><path d="M9 3v16M15 5v16"/><path d="m11.2 11.6 1.4 1.4 2.6-3"/>',
+      duration: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.3 2M5.8 5.8 4.3 4.3M18.2 5.8l1.5-1.5"/>',
+      price: '<path d="M4 7.5h13.5A2.5 2.5 0 0 1 20 10v8.5H6.5A2.5 2.5 0 0 1 4 16Z"/><path d="M4 8V6.5A2.5 2.5 0 0 1 6.5 4H17v3.5M15.5 12h4.5v3h-4.5a1.5 1.5 0 0 1 0-3Z"/>',
     };
 
     function umrahIcon(name) {
@@ -12718,7 +12750,9 @@ window.TURON_DESTINATIONS = [
               '<h1>Умра</h1>' +
               '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
                 'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
-              '<div class="tt-umrah-hero-meta"><span>9 программ</span><span>10 или 13 дней</span><strong>от $1200</strong></div>' +
+              '<div class="tt-umrah-hero-meta"><span>' + umrahIcon("programmes") + '9 программ</span>' +
+                '<span>' + umrahIcon("duration") + '10 или 13 дней</span>' +
+                '<strong>' + umrahIcon("price") + 'от $1200</strong></div>' +
             '</header>' +
             '<section class="tt-umrah-catalogue" aria-labelledby="tt-umrah-title">' +
               '<div class="tt-umrah-catalogue-head"><div><span class="tt-eyebrow">Программы</span>' +
