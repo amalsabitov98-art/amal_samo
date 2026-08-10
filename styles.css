@@ -597,8 +597,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(2,12,9,.8) 0%, rgba(2,12,9,.1) 30%, rgba(2,12,9,.42) 58%, rgba(2,12,9,.96) 100%),
-    linear-gradient(90deg, rgba(2,12,9,.78) 0%, rgba(2,12,9,.22) 48%, rgba(2,12,9,.52) 100%);
+    linear-gradient(180deg, rgba(2,12,9,.62) 0%, rgba(2,12,9,.08) 30%, rgba(2,12,9,.18) 62%, rgba(2,12,9,.46) 100%),
+    linear-gradient(90deg, rgba(2,12,9,.58) 0%, rgba(2,12,9,.12) 48%, rgba(2,12,9,.32) 100%);
 }
 .tt-umrah-shell {
   position: relative;
@@ -641,11 +641,12 @@ body {
 .tt-umrah-catalogue {
   padding: clamp(30px, 4vw, 56px);
   overflow: hidden;
-  border: 1px solid rgba(232,210,149,.2);
+  border: 1px solid rgba(232,210,149,.28);
   border-radius: 30px;
-  background: linear-gradient(145deg, rgba(6,27,21,.91), rgba(4,18,14,.95));
-  box-shadow: 0 28px 90px rgba(0,0,0,.34);
-  backdrop-filter: blur(18px) saturate(1.08);
+  background: linear-gradient(145deg, rgba(6,27,21,.32), rgba(4,18,14,.42));
+  box-shadow: 0 28px 90px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter: blur(9px) saturate(1.06);
+  -webkit-backdrop-filter: blur(9px) saturate(1.06);
 }
 .tt-umrah-catalogue-head {
   display: grid;
@@ -705,7 +706,9 @@ body {
   margin: 8px 0;
   border: 1px solid rgba(228,202,131,.25);
   border-radius: 20px;
-  background: rgba(16,46,36,.67);
+  background: rgba(10,39,30,.42);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
 }
 .tt-umrah-program summary {
   display: grid;
@@ -839,7 +842,7 @@ body {
   .tt-umrah-background { background-position: 52% center; }
   .tt-umrah-video { object-position: 52% center; filter: saturate(.78) brightness(.66); }
   .tt-umrah-hero-shade {
-    background: linear-gradient(180deg, rgba(2,12,9,.78), rgba(2,12,9,.08) 30%, rgba(2,12,9,.72) 70%, rgba(2,12,9,.98));
+    background: linear-gradient(180deg, rgba(2,12,9,.66), rgba(2,12,9,.08) 30%, rgba(2,12,9,.34) 70%, rgba(2,12,9,.62));
   }
   .tt-umrah-shell { width: calc(100% - 24px); padding: 104px 0 42px; }
   .tt-umrah-hero-copy { min-height: 50svh; padding-bottom: 36px; }
@@ -849,7 +852,7 @@ body {
   .tt-umrah-hero-meta { gap: 7px 14px; font-size: .62rem; }
   .tt-umrah-hero-meta span + span::before,
   .tt-umrah-hero-meta strong::before { display: none; }
-  .tt-umrah-catalogue { padding: 26px 16px 20px; border-radius: 22px; backdrop-filter: blur(14px); }
+  .tt-umrah-catalogue { padding: 26px 16px 20px; border-radius: 22px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   .tt-umrah-catalogue-head h2 { font-size: 2.15rem; }
   .tt-umrah-duration { display: grid; width: 100%; }
   .tt-umrah-duration button { min-height: 43px; padding: 0 14px; }
