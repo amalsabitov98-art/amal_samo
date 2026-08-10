@@ -596,22 +596,13 @@ body {
   pointer-events: none;
   background: #06140f;
 }
-.tt-umrah-video-backdrop {
-  position: absolute;
-  inset: -4%;
-  width: 108%;
-  height: 108%;
-  object-fit: cover;
-  object-position: center;
-  filter: blur(24px) saturate(.82) brightness(.42) contrast(1.04);
-  transform: scale(1.06);
-}
 .tt-umrah-video {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   filter: saturate(.96) brightness(.9) contrast(1.02);
 }
@@ -899,7 +890,6 @@ body {
 }
 
 @media (max-width: 620px) {
-  .tt-umrah-video-backdrop { display: none; }
   .tt-umrah-video { object-fit: cover; object-position: 52% center; filter: saturate(.9) brightness(.76) contrast(1.02); }
   .tt-umrah-hero-shade {
     background: linear-gradient(180deg, rgba(2,12,9,.66), rgba(2,12,9,.08) 30%, rgba(2,12,9,.34) 70%, rgba(2,12,9,.62));
