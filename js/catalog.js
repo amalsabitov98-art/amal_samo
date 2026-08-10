@@ -1349,12 +1349,15 @@
     }
 
     /* has-hero говорит стилям, что на экране есть видео и шапку можно класть
-     * поверх него. На карточке тура и в списке направлений видео нет —
-     * прозрачная шапка там висела бы над обычным текстом. */
+     * поверх него. Это относится и к главному hero, и к странице Умры с её
+     * единым фиксированным видеофоном. На карточке тура и в обычном списке
+     * направлений видео нет — прозрачная шапка там висела бы над текстом. */
     function markHero() {
       var screen = root.closest("#screen-public");
       if (screen) {
-        screen.classList.toggle("has-hero", !!root.querySelector(".tt-public-intro"));
+        screen.classList.toggle("has-hero", !!root.querySelector(
+          ".tt-public-intro, .tt-umrah-page"
+        ));
       }
     }
 
