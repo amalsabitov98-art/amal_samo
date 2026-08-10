@@ -1117,21 +1117,96 @@
       },
     ];
 
-    function umrahProgrammeCard(p) {
-      return '<details class="tt-umrah-program">' +
-        '<summary><span><small>' + esc(p.days) + '</small><strong>' + esc(p.name) +
-          '</strong><em>' + esc(p.route) + '</em></span><b>' + esc(p.price) + '</b>' +
-          '<i aria-hidden="true">＋</i></summary>' +
+    var UMRAH_ICONS = {
+      flight: '<path d="M3 13.5 21 4l-4.8 9.2 4.3 4.3-2 2-5.6-3-4.2 4.2-1.6-.6 1.9-5.7-7-2.1Z"/>',
+      hotel: '<path d="M4 20V6.5A2.5 2.5 0 0 1 6.5 4H13v16M13 9h5.5A1.5 1.5 0 0 1 20 10.5V20M7.5 8h2M7.5 12h2M16 13h1M16 16.5h1M2.5 20h19"/>',
+      service: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3 10.8 15l5.4-6M12 3.5v2M12 18.5v2"/>',
+      calendar: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M8 16h7"/>',
+    };
+
+    function umrahIcon(name) {
+      return '<svg viewBox="0 0 24 24" aria-hidden="true">' + UMRAH_ICONS[name] + '</svg>';
+    }
+
+    function umrahProgrammeCard(p, index, contact) {
+      var duration = p.days.indexOf("13") === 0 ? "13" : "10";
+      var isFirst = index === 0;
+      return '<details class="tt-umrah-program" data-umrah-duration="' + duration + '"' +
+        (isFirst ? ' open' : '') + '>' +
+        '<summary><span class="tt-umrah-program-title"><small>' + esc(p.days) +
+          '</small><strong>' + esc(p.name) + '</strong><em>' + esc(p.route) +
+          '</em></span><b><small>от</small>' + esc(p.price.replace(/^от\s+/, "")) + '</b>' +
+          '<i aria-hidden="true"><span></span><span></span></i></summary>' +
         '<div class="tt-umrah-program-body">' +
-          '<div><h3>Перелёт</h3><p>' + esc(p.flight) + '</p></div>' +
-          '<div><h3>Отели</h3><ul>' + p.hotels.map(function (h) {
-            return '<li>' + esc(h) + '</li>';
-          }).join("") + '</ul></div>' +
-          '<div><h3>В пакет входит</h3><p>' + esc(p.service) + '</p></div>' +
-          '<div><h3>Даты вылетов 2026</h3><p>' + esc(p.dates) + '</p></div>' +
-          '<div class="tt-umrah-prices"><h3>Стоимость</h3><p>' + esc(p.prices) + '</p></div>' +
+          '<div class="tt-umrah-fact">' + umrahIcon("flight") +
+            '<div><h3>Перелёт</h3><p>' + esc(p.flight) + '</p></div></div>' +
+          '<div class="tt-umrah-fact">' + umrahIcon("hotel") +
+            '<div><h3>Проживание</h3><ul>' + p.hotels.map(function (h) {
+              return '<li>' + esc(h) + '</li>';
+            }).join("") + '</ul></div></div>' +
+          '<div class="tt-umrah-fact">' + umrahIcon("service") +
+            '<div><h3>В пакет входит</h3><p>' + esc(p.service) + '</p></div></div>' +
+          '<div class="tt-umrah-fact">' + umrahIcon("calendar") +
+            '<div><h3>Даты вылетов 2026</h3><p>' + esc(p.dates) + '</p></div></div>' +
+          '<div class="tt-umrah-prices"><div><span>Стоимость программы</span><p>' +
+            esc(p.prices) + '</p></div><a href="' + esc(contact) +
+            '" target="_blank" rel="noopener">Уточнить места <span>→</span></a></div>' +
         '</div>' +
       '</details>';
+    }
+
+    function initUmrahProgrammes() {
+      var page = root.querySelector(".tt-umrah-page");
+      if (!page) return;
+      var tabs = Array.prototype.slice.call(page.querySelectorAll("[data-umrah-filter]"));
+      var programmes = Array.prototype.slice.call(page.querySelectorAll(".tt-umrah-program"));
+      var count = page.querySelector("[data-umrah-count]");
+      var video = page.querySelector(".tt-umrah-video");
+
+      function show(duration) {
+        var visible = [];
+        tabs.forEach(function (tab) {
+          var active = tab.dataset.umrahFilter === duration;
+          tab.classList.toggle("is-active", active);
+          tab.setAttribute("aria-selected", active ? "true" : "false");
+          tab.tabIndex = active ? 0 : -1;
+        });
+        programmes.forEach(function (programme) {
+          var active = programme.dataset.umrahDuration === duration;
+          programme.hidden = !active;
+          programme.open = false;
+          if (active) visible.push(programme);
+        });
+        if (visible[0]) visible[0].open = true;
+        if (count) count.textContent = visible.length + " " +
+          plural(visible.length, "программа", "программы", "программ");
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () { show(tab.dataset.umrahFilter); });
+        tab.addEventListener("keydown", function (event) {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          var next = tabs[(tabs.indexOf(tab) + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+          show(next.dataset.umrahFilter);
+          next.focus();
+        });
+      });
+      programmes.forEach(function (programme) {
+        programme.addEventListener("toggle", function () {
+          if (!programme.open) return;
+          programmes.forEach(function (other) {
+            if (other !== programme) other.open = false;
+          });
+        });
+      });
+      if (video && global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        video.pause();
+      } else if (video) {
+        var play = video.play();
+        if (play && play.catch) play.catch(function () {});
+      }
+      show("13");
     }
 
     function renderUmrah() {
@@ -1139,36 +1214,38 @@
       var contact = op.telegram_href || (op.phone_href ? "tel:" + op.phone_href : "#/login");
       root.innerHTML =
         '<section class="tt-umrah-page">' +
-          '<header class="tt-umrah-hero">' +
+          '<div class="tt-umrah-background" aria-hidden="true">' +
+            '<video class="tt-umrah-video" autoplay muted loop playsinline preload="metadata" ' +
+              'poster="img/umrah-showcase.webp"><source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
             '<div class="tt-umrah-hero-shade"></div>' +
-            '<div class="tt-umrah-hero-copy">' +
+          '</div>' +
+          '<div class="tt-umrah-shell">' +
+            '<header class="tt-umrah-hero-copy">' +
               crumbs([{ text: "Каталог", go: "root" }, { text: "Умра" }]) +
               '<span class="tt-eyebrow">Путь к святыням · сезон 2026</span>' +
               '<h1>Умра</h1>' +
               '<p>Продуманное паломничество из Ташкента: прямые перелёты Centrum Air, ' +
                 'отели рядом со святынями, питание, сопровождение и медицинская поддержка.</p>' +
               '<div class="tt-umrah-hero-meta"><span>9 программ</span><span>10 или 13 дней</span><strong>от $1200</strong></div>' +
-            '</div>' +
-          '</header>' +
-          '<div class="tt-umrah-inner">' +
-            '<div class="tt-umrah-intro"><div><span class="tt-eyebrow">Программы</span>' +
-              '<h2>Выберите свой формат поездки</h2></div>' +
-              '<p>Две логики маршрута: 13 дней через Джидду или 10 дней через Медину. ' +
-                'Откройте программу, чтобы сравнить перелёт, отели, питание, даты и стоимость.</p></div>' +
-            '<div class="tt-umrah-gifts"><strong>В каждой программе</strong>' +
-              '<span>Сумка · чемодан · ихрам · бейдж · Зам-зам</span></div>' +
-            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>01</span>' +
-              '<div><h2>13-дневные программы</h2><p>Джидда → Мекка → Медина</p></div></div>' +
-              UMRAH_PROGRAMS.slice(0, 5).map(umrahProgrammeCard).join("") + '</section>' +
-            '<section class="tt-umrah-group"><div class="tt-umrah-group-title"><span>02</span>' +
-              '<div><h2>10-дневные программы</h2><p>Медина → Мекка → Джидда</p></div></div>' +
-              UMRAH_PROGRAMS.slice(5).map(umrahProgrammeCard).join("") + '</section>' +
-            '<aside class="tt-umrah-contact"><div><span class="tt-eyebrow">Подбор программы</span>' +
-              '<h2>Уточним места и актуальную дату</h2><p>Расписание и стоимость перенесены из материалов оператора. ' +
-                'Перед оплатой подтвердим наличие мест и выбранный тип размещения.</p></div>' +
-              '<a href="' + esc(contact) + '" target="_blank" rel="noopener">Связаться с оператором <span>→</span></a></aside>' +
+            '</header>' +
+            '<section class="tt-umrah-catalogue" aria-labelledby="tt-umrah-title">' +
+              '<div class="tt-umrah-catalogue-head"><div><span class="tt-eyebrow">Программы</span>' +
+                '<h2 id="tt-umrah-title">Выберите формат поездки</h2></div>' +
+                '<p><span data-umrah-count>5 программ</span> · откройте пакет, чтобы сравнить ' +
+                  'перелёт, отели, питание и стоимость.</p></div>' +
+              '<div class="tt-umrah-duration" role="tablist" aria-label="Длительность программы">' +
+                '<button type="button" class="is-active" data-umrah-filter="13" role="tab" aria-selected="true">13 дней</button>' +
+                '<button type="button" data-umrah-filter="10" role="tab" aria-selected="false" tabindex="-1">10 дней</button>' +
+              '</div>' +
+              '<div class="tt-umrah-programs">' + UMRAH_PROGRAMS.map(function (p, index) {
+                return umrahProgrammeCard(p, index, contact);
+              }).join("") + '</div>' +
+              '<div class="tt-umrah-gifts"><strong>В каждой программе</strong>' +
+                '<span>Сумка · чемодан · ихрам · бейдж · Зам-зам</span></div>' +
+            '</section>' +
           '</div>' +
         '</section>' + footerHtml();
+      initUmrahProgrammes();
       return Promise.resolve();
     }
 
