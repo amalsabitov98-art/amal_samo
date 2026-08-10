@@ -817,7 +817,7 @@ body {
   letter-spacing: -.025em;
   text-transform: uppercase;
 }
-.tt-umrah-program-title em {
+.tt-umrah-program summary .tt-umrah-program-title em {
   color: var(--tt-umrah-route-color, #fff);
   font: 800 clamp(1.3rem, 1.5vw, 1.55rem)/1.35 Manrope, "Segoe UI", sans-serif;
   font-style: normal;
