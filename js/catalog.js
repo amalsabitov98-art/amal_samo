@@ -1133,9 +1133,7 @@
 
     function umrahProgrammeCard(p, index, contact) {
       var duration = p.days.indexOf("13") === 0 ? "13" : "10";
-      var isFirst = index === 0;
-      return '<details class="tt-umrah-program" data-umrah-duration="' + duration + '"' +
-        (isFirst ? ' open' : '') + '>' +
+      return '<details class="tt-umrah-program" data-umrah-duration="' + duration + '">' +
         '<summary><span class="tt-umrah-program-title"><small>' + esc(p.days) +
           '</small><strong>' + esc(p.name) + '</strong><em>' + esc(p.route) +
           '</em></span><b><small>от</small>' + esc(p.price.replace(/^от\s+/, "")) + '</b>' +
@@ -1180,7 +1178,6 @@
           programme.open = false;
           if (active) visible.push(programme);
         });
-        if (visible[0]) visible[0].open = true;
         if (count) count.textContent = visible.length + " " +
           plural(visible.length, "программа", "программы", "программ");
       }
