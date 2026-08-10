@@ -921,6 +921,17 @@ body {
 }
 .tt-umrah-gifts strong { color: #ebcc76; font-weight: 800; text-transform: uppercase; letter-spacing: .11em; }
 
+/* После удаления второй строки шапки поднимаем весь смысловой блок, но
+   видео оставляем полноэкранным. На стандартном ноутбуке уже в первом
+   экране видны переключатель длительности и начало программы с ценой. */
+#screen-public.has-umrah .tt-umrah-shell {
+  padding-top: clamp(102px, 11vh, 122px);
+}
+#screen-public.has-umrah .tt-umrah-hero-copy {
+  min-height: clamp(225px, 26svh, 285px);
+  padding-bottom: clamp(22px, 3vh, 34px);
+}
+
 @media (max-width: 880px) {
   .tt-umrah-shell { width: min(100% - 34px, 760px); }
   .tt-umrah-catalogue-head { grid-template-columns: 1fr; gap: 18px; }
@@ -959,6 +970,29 @@ body {
   .tt-umrah-prices { align-items: stretch; flex-direction: column; gap: 18px; padding: 17px; }
   .tt-umrah-prices a { justify-content: space-between; }
   .tt-umrah-gifts { align-items: flex-start; flex-direction: column; gap: 7px; }
+
+  :root #screen-public.has-umrah .tt-public-header {
+    min-height: 70px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  :root #screen-public.has-umrah .tt-public-tools {
+    flex: 0 0 auto;
+    display: flex;
+  }
+  :root #screen-public.has-umrah .tt-lang-btn {
+    min-width: 62px;
+  }
+  :root #screen-public.has-umrah .tt-account-btn span {
+    display: none;
+  }
+  #screen-public.has-umrah .tt-umrah-shell {
+    padding-top: 92px;
+  }
+  #screen-public.has-umrah .tt-umrah-hero-copy {
+    min-height: 37svh;
+    padding-bottom: 22px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3615,6 +3649,21 @@ select { font-family: inherit; }
 :root #screen-public.has-hero .tt-public-subnav .tt-about-nav {
   border-color: rgba(255, 255, 255, 0.26);
   color: #fffaf0;
+}
+
+/* Умра — продающая страница направления, а не копия главного экрана.
+   Сохраняем логотип, язык и вход; всё остальное в навигации освобождает
+   первый экран под видео, программу и цену. */
+:root #screen-public.has-umrah .tt-currency-board,
+:root #screen-public.has-umrah .tt-theme-btn,
+:root #screen-public.has-umrah .tt-public-subnav {
+  display: none;
+}
+:root #screen-public.has-umrah .tt-public-header {
+  min-height: 84px;
+}
+:root #screen-public.has-umrah .tt-public-tools {
+  flex-wrap: nowrap;
 }
 
 /* --------------------------------------------------------- титульный экран
