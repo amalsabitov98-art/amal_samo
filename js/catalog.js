@@ -1164,7 +1164,7 @@
       var tabs = Array.prototype.slice.call(page.querySelectorAll("[data-umrah-filter]"));
       var programmes = Array.prototype.slice.call(page.querySelectorAll(".tt-umrah-program"));
       var count = page.querySelector("[data-umrah-count]");
-      var video = page.querySelector(".tt-umrah-video");
+      var videos = Array.prototype.slice.call(page.querySelectorAll(".tt-umrah-video, .tt-umrah-video-backdrop"));
 
       function show(duration) {
         var visible = [];
@@ -1203,12 +1203,14 @@
           });
         });
       });
-      if (video && global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        video.pause();
-      } else if (video) {
+      videos.forEach(function (video) {
+        if (global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          video.pause();
+          return;
+        }
         var play = video.play();
         if (play && play.catch) play.catch(function () {});
-      }
+      });
       show("13");
     }
 
@@ -1218,8 +1220,10 @@
       root.innerHTML =
         '<section class="tt-umrah-page">' +
           '<div class="tt-umrah-background" aria-hidden="true">' +
-            '<video class="tt-umrah-video" autoplay muted loop playsinline preload="metadata" ' +
-              'poster="img/umrah-showcase.webp"><source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
+            '<video class="tt-umrah-video-backdrop" autoplay muted loop playsinline preload="metadata">' +
+              '<source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
+            '<video class="tt-umrah-video" autoplay muted loop playsinline preload="metadata">' +
+              '<source src="img/umrah-programs.mp4" type="video/mp4"></video>' +
             '<div class="tt-umrah-hero-shade"></div>' +
           '</div>' +
           '<div class="tt-umrah-shell">' +
