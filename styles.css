@@ -591,91 +591,94 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: saturate(.84) brightness(.8);
+  filter: saturate(.96) brightness(.9) contrast(1.02);
 }
 .tt-umrah-hero-shade {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(2,12,9,.62) 0%, rgba(2,12,9,.08) 30%, rgba(2,12,9,.18) 62%, rgba(2,12,9,.46) 100%),
-    linear-gradient(90deg, rgba(2,12,9,.58) 0%, rgba(2,12,9,.12) 48%, rgba(2,12,9,.32) 100%);
+    linear-gradient(180deg, rgba(2,12,9,.48) 0%, rgba(2,12,9,.04) 29%, rgba(2,12,9,.08) 64%, rgba(2,12,9,.3) 100%),
+    linear-gradient(90deg, rgba(2,12,9,.48) 0%, rgba(2,12,9,.08) 43%, rgba(2,12,9,.18) 100%);
 }
 .tt-umrah-shell {
   position: relative;
   z-index: 1;
   width: min(1360px, calc(100% - 64px));
   margin: 0 auto;
-  padding: clamp(112px, 13vh, 148px) 0 80px;
+  padding: clamp(106px, 12vh, 136px) 0 68px;
 }
 .tt-umrah-hero-copy {
-  width: min(700px, 100%);
-  min-height: clamp(330px, 43svh, 470px);
-  padding: 0 0 clamp(44px, 7vh, 76px);
+  width: min(650px, 100%);
+  min-height: clamp(278px, 36svh, 390px);
+  padding: 0 0 clamp(34px, 5vh, 54px);
 }
-.tt-umrah-hero-copy .tt-crumbs { margin: 0 0 clamp(38px, 6vh, 64px); }
+.tt-umrah-hero-copy .tt-crumbs { margin: 0 0 clamp(26px, 4vh, 42px); }
 .tt-umrah-hero-copy .tt-crumbs,
 .tt-umrah-hero-copy .tt-crumbs button { color: rgba(255,255,255,.64); }
 .tt-umrah-hero-copy h1 {
-  margin: 10px 0 18px;
-  color: #fff;
-  font: 600 clamp(4.8rem, 9.6vw, 8.6rem)/.82 Manrope, sans-serif;
-  letter-spacing: -.075em;
+  margin: 8px 0 14px;
+  color: #fff9ed;
+  font: 600 clamp(3.8rem, 7.3vw, 6.7rem)/.88 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.045em;
+  text-shadow: 0 4px 26px rgba(0,0,0,.2);
 }
 .tt-umrah-hero-copy > p {
-  max-width: 650px;
+  max-width: 590px;
   margin: 0;
-  color: rgba(255,255,255,.74);
-  font: 500 clamp(.84rem, 1vw, 1rem)/1.72 Manrope, sans-serif;
+  color: rgba(255,249,237,.8);
+  font: 500 clamp(.78rem, .9vw, .92rem)/1.7 Manrope, sans-serif;
+  text-shadow: 0 2px 18px rgba(0,0,0,.25);
 }
 .tt-umrah-hero-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 20px;
   margin-top: 24px;
-  color: rgba(255,255,255,.76);
-  font: 700 .7rem/1.4 Manrope, sans-serif;
+  color: rgba(255,249,237,.76);
+  font: 700 .66rem/1.4 Manrope, sans-serif;
 }
 .tt-umrah-hero-meta span + span::before,
 .tt-umrah-hero-meta strong::before { content: "·"; margin-right: 20px; color: #d7b964; }
 .tt-umrah-hero-meta strong { color: #ead18b; }
 .tt-umrah-catalogue {
-  padding: clamp(30px, 4vw, 56px);
+  padding: clamp(26px, 3.2vw, 44px);
   overflow: hidden;
-  border: 1px solid rgba(232,210,149,.28);
-  border-radius: 30px;
-  background: linear-gradient(145deg, rgba(6,27,21,.32), rgba(4,18,14,.42));
-  box-shadow: 0 28px 90px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
-  backdrop-filter: blur(9px) saturate(1.06);
-  -webkit-backdrop-filter: blur(9px) saturate(1.06);
+  border: 1px solid rgba(232,210,149,.34);
+  border-radius: 26px;
+  background: linear-gradient(145deg, rgba(5,24,18,.14), rgba(3,17,13,.2));
+  box-shadow: 0 22px 68px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(3px) saturate(1.04);
+  -webkit-backdrop-filter: blur(3px) saturate(1.04);
 }
 .tt-umrah-catalogue-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
-  gap: 36px;
+  gap: 28px;
   align-items: end;
 }
 .tt-umrah-catalogue-head h2 {
-  max-width: 760px;
-  margin: 8px 0 0;
-  color: #fff;
-  font: 600 clamp(2rem, 4.3vw, 4.25rem)/.95 Manrope, sans-serif;
-  letter-spacing: -.055em;
+  max-width: 650px;
+  margin: 6px 0 0;
+  color: #fff9ed;
+  font: 600 clamp(1.8rem, 3.3vw, 3.25rem)/1 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.025em;
+  text-shadow: 0 3px 20px rgba(0,0,0,.2);
 }
 .tt-umrah-catalogue-head > p {
   margin: 0;
-  color: rgba(236,243,239,.58);
-  font: 500 .78rem/1.7 Manrope, sans-serif;
+  color: rgba(255,249,237,.66);
+  font: 500 .73rem/1.65 Manrope, sans-serif;
 }
 .tt-umrah-catalogue-head > p span { color: #e5ca81; font-weight: 700; }
 .tt-umrah-duration {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: 8px;
-  margin-top: clamp(30px, 4vw, 48px);
+  margin-top: clamp(22px, 3vw, 34px);
   padding: 5px;
   border: 1px solid rgba(255,255,255,.16);
   border-radius: 999px;
-  background: rgba(1,12,9,.44);
+  background: rgba(1,12,9,.22);
 }
 .tt-umrah-duration button {
   min-height: 46px;
@@ -706,17 +709,17 @@ body {
   margin: 8px 0;
   border: 1px solid rgba(228,202,131,.25);
   border-radius: 20px;
-  background: rgba(10,39,30,.42);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
+  background: rgba(6,31,23,.2);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 .tt-umrah-program summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 38px;
   gap: 24px;
   align-items: center;
-  min-height: 104px;
-  padding: 20px 24px;
+  min-height: 92px;
+  padding: 16px 20px;
   cursor: pointer;
   list-style: none;
 }
@@ -734,12 +737,12 @@ body {
   letter-spacing: .08em;
 }
 .tt-umrah-program-title strong {
-  color: #fff;
+  color: #fff9ed;
   font: 600 clamp(1.2rem, 2vw, 1.65rem)/1 Manrope, sans-serif;
   letter-spacing: -.035em;
 }
 .tt-umrah-program-title em {
-  color: rgba(255,255,255,.48);
+  color: rgba(255,249,237,.58);
   font: 500 .7rem/1.5 Manrope, sans-serif;
   font-style: normal;
 }
@@ -840,20 +843,20 @@ body {
 
 @media (max-width: 620px) {
   .tt-umrah-background { background-position: 52% center; }
-  .tt-umrah-video { object-position: 52% center; filter: saturate(.78) brightness(.66); }
+  .tt-umrah-video { object-position: 52% center; filter: saturate(.9) brightness(.76) contrast(1.02); }
   .tt-umrah-hero-shade {
     background: linear-gradient(180deg, rgba(2,12,9,.66), rgba(2,12,9,.08) 30%, rgba(2,12,9,.34) 70%, rgba(2,12,9,.62));
   }
-  .tt-umrah-shell { width: calc(100% - 24px); padding: 104px 0 42px; }
-  .tt-umrah-hero-copy { min-height: 50svh; padding-bottom: 36px; }
-  .tt-umrah-hero-copy .tt-crumbs { margin-bottom: 34px; }
-  .tt-umrah-hero-copy h1 { font-size: clamp(4.4rem, 24vw, 6.5rem); }
+  .tt-umrah-shell { width: calc(100% - 24px); padding: 100px 0 38px; }
+  .tt-umrah-hero-copy { min-height: 42svh; padding-bottom: 30px; }
+  .tt-umrah-hero-copy .tt-crumbs { margin-bottom: 26px; }
+  .tt-umrah-hero-copy h1 { font-size: clamp(3.9rem, 20vw, 5.7rem); }
   .tt-umrah-hero-copy > p { font-size: .78rem; line-height: 1.65; }
   .tt-umrah-hero-meta { gap: 7px 14px; font-size: .62rem; }
   .tt-umrah-hero-meta span + span::before,
   .tt-umrah-hero-meta strong::before { display: none; }
-  .tt-umrah-catalogue { padding: 26px 16px 20px; border-radius: 22px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .tt-umrah-catalogue-head h2 { font-size: 2.15rem; }
+  .tt-umrah-catalogue { padding: 22px 14px 18px; border-radius: 20px; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .tt-umrah-catalogue-head h2 { font-size: 1.9rem; }
   .tt-umrah-duration { display: grid; width: 100%; }
   .tt-umrah-duration button { min-height: 43px; padding: 0 14px; }
   .tt-umrah-programs { margin-top: 20px; }
