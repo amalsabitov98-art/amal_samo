@@ -1133,7 +1133,9 @@
 
     function umrahProgrammeCard(p, index, contact) {
       var duration = p.days.indexOf("13") === 0 ? "13" : "10";
-      return '<details class="tt-umrah-program" data-umrah-duration="' + duration + '">' +
+      var routeTone = (index % 5) + 1;
+      return '<details class="tt-umrah-program" data-umrah-duration="' + duration +
+        '" data-route-tone="' + routeTone + '">' +
         '<summary><span class="tt-umrah-program-title"><small>' + esc(p.days) +
           '</small><strong>' + esc(p.name) + '</strong><em>' + esc(p.route) +
           '</em></span><b><small>от</small>' + esc(p.price.replace(/^от\s+/, "")) + '</b>' +
