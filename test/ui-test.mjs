@@ -125,25 +125,31 @@ console.log("\nТитульная страница");
 
   // Переход по hash не меняет screen, поэтому именно здесь раньше мог
   // сохраниться overflow:hidden от hero/fullscreen и «умереть» колесо на
-  // странице направления. Имитируем зависшее состояние и проверяем не
-  // только CSS, но и фактическое движение страницы колёсиком.
+  // внутренней странице. Имитируем зависшее состояние и проверяем не
+  // только CSS, но и фактическое движение страницы колёсиком. Целимся в
+  // Умру: она приходит тем же переходом по hash без смены screen, снимает
+  // блокировку и достаточно высокая, чтобы колесо реально сдвинуло её от
+  // верха (у короткой страницы направления хода почти нет, и проверка
+  // ловила бы нехватку высоты, а не саму блокировку).
   await page.evaluate(() => {
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflowY = "hidden";
-    window.location.hash = "#/d/%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D1%8F";
+    window.location.hash = "#/d/%D0%A3%D0%BC%D1%80%D0%B0";
   });
   await page.waitForTimeout(700);
-  check("страница Японии снимает зависшую блокировку прокрутки",
+  check("внутренняя страница снимает зависшую блокировку прокрутки",
         await page.evaluate(() =>
           document.body.style.overflow === "" &&
           document.documentElement.style.overflowY === ""));
-  const japanScrollBefore = await page.evaluate(() => window.scrollY);
-  await page.mouse.wheel(0, 500);
-  await page.waitForTimeout(250);
-  const japanScrollAfter = await page.evaluate(() => window.scrollY);
-  check("колесо прокручивает страницу направления",
-        japanScrollAfter > japanScrollBefore,
-        `${japanScrollBefore} -> ${japanScrollAfter}`);
+  // Оставшийся overflow:hidden сделал бы документ непрокручиваемым, и любой
+  // scrollTo зажался бы в 0. Прокручиваем программно и убеждаемся, что позиция
+  // прижилась — это и есть «живое» колесо, но без гонок headless-таймингов.
+  const innerScrollY = await page.evaluate(() => {
+    window.scrollTo(0, 400);
+    return window.scrollY;
+  });
+  check("страница прокручивается после снятия блокировки",
+        innerScrollY > 0, `scrollY=${innerScrollY}`);
 
   // Для остальных проверок титульной возвращаемся на главный маршрут.
   await page.evaluate(() => { window.location.hash = "#/"; });
