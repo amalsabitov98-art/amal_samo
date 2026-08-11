@@ -1072,7 +1072,6 @@
         "</div>" +
         '<div class="tt-booking-action">' +
           (cancelled ? "" :
-            '<button class="tt-btn secondary tt-btn-sm" data-edit="' + b.id + '">Изменить</button>' +
             '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id + '">Отменить</button>') +
         "</div>" +
       "</article>"
@@ -1108,20 +1107,6 @@
   }
 
   $("bookings-list").addEventListener("click", function (e) {
-    var editBtn = e.target.closest("[data-edit]");
-    if (editBtn) {
-      TuronApi.bookings().then(function (list) {
-        var b = list.filter(function (x) { return x.id === Number(editBtn.dataset.edit); })[0];
-        if (!b) return;
-        var dep = state.departures.filter(function (d) { return d.code === b.departure_code; })[0];
-        if (!dep) {
-          alert("Заезд уже прошёл — состав не меняется.");
-          return;
-        }
-        openBooking(b.departure_code, b);
-      });
-      return;
-    }
     var btn = e.target.closest("[data-cancel]");
     if (!btn) return;
     if (!confirm("Отменить бронь? Места вернутся в продажу.")) return;
