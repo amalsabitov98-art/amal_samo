@@ -77,7 +77,7 @@
   }
 
   function defaultTab() {
-    return session && TuronAdmin.isOperator(session) ? "manifest" : "builder";
+    return session && TuronAdmin.isOperator(session) ? "overview" : "builder";
   }
 
   function appRoute(tab) { return "#/app/" + (tab || defaultTab()); }
@@ -1888,6 +1888,7 @@
       messages: ["Контакты", "Связь с оператором"],
       bookings: ["Бронирования", "Продажи агентства"],
       tours: ["Комиссии", "Партнёрская программа"],
+      overview: ["Обзор", "Что происходит прямо сейчас"],
       manifest: ["Списки пассажиров", "Операторская панель"],
       "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
       agencies: ["Агентства", "Партнёрская сеть"],
@@ -1896,7 +1897,7 @@
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
     ["builder", "departures", "catalog", "bookings", "tours", "travellers",
-     "payments", "documents", "messages", "manifest", "admin-bookings", "agencies"]
+     "payments", "documents", "messages", "overview", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;

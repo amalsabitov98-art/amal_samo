@@ -3424,6 +3424,80 @@ select { font-family: inherit; }
 .tt-seat-text strong { color: var(--tt-text); font-size: 0.92rem; }
 .tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
 
+/* ------------------------------------------------ операторский обзор */
+/* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
+   это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
+   .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */
+.tt-op-dep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.tt-op-dep {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--tt-border);
+  border-left: 3px solid var(--tt-success);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+  box-shadow: 0 7px 24px rgba(24, 45, 38, 0.045);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-op-dep:hover { transform: translateY(-2px); border-color: var(--tt-border-strong); box-shadow: var(--tt-shadow-hover); }
+.tt-op-dep.is-active { border-color: var(--tt-accent); box-shadow: 0 0 0 2px var(--tt-accent-soft); }
+.tt-op-dep.is-low { border-left-color: var(--tt-warn-border); }
+.tt-op-dep.is-full { border-left-color: var(--tt-danger); opacity: 0.7; }
+.tt-op-dep .tt-dep-seats,
+.tt-op-dep .tt-seat-bar { width: 100%; }
+
+.tt-ov-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .tt-ov-grid { grid-template-columns: 1fr; }
+}
+
+.tt-panel-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.tt-panel-head-row h2 { margin: 0; }
+.tt-new-agency-form { margin-top: 14px; }
+
+.tt-agency-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--tt-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-row-link { cursor: pointer; }
+.tt-toggle-past { margin: 0 0 16px; }
+
+.tt-pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 /* --------------------------------------------------------- login */
 /*
  * Экран входа — «стекло по центру» (вариант A из трёх обсуждённых).

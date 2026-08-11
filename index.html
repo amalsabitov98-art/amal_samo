@@ -208,6 +208,7 @@
       <button class="tt-tab tt-tab-ag" data-tab="messages"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4z" /><path d="M8 9h8M8 13h5" /></svg></span><span>Контакты</span></button>
       <span class="tt-tab-divider tt-tab-ag" aria-hidden="true"></span>
       <button class="tt-tab tt-tab-ag" data-tab="departures"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18c2-4 4-6 7-6s5-2 7-6" /><circle cx="5" cy="18" r="2" /><circle cx="19" cy="6" r="2" /><path d="M10 5l2-2 2 2M12 3v6" /></svg></span><span>Направления</span></button>
+      <button class="tt-tab tt-tab-op" data-tab="overview" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 10h6V4h-6z" /></svg></span><span>Обзор</span></button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" /></svg></span><span>Списки пассажиров</span></button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3" /></svg></span><span>Все брони</span></button>
       <button class="tt-tab tt-tab-op" data-tab="agencies" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14M8 10h2M14 10h2M8 14h2M14 14h2M10 21v-3h4v3" /></svg></span><span>Агентства</span></button>
@@ -432,14 +433,33 @@
       <div id="messages-body"></div>
     </section>
 
+    <section id="panel-overview" hidden>
+      <div id="ov-stats"></div>
+      <div class="tt-ov-grid">
+        <div class="tt-panel">
+          <h2>Кто должен</h2>
+          <div id="ov-debtors"></div>
+        </div>
+        <div class="tt-panel">
+          <h2>Ближайшие заезды</h2>
+          <div id="ov-departures"></div>
+        </div>
+      </div>
+      <div class="tt-panel">
+        <h2>Последние брони</h2>
+        <div id="ov-recent"></div>
+      </div>
+    </section>
+
     <section id="panel-manifest" hidden>
       <div class="tt-toolbar">
-        <div class="tt-field" style="min-width:340px">
-          <label for="adm-departure">Заезд</label>
-          <select id="adm-departure"></select>
+        <div class="tt-field" style="min-width:230px">
+          <label for="adm-departure-search">Найти заезд</label>
+          <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
         </div>
         <button class="tt-btn" id="adm-export" disabled>Выгрузить в Excel</button>
       </div>
+      <div id="adm-departure-cards"></div>
       <div id="adm-manifest"></div>
     </section>
 
@@ -472,23 +492,29 @@
       </div>
       <div id="adm-bookings-count" class="tt-muted-note"></div>
       <div id="adm-bookings"></div>
-      <div id="adm-bookings-more"></div>
+      <div id="adm-bookings-pager" class="tt-pager"></div>
     </section>
 
     <section id="panel-agencies" hidden>
-      <form class="tt-panel" id="adm-new-agency">
-        <h2>Новое агентство</h2>
-        <div class="tt-new-agency-grid">
-          <div><label for="na-name">Название</label>
-            <input type="text" id="na-name" required /></div>
-          <div><label for="na-login">Логин</label>
-            <input type="text" id="na-login" autocomplete="off" required /></div>
-          <div><label for="na-password">Пароль (от 8 символов)</label>
-            <input type="text" id="na-password" autocomplete="new-password" required /></div>
-          <button type="submit" class="tt-btn">Завести</button>
+      <div class="tt-panel">
+        <div class="tt-panel-head-row">
+          <h2>Агентства</h2>
+          <button type="button" class="tt-btn secondary tt-btn-sm" id="adm-new-agency-toggle"
+                  aria-expanded="false">+ Новое агентство</button>
         </div>
-        <div id="adm-agency-result"></div>
-      </form>
+        <form id="adm-new-agency" class="tt-new-agency-form" hidden>
+          <div class="tt-new-agency-grid">
+            <div><label for="na-name">Название</label>
+              <input type="text" id="na-name" required /></div>
+            <div><label for="na-login">Логин</label>
+              <input type="text" id="na-login" autocomplete="off" required /></div>
+            <div><label for="na-password">Пароль (от 8 символов)</label>
+              <input type="text" id="na-password" autocomplete="new-password" required /></div>
+            <button type="submit" class="tt-btn">Завести</button>
+          </div>
+          <div id="adm-agency-result"></div>
+        </form>
+      </div>
       <div id="adm-agencies"></div>
     </section>
     </main>

@@ -320,13 +320,58 @@ console.log("\nКабинет оператора");
 {
   const { page, errors } = await session("operator");
   check("вход оператора выполнен", await page.locator("#screen-app").isVisible());
-  for (const tab of ["manifest", "admin-bookings", "agencies"]) {
+  check("после входа оператор попадает на «Обзор»",
+        await page.locator("#panel-overview").isVisible());
+  for (const tab of ["overview", "manifest", "admin-bookings", "agencies"]) {
     await page.locator(`.tt-tab[data-tab="${tab}"]`).first().click({ force: true });
     await page.waitForTimeout(500);
     const panel = page.locator("#panel-" + tab);
     check("операторская вкладка «" + tab + "»",
           await panel.isVisible() && (await panel.innerText()).trim().length > 10);
   }
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
+// ------------------------------------------------- новый обзор оператора
+console.log("\nОператор — обзор, карточки заездов, агентства");
+{
+  const { page, errors } = await session("operator");
+  await page.waitForTimeout(500);
+
+  const statsText = await page.locator("#ov-stats").innerText();
+  check("сводные цифры на «Обзоре» посчитаны", /\d/.test(statsText), statsText);
+  check("блок «Кто должен» отрисован", await page.locator("#ov-debtors").isVisible());
+  check("блок «Ближайшие заезды» отрисован", await page.locator("#ov-departures").isVisible());
+
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(500);
+  const depCards = page.locator("#adm-departure-cards [data-departure]");
+  const depCount = await depCards.count();
+  check("карточки заездов заменили select", depCount > 0, depCount + " карточек");
+  if (depCount > 1) {
+    await depCards.nth(1).click();
+    await page.waitForTimeout(400);
+    check("клик по карточке заезда переключает выбор",
+          await depCards.nth(1).evaluate((el) => el.classList.contains("is-active")));
+  }
+  await page.fill("#adm-departure-search", "несуществующий-код-xyz");
+  await page.waitForTimeout(400);
+  check("поиск по заездам сужает список карточек",
+        await page.locator("#adm-departure-cards .tt-empty-state").isVisible());
+
+  await page.locator('.tt-tab[data-tab="agencies"]').first().click({ force: true });
+  await page.waitForTimeout(400);
+  const agencyText = await page.locator("#adm-agencies").innerText();
+  check("статистика по агентствам считается (оборот)",
+        agencyText.includes("оборот"), agencyText.slice(0, 160));
+  check("форма нового агентства свёрнута по умолчанию",
+        await page.locator("#adm-new-agency").isHidden());
+  await page.click("#adm-new-agency-toggle");
+  await page.waitForTimeout(200);
+  check("кнопка разворачивает форму нового агентства",
+        await page.locator("#adm-new-agency").isVisible());
+
   check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
   await page.close();
 }
