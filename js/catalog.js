@@ -1313,19 +1313,23 @@
         var info = tour.info || [];
 
         root.innerHTML =
-          // Тот же приём, что у страницы Умры, и БЕЗ разницы между гостем
-          // и кабинетом агентства — там тоже видео показывается всегда,
-          // без cfg.canBook. Фон закреплён (position:fixed) позади ВСЕЙ
-          // страницы, а не только шапки: контент едет поверх него в
-          // полупрозрачных карточках, а не «видео кончается после героя».
-          '<div class="tt-tour-bg" aria-hidden="true">' +
-            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
-              'tabindex="-1">' +
-              '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
-            "</video>" +
-            '<div class="tt-tour-bg-shade"></div>' +
-          "</div>" +
+          // Видео — только на публичной карточке (гость, cfg.canBook false).
+          // В кабинете этот же компонент показывает тур агенту рядом с
+          // сайдбаром — там работали над другим и видео не просили, старая
+          // компактная карточка остаётся как была. Фон закреплён
+          // (position:fixed) позади ВСЕЙ публичной страницы, а не только
+          // шапки: контент едет поверх него в полупрозрачных карточках,
+          // а не «видео кончается после героя».
+          (!cfg.canBook
+            ? '<div class="tt-tour-bg" aria-hidden="true">' +
+                '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+                  'tabindex="-1">' +
+                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+                "</video>" +
+                '<div class="tt-tour-bg-shade"></div>' +
+              "</div>"
+            : "") +
 
           crumbs([
             { text: "Каталог", go: "root" },

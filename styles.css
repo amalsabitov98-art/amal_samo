@@ -2995,12 +2995,6 @@ select { font-family: inherit; }
 .tt-sidebar {
   position: sticky;
   top: 0;
-  /* Явный z-index обязателен: sticky без него — z-index:auto, а страницы с
-     закреплённым видеофоном (карточка тура) кладут его через position:fixed
-     с z-index:0. Позиционированные элементы с z-index:auto красятся на том
-     же уровне и по порядку в разметке — сайдбар идёт раньше контента,
-     поэтому проигрывал бы видео, вложенному в панель позже. */
-  z-index: 5;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -3187,11 +3181,6 @@ select { font-family: inherit; }
 
 .tt-workspace { min-width: 0; }
 .tt-app-header {
-  /* backdrop-filter уже создаёт свой стекинг-контекст, но явные
-     position+z-index надёжнее (тот же приём, что у .tt-sidebar) — не
-     полагаемся на побочный эффект другого свойства. */
-  position: relative;
-  z-index: 5;
   min-height: 72px;
   padding: 12px clamp(18px, 3vw, 36px);
   display: flex;
@@ -3235,15 +3224,8 @@ select { font-family: inherit; }
 }
 .tt-logout-top:hover { background: var(--tt-accent); color: #fff; border-color: var(--tt-accent); }
 
-/* Полоса с названием текущего раздела — под постоянной панелью. Явные
-   position+z-index обязательны: страницы с закреплённым видеофоном
-   (карточка тура, теперь и в кабинете) кладут его через position:fixed,
-   а такой слой красится поверх любого непозиционированного элемента
-   независимо от места в разметке — без этого полоса тихо пряталась бы
-   под видео. */
+/* Полоса с названием текущего раздела — под постоянной панелью. */
 .tt-workspace-subhead {
-  position: relative;
-  z-index: 1;
   padding: 14px clamp(18px, 3vw, 36px) 0;
 }
 .tt-workspace-subhead .tt-eyebrow { display: block; }
@@ -4566,31 +4548,32 @@ select { font-family: inherit; }
 }
 .tt-cat-tour p { max-width: 75ch; font-size: 0.8rem; }
 
-/* Во весь экран и без разницы гость/кабинет — тот же приём, что и на
-   странице Умры (.tt-umrah-background), и там разницы тоже нет. Видео
-   закреплено (position:fixed) позади ВСЕЙ страницы, а не только героя;
-   .tt-cat-hero прозрачна и сама по себе никакой «карточки» не рисует. */
+/* Компактная карточка — то, что видит АГЕНТСТВО в кабинете (рядом с
+   сайдбаром) и общий фолбэк. Во весь экран с закреплённым видео — только
+   публика, см. override #screen-public .tt-cat-hero ниже: там работали,
+   кабинет никто не просил трогать. */
 .tt-cat-hero {
   position: relative;
-  min-height: 100svh;
+  min-height: 310px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
   padding: clamp(28px, 5vw, 58px);
   border: 0;
-  border-radius: 0;
+  border-radius: 26px;
   color: #fff9ed;
-  background: none;
-  box-shadow: none;
+  /* Заливка — то, что видит КАБИНЕТ (видео там нет вообще). */
+  background: linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
+  box-shadow: 0 26px 64px rgba(10, 42, 34, 0.22);
 }
 .tt-cat-hero::before {
   content: "";
   position: absolute;
-  width: min(46vw, 620px);
+  width: 54%;
   aspect-ratio: 1;
-  right: -8vw;
-  top: 6vh;
+  right: -5%;
+  top: -56%;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 50%;
   box-shadow:
@@ -4656,25 +4639,41 @@ select { font-family: inherit; }
     linear-gradient(180deg, rgba(3, 20, 15, 0.5) 0%, rgba(3, 20, 15, 0.28) 26%,
                     rgba(3, 20, 15, 0.3) 62%, rgba(3, 20, 15, 0.62) 100%);
 }
+#screen-public .tt-cat-hero {
+  min-height: 100svh;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+/* Кольцо-декор считается в % от своих же ~400px в компактной (кабинетной)
+   версии и «выглядывает» отрицательным top. На весь экран та же математика
+   увела бы его далеко за пределы видимого, поэтому у публичной версии
+   кольцо на фиксированной доле высоты ОКНА, а не своей же высоты. */
+#screen-public .tt-cat-hero::before {
+  width: min(46vw, 620px);
+  right: -8vw;
+  top: 6vh;
+}
 
 /* .tt-tour-bg лежит фиксированным слоем с z-index:0 — весь остальной
-   контент страницы должен явно стоять НАД ним, и гость, и кабинет.
-   Без этого браузер сам решает порядок между непозиционированными
-   блоками (crumbs/.tt-cat-block) и позиционированным фоном, и первые
-   тихо уезжают под видео. */
-.tt-crumbs,
-.tt-cat-hero,
-.tt-cat-block {
+   контент публичной страницы должен явно стоять НАД ним. Без этого браузер
+   сам решает порядок между непозиционированными блоками (crumbs/
+   .tt-cat-block) и позиционированным фоном, и первые тихо уезжают под
+   видео. В кабинете видео нет вообще, эта защита ему не нужна. */
+#screen-public .tt-crumbs,
+#screen-public .tt-cat-hero,
+#screen-public .tt-cat-block {
   position: relative;
   z-index: 1;
 }
 
 /* Программа/цены и т.п. — полупрозрачные карточки с размытием поверх
-   закреплённого видео, чтобы видео читалось и под ними, а не только
-   в шапке. Плотность с запасом: под карточкой едет живое видео, и текст
-   должен остаться читаемым независимо от того, какой кадр там в моменте —
-   не только на тёмных участках ролика. */
-.tt-cat-block {
+   закреплённого видео, только на публике. В кабинете (видео нет, фон
+   плоский) .tt-cat-block остаётся сплошным var(--tt-surface) — см. общее
+   правило ниже. Плотность с запасом: под карточкой едет живое видео, и
+   текст должен остаться читаемым независимо от кадра в моменте. */
+#screen-public .tt-cat-block {
   background: linear-gradient(145deg, rgba(4, 20, 15, 0.74), rgba(3, 14, 11, 0.82));
   border: 1px solid rgba(232, 210, 149, 0.16);
   backdrop-filter: blur(10px) saturate(1.05);
