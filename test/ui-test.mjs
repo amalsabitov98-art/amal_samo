@@ -209,11 +209,23 @@ console.log("\nКарточка тура Карадениз");
   check("фон закреплён (position:fixed), а не прокручивается вместе со страницей",
         await page.locator(".tt-tour-bg").evaluate((el) => getComputedStyle(el).position === "fixed"));
 
-  const heroH = await page.evaluate(() => {
-    const h = document.querySelector(".tt-cat-hero");
-    return h ? h.getBoundingClientRect().height : 0;
+  // Герой занимает почти весь первый экран (оставляет место под прозрачную
+   // шапку), а сам видеофон закреплён на всю высоту окна.
+  const heroInfo = await page.evaluate(() => {
+    const h = document.querySelector(".tt-cat-hero").getBoundingClientRect();
+    const bg = document.querySelector(".tt-tour-bg").getBoundingClientRect();
+    return { heroH: Math.round(h.height), bgH: Math.round(bg.height), winH: window.innerHeight };
   });
-  check("на публике герой во весь экран", heroH >= 800, heroH + "px");
+  check("на публике герой почти во весь экран",
+        heroInfo.heroH >= heroInfo.winH * 0.7, JSON.stringify(heroInfo));
+  check("видеофон закреплён на всю высоту окна",
+        heroInfo.bgH >= heroInfo.winH - 2, JSON.stringify(heroInfo));
+
+  // Шапка над видео прозрачная — has-hero выставлен (видео от самого верха).
+  check("над видео карточки тура шапка прозрачная (has-hero)",
+        await page.evaluate(() =>
+          document.querySelector("#screen-public").classList.contains("has-hero") &&
+          document.querySelector("#screen-public").classList.contains("has-tourhero")));
 
   // Контент (крошки, герой, карточки) должен стоять НАД закреплённым видео,
   // а не потеряться позади него из-за неявного порядка стекинга.
