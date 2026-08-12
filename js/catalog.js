@@ -1307,23 +1307,29 @@
         var info = tour.info || [];
 
         root.innerHTML =
+          // Видео — только на публичной карточке (гость, cfg.canBook false).
+          // В кабинете этот же компонент показывает тур агенту рядом с
+          // сайдбаром — там оставили как было, без видео. Фон закреплён
+          // (position:fixed) позади ВСЕЙ страницы, а не только шапки: как на
+          // странице Умры — контент (программа, цены) едет поверх него в
+          // полупрозрачных карточках, а не «видео кончается после героя».
+          (!cfg.canBook
+            ? '<div class="tt-tour-bg" aria-hidden="true">' +
+                '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+                  'tabindex="-1">' +
+                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+                "</video>" +
+                '<div class="tt-tour-bg-shade"></div>' +
+              "</div>"
+            : "") +
+
           crumbs([
             { text: "Каталог", go: "root" },
             { text: tour.destination, go: "dest:" + tour.destination },
             { text: tour.name },
           ]) +
           '<header class="tt-cat-hero">' +
-            // Видео — только на публичной карточке (гость, cfg.canBook
-            // false). В кабинете этот же компонент показывает тур агенту
-            // рядом с сайдбаром — там просили оставить как было, без видео.
-            (!cfg.canBook
-              ? '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
-                  'aria-hidden="true" tabindex="-1">' +
-                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
-                "</video>" +
-                '<div class="tt-cat-hero-shade" aria-hidden="true"></div>'
-              : "") +
             "<h1>" + esc(tour.name) + "</h1>" +
             '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
             (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +

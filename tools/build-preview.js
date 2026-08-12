@@ -93,6 +93,13 @@ ${inlineImages(read("styles.css"))}
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
+  /* Страницы с закреплённым видеофоном (карточка тура, Умра) кладут его
+     через position:fixed с z-index — любой позиционированный элемент
+     красится поверх непозиционированного по спецификации CSS, независимо
+     от места в разметке. Без своего position+z-index эта полоса, хоть и
+     идёт первой в <body>, всё равно оказывалась бы под видео. */
+  position: relative;
+  z-index: 2;
   background: var(--tt-accent-soft);
   border-bottom: 1px solid var(--tt-border);
   color: var(--tt-text);

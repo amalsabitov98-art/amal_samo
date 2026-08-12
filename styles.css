@@ -2898,7 +2898,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-cat-hero) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4511,9 +4511,9 @@ select { font-family: inherit; }
   position: relative;
   /* Компактная карточка — фолбэк и одновременно то, что видит АГЕНТСТВО:
      этот же компонент рисует и публичную карточку тура, и вкладку
-     «Каталог туров» в кабинете (там же сайдбар, полноэкранному герою
-     не место). Во весь экран — только на публике, см. override
-     #screen-public .tt-cat-hero ниже. */
+     «Каталог туров» в кабинете (там же сайдбар, видео там не показываем —
+     см. cfg.canBook в paintTour). На публике — прозрачная, поверх
+     закреплённого фона .tt-tour-bg (ниже), см. override под ней. */
   min-height: 310px;
   display: flex;
   flex-direction: column;
@@ -4523,8 +4523,7 @@ select { font-family: inherit; }
   border: 0;
   border-radius: 26px;
   color: #fff9ed;
-  /* Заливка — подстраховка на случай, если видео не загрузилось/не
-     поддерживается: без неё был бы голый белый прямоугольник до кадра. */
+  /* Заливка — то, что видит КАБИНЕТ (видео там нет вообще). */
   background: linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
   box-shadow: 0 26px 64px rgba(10, 42, 34, 0.22);
 }
@@ -4542,22 +4541,6 @@ select { font-family: inherit; }
     0 0 0 92px rgba(255, 255, 255, 0.02);
   z-index: 2;
 }
-/* Публичная карточка тура — во весь экран (класс исключён из ограничения
-   .tt-container выше, поэтому уже во всю ширину; здесь досдаём высоту и
-   снимаем скругление/тень card-вида). Кольцо у компактной версии считается
-   в % от своих же ~400px и «выглядывает» отрицательным top — на весь
-   экран та же математика увела бы его далеко за пределы видимого, поэтому
-   у полноэкранной версии кольцо на фиксированной доле высоты ОКНА. */
-#screen-public .tt-cat-hero {
-  min-height: 100svh;
-  border-radius: 0;
-  box-shadow: none;
-}
-#screen-public .tt-cat-hero::before {
-  width: min(46vw, 620px);
-  right: -8vw;
-  top: 6vh;
-}
 .tt-cat-hero::after {
   content: "Авторский групповой маршрут";
   position: absolute;
@@ -4569,31 +4552,6 @@ select { font-family: inherit; }
   z-index: 2;
 }
 .tt-cat-hero > * { position: relative; z-index: 2; }
-/* Видео и подложка идут ПОЗЖЕ общего правила выше — та же специфичность,
-   но более поздняя запись побеждает, поэтому z-index не перебивается
-   обратно на 2. Затемнение нужно, чтобы белый заголовок и текст читались
-   на живом видео так же надёжно, как на прежнем чистом градиенте. */
-/* .tt-hero-video переиспользован с титульной — та же базовая раскладка
-   (position:absolute + cover), только позиция кадра смещена ниже центра:
-   в блоке карточки короткая широкая пропорция, и озеро с посёлком
-   Узунгёль — то, что снято в кадре — лежит чуть ниже середины, а не
-   у самого верха, где облака и склон. */
-.tt-cat-hero .tt-hero-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-position: center 58%;
-  z-index: 0;
-}
-.tt-cat-hero-shade {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(circle at 80% 20%, rgba(233, 101, 58, 0.3), transparent 17rem),
-    linear-gradient(135deg, rgba(14, 70, 58, 0.82), rgba(5, 32, 27, 0.9));
-}
 .tt-cat-hero h1 {
   max-width: 750px;
   margin-bottom: 10px;
@@ -4605,6 +4563,77 @@ select { font-family: inherit; }
 }
 .tt-cat-hero .tt-muted-note { color: #d8b977; font-size: 0.72rem; }
 .tt-cat-hero p { max-width: 65ch; color: rgba(255, 255, 255, 0.68); font-size: 0.8rem; }
+
+/* ------------------------------------------- фон публичной карточки тура */
+/* Тот же приём, что и у страницы Умры (.tt-umrah-background): видео
+   закреплено (position:fixed) на весь экран и остаётся позади ВСЕЙ
+   страницы при прокрутке, а не только за героем. .tt-cat-hero теряет
+   собственный фон и становится прозрачной — см. override ниже — а карточки
+   «Программа»/«Заезды и цены» получают полупрозрачную подложку с
+   размытием, чтобы видео проступало и под ними, а не только в шапке. */
+.tt-tour-bg {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  height: 100svh;
+  overflow: hidden;
+  pointer-events: none;
+  background: #06140f;
+}
+.tt-tour-bg .tt-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-position: center 58%;
+}
+/* Затемнение только у самых краёв (для читаемости заголовка внизу и шапки
+   сверху) — середина кадра почти чистая, иначе от живого видео остаётся
+   один тёмно-зелёный кисель и снятого места не узнать. */
+.tt-tour-bg-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3, 20, 15, 0.22) 0%, rgba(3, 20, 15, 0.02) 22%,
+                    rgba(3, 20, 15, 0.04) 58%, rgba(3, 20, 15, 0.5) 100%);
+}
+#screen-public .tt-cat-hero {
+  min-height: 100svh;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+/* Кольцо-декор считается в % от своих же ~400px в компактной (кабинетной)
+   версии и «выглядывает» отрицательным top. На весь экран та же математика
+   увела бы его далеко за пределы видимого, поэтому у публичной версии
+   кольцо на фиксированной доле высоты ОКНА, а не своей же высоты. */
+#screen-public .tt-cat-hero::before {
+  width: min(46vw, 620px);
+  right: -8vw;
+  top: 6vh;
+}
+
+/* .tt-tour-bg лежит фиксированным слоем с z-index:0 — весь остальной
+   контент страницы должен явно стоять НАД ним. Без этого браузер сам
+   решает порядок между непозиционированными блоками (crumbs/.tt-cat-block)
+   и позиционированным фоном, и первые тихо уезжают под видео. */
+#screen-public .tt-crumbs,
+#screen-public .tt-cat-hero,
+#screen-public .tt-cat-block {
+  position: relative;
+  z-index: 1;
+}
+
+/* Программа/цены и т.п. — полупрозрачные карточки с размытием поверх
+   закреплённого видео, только на публике. В кабинете (видео нет, фон
+   плоский) .tt-cat-block остаётся как был — сплошной var(--tt-surface). */
+#screen-public .tt-cat-block {
+  background: linear-gradient(145deg, rgba(5, 24, 18, 0.5), rgba(3, 17, 13, 0.62));
+  border: 1px solid rgba(232, 210, 149, 0.16);
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+}
 
 .tt-cat-block {
   padding: clamp(20px, 3vw, 30px);
@@ -4914,7 +4943,7 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-cat-hero) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }

@@ -202,14 +202,38 @@ console.log("\nКарточка тура Карадениз");
   await page.waitForTimeout(700);
   check("направление с одним туром сразу открывает карточку",
         (await page.evaluate(() => location.hash)) === "#/t/KARADENIZ");
-  check("видео-герой подключён",
-        await page.locator(".tt-cat-hero video.tt-hero-video source[src='img/tour-karadeniz-hero.mp4']").count() === 1);
+  // Видео — закреплённый фон ПОЗАДИ всей страницы (.tt-tour-bg), а не
+  // только внутри .tt-cat-hero: тот же приём, что и на странице Умры.
+  check("видео-фон подключён",
+        await page.locator(".tt-tour-bg video.tt-hero-video source[src='img/tour-karadeniz-hero.mp4']").count() === 1);
+  check("фон закреплён (position:fixed), а не прокручивается вместе со страницей",
+        await page.locator(".tt-tour-bg").evaluate((el) => getComputedStyle(el).position === "fixed"));
 
   const heroH = await page.evaluate(() => {
     const h = document.querySelector(".tt-cat-hero");
     return h ? h.getBoundingClientRect().height : 0;
   });
   check("на публике герой во весь экран", heroH >= 800, heroH + "px");
+
+  // Контент (крошки, герой, карточки) должен стоять НАД закреплённым видео,
+  // а не потеряться позади него из-за неявного порядка стекинга.
+  const stacking = await page.evaluate(() => {
+    const bg = document.querySelector(".tt-tour-bg");
+    const block = document.querySelector(".tt-cat-block");
+    if (!bg || !block) return null;
+    return {
+      bgZ: getComputedStyle(bg).zIndex,
+      blockZ: getComputedStyle(block).zIndex,
+      blockVisible: block.getBoundingClientRect().width > 0,
+    };
+  });
+  check("карточки контента стоят над закреплённым видео",
+        stacking && Number(stacking.blockZ) > Number(stacking.bgZ),
+        JSON.stringify(stacking));
+
+  const noHorizScroll = await page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+  check("нет горизонтальной прокрутки на публичной карточке тура", noHorizScroll);
 
   check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
   await page.close();
