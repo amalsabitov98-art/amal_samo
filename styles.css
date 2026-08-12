@@ -2376,9 +2376,11 @@ a { color: inherit; }
   border-color: var(--tt-border);
   background: linear-gradient(155deg, #0c181c 0%, #060c0e 100%);
 }
-:root:not([data-theme="light"]) #screen-public .tt-cat-hero {
-  background: linear-gradient(150deg, rgba(14, 40, 47, 0.9), rgba(5, 12, 15, 0.98));
-}
+/* У публичного героя карточки тура фона нет намеренно: за ним лежит
+   закреплённое видео (.tt-tour-bg), а подложку на случай незагруженного
+   ролика держит сам этот слой. Раньше тут стоял непрозрачный градиент
+   тёмной темы — он закрашивал видео сплошным прямоугольником по ширине
+   контейнера. */
 #screen-public .tt-cat-hero .tt-muted-note { color: var(--tt-accent); }
 :root:not([data-theme="light"]) #screen-public .tt-cat-tile-art {
   background: linear-gradient(150deg, #123840 0%, #06161a 100%);
@@ -2939,7 +2941,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4622,29 +4624,42 @@ select { font-family: inherit; }
      кадр яркой полосой. 85% уводит окно обрезки ниже, в зелёный склон и
      озеро — там, где кадр и должен читаться. */
   object-position: center 85%;
-  /* Приглушаем яркость и контраст самого видео (как на странице Умры),
-     а не только градиентом сверху: небо и блики на облаках светлее, чем
-     любой сколько-нибудь читаемый по всему кадру градиент — без этого
-     они пробивались через затемнение отдельным ярким пятном. */
-  filter: saturate(0.92) brightness(0.72) contrast(1.05);
+  /* Лёгкое приглушение, не затемнение: небо из кадра уже убрано сдвигом
+     object-position выше, поэтому душить яркость нет нужды — при
+     brightness(0.72) от съёмки оставалось чёрное пятно вместо гор. */
+  filter: saturate(1) brightness(0.94);
 }
-/* Даже после приглушения яркости видео текст нужно подчеркнуть по краям —
-   плотнее сверху под шапку и снизу под заголовок, ровно и без резких
-   переходов в середине (никаких скачков alpha — именно они раньше
-   обнажали яркое небо отдельной полосой). */
+/* Затемнение только по краям — сверху под шапку, снизу под заголовок.
+   Середина почти открыта: там сам кадр, ради которого всё и делалось.
+   Переходы плавные, без скачков alpha. */
 .tt-tour-bg-shade {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(3, 20, 15, 0.5) 0%, rgba(3, 20, 15, 0.28) 26%,
-                    rgba(3, 20, 15, 0.3) 62%, rgba(3, 20, 15, 0.62) 100%);
+    linear-gradient(180deg, rgba(3, 20, 15, 0.46) 0%, rgba(3, 20, 15, 0.12) 24%,
+                    rgba(3, 20, 15, 0.14) 58%, rgba(3, 20, 15, 0.58) 100%);
 }
 #screen-public .tt-cat-hero {
   min-height: 100svh;
   border: 0;
   border-radius: 0;
-  background: none;
+  /* Во всю ширину окна (класс исключён из ограничения .tt-container выше),
+     иначе подложка ниже читалась бы прямоугольной плашкой 1380px с видимыми
+     краями поверх видео. Текст при этом выравнивается по той же линии, что
+     и карточки ниже — за счёт padding-inline с учётом центрирования. */
+  padding-inline: max(clamp(28px, 5vw, 58px),
+                      calc((100vw - 1380px) / 2 + clamp(20px, 4vw, 64px)));
+  /* Не заливка кадра, а мягкая подложка ТОЛЬКО под текстом внизу: заголовок
+     и описание стоят в нижней трети, а кадр под ними при прокрутке бывает
+     светлым (склон на солнце) — без подложки описание на нём пропадает. */
+  background: linear-gradient(180deg, transparent 38%,
+              rgba(3, 16, 13, 0.5) 74%, rgba(3, 16, 13, 0.76) 100%);
   box-shadow: none;
+}
+#screen-public .tt-cat-hero h1,
+#screen-public .tt-cat-hero p,
+#screen-public .tt-cat-hero .tt-muted-note {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 /* Кольцо-декор считается в % от своих же ~400px в компактной (кабинетной)
    версии и «выглядывает» отрицательным top. На весь экран та же математика
@@ -4966,7 +4981,7 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
