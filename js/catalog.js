@@ -1261,6 +1261,14 @@
       if (destination === "Умра") return renderUmrah();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        // Направление с ровно одним туром не нуждается в промежуточном
+        // списке — там будет одна строка на всю страницу, а клиенту всё
+        // равно нужна карточка. Сразу подменяем маршрут на неё, чтобы
+        // «назад» из карточки уводил туда, откуда пришли, а не на пустой
+        // список.
+        if (list.length === 1) {
+          return go({ kind: "tour", code: list[0].code, variant: null }, false);
+        }
         var isJapan = destination === "Япония";
         root.innerHTML =
           '<section class="tt-destination-page' +
@@ -1305,6 +1313,17 @@
             { text: tour.name },
           ]) +
           '<header class="tt-cat-hero">' +
+            // Видео — только на публичной карточке (гость, cfg.canBook
+            // false). В кабинете этот же компонент показывает тур агенту
+            // рядом с сайдбаром — там просили оставить как было, без видео.
+            (!cfg.canBook
+              ? '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+                  'aria-hidden="true" tabindex="-1">' +
+                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+                "</video>" +
+                '<div class="tt-cat-hero-shade" aria-hidden="true"></div>'
+              : "") +
             "<h1>" + esc(tour.name) + "</h1>" +
             '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
             (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +
@@ -1354,6 +1373,20 @@
                 "войдите под логином агентства.</p>"
               : "") +
           "</section>";
+
+        // Тот же класс .tt-hero-video, что и у главного видео — общая
+        // логика «уменьшить движение» и пробуждения после сворачивания
+        // вкладки (resumeHero/keepHeroPlaying ниже) подхватывает его
+        // автоматически, без отдельного набора обработчиков под карточку.
+        var heroVideo = root.querySelector(".tt-hero-video");
+        if (heroVideo && global.matchMedia &&
+            global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          heroVideo.removeAttribute("autoplay");
+          heroVideo.setAttribute("data-no-autoplay", "");
+          heroVideo.pause();
+        } else {
+          keepHeroPlaying(heroVideo);
+        }
     }
 
     /* has-hero говорит стилям, что на экране есть видео и шапку можно класть

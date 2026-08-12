@@ -187,6 +187,34 @@ console.log("\nТитульная страница");
   await page.close();
 }
 
+// --------------------------------------- карточка тура: пропуск списка
+console.log("\nКарточка тура Карадениз");
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+
+  // Турция всегда ровно с одним туром — промежуточный список пропускается,
+  // адрес подменяется сразу на карточку.
+  await page.evaluate(() => { window.location.hash = "#/d/%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F"; });
+  await page.waitForTimeout(700);
+  check("направление с одним туром сразу открывает карточку",
+        (await page.evaluate(() => location.hash)) === "#/t/KARADENIZ");
+  check("видео-герой подключён",
+        await page.locator(".tt-cat-hero video.tt-hero-video source[src='img/tour-karadeniz-hero.mp4']").count() === 1);
+
+  const heroH = await page.evaluate(() => {
+    const h = document.querySelector(".tt-cat-hero");
+    return h ? h.getBoundingClientRect().height : 0;
+  });
+  check("на публике герой во весь экран", heroH >= 800, heroH + "px");
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // ------------------------------------------------------------- агентство
 console.log("\nКабинет агентства");
 {
@@ -212,6 +240,20 @@ console.log("\nКабинет агентства");
   await page.waitForTimeout(350);
   check("боковая панель сворачивается",
         await page.locator("#screen-app").evaluate((el) => el.classList.contains("is-sidebar-collapsed")));
+
+  // Тот же .tt-cat-hero, что и на публичной карточке, но в кабинете рядом
+  // с сайдбаром — должен остаться компактной карточкой, а не растянуться
+  // на весь экран, как на публике.
+  await page.locator('.tt-tab[data-tab="catalog"]').first().click({ force: true });
+  await page.waitForTimeout(500);
+  await page.locator("#panel-catalog button:has-text('Открыть маршрут')").first().click();
+  await page.waitForTimeout(600);
+  const cabHeroH = await page.evaluate(() => {
+    const h = document.querySelector(".tt-cat-hero");
+    return h ? h.getBoundingClientRect().height : 0;
+  });
+  check("в кабинете карточка тура остаётся компактной",
+        cabHeroH > 0 && cabHeroH < 500, cabHeroH + "px");
   check("компактный режим запоминается",
         await page.evaluate(() => localStorage.getItem("turon.sidebar.compact")) === "1");
   await page.click("#sidebar-collapse");

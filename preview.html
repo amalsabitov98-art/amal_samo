@@ -2919,7 +2919,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-cat-hero) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4530,6 +4530,11 @@ select { font-family: inherit; }
 
 .tt-cat-hero {
   position: relative;
+  /* Компактная карточка — фолбэк и одновременно то, что видит АГЕНТСТВО:
+     этот же компонент рисует и публичную карточку тура, и вкладку
+     «Каталог туров» в кабинете (там же сайдбар, полноэкранному герою
+     не место). Во весь экран — только на публике, см. override
+     #screen-public .tt-cat-hero ниже. */
   min-height: 310px;
   display: flex;
   flex-direction: column;
@@ -4539,9 +4544,9 @@ select { font-family: inherit; }
   border: 0;
   border-radius: 26px;
   color: #fff9ed;
-  background:
-    radial-gradient(circle at 80% 20%, rgba(233, 101, 58, 0.3), transparent 17rem),
-    linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
+  /* Заливка — подстраховка на случай, если видео не загрузилось/не
+     поддерживается: без неё был бы голый белый прямоугольник до кадра. */
+  background: linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
   box-shadow: 0 26px 64px rgba(10, 42, 34, 0.22);
 }
 .tt-cat-hero::before {
@@ -4556,6 +4561,23 @@ select { font-family: inherit; }
   box-shadow:
     0 0 0 46px rgba(255, 255, 255, 0.025),
     0 0 0 92px rgba(255, 255, 255, 0.02);
+  z-index: 2;
+}
+/* Публичная карточка тура — во весь экран (класс исключён из ограничения
+   .tt-container выше, поэтому уже во всю ширину; здесь досдаём высоту и
+   снимаем скругление/тень card-вида). Кольцо у компактной версии считается
+   в % от своих же ~400px и «выглядывает» отрицательным top — на весь
+   экран та же математика увела бы его далеко за пределы видимого, поэтому
+   у полноэкранной версии кольцо на фиксированной доле высоты ОКНА. */
+#screen-public .tt-cat-hero {
+  min-height: 100svh;
+  border-radius: 0;
+  box-shadow: none;
+}
+#screen-public .tt-cat-hero::before {
+  width: min(46vw, 620px);
+  right: -8vw;
+  top: 6vh;
 }
 .tt-cat-hero::after {
   content: "Авторский групповой маршрут";
@@ -4565,8 +4587,34 @@ select { font-family: inherit; }
   color: rgba(255, 255, 255, 0.56);
   font-size: 0.66rem;
   letter-spacing: 0.08em;
+  z-index: 2;
 }
-.tt-cat-hero > * { position: relative; z-index: 1; }
+.tt-cat-hero > * { position: relative; z-index: 2; }
+/* Видео и подложка идут ПОЗЖЕ общего правила выше — та же специфичность,
+   но более поздняя запись побеждает, поэтому z-index не перебивается
+   обратно на 2. Затемнение нужно, чтобы белый заголовок и текст читались
+   на живом видео так же надёжно, как на прежнем чистом градиенте. */
+/* .tt-hero-video переиспользован с титульной — та же базовая раскладка
+   (position:absolute + cover), только позиция кадра смещена ниже центра:
+   в блоке карточки короткая широкая пропорция, и озеро с посёлком
+   Узунгёль — то, что снято в кадре — лежит чуть ниже середины, а не
+   у самого верха, где облака и склон. */
+.tt-cat-hero .tt-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-position: center 58%;
+  z-index: 0;
+}
+.tt-cat-hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(233, 101, 58, 0.3), transparent 17rem),
+    linear-gradient(135deg, rgba(14, 70, 58, 0.82), rgba(5, 32, 27, 0.9));
+}
 .tt-cat-hero h1 {
   max-width: 750px;
   margin-bottom: 10px;
@@ -4887,7 +4935,7 @@ select { font-family: inherit; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-cat-hero) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
@@ -12975,6 +13023,14 @@ window.TURON_DESTINATIONS = [
       if (destination === "Умра") return renderUmrah();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        // Направление с ровно одним туром не нуждается в промежуточном
+        // списке — там будет одна строка на всю страницу, а клиенту всё
+        // равно нужна карточка. Сразу подменяем маршрут на неё, чтобы
+        // «назад» из карточки уводил туда, откуда пришли, а не на пустой
+        // список.
+        if (list.length === 1) {
+          return go({ kind: "tour", code: list[0].code, variant: null }, false);
+        }
         var isJapan = destination === "Япония";
         root.innerHTML =
           '<section class="tt-destination-page' +
@@ -13019,6 +13075,17 @@ window.TURON_DESTINATIONS = [
             { text: tour.name },
           ]) +
           '<header class="tt-cat-hero">' +
+            // Видео — только на публичной карточке (гость, cfg.canBook
+            // false). В кабинете этот же компонент показывает тур агенту
+            // рядом с сайдбаром — там просили оставить как было, без видео.
+            (!cfg.canBook
+              ? '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+                  'aria-hidden="true" tabindex="-1">' +
+                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+                "</video>" +
+                '<div class="tt-cat-hero-shade" aria-hidden="true"></div>'
+              : "") +
             "<h1>" + esc(tour.name) + "</h1>" +
             '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
             (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +
@@ -13068,6 +13135,20 @@ window.TURON_DESTINATIONS = [
                 "войдите под логином агентства.</p>"
               : "") +
           "</section>";
+
+        // Тот же класс .tt-hero-video, что и у главного видео — общая
+        // логика «уменьшить движение» и пробуждения после сворачивания
+        // вкладки (resumeHero/keepHeroPlaying ниже) подхватывает его
+        // автоматически, без отдельного набора обработчиков под карточку.
+        var heroVideo = root.querySelector(".tt-hero-video");
+        if (heroVideo && global.matchMedia &&
+            global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          heroVideo.removeAttribute("autoplay");
+          heroVideo.setAttribute("data-no-autoplay", "");
+          heroVideo.pause();
+        } else {
+          keepHeroPlaying(heroVideo);
+        }
     }
 
     /* has-hero говорит стилям, что на экране есть видео и шапку можно класть
