@@ -818,11 +818,17 @@
           "уточните у оператора.</p>"
         : "";
       if (!active.days.length) return switcher;
+      // Дни сворачиваемые (<details>), а не сплошной список: 8 дней с
+      // полным абзацем на каждый день на одном экране читались стеной
+      // текста без конца. Первый день открыт сразу — понятно, что дальше
+      // тоже есть текст, а не просто заголовки.
       return '<section class="tt-cat-block"><h2>Программа</h2>' + switcher +
-        '<ol class="tt-cat-days">' + active.days.map(function (d) {
-          return "<li><strong>" + esc(d.title) + "</strong><span>" +
-            esc(d.text) + "</span></li>";
-        }).join("") + "</ol></section>";
+        '<div class="tt-cat-days">' + active.days.map(function (d, i) {
+          return '<details class="tt-cat-day"' + (i === 0 ? " open" : "") + ">" +
+            "<summary><strong>" + esc(d.title) + "</strong></summary>" +
+            "<span>" + esc(d.text) + "</span>" +
+          "</details>";
+        }).join("") + "</div></section>";
     }
 
     /*
@@ -1307,22 +1313,19 @@
         var info = tour.info || [];
 
         root.innerHTML =
-          // Видео — только на публичной карточке (гость, cfg.canBook false).
-          // В кабинете этот же компонент показывает тур агенту рядом с
-          // сайдбаром — там оставили как было, без видео. Фон закреплён
-          // (position:fixed) позади ВСЕЙ страницы, а не только шапки: как на
-          // странице Умры — контент (программа, цены) едет поверх него в
+          // Тот же приём, что у страницы Умры, и БЕЗ разницы между гостем
+          // и кабинетом агентства — там тоже видео показывается всегда,
+          // без cfg.canBook. Фон закреплён (position:fixed) позади ВСЕЙ
+          // страницы, а не только шапки: контент едет поверх него в
           // полупрозрачных карточках, а не «видео кончается после героя».
-          (!cfg.canBook
-            ? '<div class="tt-tour-bg" aria-hidden="true">' +
-                '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
-                  'tabindex="-1">' +
-                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
-                "</video>" +
-                '<div class="tt-tour-bg-shade"></div>' +
-              "</div>"
-            : "") +
+          '<div class="tt-tour-bg" aria-hidden="true">' +
+            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+              'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+              'tabindex="-1">' +
+              '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+            "</video>" +
+            '<div class="tt-tour-bg-shade"></div>' +
+          "</div>" +
 
           crumbs([
             { text: "Каталог", go: "root" },

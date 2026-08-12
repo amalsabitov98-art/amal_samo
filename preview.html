@@ -1782,19 +1782,60 @@ a { color: inherit; }
   font-weight: 600;
 }
 
-.tt-cat-days { margin: 16px 0 0; padding: 0; list-style: none; }
-.tt-cat-days li {
-  display: grid;
-  grid-template-columns: 190px 1fr;
-  gap: 16px;
-  padding: 14px 0;
-  border-top: 1px solid var(--tt-border);
+/* Дни программы — сворачиваемые <details>, а не сплошной список: 7-8 дней
+   с полным абзацем на каждый одним разворотом читались бесконечной стеной
+   текста. Первый день открыт (см. programmeBlock), остальные сворачиваются
+   до заголовка. */
+.tt-cat-days { counter-reset: day; margin: 16px 0 0; }
+.tt-cat-day { border-top: 1px solid var(--tt-border); }
+.tt-cat-day:first-child { border-top: 0; }
+.tt-cat-day summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  cursor: pointer;
+  list-style: none;
 }
-.tt-cat-days li:first-child { border-top: 0; padding-top: 4px; }
-.tt-cat-days strong { font-size: 0.95rem; }
-.tt-cat-days span { font-size: 0.9rem; line-height: 1.55; color: var(--tt-text-muted); }
+.tt-cat-day summary::-webkit-details-marker { display: none; }
+.tt-cat-day summary::before {
+  counter-increment: day;
+  content: counter(day);
+  flex: none;
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 101, 58, 0.28);
+  border-radius: 50%;
+  color: var(--tt-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.tt-cat-day strong { flex: 1; font-size: 0.95rem; }
+.tt-cat-day summary::after {
+  content: "+";
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tt-surface-2);
+  color: var(--tt-text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.tt-cat-day[open] summary::after { content: "\2212"; }
+.tt-cat-day span {
+  display: block;
+  margin: 0 0 18px 41px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--tt-text-muted);
+}
 @media (max-width: 640px) {
-  .tt-cat-days li { grid-template-columns: 1fr; gap: 4px; }
+  .tt-cat-day span { margin-left: 0; }
 }
 
 .tt-cat-lists {
@@ -2975,6 +3016,12 @@ select { font-family: inherit; }
 .tt-sidebar {
   position: sticky;
   top: 0;
+  /* Явный z-index обязателен: sticky без него — z-index:auto, а страницы с
+     закреплённым видеофоном (карточка тура) кладут его через position:fixed
+     с z-index:0. Позиционированные элементы с z-index:auto красятся на том
+     же уровне и по порядку в разметке — сайдбар идёт раньше контента,
+     поэтому проигрывал бы видео, вложенному в панель позже. */
+  z-index: 5;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -3161,6 +3208,11 @@ select { font-family: inherit; }
 
 .tt-workspace { min-width: 0; }
 .tt-app-header {
+  /* backdrop-filter уже создаёт свой стекинг-контекст, но явные
+     position+z-index надёжнее (тот же приём, что у .tt-sidebar) — не
+     полагаемся на побочный эффект другого свойства. */
+  position: relative;
+  z-index: 5;
   min-height: 72px;
   padding: 12px clamp(18px, 3vw, 36px);
   display: flex;
@@ -3204,8 +3256,15 @@ select { font-family: inherit; }
 }
 .tt-logout-top:hover { background: var(--tt-accent); color: #fff; border-color: var(--tt-accent); }
 
-/* Полоса с названием текущего раздела — под постоянной панелью. */
+/* Полоса с названием текущего раздела — под постоянной панелью. Явные
+   position+z-index обязательны: страницы с закреплённым видеофоном
+   (карточка тура, теперь и в кабинете) кладут его через position:fixed,
+   а такой слой красится поверх любого непозиционированного элемента
+   независимо от места в разметке — без этого полоса тихо пряталась бы
+   под видео. */
 .tt-workspace-subhead {
+  position: relative;
+  z-index: 1;
   padding: 14px clamp(18px, 3vw, 36px) 0;
 }
 .tt-workspace-subhead .tt-eyebrow { display: block; }
@@ -4528,33 +4587,31 @@ select { font-family: inherit; }
 }
 .tt-cat-tour p { max-width: 75ch; font-size: 0.8rem; }
 
+/* Во весь экран и без разницы гость/кабинет — тот же приём, что и на
+   странице Умры (.tt-umrah-background), и там разницы тоже нет. Видео
+   закреплено (position:fixed) позади ВСЕЙ страницы, а не только героя;
+   .tt-cat-hero прозрачна и сама по себе никакой «карточки» не рисует. */
 .tt-cat-hero {
   position: relative;
-  /* Компактная карточка — фолбэк и одновременно то, что видит АГЕНТСТВО:
-     этот же компонент рисует и публичную карточку тура, и вкладку
-     «Каталог туров» в кабинете (там же сайдбар, видео там не показываем —
-     см. cfg.canBook в paintTour). На публике — прозрачная, поверх
-     закреплённого фона .tt-tour-bg (ниже), см. override под ней. */
-  min-height: 310px;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
   padding: clamp(28px, 5vw, 58px);
   border: 0;
-  border-radius: 26px;
+  border-radius: 0;
   color: #fff9ed;
-  /* Заливка — то, что видит КАБИНЕТ (видео там нет вообще). */
-  background: linear-gradient(135deg, rgba(14, 70, 58, 0.88), rgba(5, 32, 27, 0.98));
-  box-shadow: 0 26px 64px rgba(10, 42, 34, 0.22);
+  background: none;
+  box-shadow: none;
 }
 .tt-cat-hero::before {
   content: "";
   position: absolute;
-  width: 54%;
+  width: min(46vw, 620px);
   aspect-ratio: 1;
-  right: -5%;
-  top: -56%;
+  right: -8vw;
+  top: 6vh;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 50%;
   box-shadow:
@@ -4585,13 +4642,6 @@ select { font-family: inherit; }
 .tt-cat-hero .tt-muted-note { color: #d8b977; font-size: 0.72rem; }
 .tt-cat-hero p { max-width: 65ch; color: rgba(255, 255, 255, 0.68); font-size: 0.8rem; }
 
-/* ------------------------------------------- фон публичной карточки тура */
-/* Тот же приём, что и у страницы Умры (.tt-umrah-background): видео
-   закреплено (position:fixed) на весь экран и остаётся позади ВСЕЙ
-   страницы при прокрутке, а не только за героем. .tt-cat-hero теряет
-   собственный фон и становится прозрачной — см. override ниже — а карточки
-   «Программа»/«Заезды и цены» получают полупрозрачную подложку с
-   размытием, чтобы видео проступало и под ними, а не только в шапке. */
 .tt-tour-bg {
   position: fixed;
   z-index: 0;
@@ -4627,42 +4677,29 @@ select { font-family: inherit; }
     linear-gradient(180deg, rgba(3, 20, 15, 0.5) 0%, rgba(3, 20, 15, 0.28) 26%,
                     rgba(3, 20, 15, 0.3) 62%, rgba(3, 20, 15, 0.62) 100%);
 }
-#screen-public .tt-cat-hero {
-  min-height: 100svh;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-/* Кольцо-декор считается в % от своих же ~400px в компактной (кабинетной)
-   версии и «выглядывает» отрицательным top. На весь экран та же математика
-   увела бы его далеко за пределы видимого, поэтому у публичной версии
-   кольцо на фиксированной доле высоты ОКНА, а не своей же высоты. */
-#screen-public .tt-cat-hero::before {
-  width: min(46vw, 620px);
-  right: -8vw;
-  top: 6vh;
-}
 
 /* .tt-tour-bg лежит фиксированным слоем с z-index:0 — весь остальной
-   контент страницы должен явно стоять НАД ним. Без этого браузер сам
-   решает порядок между непозиционированными блоками (crumbs/.tt-cat-block)
-   и позиционированным фоном, и первые тихо уезжают под видео. */
-#screen-public .tt-crumbs,
-#screen-public .tt-cat-hero,
-#screen-public .tt-cat-block {
+   контент страницы должен явно стоять НАД ним, и гость, и кабинет.
+   Без этого браузер сам решает порядок между непозиционированными
+   блоками (crumbs/.tt-cat-block) и позиционированным фоном, и первые
+   тихо уезжают под видео. */
+.tt-crumbs,
+.tt-cat-hero,
+.tt-cat-block {
   position: relative;
   z-index: 1;
 }
 
 /* Программа/цены и т.п. — полупрозрачные карточки с размытием поверх
-   закреплённого видео, только на публике. В кабинете (видео нет, фон
-   плоский) .tt-cat-block остаётся как был — сплошной var(--tt-surface). */
-#screen-public .tt-cat-block {
-  background: linear-gradient(145deg, rgba(5, 24, 18, 0.5), rgba(3, 17, 13, 0.62));
+   закреплённого видео, чтобы видео читалось и под ними, а не только
+   в шапке. Плотность с запасом: под карточкой едет живое видео, и текст
+   должен остаться читаемым независимо от того, какой кадр там в моменте —
+   не только на тёмных участках ролика. */
+.tt-cat-block {
+  background: linear-gradient(145deg, rgba(4, 20, 15, 0.74), rgba(3, 14, 11, 0.82));
   border: 1px solid rgba(232, 210, 149, 0.16);
-  backdrop-filter: blur(6px) saturate(1.05);
-  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
 }
 
 .tt-cat-block {
@@ -4686,30 +4723,8 @@ select { font-family: inherit; }
   border-color: var(--tt-forest);
   color: #fff;
 }
-.tt-cat-days { counter-reset: day; }
-.tt-cat-days li {
-  position: relative;
-  grid-template-columns: minmax(170px, 0.7fr) minmax(0, 2fr);
-  padding: 18px 0 18px 42px;
-}
-.tt-cat-days li::before {
-  counter-increment: day;
-  content: counter(day);
-  position: absolute;
-  left: 0;
-  top: 16px;
-  width: 27px;
-  height: 27px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(233, 101, 58, 0.28);
-  border-radius: 50%;
-  color: var(--tt-accent);
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-.tt-cat-days strong { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.08rem; }
-.tt-cat-days span { font-size: 0.78rem; }
+.tt-cat-day strong { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.08rem; }
+.tt-cat-day span { font-size: 0.78rem; }
 .tt-cat-list li,
 .tt-cat-info li { font-size: 0.76rem; }
 
@@ -5045,7 +5060,6 @@ select { font-family: inherit; }
   .tt-about-emblem { width: 82px; height: 90px; }
   .tt-about-copy h2 { font-size: 3.1rem; }
   .tt-about-detail { left: 25px; right: 25px; max-width: none; text-align: left; }
-  .tt-cat-days li { grid-template-columns: 1fr; gap: 5px; }
   .tt-cat-dep { grid-template-columns: 1fr auto; }
   .tt-cat-dep-prices,
   .tt-cat-dep-action,
@@ -12625,11 +12639,17 @@ window.TURON_DESTINATIONS = [
           "уточните у оператора.</p>"
         : "";
       if (!active.days.length) return switcher;
+      // Дни сворачиваемые (<details>), а не сплошной список: 8 дней с
+      // полным абзацем на каждый день на одном экране читались стеной
+      // текста без конца. Первый день открыт сразу — понятно, что дальше
+      // тоже есть текст, а не просто заголовки.
       return '<section class="tt-cat-block"><h2>Программа</h2>' + switcher +
-        '<ol class="tt-cat-days">' + active.days.map(function (d) {
-          return "<li><strong>" + esc(d.title) + "</strong><span>" +
-            esc(d.text) + "</span></li>";
-        }).join("") + "</ol></section>";
+        '<div class="tt-cat-days">' + active.days.map(function (d, i) {
+          return '<details class="tt-cat-day"' + (i === 0 ? " open" : "") + ">" +
+            "<summary><strong>" + esc(d.title) + "</strong></summary>" +
+            "<span>" + esc(d.text) + "</span>" +
+          "</details>";
+        }).join("") + "</div></section>";
     }
 
     /*
@@ -13114,22 +13134,19 @@ window.TURON_DESTINATIONS = [
         var info = tour.info || [];
 
         root.innerHTML =
-          // Видео — только на публичной карточке (гость, cfg.canBook false).
-          // В кабинете этот же компонент показывает тур агенту рядом с
-          // сайдбаром — там оставили как было, без видео. Фон закреплён
-          // (position:fixed) позади ВСЕЙ страницы, а не только шапки: как на
-          // странице Умры — контент (программа, цены) едет поверх него в
+          // Тот же приём, что у страницы Умры, и БЕЗ разницы между гостем
+          // и кабинетом агентства — там тоже видео показывается всегда,
+          // без cfg.canBook. Фон закреплён (position:fixed) позади ВСЕЙ
+          // страницы, а не только шапки: контент едет поверх него в
           // полупрозрачных карточках, а не «видео кончается после героя».
-          (!cfg.canBook
-            ? '<div class="tt-tour-bg" aria-hidden="true">' +
-                '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-                  'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
-                  'tabindex="-1">' +
-                  '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
-                "</video>" +
-                '<div class="tt-tour-bg-shade"></div>' +
-              "</div>"
-            : "") +
+          '<div class="tt-tour-bg" aria-hidden="true">' +
+            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+              'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
+              'tabindex="-1">' +
+              '<source src="img/tour-karadeniz-hero.mp4" type="video/mp4" />' +
+            "</video>" +
+            '<div class="tt-tour-bg-shade"></div>' +
+          "</div>" +
 
           crumbs([
             { text: "Каталог", go: "root" },
