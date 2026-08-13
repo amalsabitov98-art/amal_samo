@@ -4692,14 +4692,12 @@ select { font-family: inherit; }
      видно кадр (это и есть герой), а программа шла следом без разрыва. */
   min-height: clamp(300px, 42svh, 440px);
   justify-content: flex-start;
+  /* Текст, надзаголовок и плашки-факты — по центру (просил оператор). */
+  align-items: center;
+  text-align: center;
   border: 0;
   border-radius: 0;
-  /* Во всю ширину окна (класс исключён из ограничения .tt-container выше),
-     иначе подложка ниже читалась бы прямоугольной плашкой 1380px с видимыми
-     краями поверх видео. Текст при этом выравнивается по той же линии, что
-     и карточки ниже — за счёт padding-inline с учётом центрирования. */
-  padding-inline: max(clamp(28px, 5vw, 58px),
-                      calc((100vw - 1380px) / 2 + clamp(20px, 4vw, 64px)));
+  padding-inline: clamp(24px, 6vw, 80px);
   padding-block: clamp(6px, 1.5vh, 16px) clamp(26px, 5vh, 54px);
   /* Никакой подложки: кадр показываем как есть. Читаемость текста держится
      на его собственной тени (ниже), а не на затемнении видео — плашка внизу
@@ -4707,19 +4705,21 @@ select { font-family: inherit; }
   background: none;
   box-shadow: none;
 }
-/* Надзаголовок героя — латунная разрядка, как у Умры. */
+/* Надзаголовок героя — латунная разрядка, как у Умры. Крупнее прежнего
+   (просил оператор): был 0.72rem, стал ~1.05–1.3rem. */
 #screen-public .tt-cat-hero .tt-tour-kicker {
   color: #e8ca78;
-  font: 700 0.72rem/1.3 Manrope, "Segoe UI", sans-serif;
-  letter-spacing: 0.17em;
+  font: 700 clamp(1.05rem, 1.5vw, 1.35rem)/1.25 Manrope, "Segoe UI", sans-serif;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
 }
-#screen-public .tt-cat-hero .tt-tour-kicker + h1 { margin-top: 12px; }
-/* Крупный лид под заголовком (описание тура). */
+#screen-public .tt-cat-hero .tt-tour-kicker + h1 { margin-top: 14px; }
+/* Крупный лид под заголовком (описание тура). По центру — margin-inline auto,
+   иначе max-width прижал бы его влево при центрированной раскладке. */
 #screen-public .tt-cat-hero .tt-tour-lead {
-  max-width: 62ch;
-  margin-top: 16px;
+  max-width: 60ch;
+  margin: 16px auto 0;
   color: rgba(255, 249, 237, 0.94);
   font-size: clamp(0.9rem, 1.05vw, 1.05rem);
   line-height: 1.7;
@@ -4729,6 +4729,7 @@ select { font-family: inherit; }
 .tt-tour-facts {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 12px;
   margin-top: 26px;
 }
@@ -4764,13 +4765,30 @@ select { font-family: inherit; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 /* Двойная тень вместо подложки: плотная короткая даёт контур буквам на
-   любом фоне, широкая мягкая гасит светлые пятна кадра вокруг строки. */
-#screen-public .tt-cat-hero h1,
+   любом фоне, широкая мягкая гасит светлые пятна кадра вокруг строки.
+   Заголовок сюда НЕ входит: у него градиентная заливка (background-clip:
+   text), а text-shadow рисовался бы позади прозрачных букв мутным пятном —
+   контур ему даёт filter: drop-shadow ниже. */
 #screen-public .tt-cat-hero p,
 #screen-public .tt-cat-hero .tt-muted-note {
   text-shadow:
     0 1px 3px rgba(0, 0, 0, 0.72),
     0 3px 22px rgba(0, 0, 0, 0.55);
+}
+/* Заголовок — тёплая золотая заливка вместо простого кремового: смотрится
+   премиальнее и заодно перекликается с золотым надзаголовком и плашками.
+   Верх букв держим не белым, а уже золотым, чтобы строка не растворялась в
+   светлой дымке кадра; контур и отрыв от фона даёт drop-shadow (работает с
+   прозрачной заливкой, в отличие от text-shadow). */
+#screen-public .tt-cat-hero h1 {
+  background: linear-gradient(178deg, #fbeec6 0%, #f1d492 46%, #e0b25c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5));
 }
 /* Описание было полупрозрачно-белым (0.68) — это работало на сплошной
    тёмной заливке, но поверх живого кадра оно растворяется на светлом
@@ -13332,6 +13350,12 @@ window.TURON_DESTINATIONS = [
     }
 
     function paintTour(tour) {
+      // Длинное типографское тире в названии («Карадениз — Трабзон») оператор
+      // просил заменить на обычный дефис — оно читается «иишным». Название
+      // приходит из БД (её отсюда не мигрировать), поэтому нормализуем при
+      // выводе: этого же достаточно и для демо. Правим только показ, не данные.
+      var displayName = String(tour.name == null ? "" : tour.name)
+        .replace(/\s*—\s*/g, " - ");
       var meta = [];
         if (tour.nights) {
           meta.push((tour.nights + 1) + " " +
@@ -13371,7 +13395,7 @@ window.TURON_DESTINATIONS = [
           // в направлении один тур, крошка только «Каталог».
           crumbs([
             { text: "Каталог", go: "root" },
-            { text: tour.name },
+            { text: displayName },
           ]) +
           // Публичный герой — раскладка Умры: надзаголовок, крупное название,
           // короткое описание, плашки-факты (длительность/перелёт/цена).
@@ -13380,10 +13404,10 @@ window.TURON_DESTINATIONS = [
           '<header class="tt-cat-hero">' +
             (!cfg.canBook
               ? '<span class="tt-eyebrow tt-tour-kicker">Загадочный Карадениз</span>' +
-                "<h1>" + esc(tour.name) + "</h1>" +
+                "<h1>" + esc(displayName) + "</h1>" +
                 (tour.description ? '<p class="tt-tour-lead">' + esc(tour.description) + "</p>" : "") +
                 heroFacts(tour)
-              : "<h1>" + esc(tour.name) + "</h1>" +
+              : "<h1>" + esc(displayName) + "</h1>" +
                 '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
                 (tour.description ? "<p>" + esc(tour.description) + "</p>" : "")) +
           "</header>" +

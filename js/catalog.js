@@ -1371,6 +1371,12 @@
     }
 
     function paintTour(tour) {
+      // Длинное типографское тире в названии («Карадениз — Трабзон») оператор
+      // просил заменить на обычный дефис — оно читается «иишным». Название
+      // приходит из БД (её отсюда не мигрировать), поэтому нормализуем при
+      // выводе: этого же достаточно и для демо. Правим только показ, не данные.
+      var displayName = String(tour.name == null ? "" : tour.name)
+        .replace(/\s*—\s*/g, " - ");
       var meta = [];
         if (tour.nights) {
           meta.push((tour.nights + 1) + " " +
@@ -1410,7 +1416,7 @@
           // в направлении один тур, крошка только «Каталог».
           crumbs([
             { text: "Каталог", go: "root" },
-            { text: tour.name },
+            { text: displayName },
           ]) +
           // Публичный герой — раскладка Умры: надзаголовок, крупное название,
           // короткое описание, плашки-факты (длительность/перелёт/цена).
@@ -1419,10 +1425,10 @@
           '<header class="tt-cat-hero">' +
             (!cfg.canBook
               ? '<span class="tt-eyebrow tt-tour-kicker">Загадочный Карадениз</span>' +
-                "<h1>" + esc(tour.name) + "</h1>" +
+                "<h1>" + esc(displayName) + "</h1>" +
                 (tour.description ? '<p class="tt-tour-lead">' + esc(tour.description) + "</p>" : "") +
                 heroFacts(tour)
-              : "<h1>" + esc(tour.name) + "</h1>" +
+              : "<h1>" + esc(displayName) + "</h1>" +
                 '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
                 (tour.description ? "<p>" + esc(tour.description) + "</p>" : "")) +
           "</header>" +
