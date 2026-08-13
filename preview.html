@@ -16963,7 +16963,12 @@ window.TURON_DESTINATIONS = [
   function renderDepartures() {
     var transport = $("f-transport").value;
     var onlyFree = $("f-available").checked;
+    // Доска «Направления» оформлена под Карадениз (фильтр по аэропортам
+    // TZX/BUS, «экспедиции»). Заезды Умры сюда не подмешиваем — они без
+    // подписи тура читались бы как безымянные заезды Карадениза; Умра видна
+    // на своей карточке во вкладке «Туры».
     var list = state.departures.filter(function (d) {
+      if ((d.tour_code || "KARADENIZ") !== "KARADENIZ") return false;
       if (transport && d.transport !== transport) return false;
       if (onlyFree && d.seats_free <= 0) return false;
       return true;
@@ -17019,15 +17024,27 @@ window.TURON_DESTINATIONS = [
    * выдуманных пассажиров, рейсов и сумм здесь быть не должно — агент
    * называет клиенту то, что видит.
    */
+  // Конструктор «Новый тур» заточен под Карадениз (маршрут, рейсы, отели,
+  // фото — всё его). Поэтому здесь берём ТОЛЬКО заезды Карадениза: после того
+  // как в базу добавили Умру, /api/departures отдаёт и её заезды, и без этого
+  // фильтра в конструктор попадал заезд Умры внутри карадениз-оформления.
+  // Умра бронируется на вкладке «Туры». Общий state.departures не трогаем —
+  // из него бронь каталога берёт заезды и Умры тоже.
+  function builderDepartures() {
+    return state.departures.filter(function (d) {
+      return (d.tour_code || "KARADENIZ") === "KARADENIZ";
+    });
+  }
+
   function builderDeparture() {
-    if (!state.departures.length) return null;
-    var chosen = state.departures.filter(function (d) {
+    var list = builderDepartures();
+    if (!list.length) return null;
+    var chosen = list.filter(function (d) {
       return d.code === state.builder.code;
     })[0];
     if (chosen) return chosen;
     // по умолчанию — ближайший заезд, где ещё есть места
-    return state.departures.filter(function (d) { return d.seats_free > 0; })[0]
-      || state.departures[0];
+    return list.filter(function (d) { return d.seats_free > 0; })[0] || list[0];
   }
 
   // Размещение и цена ОДНОГО взрослого выводятся из числа взрослых
@@ -17166,7 +17183,8 @@ window.TURON_DESTINATIONS = [
       "<span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span>";
 
     // ---------------------------------------------- селектор «Период»
-    $("builder-departure").innerHTML = state.departures.map(function (x) {
+    // Только заезды Карадениза — Умру сюда не подмешиваем (см. builderDepartures).
+    $("builder-departure").innerHTML = builderDepartures().map(function (x) {
       return '<option value="' + esc(x.code) + '"' +
         (x.code === d.code ? " selected" : "") +
         (x.seats_free <= 0 ? " disabled" : "") + ">" +
