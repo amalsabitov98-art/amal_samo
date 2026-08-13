@@ -441,6 +441,31 @@ console.log("\nКабинет агентства");
   const bookings = await page.locator("#panel-bookings").innerText();
   check("бронь видна в разделе «Бронирования»", bookings.includes("TEST") || /\$/.test(bookings));
 
+  // Переключатель тура на «Новый тур»: Карадениз + программы Умры. Выбор
+  // программы Умры прячет конструктор Карадениза и показывает её карточку
+  // тура с калькулятором по типу номера; возврат — обратно на конструктор.
+  await page.click('.tt-tab[data-tab="builder"]');
+  await page.waitForTimeout(400);
+  const umraOpt = await page.$eval("#builder-tour", (sel) => {
+    const o = [...sel.options].find((x) => /UMRA/.test(x.value));
+    return o ? o.value : null;
+  });
+  check("в переключателе тура есть программы Умры", !!umraOpt);
+  if (umraOpt) {
+    await page.selectOption("#builder-tour", umraOpt);
+    await page.waitForTimeout(600);
+    check("выбор Умры показывает её карточку вместо конструктора Карадениза",
+          (await page.locator("#builder-karadeniz").isHidden()) &&
+          (await page.locator("#builder-umra").isVisible()));
+    check("карточка Умры в билдере — с калькулятором по типу номера",
+          (await page.locator("#builder-umra [data-calc]").count()) > 0);
+    await page.selectOption("#builder-tour", "KARADENIZ");
+    await page.waitForTimeout(500);
+    check("возврат к Караденизу показывает конструктор mir-jahon",
+          (await page.locator("#builder-karadeniz").isVisible()) &&
+          (await page.locator("#builder-umra").isHidden()));
+  }
+
   // уведомления
   await page.click("#notice-btn");
   await page.waitForTimeout(400);
