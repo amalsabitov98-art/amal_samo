@@ -363,12 +363,16 @@ console.log("\nКабинет агентства");
   await page.selectOption("#builder-departure", roomy);
   await page.waitForTimeout(400);
 
+  // Первая строка — единый счётчик «Взрослый» (размещение по числу взрослых:
+  // 1 → одноместный, 2 → двухместный, 3+ → трёхместный).
   const plus = page.locator('#builder-travellers button[data-bstep="1"]');
-  await plus.nth(1).click();
-  await plus.nth(1).click();
+  await plus.nth(0).click();
+  await plus.nth(0).click();
   await page.waitForTimeout(300);
   const grand = await page.locator(".tt-mj-total-grand strong").innerText();
   check("сумма пересчитывается при выборе туристов", /\d/.test(grand), grand);
+  check("взрослые — один счётчик, не по одному на размещение",
+        (await page.locator("#builder-travellers .tt-mj-paxrow").filter({ hasText: "Взрослый" }).count()) === 1);
 
   await page.click("#builder-book");
   await page.waitForTimeout(600);

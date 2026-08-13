@@ -15099,14 +15099,32 @@ window.TURON_DESTINATIONS = [
       || state.departures[0];
   }
 
-  // Тарифы заезда: взрослые по размещению + детские по возрасту. Строим из
-  // прайса самого заезда, чтобы счётчики не разошлись с расчётом сервера.
+  // Размещение и цена ОДНОГО взрослого выводятся из числа взрослых
+  // (1 → одноместный, 2 → двухместный, 3+ → трёхместный) — так же, как в
+  // карточке тура. Цену берём из прайса заезда по ценовым уровням (одноместный
+  // дороже всех за человека, трёхместный дешевле), без захардкоженных кодов.
+  // Для брони нужен код размещения — берём предпочтительный (SNG/DBL/TRPL),
+  // иначе первый с нужной ценой.
+  function adultPlacement(d, n) {
+    var places = (d.prices || []).filter(function (p) { return p.kind === "placement"; })
+      .slice().sort(function (a, b) { return a.price - b.price; });
+    if (!places.length) return { code: null, price: 0, label: "Взрослый" };
+    var prefer;
+    if (n <= 1) prefer = ["SNG"];
+    else if (n === 2) prefer = ["DBL", "TWIN"];
+    else prefer = ["TRPL", "DBLX"];
+    for (var i = 0; i < prefer.length; i++) {
+      var byCode = places.filter(function (p) { return p.code === prefer[i]; })[0];
+      if (byCode) return byCode;
+    }
+    if (n <= 1) return places[places.length - 1];
+    if (n === 2) return places[Math.floor((places.length - 1) / 2)];
+    return places[0];
+  }
+
+  // Детские тарифы заезда (взрослый — отдельной строкой, см. adultPlacement).
+  // Строим из прайса самого заезда, чтобы счётчики не разошлись с сервером.
   function builderTariffs(d) {
-    var adults = d.prices.filter(function (p) { return p.kind === "placement"; })
-      .sort(function (a, b) { return a.price - b.price; })
-      .map(function (p) {
-        return { code: p.code, price: p.price, seat: 1, title: "Взрослый", note: p.label };
-      });
     var kids = d.prices.filter(function (p) { return p.kind === "child"; })
       .sort(function (a, b) { return a.age_from - b.age_from; })
       .map(function (p) {
@@ -15118,11 +15136,18 @@ window.TURON_DESTINATIONS = [
                                 : "младше " + p.age_to + " лет, без места",
         };
       });
-    return adults.concat(kids);
+    return kids;
   }
 
   function builderTotals(d) {
     var counts = state.builder.counts, total = 0, people = 0, seats = 0;
+    // Взрослые — одной группой, размещение и цена по их числу.
+    var adultN = counts.ADULT || 0;
+    if (adultN > 0) {
+      total += adultN * adultPlacement(d, adultN).price;
+      people += adultN;
+      seats += adultN;                 // взрослый всегда занимает место
+    }
     builderTariffs(d).forEach(function (t) {
       var n = counts[t.code] || 0;
       total += n * t.price;
@@ -15254,24 +15279,33 @@ window.TURON_DESTINATIONS = [
       "свободно " + d.seats_free + " из " + d.capacity + "</small>";
 
     // --------------------------------------------- счётчики туристов
-    $("builder-travellers").innerHTML = builderTariffs(d).map(function (r) {
-      var n = state.builder.counts[r.code] || 0;
+    function paxRow(code, title, note, price, n) {
       return '<div class="tt-mj-paxrow">' +
-        '<div class="tt-mj-paxlabel"><strong>' + esc(r.title) + "</strong><small>" +
-          esc(r.note) + "</small></div>" +
+        '<div class="tt-mj-paxlabel"><strong>' + esc(title) + "</strong><small>" +
+          esc(note) + "</small></div>" +
         '<div class="tt-mj-qty">' +
-          '<button type="button" data-bstep="-1" data-tariff="' + esc(r.code) + '"' +
+          '<button type="button" data-bstep="-1" data-tariff="' + esc(code) + '"' +
             (n === 0 ? " disabled" : "") + ">−</button>" +
           "<b>" + n + "</b>" +
-          '<button type="button" data-bstep="1" data-tariff="' + esc(r.code) + '">+</button>' +
+          '<button type="button" data-bstep="1" data-tariff="' + esc(code) + '">+</button>' +
         "</div>" +
         '<div class="tt-mj-paxprice">' +
-          (n ? "<strong>" + n + " × " + money(r.price) + "</strong><small>" +
-                money(n * r.price) + "</small>"
-             : "<small>" + money(r.price) + "</small>") +
+          (n ? "<strong>" + n + " × " + money(price) + "</strong><small>" +
+                money(n * price) + "</small>"
+             : "<small>" + money(price) + "</small>") +
         "</div>" +
       "</div>";
-    }).join("");
+    }
+    // Одна строка «Взрослый»: размещение и цена — по числу взрослых
+    // (1 → одноместный, 2 → двухместный, 3+ → трёхместный). Подпись и цена
+    // меняются на лету. При 0 показываем размещение для одного.
+    var bAdultN = state.builder.counts.ADULT || 0;
+    var bAdultPl = adultPlacement(d, bAdultN || 1);
+    $("builder-travellers").innerHTML =
+      paxRow("ADULT", "Взрослый", bAdultPl.label || "", bAdultPl.price, bAdultN) +
+      builderTariffs(d).map(function (r) {
+        return paxRow(r.code, r.title, r.note, r.price, state.builder.counts[r.code] || 0);
+      }).join("");
 
     // ------------------------------------------------- правила оплаты
     var pol = TuronApi.paymentPolicy(d.date_start);
@@ -15307,7 +15341,12 @@ window.TURON_DESTINATIONS = [
 
     // --------------------------------------------------- «Общий»
     var commission = (d.agency_commission || 0) * t.seats;
-    var lines = builderTariffs(d).filter(function (r) {
+    var lines = "";
+    if (bAdultN > 0) {
+      lines += "<div><span>Взрослый · " + esc(bAdultPl.label || "") + " × " + bAdultN +
+        "</span><b>" + money(bAdultN * bAdultPl.price) + "</b></div>";
+    }
+    lines += builderTariffs(d).filter(function (r) {
       return (state.builder.counts[r.code] || 0) > 0;
     }).map(function (r) {
       var n = state.builder.counts[r.code];
@@ -16632,13 +16671,18 @@ window.TURON_DESTINATIONS = [
     // раньше кнопка брала первый попавшийся заезд, и бронь не совпадала
     // с тем, что агент только что посчитал.
     var rows = [];
+    // Взрослые — все в одном размещении по их числу (1 → одноместный,
+    // 2 → двухместный, 3+ → трёхместный). Точную раскладку по номерам агент
+    // поправит в форме брони; сервер пересчитает цену по факту.
+    var adultN = state.builder.counts.ADULT || 0;
+    if (adultN > 0) {
+      var pl = adultPlacement(d, adultN);
+      for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+    }
     builderTariffs(d).forEach(function (r) {
       var n = state.builder.counts[r.code] || 0;
-      for (var i = 0; i < n; i++) {
-        // взрослому подставляем размещение, ребёнку нет: его тариф
-        // определит дата рождения
-        rows.push(r.title === "Взрослый" ? { placement: r.code } : {});
-      }
+      // детям размещение не подставляем: их тариф определит дата рождения
+      for (var i = 0; i < n; i++) rows.push({});
     });
     openBooking(d.code, null, rows.length ? rows : null);
   });
