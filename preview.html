@@ -4808,10 +4808,38 @@ select { font-family: inherit; }
    правило ниже. Плотность с запасом: под карточкой едет живое видео, и
    текст должен остаться читаемым независимо от кадра в моменте. */
 #screen-public .tt-cat-block {
-  background: linear-gradient(145deg, rgba(4, 20, 15, 0.74), rgba(3, 14, 11, 0.82));
+  /* Заметно прозрачнее прежних 0.74/0.82 — чтобы «вау»-видео читалось
+     сквозь карточки. Плотность держим ровно на грани читабельности
+     мелкого текста программы над живым кадром; ниже её не опускаем, а
+     остаток контраста добираем тенью текста (правило ниже) и размытием
+     подложки, которое гасит пестроту кадра, оставляя видимой его форму. */
+  background: linear-gradient(145deg, rgba(4, 20, 15, 0.4), rgba(3, 14, 11, 0.5));
   border: 1px solid rgba(232, 210, 149, 0.16);
-  backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  backdrop-filter: blur(7px) saturate(1.05);
+  -webkit-backdrop-filter: blur(7px) saturate(1.05);
+}
+/* Прозрачнее фон — слабее контраст текста с кадром, поэтому мелкому тексту
+   карточек даём мягкую тень: контур держится на любом кадре под видео. */
+#screen-public .tt-cat-block,
+#screen-public .tt-cat-block h2,
+#screen-public .tt-cat-block strong,
+#screen-public .tt-cat-block span,
+#screen-public .tt-cat-block li,
+#screen-public .tt-cat-block p {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+/* Строки заезда и кнопки вариантов маршрута изнутри карточки тоже делаем
+   полупрозрачными — иначе они читались бы плотными плашками поверх
+   прозрачной карточки и рвали бы эффект видео. */
+#screen-public .tt-cat-dep {
+  background: rgba(6, 24, 18, 0.4);
+  border: 1px solid rgba(232, 210, 149, 0.14);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+#screen-public .tt-cat-variant:not(.is-active) {
+  background: rgba(6, 24, 18, 0.4);
+  border: 1px solid rgba(232, 210, 149, 0.16);
 }
 
 .tt-cat-block {
