@@ -915,7 +915,8 @@ body {
 .tt-umrah-prices > div { min-width: 0; }
 .tt-umrah-prices span { color: #ebcc76; font: 800 .69rem/1.3 Manrope, "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .11em; }
 .tt-umrah-prices p { margin-top: 8px; color: rgba(255,249,237,.88); font: 500 .86rem/1.65 Manrope, "Segoe UI", sans-serif; }
-.tt-umrah-prices a {
+.tt-umrah-prices a,
+.tt-umrah-prices .tt-umrah-book {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -926,9 +927,20 @@ body {
   border-radius: 999px;
   color: #fff;
   font: 800 .76rem/1 Manrope, "Segoe UI", sans-serif;
+  cursor: pointer;
 }
-.tt-umrah-prices a span { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; color: #102019; background: #e4ca83; font-size: .8rem; }
+/* Кнопка брони — латунная заливка, чтобы «Забронировать» читалось как
+   основное действие (ссылка «Уточнить места» осталась контурной). */
+.tt-umrah-prices .tt-umrah-book {
+  border-color: #e4ca83;
+  background: linear-gradient(135deg, #f0d89b, #e0b25c);
+  color: #14261c;
+}
+.tt-umrah-prices a span,
+.tt-umrah-prices .tt-umrah-book span { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; color: #102019; background: #e4ca83; font-size: .8rem; }
+.tt-umrah-prices .tt-umrah-book span { background: rgba(20,38,28,.22); color: #14261c; }
 .tt-umrah-prices a:hover { border-color: #e4ca83; }
+.tt-umrah-prices .tt-umrah-book:hover { filter: brightness(1.05); }
 .tt-umrah-gifts {
   display: flex;
   justify-content: space-between;
