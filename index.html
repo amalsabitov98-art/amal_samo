@@ -268,7 +268,17 @@
 
     <main class="tt-container tt-app-container">
       <section id="panel-builder">
-        <div class="tt-mj">
+        <div class="tt-mj-tourbar">
+          <label class="tt-mj-field tt-mj-tourfield">
+            <span>Тур / программа</span>
+            <select id="builder-tour" aria-label="Выбрать тур или программу"></select>
+          </label>
+        </div>
+        <!-- Умра рисуется своей карточкой тура (калькулятор по типу номера
+             и бронь) — переиспользуем каталог, а не дублируем конструктор
+             Карадениза. Переключатель выше выбирает, что показать. -->
+        <div id="builder-umra" hidden></div>
+        <div class="tt-mj" id="builder-karadeniz">
           <div class="tt-mj-titlebar">
             <h1 id="builder-title">Загрузка…</h1>
             <div class="tt-mj-route" id="builder-route"></div>

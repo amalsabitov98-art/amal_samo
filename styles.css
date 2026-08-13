@@ -5569,6 +5569,9 @@ select { font-family: inherit; }
 .tt-mj-route i { color: var(--tt-accent); font-style: normal; }
 
 /* --- два селектора: период + отель --- */
+.tt-mj-tourbar { margin-bottom: 16px; }
+.tt-mj-tourbar[hidden] { display: none; }
+.tt-mj-tourfield { max-width: 520px; }
 .tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
 .tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }
