@@ -10,7 +10,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 30,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -60,7 +60,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 32,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -137,7 +137,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 31,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -214,7 +214,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -291,7 +291,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 56,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -377,7 +377,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 52,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -463,7 +463,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 54,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -540,7 +540,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 52,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -626,7 +626,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 51,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -712,7 +712,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -798,7 +798,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 50,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -884,7 +884,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 59,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -970,7 +970,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 60,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1038,7 +1038,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 64,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1124,7 +1124,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1210,7 +1210,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1296,7 +1296,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1382,7 +1382,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1468,7 +1468,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 62,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1554,7 +1554,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 64,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1640,7 +1640,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 60,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1726,7 +1726,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 58,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1812,7 +1812,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 61,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1898,7 +1898,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 21,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -1984,7 +1984,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 47,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2070,7 +2070,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 13,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2156,7 +2156,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 19,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2242,7 +2242,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 12,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2328,7 +2328,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 17,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2414,7 +2414,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 6,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2491,7 +2491,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 5,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2568,7 +2568,7 @@ window.TURON_SEED = [
   "capacity": 65,
   "seats_taken": 0,
   "tour_code": "KARADENIZ",
-  "tour_name": "Карадениз — Трабзон и Ризе",
+  "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
   "agency_commission": 0,
   "prices": [
@@ -2641,7 +2641,7 @@ window.TURON_SEED = [
 window.TURON_TOURS = [
  {
   "code": "KARADENIZ",
-  "name": "Карадениз — Трабзон и Ризе",
+  "name": "Батуми - Ризе - Трабзон",
   "destination": "Турция",
   "agency_commission": 0,
   "is_bookable": 1,
