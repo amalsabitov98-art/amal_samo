@@ -15,7 +15,10 @@
 (function (global) {
   "use strict";
 
-  var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
+  var TRANSPORT = {
+    TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми",
+    JED: "Авиа · Джидда", MED: "Авиа · Медина",   // Умра
+  };
 
   // Подмена названия тура при показе (см. paintTour): боевая D1 ещё держит
   // старое имя, а мигрировать её отсюда нельзя — карточка берёт имя отсюда,
@@ -708,6 +711,20 @@
       return places[0];
     }
 
+    function placementsOf(d) {
+      return (d.prices || []).filter(function (p) { return p.kind === "placement"; })
+        .slice().sort(function (a, b) { return a.price - b.price; });
+    }
+
+    // Две модели размещения. Карадениз: есть одноместный (SNG) — тип номера
+    // выводится из числа взрослых (1 → одноместный … 3 → трёхместный), один
+    // счётчик «Взрослый». Умра: одноместного нет (QUAD/TRPL/DBL), тип номера —
+    // это выбор бюджета паломника, а не следствие размера группы, поэтому
+    // счётчик по каждому типу номера отдельно. Признак — наличие SNG в прайсе.
+    function usesOccupancy(d) {
+      return placementsOf(d).some(function (p) { return p.code === "SNG"; });
+    }
+
     // Детские тарифы заезда для калькулятора (взрослый — отдельной строкой,
     // см. adultPlacement). Строки берутся из прайса самого заезда, а не из
     // захардкоженных возрастных групп — иначе при смене тарифной сетки
@@ -734,12 +751,22 @@
 
     function calcTotals(d, counts) {
       var total = 0, people = 0, seats = 0;
-      // Взрослые — одной группой, размещение и цена по их числу.
-      var adultN = counts.ADULT || 0;
-      if (adultN > 0) {
-        total += adultN * adultPlacement(d, adultN).price;
-        people += adultN;
-        seats += adultN;               // взрослый всегда занимает место
+      if (usesOccupancy(d)) {
+        // Карадениз: взрослые одной группой, размещение и цена по их числу.
+        var adultN = counts.ADULT || 0;
+        if (adultN > 0) {
+          total += adultN * adultPlacement(d, adultN).price;
+          people += adultN;
+          seats += adultN;             // взрослый всегда занимает место
+        }
+      } else {
+        // Умра: по каждому типу номера свой счётчик.
+        placementsOf(d).forEach(function (p) {
+          var n = counts[p.code] || 0;
+          total += n * p.price;
+          people += n;
+          seats += n;
+        });
       }
       tariffRows(d).forEach(function (t) {
         var n = counts[t.code] || 0;
@@ -775,13 +802,21 @@
         "</div>";
       }
 
-      // Одна строка «Взрослый»: размещение и цена — по числу взрослых
-      // (1 → одноместный, 2 → двухместный, 3+ → трёхместный). Подпись и цена
-      // меняются на лету, поэтому агент сразу видит, по какому размещению
-      // считается тариф. При 0 показываем размещение для одного (стартовая цена).
-      var adultN = counts.ADULT || 0;
-      var adultPl = adultPlacement(d, adultN || 1);
-      var rows = calcRow("ADULT", "Взрослый", adultPl.label || "", adultPl.price, adultN) +
+      var adultRows;
+      if (usesOccupancy(d)) {
+        // Карадениз: одна строка «Взрослый», размещение и цена — по числу
+        // взрослых (1 → одноместный, 2 → двухместный, 3+ → трёхместный).
+        // Подпись и цена меняются на лету; при 0 — размещение для одного.
+        var adultN = counts.ADULT || 0;
+        var adultPl = adultPlacement(d, adultN || 1);
+        adultRows = calcRow("ADULT", "Взрослый", adultPl.label || "", adultPl.price, adultN);
+      } else {
+        // Умра: свой счётчик на каждый тип номера (QUAD/TRPL/DBL).
+        adultRows = placementsOf(d).map(function (p) {
+          return calcRow(p.code, "Паломник", p.label, p.price, counts[p.code] || 0);
+        }).join("");
+      }
+      var rows = adultRows +
         tariffRows(d).map(function (r) {
           return calcRow(r.code, r.title, r.note, r.price, counts[r.code] || 0);
         }).join("");
@@ -918,9 +953,10 @@
           (tour.nights + 1) + " " + plural(tour.nights + 1, "день", "дня", "дней") +
           " / " + tour.nights + " " + plural(tour.nights, "ночь", "ночи", "ночей")) + "</span>");
       }
+      var CITY = { TZX: "Трабзон", BUS: "Батуми", JED: "Джидда", MED: "Медина" };
       var cities = [];
       deps.forEach(function (d) {
-        var c = d.transport === "TZX" ? "Трабзон" : d.transport === "BUS" ? "Батуми" : null;
+        var c = CITY[d.transport] || null;
         if (c && cities.indexOf(c) === -1) cities.push(c);
       });
       if (cities.length) out.push('<span>' + FACT_ICON.plane + "Авиа · " + esc(cities.join(" и ")) + "</span>");
@@ -1166,6 +1202,15 @@
       }).catch(errorBox);
     }
 
+    // Программа Умры → код бронируемого тура (заезды и цены в seed/БД,
+    // build-seed.py UMRA_PROGRAMS). По этому коду карточка программы ведёт
+    // на страницу тура с калькулятором и бронью.
+    var UMRA_TOUR_CODE = {
+      "TAJ-13": "UMRA_TAJ13", "TAJ-13+": "UMRA_TAJ13P", "ANJUM-13": "UMRA_ANJUM13",
+      "SHOHADA-13": "UMRA_SHOHADA13", "JUMEIRAH-13": "UMRA_JUMEIRAH13",
+      "SAJA-10": "UMRA_SAJA10", "SWISSOTEL-10": "UMRA_SWISS10",
+      "ANJUM-10": "UMRA_ANJUM10", "JUMEIRAH-10": "UMRA_JUMEIRAH10",
+    };
     var UMRAH_PROGRAMS = [
       {
         name: "TAJ-13", days: "13 дней / 12 ночей", route: "Ташкент → Джидда → Мекка → Медина → Ташкент",
@@ -1276,8 +1321,15 @@
           '<div class="tt-umrah-fact">' + umrahIcon("calendar") +
             '<div><h3>Даты вылетов 2026</h3><p>' + esc(p.dates) + '</p></div></div>' +
           '<div class="tt-umrah-prices"><div><span>Стоимость программы</span><p>' +
-            esc(p.prices) + '</p></div><a href="' + esc(contact) +
-            '" target="_blank" rel="noopener">Уточнить места <span>→</span></a></div>' +
+            esc(p.prices) + '</p></div>' +
+            (UMRA_TOUR_CODE[p.name]
+              ? '<button type="button" class="tt-umrah-book" data-tour="' +
+                esc(UMRA_TOUR_CODE[p.name]) + '">' +
+                (cfg.canBook ? "Забронировать" : "Открыть и забронировать") +
+                ' <span>→</span></button>'
+              : '<a href="' + esc(contact) +
+                '" target="_blank" rel="noopener">Уточнить места <span>→</span></a>') +
+          '</div>' +
         '</div>' +
       '</details>';
     }
@@ -1439,7 +1491,11 @@
           // (position:fixed) позади ВСЕЙ публичной страницы, а не только
           // шапки: контент едет поверх него в полупрозрачных карточках,
           // а не «видео кончается после героя».
-          (!cfg.canBook
+          // Видеофон есть только у Карадениза (свой ролик Узунгёля). У других
+          // туров (Умра) видео нет — показывать чужой кадр нельзя, карточка
+          // рисуется на обычном фоне. markHero снимает has-tourhero сам, раз
+          // .tt-tour-bg в разметке отсутствует.
+          (!cfg.canBook && tour.code === "KARADENIZ"
             ? '<div class="tt-tour-bg" aria-hidden="true">' +
                 '<video class="tt-hero-video" autoplay muted loop playsinline ' +
                   'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
@@ -1464,7 +1520,9 @@
           // и описание, без надзаголовка и фактов.
           '<header class="tt-cat-hero">' +
             (!cfg.canBook
-              ? '<span class="tt-eyebrow tt-tour-kicker">Загадочный Карадениз</span>' +
+              ? '<span class="tt-eyebrow tt-tour-kicker">' +
+                  esc(tour.destination === "Умра" ? "Умра · Мекка и Медина" : "Загадочный Карадениз") +
+                "</span>" +
                 "<h1>" + esc(displayName) + "</h1>" +
                 (tour.description ? '<p class="tt-tour-lead">' + esc(tour.description) + "</p>" : "") +
                 heroFacts(tour)
@@ -1701,13 +1759,20 @@
       if (!dep) return null;
 
       var rows = [];
-      // Взрослые — все в одном размещении по их числу (1 → одноместный,
-      // 2 → двухместный, 3+ → трёхместный). Точную раскладку по номерам агент
-      // потом поправит в форме брони — сервер пересчитает цену по факту.
-      var adultN = calc.counts.ADULT || 0;
-      if (adultN > 0) {
-        var pl = adultPlacement(dep, adultN);
-        for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+      if (usesOccupancy(dep)) {
+        // Карадениз: взрослые в одном размещении по их числу (1 → одноместный,
+        // 2 → двухместный, 3+ → трёхместный). Раскладку по номерам агент потом
+        // поправит в форме брони — сервер пересчитает цену по факту.
+        var adultN = calc.counts.ADULT || 0;
+        if (adultN > 0) {
+          var pl = adultPlacement(dep, adultN);
+          for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+        }
+      } else {
+        // Умра: по строке на каждого паломника в выбранном типе номера.
+        placementsOf(dep).forEach(function (p) {
+          for (var j = 0; j < (calc.counts[p.code] || 0); j++) rows.push({ placement: p.code });
+        });
       }
       dep.prices.filter(function (p) { return p.kind === "child"; })
         .forEach(function (p) {

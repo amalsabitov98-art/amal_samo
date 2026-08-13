@@ -2636,6 +2636,1596 @@ window.TURON_SEED = [
     "occupies_seat": 0
    }
   ]
+ },
+ {
+  "code": "UMRA_TAJ13-0801",
+  "date_start": "2026-08-01",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0808",
+  "date_start": "2026-08-08",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0815",
+  "date_start": "2026-08-15",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0822",
+  "date_start": "2026-08-22",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0829",
+  "date_start": "2026-08-29",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0905",
+  "date_start": "2026-09-05",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0912",
+  "date_start": "2026-09-12",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0919",
+  "date_start": "2026-09-19",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13-0926",
+  "date_start": "2026-09-26",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13",
+  "tour_name": "Умра · TAJ-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0718",
+  "date_start": "2026-07-18",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0725",
+  "date_start": "2026-07-25",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0801",
+  "date_start": "2026-08-01",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0808",
+  "date_start": "2026-08-08",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0815",
+  "date_start": "2026-08-15",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_TAJ13P-0822",
+  "date_start": "2026-08-22",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_TAJ13P",
+  "tour_name": "Умра · TAJ-13+",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1300,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1400,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_ANJUM13-0801",
+  "date_start": "2026-08-01",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_ANJUM13",
+  "tour_name": "Умра · ANJUM-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1600,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1700,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1800,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_ANJUM13-0808",
+  "date_start": "2026-08-08",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_ANJUM13",
+  "tour_name": "Умра · ANJUM-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1600,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1700,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1800,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_ANJUM13-0815",
+  "date_start": "2026-08-15",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_ANJUM13",
+  "tour_name": "Умра · ANJUM-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1600,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1700,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1800,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_ANJUM13-0822",
+  "date_start": "2026-08-22",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_ANJUM13",
+  "tour_name": "Умра · ANJUM-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1600,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1700,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1800,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SHOHADA13-0801",
+  "date_start": "2026-08-01",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SHOHADA13",
+  "tour_name": "Умра · SHOHADA-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1650,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1850,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SHOHADA13-0808",
+  "date_start": "2026-08-08",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SHOHADA13",
+  "tour_name": "Умра · SHOHADA-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1650,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1850,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SHOHADA13-0815",
+  "date_start": "2026-08-15",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SHOHADA13",
+  "tour_name": "Умра · SHOHADA-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1650,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1850,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SHOHADA13-0822",
+  "date_start": "2026-08-22",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SHOHADA13",
+  "tour_name": "Умра · SHOHADA-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1650,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1850,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_JUMEIRAH13-0801",
+  "date_start": "2026-08-01",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_JUMEIRAH13",
+  "tour_name": "Умра · JUMEIRAH-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1900,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 2000,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 2200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_JUMEIRAH13-0808",
+  "date_start": "2026-08-08",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_JUMEIRAH13",
+  "tour_name": "Умра · JUMEIRAH-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1900,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 2000,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 2200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_JUMEIRAH13-0815",
+  "date_start": "2026-08-15",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_JUMEIRAH13",
+  "tour_name": "Умра · JUMEIRAH-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1900,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 2000,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 2200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_JUMEIRAH13-0822",
+  "date_start": "2026-08-22",
+  "transport": "JED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_JUMEIRAH13",
+  "tour_name": "Умра · JUMEIRAH-13",
+  "nights": 12,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1900,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 2000,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 2200,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0730",
+  "date_start": "2026-07-30",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0806",
+  "date_start": "2026-08-06",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0813",
+  "date_start": "2026-08-13",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0820",
+  "date_start": "2026-08-20",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0827",
+  "date_start": "2026-08-27",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0903",
+  "date_start": "2026-09-03",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0910",
+  "date_start": "2026-09-10",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0917",
+  "date_start": "2026-09-17",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SAJA10-0924",
+  "date_start": "2026-09-24",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SAJA10",
+  "tour_name": "Умра · SAJA-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1250,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1350,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1450,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_SWISS10-0730",
+  "date_start": "2026-07-30",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_SWISS10",
+  "tour_name": "Умра · SWISSOTEL-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1650,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1900,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_ANJUM10-0730",
+  "date_start": "2026-07-30",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_ANJUM10",
+  "tour_name": "Умра · ANJUM-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1600,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1700,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
+ },
+ {
+  "code": "UMRA_JUMEIRAH10-0730",
+  "date_start": "2026-07-30",
+  "transport": "MED",
+  "is_info_tour": 0,
+  "capacity": 45,
+  "seats_taken": 0,
+  "tour_code": "UMRA_JUMEIRAH10",
+  "tour_name": "Умра · JUMEIRAH-10",
+  "nights": 9,
+  "agency_commission": 0,
+  "prices": [
+   {
+    "code": "QUAD",
+    "label": "Четырёхместный (QUAD)",
+    "kind": "placement",
+    "price": 1750,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "TRPL",
+    "label": "Трёхместный (TRPL)",
+    "kind": "placement",
+    "price": 1890,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   },
+   {
+    "code": "DBL",
+    "label": "Двухместный (DBL)",
+    "kind": "placement",
+    "price": 1990,
+    "age_from": null,
+    "age_to": null,
+    "occupies_seat": 1
+   }
+  ]
  }
 ];
 window.TURON_TOURS = [
@@ -2751,6 +4341,263 @@ window.TURON_TOURS = [
     ]
    }
   ]
+ },
+ {
+  "code": "UMRA_TAJ13",
+  "name": "Умра · TAJ-13",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Август—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
+  "description": "Умра по программе TAJ-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Taj Park · 990 м до Харама · 8 ночей; Медина · Grand Al Shahba · 250 м до мечети Пророка · 3 ночи.",
+  "nights": 12,
+  "included": [
+   "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+   "Джидда · Hawada Hotel Jeddah · 1 ночь",
+   "Мекка · Taj Park · 990 м до Харама · 8 ночей",
+   "Медина · Grand Al Shahba · 250 м до мечети Пророка · 3 ночи",
+   "Автобус Мекка—Медина",
+   "Трёхразовое питание в Мекке и Медине",
+   "1 питание в Джидде",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Август—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_TAJ13P",
+  "name": "Умра · TAJ-13+",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Июль—август по указанным датам.",
+  "description": "Умра по программе TAJ-13+ (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Taj Park · 990 м до Харама · 8 ночей; Медина · Mukhtara Plaza · 250 м до мечети Пророка · 3 ночи.",
+  "nights": 12,
+  "included": [
+   "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+   "Джидда · Hawada Hotel Jeddah · 1 ночь",
+   "Мекка · Taj Park · 990 м до Харама · 8 ночей",
+   "Медина · Mukhtara Plaza · 250 м до мечети Пророка · 3 ночи",
+   "Скоростной поезд Мекка—Медина",
+   "Питание: Джидда 1 раз, Мекка 3 раза, Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Июль—август по указанным датам.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_ANJUM13",
+  "name": "Умра · ANJUM-13",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Август по указанным датам.",
+  "description": "Умра по программе ANJUM-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Anjum · 250 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
+  "nights": 12,
+  "included": [
+   "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+   "Джидда · Hawada Hotel Jeddah · 1 ночь",
+   "Мекка · Anjum · 250 м до Харама · 8 ночей",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи",
+   "Скоростной поезд Мекка—Медина",
+   "Питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Август по указанным датам.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_SHOHADA13",
+  "name": "Умра · SHOHADA-13",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Август по указанным датам.",
+  "description": "Умра по программе SHOHADA-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Al Shohada · 250 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
+  "nights": 12,
+  "included": [
+   "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+   "Джидда · Hawada Hotel Jeddah · 1 ночь",
+   "Мекка · Al Shohada · 250 м до Харама · 8 ночей",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи",
+   "Скоростной поезд Мекка—Медина",
+   "Питание: Джидда 1 раз, Мекка и Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Август по указанным датам.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_JUMEIRAH13",
+  "name": "Умра · JUMEIRAH-13",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Август по указанным датам.",
+  "description": "Умра по программе JUMEIRAH-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Jumeirah Hotel · 100 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
+  "nights": 12,
+  "included": [
+   "Centrum Air · TAS–JED 06:20–11:10 · MED–TAS 17:30–01:50",
+   "Джидда · Hawada Hotel Jeddah · 1 ночь",
+   "Мекка · Jumeirah Hotel · 100 м до Харама · 8 ночей",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи",
+   "Скоростной поезд Мекка—Медина",
+   "Питание: Джидда 1 раз, Мекка 1 раз, Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Август по указанным датам.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_SAJA10",
+  "name": "Умра · SAJA-10",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Июль—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
+  "description": "Умра по программе SAJA-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Saja Al-Madinah · 250 м до мечети Пророка · 4 ночи; Мекка · Taj Park · 990 м до Харама · 5 ночей.",
+  "nights": 9,
+  "included": [
+   "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+   "Медина · Saja Al-Madinah · 250 м до мечети Пророка · 4 ночи",
+   "Мекка · Taj Park · 990 м до Харама · 5 ночей",
+   "Скоростной поезд Медина—Мекка",
+   "Трёхразовое питание",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Июль—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_SWISS10",
+  "name": "Умра · SWISSOTEL-10",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+  "description": "Умра по программе SWISSOTEL-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Swissotel Makkah · 50 м до Харама · 5 ночей.",
+  "nights": 9,
+  "included": [
+   "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи",
+   "Мекка · Swissotel Makkah · 50 м до Харама · 5 ночей",
+   "Скоростной поезд Медина—Мекка",
+   "Питание: Мекка 1 раз, Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_ANJUM10",
+  "name": "Умра · ANJUM-10",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+  "description": "Умра по программе ANJUM-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Anjum Makkah · 250 м до Харама · 5 ночей.",
+  "nights": 9,
+  "included": [
+   "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи",
+   "Мекка · Anjum Makkah · 250 м до Харама · 5 ночей",
+   "Скоростной поезд Медина—Мекка",
+   "Питание: Мекка 1 раз, Медина 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
+ },
+ {
+  "code": "UMRA_JUMEIRAH10",
+  "name": "Умра · JUMEIRAH-10",
+  "destination": "Умра",
+  "agency_commission": 0,
+  "is_bookable": 1,
+  "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+  "description": "Умра по программе JUMEIRAH-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Jumeirah Jabal Omar · 100 м до Харама · 5 ночей.",
+  "nights": 9,
+  "included": [
+   "Centrum Air · TAS–MED 11:00–15:50 · JED–TAS 12:40–21:20",
+   "Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи",
+   "Мекка · Jumeirah Jabal Omar · 100 м до Харама · 5 ночей",
+   "Скоростной поезд Медина—Мекка",
+   "Питание в Мекке и Медине 2 раза (шведский стол)",
+   "Виза",
+   "Руководители группы и врачи"
+  ],
+  "excluded": [],
+  "info": [
+   {
+    "text": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
+    "url": null
+   }
+  ],
+  "gallery": [],
+  "variants": []
  }
 ];
 window.TURON_DESTINATIONS = [
@@ -2760,5 +4607,12 @@ window.TURON_DESTINATIONS = [
   "blurb": "Черноморское побережье: Трабзон, Ризе, Батуми",
   "image": "img/hero-rize-batumi.webp",
   "sort": 1
+ },
+ {
+  "name": "Умра",
+  "title": "Умра · Мекка и Медина",
+  "blurb": "Паломничество: Мекка, Медина, Джидда",
+  "image": "",
+  "sort": 2
  }
 ];

@@ -263,6 +263,46 @@ console.log("\nКарточка тура Карадениз");
   await page.close();
 }
 
+// ------------------------------------------------ карточка тура Умры
+console.log("\nКарточка тура Умры");
+{
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => { window.location.hash = "#/t/UMRA_TAJ13"; });
+  await page.waitForTimeout(600);
+
+  check("карточка программы Умры открывается",
+        (await page.locator("#screen-public .tt-cat-hero h1").innerText()).includes("Умра"));
+  // Своего видео у Умры нет — чужой ролик Карадениза показывать нельзя.
+  check("на карточке Умры нет видеофона Карадениза",
+        (await page.locator(".tt-tour-bg").count()) === 0);
+
+  const calc = page.locator("#tour-departures [data-calc]").first();
+  check("у программы Умры есть заезды", (await calc.count()) > 0);
+  if (await calc.count()) {
+    await calc.click();
+    await page.waitForTimeout(250);
+    // Умра считается по типу номера (QUAD/TRPL/DBL), а не по одному счётчику
+    // «Взрослый» с выводом размещения (это модель Карадениза).
+    const rooms = await page.$$eval(
+      ".tt-cat-dep .tt-calc-row .tt-calc-what .tt-muted-note",
+      (els) => els.map((e) => e.textContent));
+    check("калькулятор Умры — по типу номера QUAD/TRPL/DBL",
+          rooms.some((r) => /QUAD/.test(r)) && rooms.some((r) => /TRPL/.test(r)) &&
+          rooms.some((r) => /DBL/.test(r)), JSON.stringify(rooms));
+    const paxLabels = await page.$$eval(
+      ".tt-cat-dep .tt-calc-row .tt-calc-what strong",
+      (els) => els.map((e) => e.textContent));
+    check("строки Умры подписаны «Паломник»",
+          paxLabels.filter((l) => l === "Паломник").length >= 2, JSON.stringify(paxLabels));
+  }
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // ------------------------------------------------------------- агентство
 console.log("\nКабинет агентства");
 {
