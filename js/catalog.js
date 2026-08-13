@@ -17,6 +17,17 @@
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
+  // Иконки для плашек-фактов героя карточки тура (длительность/перелёт/цена).
+  function factSvg(inner) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + "</svg>";
+  }
+  var FACT_ICON = {
+    clock: factSvg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/>'),
+    plane: factSvg('<path d="M4 13l7-1 3.5-7 2 .6-2 6.8 4.5-.6 1.5 1.2-5 2 .4 4-1.4 1-2-3.4-3 1.2v2l-1.5.5-.8-3.4L4 14.6z"/>'),
+    tag: factSvg('<path d="M4 12.5V5h7.5L20 13.5 13.5 20z"/><circle cx="8.5" cy="8.5" r="1.3"/>'),
+  };
+
   function tr(key) {
     return global.TuronPublicUi ? global.TuronPublicUi.t(key) : key;
   }
@@ -817,18 +828,80 @@
           "перелёта, а не два описания одного. Какой вариант у выбранного заезда — " +
           "уточните у оператора.</p>"
         : "";
-      if (!active.days.length) return switcher;
+      if (!active.days.length)
+        return '<section class="tt-cat-block" id="tour-programme"><h2>Программа</h2>' +
+          switcher + "</section>";
       // Дни сворачиваемые (<details>), а не сплошной список: 8 дней с
       // полным абзацем на каждый день на одном экране читались стеной
       // текста без конца. Первый день открыт сразу — понятно, что дальше
-      // тоже есть текст, а не просто заголовки.
-      return '<section class="tt-cat-block"><h2>Программа</h2>' + switcher +
+      // тоже есть текст, а не просто заголовки. id — чтобы перерисовывать
+      // ТОЛЬКО этот блок при смене варианта маршрута, а не всю страницу
+      // (иначе пересоздаётся видеофон и мигает).
+      return '<section class="tt-cat-block" id="tour-programme"><h2>Программа</h2>' + switcher +
         '<div class="tt-cat-days">' + active.days.map(function (d, i) {
           return '<details class="tt-cat-day"' + (i === 0 ? " open" : "") + ">" +
             "<summary><strong>" + esc(d.title) + "</strong></summary>" +
             "<span>" + esc(d.text) + "</span>" +
           "</details>";
         }).join("") + "</div></section>";
+    }
+
+    /* Блок «Заезды и цены» — своя функция и свой id, чтобы калькулятор заезда
+     * перерисовывал ТОЛЬКО его, а не всю страницу (полная перерисовка
+     * пересоздавала видеофон и мигала). */
+    function departuresBlock(tour) {
+      var deps = tour.departures || [];
+      return '<section class="tt-cat-block" id="tour-departures"><h2>Заезды и цены</h2>' +
+        (deps.length
+          ? '<div class="tt-cat-deps">' + deps.map(function (d) {
+              // длительность живёт на туре, а рисуется в строке заезда
+              return departureRow(Object.assign({ nights: tour.nights }, d));
+            }).join("") + "</div>"
+          : '<div class="tt-empty-state">' +
+            (tour.is_bookable
+              ? "Предстоящих заездов нет."
+              : esc(tour.note || "Тур ещё не открыт для брони.")) +
+            "</div>") +
+        (deps.length && !cfg.canBook
+          ? '<p class="tt-muted-note">Цены партнёрские. Чтобы забронировать, ' +
+            "войдите под логином агентства.</p>"
+          : "") +
+      "</section>";
+    }
+
+    /* Плашки-факты героя в стиле Умры: длительность, перелёт, цена «от».
+     * Аэропорты и цена берутся из реальных заездов, не выдумываются. */
+    function heroFacts(tour) {
+      var deps = tour.departures || [];
+      var out = [];
+      if (tour.nights) {
+        out.push('<span>' + FACT_ICON.clock + esc(
+          (tour.nights + 1) + " " + plural(tour.nights + 1, "день", "дня", "дней") +
+          " / " + tour.nights + " " + plural(tour.nights, "ночь", "ночи", "ночей")) + "</span>");
+      }
+      var cities = [];
+      deps.forEach(function (d) {
+        var c = d.transport === "TZX" ? "Трабзон" : d.transport === "BUS" ? "Батуми" : null;
+        if (c && cities.indexOf(c) === -1) cities.push(c);
+      });
+      if (cities.length) out.push('<span>' + FACT_ICON.plane + "Авиа · " + esc(cities.join(" и ")) + "</span>");
+      // «от $…» — минимальная взрослая цена по всем заездам. Берём из прайса
+      // (kind=placement) самого заезда, а не из d.min_price: в демо-заездах
+      // этого сводного поля нет, а прайс есть и там, и в ответе воркера.
+      var minPrice = null;
+      deps.forEach(function (d) {
+        (d.prices || []).forEach(function (p) {
+          if (p.kind !== "placement") return;
+          if (minPrice == null || p.price < minPrice) minPrice = p.price;
+        });
+        if (d.min_price != null && (minPrice == null || d.min_price < minPrice)) {
+          minPrice = d.min_price;
+        }
+      });
+      if (minPrice != null) {
+        out.push('<strong>' + FACT_ICON.tag + "от " + money(minPrice) + "</strong>");
+      }
+      return out.length ? '<div class="tt-tour-facts">' + out.join("") + "</div>" : "";
     }
 
     /*
@@ -1336,10 +1409,19 @@
             { text: tour.destination, go: "dest:" + tour.destination },
             { text: tour.name },
           ]) +
+          // Публичный герой — раскладка Умры: надзаголовок, крупное название,
+          // короткое описание, плашки-факты (длительность/перелёт/цена).
+          // Кабинет (cfg.canBook) — прежняя компактная карточка: мета-строка
+          // и описание, без надзаголовка и фактов.
           '<header class="tt-cat-hero">' +
-            "<h1>" + esc(tour.name) + "</h1>" +
-            '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
-            (tour.description ? "<p>" + esc(tour.description) + "</p>" : "") +
+            (!cfg.canBook
+              ? '<span class="tt-eyebrow tt-tour-kicker">Загадочный Карадениз</span>' +
+                "<h1>" + esc(tour.name) + "</h1>" +
+                (tour.description ? '<p class="tt-tour-lead">' + esc(tour.description) + "</p>" : "") +
+                heroFacts(tour)
+              : "<h1>" + esc(tour.name) + "</h1>" +
+                '<div class="tt-muted-note">' + esc(meta.join(" · ")) + "</div>" +
+                (tour.description ? "<p>" + esc(tour.description) + "</p>" : "")) +
           "</header>" +
 
           programmeBlock(tour) +
@@ -1370,22 +1452,7 @@
               }).join("") + "</ul></section>"
             : "") +
 
-          '<section class="tt-cat-block"><h2>Заезды и цены</h2>' +
-            (deps.length
-              ? '<div class="tt-cat-deps">' + deps.map(function (d) {
-                  // длительность живёт на туре, а рисуется в строке заезда
-                  return departureRow(Object.assign({ nights: tour.nights }, d));
-                }).join("") + "</div>"
-              : '<div class="tt-empty-state">' +
-                (tour.is_bookable
-                  ? "Предстоящих заездов нет."
-                  : esc(tour.note || "Тур ещё не открыт для брони.")) +
-                "</div>") +
-            (deps.length && !cfg.canBook
-              ? '<p class="tt-muted-note">Цены партнёрские. Чтобы забронировать, ' +
-                "войдите под логином агентства.</p>"
-              : "") +
-          "</section>";
+          departuresBlock(tour);
 
         // Тот же класс .tt-hero-video, что и у главного видео — общая
         // логика «уменьшить движение» и пробуждения после сворачивания
@@ -1534,7 +1601,11 @@
       var variant = e.target.closest("[data-variant]");
       if (variant) {
         view.variant = variant.dataset.variant;
-        return draw();
+        // Перерисовываем ТОЛЬКО блок программы, а не всю страницу: полная
+        // перерисовка пересоздавала закреплённое видео и оно мигало.
+        var pb = loadedTour && root.querySelector("#tour-programme");
+        if (pb) pb.outerHTML = programmeBlock(loadedTour);
+        return;
       }
 
       // ------------------------------------------------- калькулятор
@@ -1543,7 +1614,7 @@
         var code = toggle.dataset.calc;
         calc = calc.code === code ? { code: null, counts: {} }
                                   : { code: code, counts: {} };
-        return loadedTour && paintTour(loadedTour);
+        return rerenderDepartures();
       }
 
       var step = e.target.closest("[data-step]");
@@ -1551,7 +1622,7 @@
         var tariff = step.dataset.tariff;
         var next = (calc.counts[tariff] || 0) + Number(step.dataset.step);
         calc.counts[tariff] = Math.max(0, next);
-        return loadedTour && paintTour(loadedTour);
+        return rerenderDepartures();
       }
 
       var bookCalc = e.target.closest("[data-book-calc]");
@@ -1592,6 +1663,15 @@
           for (var i = 0; i < (calc.counts[p.code] || 0); i++) rows.push({});
         });
       return rows.length ? rows : null;
+    }
+
+    // Перерисовать ТОЛЬКО блок «Заезды и цены», не трогая закреплённое
+    // видео-фон и остальную страницу: клик по калькулятору и ±1 турист
+    // раньше звали полную перерисовку и видео мигало.
+    function rerenderDepartures() {
+      if (!loadedTour) return;
+      var db = root.querySelector("#tour-departures");
+      if (db) db.outerHTML = departuresBlock(loadedTour);
     }
 
     if (cfg.useHash) {

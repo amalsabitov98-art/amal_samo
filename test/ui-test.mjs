@@ -209,15 +209,18 @@ console.log("\nКарточка тура Карадениз");
   check("фон закреплён (position:fixed), а не прокручивается вместе со страницей",
         await page.locator(".tt-tour-bg").evaluate((el) => getComputedStyle(el).position === "fixed"));
 
-  // Герой занимает почти весь первый экран (оставляет место под прозрачную
-   // шапку), а сам видеофон закреплён на всю высоту окна.
+  // Раскладка Умры: текст-герой идёт полосой сверху (не во весь экран —
+   // иначе заголовок уезжал в самый низ и над ним зияла пустая «пропасть»),
+   // а ощущение «видео на весь экран» держит ЗАКРЕПЛЁННЫЙ видеофон в
+   // полную высоту окна позади всей страницы.
   const heroInfo = await page.evaluate(() => {
     const h = document.querySelector(".tt-cat-hero").getBoundingClientRect();
     const bg = document.querySelector(".tt-tour-bg").getBoundingClientRect();
     return { heroH: Math.round(h.height), bgH: Math.round(bg.height), winH: window.innerHeight };
   });
-  check("на публике герой почти во весь экран",
-        heroInfo.heroH >= heroInfo.winH * 0.7, JSON.stringify(heroInfo));
+  check("герой-текст занимает читаемую полосу, а не весь экран",
+        heroInfo.heroH >= 220 && heroInfo.heroH <= heroInfo.winH * 0.8,
+        JSON.stringify(heroInfo));
   check("видеофон закреплён на всю высоту окна",
         heroInfo.bgH >= heroInfo.winH - 2, JSON.stringify(heroInfo));
 
@@ -226,6 +229,15 @@ console.log("\nКарточка тура Карадениз");
         await page.evaluate(() =>
           document.querySelector("#screen-public").classList.contains("has-hero") &&
           document.querySelector("#screen-public").classList.contains("has-tourhero")));
+
+  // Герой в стиле Умры: надзаголовок + плашки-факты (длительность/перелёт/цена).
+  check("у публичного героя есть надзаголовок и плашки-факты",
+        await page.evaluate(() => {
+          const hero = document.querySelector("#screen-public .tt-cat-hero");
+          if (!hero) return false;
+          const facts = hero.querySelectorAll(".tt-tour-facts > span, .tt-tour-facts > strong");
+          return !!hero.querySelector(".tt-tour-kicker") && facts.length >= 2;
+        }));
 
   // Контент (крошки, герой, карточки) должен стоять НАД закреплённым видео,
   // а не потеряться позади него из-за неявного порядка стекинга.

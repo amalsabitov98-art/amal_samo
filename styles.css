@@ -3789,9 +3789,12 @@ select { font-family: inherit; }
    Умры. Крошки опускаем ниже прозрачной шапки, а высоту героя уменьшаем на
    высоту шапки, чтобы заголовок остался в первом экране, а не уехал под сгиб. */
 :root #screen-public.has-tourhero .tt-public-subnav { display: none; }
-/* Декоративное кольцо-обод было под плоскую карточку кабинета; поверх живого
-   кадра это лишний полупрозрачный круг-«солнце», убираем. */
-#screen-public.has-tourhero .tt-cat-hero::before { display: none; }
+/* Декоративное кольцо-обод и подпись-ярлык «Авторский групповой маршрут»
+   были под плоскую карточку кабинета; поверх живого кадра это лишний
+   полупрозрачный круг-«солнце» и висящий в углу текст — у Умры их нет,
+   убираем оба. */
+#screen-public.has-tourhero .tt-cat-hero::before,
+#screen-public.has-tourhero .tt-cat-hero::after { display: none; }
 #screen-public.has-tourhero .tt-crumbs {
   padding-top: calc(var(--tt-topbar-h, 96px) + 14px);
 }
@@ -3799,9 +3802,10 @@ select { font-family: inherit; }
 #screen-public.has-tourhero .tt-crumb {
   color: rgba(255, 255, 255, 0.82);
 }
-#screen-public.has-tourhero .tt-cat-hero {
-  min-height: calc(100svh - var(--tt-topbar-h, 96px) - 34px);
-}
+/* Высоту героя задаёт правило #screen-public .tt-cat-hero ниже (контент +
+   запас под кадр). Раньше здесь было min-height во весь экран — при
+   выравнивании текста по верху это оставляло почти пустой экран видео между
+   заголовком и программой. */
 
 /* --------------------------------------------------------- титульный экран
    Видео на весь блок + текст и панель поиска колонкой по центру.
@@ -4660,7 +4664,13 @@ select { font-family: inherit; }
                     transparent 34%);
 }
 #screen-public .tt-cat-hero {
-  min-height: 100svh;
+  /* Раскладка Умры: текст идёт СВЕРХУ, сразу под прозрачной шапкой, а не
+     прижат к низу. Раньше герой был во весь экран с justify-content:flex-end,
+     и заголовок уезжал в самый низ — между крошками и текстом зияла пустая
+     «пропасть». Теперь высота под контент + запас, чтобы под текстом было
+     видно кадр (это и есть герой), а программа шла следом без разрыва. */
+  min-height: clamp(300px, 42svh, 440px);
+  justify-content: flex-start;
   border: 0;
   border-radius: 0;
   /* Во всю ширину окна (класс исключён из ограничения .tt-container выше),
@@ -4669,11 +4679,68 @@ select { font-family: inherit; }
      и карточки ниже — за счёт padding-inline с учётом центрирования. */
   padding-inline: max(clamp(28px, 5vw, 58px),
                       calc((100vw - 1380px) / 2 + clamp(20px, 4vw, 64px)));
+  padding-block: clamp(6px, 1.5vh, 16px) clamp(26px, 5vh, 54px);
   /* Никакой подложки: кадр показываем как есть. Читаемость текста держится
      на его собственной тени (ниже), а не на затемнении видео — плашка внизу
      читалась чёрной полосой поперёк кадра. */
   background: none;
   box-shadow: none;
+}
+/* Надзаголовок героя — латунная разрядка, как у Умры. */
+#screen-public .tt-cat-hero .tt-tour-kicker {
+  color: #e8ca78;
+  font: 700 0.72rem/1.3 Manrope, "Segoe UI", sans-serif;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+#screen-public .tt-cat-hero .tt-tour-kicker + h1 { margin-top: 12px; }
+/* Крупный лид под заголовком (описание тура). */
+#screen-public .tt-cat-hero .tt-tour-lead {
+  max-width: 62ch;
+  margin-top: 16px;
+  color: rgba(255, 249, 237, 0.94);
+  font-size: clamp(0.9rem, 1.05vw, 1.05rem);
+  line-height: 1.7;
+}
+/* Плашки-факты (длительность · перелёт · цена) — латунная рамка и иконка,
+   зеркалят .tt-umrah-hero-meta. */
+.tt-tour-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.tt-tour-facts > span,
+.tt-tour-facts > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 9px;
+  border: 1px solid rgba(239, 211, 132, 0.3);
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(2, 17, 13, 0.82), rgba(4, 27, 20, 0.66));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 249, 237, 0.94);
+  font: 750 clamp(0.85rem, 0.92vw, 0.98rem)/1.3 Manrope, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+.tt-tour-facts > strong { color: #ead18b; }
+.tt-tour-facts svg {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  flex: none;
+  border: 1px solid rgba(239, 211, 132, 0.5);
+  border-radius: 11px;
+  color: #f4d98f;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 248, 214, 0.2), transparent 42%),
+    linear-gradient(145deg, rgba(232, 202, 120, 0.18), rgba(3, 20, 15, 0.26));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 /* Двойная тень вместо подложки: плотная короткая даёт контур буквам на
    любом фоне, широкая мягкая гасит светлые пятна кадра вокруг строки. */
