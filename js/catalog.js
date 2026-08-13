@@ -1332,8 +1332,6 @@
               '<div class="tt-umrah-programs">' + UMRAH_PROGRAMS.map(function (p, index) {
                 return umrahProgrammeCard(p, index, contact);
               }).join("") + '</div>' +
-              '<div class="tt-umrah-gifts"><strong>В каждой программе</strong>' +
-                '<span>Сумка · чемодан · ихрам · бейдж · Зам-зам</span></div>' +
             '</section>' +
           '</div>' +
         '</section>' + footerHtml();
