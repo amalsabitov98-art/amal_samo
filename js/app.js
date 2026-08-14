@@ -243,15 +243,19 @@
         onBook: bookFromCatalog,
       });
     }
-    // Отдельный экземпляр каталога для экрана «Новый тур»: когда в
-    // переключателе выбрана программа Умры, показываем её карточку тура здесь
-    // (та же бронь по типу номера, что и во вкладке «Туры»), не дублируя
-    // конструктор Карадениза.
+    // «Новый тур» — витрина туров: этот каталог рисует мозаику направлений и
+    // карточки Умры/Японии с бронью. Карадениз он НЕ рисует сам — отдаёт хосту
+    // через onTour, и мы показываем привычный конструктор mir-jahon.
     if (!builderCatalog) {
       builderCatalog = TuronCatalog.create({
-        root: $("builder-umra"),
+        root: $("builder-catalog"),
         canBook: true,
         onBook: bookFromCatalog,
+        onTour: function (code) {
+          if (code !== "KARADENIZ") return false;   // Умра/Япония — обычной карточкой
+          openKaradenizBuilder();
+          return true;                               // карточку Карадениза каталог не рисует
+        },
       });
     }
 
@@ -546,8 +550,14 @@
         return d;
       });
       renderDepartures();
-      populateTourSwitch();
-      showBuilderTour(state.builder.tour || "KARADENIZ", false);
+      // «Новый тур» открывается витриной. Если агент уже был в конструкторе
+      // Карадениза (перезагрузка данных), не выкидываем его на витрину.
+      if (state.builder.tour === "KARADENIZ" && $("builder-karadeniz") &&
+          !$("builder-karadeniz").hidden) {
+        renderBuilder();
+      } else {
+        showBuilderShowcase();
+      }
     }).catch(function (err) {
       $("departures-list").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить заезды.<div class="tt-muted-note">' +
@@ -564,45 +574,21 @@
    * выдуманных пассажиров, рейсов и сумм здесь быть не должно — агент
    * называет клиенту то, что видит.
    */
-  // Переключатель тура на экране «Новый тур»: Карадениз + программы Умры.
-  // Строится из загруженных заездов (у каждого есть tour_code/tour_name).
-  // Программы без будущих заездов сюда не попадают — их и не забронировать.
-  function populateTourSwitch() {
-    var sel = $("builder-tour");
-    if (!sel) return;
-    var seen = {}, tours = [];
-    state.departures.forEach(function (d) {
-      var code = d.tour_code || "KARADENIZ";
-      if (seen[code]) return;
-      seen[code] = 1;
-      tours.push({ code: code, name: d.tour_name || code });
-    });
-    tours.sort(function (a, b) {
-      if (a.code === "KARADENIZ") return -1;
-      if (b.code === "KARADENIZ") return 1;
-      return String(a.name).localeCompare(String(b.name), "ru");
-    });
-    var cur = state.builder.tour || "KARADENIZ";
-    sel.innerHTML = tours.map(function (t) {
-      return '<option value="' + esc(t.code) + '"' +
-        (t.code === cur ? " selected" : "") + ">" + esc(t.name) + "</option>";
-    }).join("");
-    var bar = document.querySelector(".tt-mj-tourbar");
-    if (bar) bar.hidden = tours.length < 2;   // один тур — переключатель не нужен
+  // Витрина «Новый тур»: показываем мозаику направлений (каталог), прячем
+  // конструктор Карадениза. С неё агент кликает карточку и попадает в бронь.
+  function showBuilderShowcase() {
+    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = true;
+    if ($("builder-catalog")) $("builder-catalog").hidden = false;
+    if (builderCatalog) builderCatalog.reset();
   }
 
-  // Показать выбранный тур: Карадениз — конструктор mir-jahon; программа Умры —
-  // её карточка тура (бронь по типу номера) во встроенном каталоге. reset=true,
-  // когда пользователь сам переключил (сбрасываем состав), иначе сохраняем.
-  function showBuilderTour(code, reset) {
-    if (reset || state.builder.tour !== code) {
-      state.builder = { tour: code, code: null, counts: {} };
-    }
-    var isKar = code === "KARADENIZ";
-    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = !isKar;
-    if ($("builder-umra")) $("builder-umra").hidden = isKar;
-    if (isKar) renderBuilder();
-    else if (builderCatalog) builderCatalog.openTour(code);
+  // Клик по Караденизу в витрине → привычный конструктор mir-jahon вместо
+  // общей карточки тура (onTour это ловит). Прячем каталог, показываем билдер.
+  function openKaradenizBuilder() {
+    state.builder = { tour: "KARADENIZ", code: null, counts: {} };
+    if ($("builder-catalog")) $("builder-catalog").hidden = true;
+    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = false;
+    renderBuilder();
   }
 
   // Конструктор «Новый тур» заточен под Карадениз (маршрут, рейсы, отели,
@@ -911,14 +897,13 @@
 
   // смена заезда и счётчиков
   $("panel-builder").addEventListener("change", function (e) {
-    if (e.target.id === "builder-tour") {
-      showBuilderTour(e.target.value, true);
-      return;
-    }
     if (e.target.id !== "builder-departure") return;
     state.builder = { tour: "KARADENIZ", code: e.target.value, counts: {} };
     renderBuilder();
   });
+
+  // «← Все туры» — из конструктора Карадениза обратно на витрину.
+  $("builder-back").addEventListener("click", showBuilderShowcase);
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
   // иначе открываем карточку тура в каталоге с программой по дням.

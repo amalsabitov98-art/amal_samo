@@ -1452,6 +1452,10 @@
     }
 
     function renderTour(code) {
+      // Хост может перехватить открытие конкретного тура (например, кабинет
+      // показывает Карадениз в своём конструкторе mir-jahon, а не в общей
+      // карточке). Если onTour вернул true — каталог карточку не рисует.
+      if (cfg.onTour && cfg.onTour(code)) return Promise.resolve();
       loading();
       return TuronApi.catalogTour(code).then(function (tour) {
         loadedTour = tour;

@@ -5569,9 +5569,22 @@ select { font-family: inherit; }
 .tt-mj-route i { color: var(--tt-accent); font-style: normal; }
 
 /* --- два селектора: период + отель --- */
-.tt-mj-tourbar { margin-bottom: 16px; }
-.tt-mj-tourbar[hidden] { display: none; }
-.tt-mj-tourfield { max-width: 520px; }
+/* «← Все туры» — возврат из конструктора Карадениза на витрину. */
+.tt-mj-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 8px 16px;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tt-mj-back:hover { border-color: var(--tt-forest); color: var(--tt-forest); }
 .tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
 .tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }
