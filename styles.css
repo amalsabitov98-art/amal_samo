@@ -5585,6 +5585,17 @@ select { font-family: inherit; }
   cursor: pointer;
 }
 .tt-mj-back:hover { border-color: var(--tt-forest); color: var(--tt-forest); }
+/* На странице Умры/Японии контент высокий (герой на весь экран + программы),
+   поэтому кнопку возврата держим липкой под шапкой — она всегда под рукой,
+   а не только на самом верху. Плотный фон и тень — чтобы читалась поверх
+   тёмного героя, когда он проезжает под ней. */
+#builder-catalog-back {
+  position: sticky;
+  top: calc(var(--tt-topbar-h, 96px) + 8px);
+  z-index: 20;
+  background: var(--tt-surface);
+  box-shadow: 0 8px 22px rgba(6, 20, 15, 0.28);
+}
 .tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
 .tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }

@@ -5606,6 +5606,17 @@ select { font-family: inherit; }
   cursor: pointer;
 }
 .tt-mj-back:hover { border-color: var(--tt-forest); color: var(--tt-forest); }
+/* На странице Умры/Японии контент высокий (герой на весь экран + программы),
+   поэтому кнопку возврата держим липкой под шапкой — она всегда под рукой,
+   а не только на самом верху. Плотный фон и тень — чтобы читалась поверх
+   тёмного героя, когда он проезжает под ней. */
+#builder-catalog-back {
+  position: sticky;
+  top: calc(var(--tt-topbar-h, 96px) + 8px);
+  z-index: 20;
+  background: var(--tt-surface);
+  box-shadow: 0 8px 22px rgba(6, 20, 15, 0.28);
+}
 .tt-mj-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tt-mj-field { display: flex; flex-direction: column; gap: 6px; }
 .tt-mj-field > span { font-size: 0.78rem; font-weight: 600; color: var(--tt-text-muted); }
@@ -7252,6 +7263,7 @@ select { font-family: inherit; }
              конструктор mir-jahon (#builder-karadeniz), Умра/Япония — в карточку
              тура прямо здесь. Всё рисует встроенный каталог (builderCatalog);
              Карадениз он отдаёт хосту через onTour. -->
+        <button class="tt-mj-back" id="builder-catalog-back" type="button" hidden>← Все туры</button>
         <div id="builder-catalog"></div>
         <div class="tt-mj" id="builder-karadeniz" hidden>
           <button class="tt-mj-back" id="builder-back" type="button">← Все туры</button>
@@ -15507,6 +15519,9 @@ window.TURON_DESTINATIONS = [
     }
 
     function draw() {
+      // Хост (кабинет) может показывать свою кнопку возврата в зависимости от
+      // текущего вида каталога — например «← Все туры» на странице Умры/тура.
+      if (cfg.onView) cfg.onView(view);
       var done = view.kind === "tours" ? renderTours(view.destination)
                : view.kind === "tour" ? renderTour(view.code)
                : renderDestinations();
@@ -16755,6 +16770,12 @@ window.TURON_DESTINATIONS = [
           openKaradenizBuilder();
           return true;                               // карточку Карадениза каталог не рисует
         },
+        // На витрине (мозаика направлений) кнопку возврата прячем, на странице
+        // Умры/Японии/карточке тура — показываем «← Все туры».
+        onView: function (view) {
+          var back = $("builder-catalog-back");
+          if (back) back.hidden = !view || view.kind === "destinations";
+        },
       });
     }
 
@@ -17403,6 +17424,10 @@ window.TURON_DESTINATIONS = [
 
   // «← Все туры» — из конструктора Карадениза обратно на витрину.
   $("builder-back").addEventListener("click", showBuilderShowcase);
+  // «← Все туры» из карточки Умры/Японии — возврат к мозаике направлений.
+  $("builder-catalog-back").addEventListener("click", function () {
+    if (builderCatalog) builderCatalog.reset();   // onView сам спрячет кнопку
+  });
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
   // иначе открываем карточку тура в каталоге с программой по дням.

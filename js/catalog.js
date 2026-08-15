@@ -1639,6 +1639,9 @@
     }
 
     function draw() {
+      // Хост (кабинет) может показывать свою кнопку возврата в зависимости от
+      // текущего вида каталога — например «← Все туры» на странице Умры/тура.
+      if (cfg.onView) cfg.onView(view);
       var done = view.kind === "tours" ? renderTours(view.destination)
                : view.kind === "tour" ? renderTour(view.code)
                : renderDestinations();

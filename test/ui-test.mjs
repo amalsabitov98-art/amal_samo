@@ -467,6 +467,22 @@ console.log("\nКабинет агентства");
         (await page.locator("#builder-karadeniz").isHidden()) &&
         (await page.locator("#builder-catalog [data-showcase]").count()) > 0);
 
+  // На витрине кнопки возврата нет; на странице Умры она появляется и
+  // возвращает к мозаике направлений.
+  check("на витрине кнопки «Все туры» нет",
+        await page.locator("#builder-catalog-back").isHidden());
+  const umraDot = page.locator('#builder-catalog [data-showcase-goto="1"]').first();
+  if (await umraDot.count()) { await umraDot.click(); await page.waitForTimeout(400); }
+  await page.locator('#builder-catalog [data-dest="Умра"]').first().click({ force: true });
+  await page.waitForTimeout(700);
+  check("на странице Умры есть кнопка «Все туры»",
+        await page.locator("#builder-catalog-back").isVisible());
+  await page.locator("#builder-catalog-back").click();
+  await page.waitForTimeout(400);
+  check("кнопка «Все туры» с Умры возвращает на витрину",
+        (await page.locator("#builder-catalog [data-showcase]").count()) > 0 &&
+        (await page.locator("#builder-catalog-back").isHidden()));
+
   // уведомления
   await page.click("#notice-btn");
   await page.waitForTimeout(400);

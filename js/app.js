@@ -256,6 +256,12 @@
           openKaradenizBuilder();
           return true;                               // карточку Карадениза каталог не рисует
         },
+        // На витрине (мозаика направлений) кнопку возврата прячем, на странице
+        // Умры/Японии/карточке тура — показываем «← Все туры».
+        onView: function (view) {
+          var back = $("builder-catalog-back");
+          if (back) back.hidden = !view || view.kind === "destinations";
+        },
       });
     }
 
@@ -904,6 +910,10 @@
 
   // «← Все туры» — из конструктора Карадениза обратно на витрину.
   $("builder-back").addEventListener("click", showBuilderShowcase);
+  // «← Все туры» из карточки Умры/Японии — возврат к мозаике направлений.
+  $("builder-catalog-back").addEventListener("click", function () {
+    if (builderCatalog) builderCatalog.reset();   // onView сам спрячет кнопку
+  });
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
   // иначе открываем карточку тура в каталоге с программой по дням.
