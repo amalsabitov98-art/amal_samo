@@ -367,10 +367,10 @@ console.log("\nКабинет агентства");
   // по его карточке (Умра/Япония открылись бы своей карточкой тура).
   await page.locator('.tt-tab[data-tab="builder"]').first().click({ force: true });
   await page.waitForTimeout(500);
-  check("«Новый тур» открывается витриной направлений",
-        (await page.locator("#builder-catalog [data-showcase]").count()) > 0 &&
+  check("«Новый тур» открывается витриной туров",
+        (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3 &&
         (await page.locator("#builder-karadeniz").isHidden()));
-  await page.locator('#builder-catalog [data-dest="Турция"]').first().click();
+  await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
   await page.waitForTimeout(700);
   check("клик по Караденизу открывает конструктор mir-jahon",
         await page.locator("#builder-karadeniz").isVisible());
@@ -456,31 +456,29 @@ console.log("\nКабинет агентства");
   await page.waitForTimeout(400);
   if (await page.locator("#builder-karadeniz").isHidden()) {
     // если после брони показана витрина — зайдём в Карадениз, чтобы проверить возврат
-    await page.locator('#builder-catalog [data-dest="Турция"]').first().click();
+    await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
     await page.waitForTimeout(600);
   }
   check("в конструкторе Карадениза есть кнопка «Все туры»",
         await page.locator("#builder-back").isVisible());
   await page.locator("#builder-back").click();
   await page.waitForTimeout(400);
-  check("«Все туры» возвращает на витрину направлений",
+  check("«Все туры» возвращает на витрину туров",
         (await page.locator("#builder-karadeniz").isHidden()) &&
-        (await page.locator("#builder-catalog [data-showcase]").count()) > 0);
+        (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3);
 
   // На витрине кнопки возврата нет; на странице Умры она появляется и
-  // возвращает к мозаике направлений.
+  // возвращает на витрину туров.
   check("на витрине кнопки «Все туры» нет",
         await page.locator("#builder-catalog-back").isHidden());
-  const umraDot = page.locator('#builder-catalog [data-showcase-goto="1"]').first();
-  if (await umraDot.count()) { await umraDot.click(); await page.waitForTimeout(400); }
-  await page.locator('#builder-catalog [data-dest="Умра"]').first().click({ force: true });
+  await page.locator('#builder-showcase .tt-tourcard[data-product="Умра"]').first().click({ force: true });
   await page.waitForTimeout(700);
   check("на странице Умры есть кнопка «Все туры»",
         await page.locator("#builder-catalog-back").isVisible());
   await page.locator("#builder-catalog-back").click();
   await page.waitForTimeout(400);
   check("кнопка «Все туры» с Умры возвращает на витрину",
-        (await page.locator("#builder-catalog [data-showcase]").count()) > 0 &&
+        (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3 &&
         (await page.locator("#builder-catalog-back").isHidden()));
 
   // уведомления

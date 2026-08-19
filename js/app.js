@@ -580,21 +580,92 @@
    * выдуманных пассажиров, рейсов и сумм здесь быть не должно — агент
    * называет клиенту то, что видит.
    */
-  // Витрина «Новый тур»: показываем мозаику направлений (каталог), прячем
-  // конструктор Карадениза. С неё агент кликает карточку и попадает в бронь.
-  function showBuilderShowcase() {
-    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = true;
-    if ($("builder-catalog")) $("builder-catalog").hidden = false;
-    if (builderCatalog) builderCatalog.reset();
+  // Продукты витрины «Новый тур». Три карточки в фирменном стиле; клик ведёт
+  // в бронирование. Карадениз — свой конструктор; Умра/Япония — их каталог.
+  var BUILDER_PRODUCTS = [
+    {
+      key: "karadeniz", title: "Загадочный Карадениз",
+      route: "Батуми · Ризе · Трабзон", days: "8 дней",
+      image: "img/hero-rize-batumi.webp", kicker: "Авторский тур · сезон 2026",
+      price: function () { return builderMinPrice(function (d) {
+        return (d.tour_code || "KARADENIZ") === "KARADENIZ"; }); },
+    },
+    {
+      key: "Умра", title: "Путь к святыням",
+      route: "Мекка · Медина · Джидда", days: "9 программ · 10/13 дней",
+      image: "img/umrah-showcase.webp", kicker: "Умра · 2026",
+      price: function () { return builderMinPrice(function (d) {
+        return /^UMRA_/.test(d.tour_code || ""); }); },
+    },
+    {
+      key: "Япония", title: "Япония",
+      route: "Токио · Киото · Нара · Хаконэ", days: "4 программы · март—ноябрь",
+      image: "img/japan-programs-bg.webp", kicker: "Авторские программы · 2026",
+      price: function () { return null; },
+    },
+  ];
+
+  // Минимальная взрослая цена по продукту из загруженных заездов.
+  function builderMinPrice(pred) {
+    var m = null;
+    state.departures.forEach(function (d) {
+      if (!pred(d)) return;
+      (d.prices || []).forEach(function (p) {
+        if (p.kind === "placement" && (m == null || p.price < m)) m = p.price;
+      });
+    });
+    return m;
   }
 
-  // Клик по Караденизу в витрине → привычный конструктор mir-jahon вместо
-  // общей карточки тура (onTour это ловит). Прячем каталог, показываем билдер.
+  function renderBuilderShowcase() {
+    var host = $("builder-showcase");
+    if (!host) return;
+    host.innerHTML =
+      '<div class="tt-workspace-lead">' +
+        '<span class="tt-eyebrow">Каталог направлений</span>' +
+        "<h2>Выберите тур</h2>" +
+      "</div>" +
+      '<div class="tt-tourgrid">' + BUILDER_PRODUCTS.map(function (p) {
+        var price = p.price();
+        var meta = p.days + (price != null ? " · от " + money(price) : "");
+        return '<article class="tt-tourcard" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
+          '<div class="tt-tourcard-photo"><img src="' + esc(p.image) + '" alt="' +
+            esc(p.title) + '" loading="lazy" />' +
+            '<span class="tt-tourcard-kicker">' + esc(p.kicker) + "</span></div>" +
+          '<div class="tt-tourcard-body">' +
+            "<h3>" + esc(p.title) + "</h3>" +
+            '<p class="tt-tourcard-route">' + esc(p.route) + "</p>" +
+            '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
+            '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+          "</div>" +
+        "</article>";
+      }).join("") + "</div>";
+  }
+
+  // Переключение между тремя видами экрана «Новый тур».
+  function showBuilderView(which) {
+    if ($("builder-showcase")) $("builder-showcase").hidden = which !== "showcase";
+    if ($("builder-catalog")) $("builder-catalog").hidden = which !== "catalog";
+    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = which !== "karadeniz";
+    if ($("builder-catalog-back")) $("builder-catalog-back").hidden = which !== "catalog";
+  }
+
+  function showBuilderShowcase() {
+    renderBuilderShowcase();
+    showBuilderView("showcase");
+  }
+
+  // Клик по Караденизу → привычный конструктор mir-jahon.
   function openKaradenizBuilder() {
     state.builder = { tour: "KARADENIZ", code: null, counts: {} };
-    if ($("builder-catalog")) $("builder-catalog").hidden = true;
-    if ($("builder-karadeniz")) $("builder-karadeniz").hidden = false;
+    showBuilderView("karadeniz");
     renderBuilder();
+  }
+
+  // Клик по Умре/Японии → их каталог (программы/туры → карточка → бронь).
+  function openBuilderDestination(name) {
+    showBuilderView("catalog");
+    if (builderCatalog) builderCatalog.openDestination(name);
   }
 
   // Конструктор «Новый тур» заточен под Карадениз (маршрут, рейсы, отели,
@@ -908,12 +979,30 @@
     renderBuilder();
   });
 
+  // Клик по карточке витрины «Новый тур» → её продукт. Делегируем на стабильном
+  // контейнере, потому что витрина перерисовывается через innerHTML.
+  function openBuilderProduct(key) {
+    var p = BUILDER_PRODUCTS.filter(function (x) { return x.key === key; })[0];
+    if (!p) return;
+    if (p.key === "karadeniz") openKaradenizBuilder();
+    else openBuilderDestination(p.key);   // ключ = имя направления (Умра/Япония)
+  }
+  $("builder-showcase").addEventListener("click", function (e) {
+    var card = e.target.closest("[data-product]");
+    if (card) openBuilderProduct(card.dataset.product);
+  });
+  $("builder-showcase").addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest("[data-product]");
+    if (!card) return;
+    e.preventDefault();
+    openBuilderProduct(card.dataset.product);
+  });
+
   // «← Все туры» — из конструктора Карадениза обратно на витрину.
   $("builder-back").addEventListener("click", showBuilderShowcase);
-  // «← Все туры» из карточки Умры/Японии — возврат к мозаике направлений.
-  $("builder-catalog-back").addEventListener("click", function () {
-    if (builderCatalog) builderCatalog.reset();   // onView сам спрячет кнопку
-  });
+  // «← Все туры» из карточки Умры/Японии — тоже на витрину туров.
+  $("builder-catalog-back").addEventListener("click", showBuilderShowcase);
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
   // иначе открываем карточку тура в каталоге с программой по дням.

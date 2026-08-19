@@ -268,13 +268,13 @@
 
     <main class="tt-container tt-app-container">
       <section id="panel-builder">
-        <!-- «Новый тур» — витрина туров (мозаика: Карадениз / Путь к святыням /
-             Япония). Клик по карточке ведёт в бронирование: Карадениз — в свой
-             конструктор mir-jahon (#builder-karadeniz), Умра/Япония — в карточку
-             тура прямо здесь. Всё рисует встроенный каталог (builderCatalog);
-             Карадениз он отдаёт хосту через onTour. -->
+        <!-- «Новый тур» — витрина туров сеткой карточек в фирменном стиле
+             (рисуется в js/app.js → renderBuilderShowcase). Клик по карточке
+             ведёт в бронирование: Карадениз — свой конструктор mir-jahon,
+             Умра/Япония — их каталог (builderCatalog) прямо здесь. -->
+        <div id="builder-showcase"></div>
         <button class="tt-mj-back" id="builder-catalog-back" type="button" hidden>← Все туры</button>
-        <div id="builder-catalog"></div>
+        <div id="builder-catalog" hidden></div>
         <div class="tt-mj" id="builder-karadeniz" hidden>
           <button class="tt-mj-back" id="builder-back" type="button">← Все туры</button>
           <div class="tt-mj-titlebar">

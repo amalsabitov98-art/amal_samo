@@ -1813,6 +1813,9 @@
       openTour: function (code) {
         return go({ kind: "tour", code: code, variant: null }, false);
       },
+      openDestination: function (name) {
+        return go({ kind: "tours", destination: name }, false);
+      },
     };
   }
 

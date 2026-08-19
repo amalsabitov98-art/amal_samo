@@ -5547,6 +5547,87 @@ select { font-family: inherit; }
    КОНСТРУКТОР «Новый тур» — раскладка, привычная агентствам
    (референс mir-jahon / TURON TOURISM), но в нашей теме.
    ============================================================ */
+/* ===== Витрина «Новый тур» — карточная сетка в фирменном стиле =====
+   Раскладка как у референса (asialuxe): фото сверху с меткой, ниже — название,
+   маршрут, срок/цена и «Открыть →». Палитра наша, не синяя: лесной зелёный,
+   латунь, кремовые карточки. Клик по карточке ведёт в бронирование. */
+/* Конструктор — full-bleed (.is-builder убирает padding контейнера), поэтому
+   витрине задаём свои поля, иначе крайние карточки упираются в край экрана. */
+#builder-showcase { padding: 4px clamp(20px, 3vw, 42px) 48px; }
+.tt-workspace-lead { max-width: 1180px; margin: 0 auto 4px; }
+.tt-workspace-lead .tt-eyebrow {
+  display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--tt-accent-dark);
+}
+.tt-workspace-lead h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.7rem, 3vw, 2.4rem); color: var(--tt-forest);
+  margin: 4px 0 0; line-height: 1.05;
+}
+
+.tt-tourgrid {
+  max-width: 1180px; margin: 18px auto 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.tt-tourcard {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--tt-surface); border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg); box-shadow: var(--tt-shadow);
+  cursor: pointer; text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.tt-tourcard:hover,
+.tt-tourcard:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--tt-shadow-hover);
+  border-color: var(--tt-forest);
+  outline: none;
+}
+.tt-tourcard-photo {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden;
+  background: var(--tt-surface-2);
+}
+.tt-tourcard-photo img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.4s ease;
+}
+.tt-tourcard:hover .tt-tourcard-photo img { transform: scale(1.05); }
+.tt-tourcard-photo::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(8, 36, 31, 0) 45%, rgba(8, 36, 31, 0.55) 100%);
+}
+.tt-tourcard-kicker {
+  position: absolute; left: 12px; top: 12px; z-index: 1;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--tt-forest);
+  background: linear-gradient(150deg, var(--tt-gold-400, #cbab52), var(--tt-accent-dark, #957823));
+  padding: 5px 11px; border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(8, 36, 31, 0.25);
+}
+.tt-tourcard-body {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 16px 18px 18px;
+}
+.tt-tourcard-body h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.45rem; line-height: 1.1; color: var(--tt-forest); margin: 0;
+}
+.tt-tourcard-route { color: var(--tt-text-muted); font-size: 0.86rem; font-weight: 600; margin: 0; }
+.tt-tourcard-meta { color: var(--tt-text); font-size: 0.84rem; margin: 0; }
+.tt-tourcard-open {
+  margin-top: 8px; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; font-weight: 700; color: var(--tt-accent-dark);
+}
+.tt-tourcard-open b { transition: transform 0.18s ease; }
+.tt-tourcard:hover .tt-tourcard-open b { transform: translateX(3px); }
+
+@media (max-width: 900px) {
+  .tt-tourgrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .tt-tourgrid { grid-template-columns: 1fr; }
+}
+
 .tt-mj { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 
 .tt-mj-titlebar {
