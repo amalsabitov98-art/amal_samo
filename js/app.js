@@ -611,8 +611,11 @@
       key: "Умра", title: "Путь к святыням",
       route: "Мекка · Медина · Джидда", days: "9 программ · 10/13 дней",
       image: "img/umrah-showcase.webp", kicker: "Умра · 2026",
-      price: function () { return builderMinPrice(function (d) {
-        return /^UMRA_/.test(d.tour_code || ""); }); },
+      price: function () {
+        var fromTours = umraMinFromPrice();
+        return fromTours != null ? fromTours : builderMinPrice(function (d) {
+          return /^UMRA_/.test(d.tour_code || ""); });
+      },
     },
     {
       key: "Япония", title: "Япония",
@@ -630,6 +633,18 @@
       (d.prices || []).forEach(function (p) {
         if (p.kind === "placement" && (m == null || p.price < m)) m = p.price;
       });
+    });
+    return m;
+  }
+
+  // Минимальная цена по всем программам Умры из tours.from_price — известна
+  // даже если ни у одной программы ещё нет будущего заезда (в отличие от
+  // builderMinPrice, который смотрит только на заезды).
+  function umraMinFromPrice() {
+    var m = null;
+    state.tours.forEach(function (t) {
+      if (t.destination !== "Умра" || t.from_price == null) return;
+      if (m == null || t.from_price < m) m = t.from_price;
     });
     return m;
   }
@@ -710,7 +725,11 @@
       "</div>" +
       (programs.length
         ? '<div class="tt-tourgrid">' + programs.map(function (t) {
+            // Сначала цена заезда (может быть свежее from_price при сезонной
+            // разбивке), иначе from_price — минимум прайса программы, даже
+            // если у неё пока нет ни одного будущего заезда.
             var price = builderMinPrice(function (d) { return (d.tour_code || "") === t.code; });
+            if (price == null) price = t.from_price;
             var title = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
             var kicker = t.nights ? (t.nights + 1) + " дней" : "Умра";
             var meta = (t.nights ? t.nights + " ночей" : "") +

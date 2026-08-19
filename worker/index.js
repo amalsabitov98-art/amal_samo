@@ -1075,8 +1075,10 @@ async function route(request, env, ctx) {
         // operator_commission агентству не отдаём — это доля оператора.
         // nights нужен сетке программ Умры (фильтр «10/13 дней» в «Новый тур»
         // считает по нему длительность) — раньше поле не выбиралось совсем.
+        // from_price — минимальная цена программы, известная даже без единого
+        // будущего заезда (см. db/migrations/013-tours-from-price.sql).
         const tours = await env.DB.prepare(
-          `SELECT code, name, destination, agency_commission, is_bookable, note, nights
+          `SELECT code, name, destination, agency_commission, is_bookable, note, nights, from_price
              FROM tours ORDER BY destination, name`
         ).all();
         return json(tours.results);

@@ -384,6 +384,12 @@ for _u in UMRA_PROGRAMS:
             + str(_u["nights"] + 1) + " дней / " + str(_u["nights"]) + " ночей). "
             + _u["route"] + ". " + "; ".join(_u["hotels"]) + "."
         ),
+        # Минимальная цена программы (реальный прайс из UMRA_PROGRAMS) —
+        # живёт на туре, а не только на заезде: у SWISSOTEL-10/ANJUM-10/
+        # JUMEIRAH-10 в данных всего одна прошедшая дата, будущих заездов
+        # пока нет, и без этого поля карточка в «Новом туре» была бы без
+        # цены, хотя прайс оператора по программе уже известен.
+        "from_price": min(_u["prices"].values()),
     }
     TOUR_CONTENT[_u["code"]] = {
         "included": [_u["flight"]] + _u["hotels"] + _u["service"],
@@ -436,6 +442,7 @@ def write_demo_seed(demo_departures):
             "note": note,
             "description": det.get("description"),
             "nights": det.get("nights"),
+            "from_price": det.get("from_price"),
             "included": list(blocks.get("included", [])),
             "excluded": list(blocks.get("excluded", [])),
             "info": [{"text": t, "url": u} for t, u in blocks.get("info", [])],
@@ -529,9 +536,9 @@ def main():
         det = TOUR_DETAILS.get(code, {})
         out.append(
             "INSERT INTO tours (code, name, destination, agency_commission, "
-            "operator_commission, is_bookable, note, description, nights) VALUES ("
+            "operator_commission, is_bookable, note, description, nights, from_price) VALUES ("
             f"{q(code)}, {q(name)}, {q(dest)}, {agc}, {opc}, {bookable}, {q(note)}, "
-            f"{q(det.get('description'))}, {q(det.get('nights'))});"
+            f"{q(det.get('description'))}, {q(det.get('nights'))}, {q(det.get('from_price'))});"
         )
     out.append("")
 
