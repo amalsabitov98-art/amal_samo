@@ -46,6 +46,8 @@ const freeBefore = dep.seats_free;
 r = await call('/api/tours', { token: umida });
 check('туров 5', r.data.length === 5);
 check('операторская комиссия не отдаётся', !('operator_commission' in r.data[0]), JSON.stringify(r.data[0]));
+check('nights отдаётся — на нём фильтр 10/13 дней в «Новом туре»',
+  r.data.every(t => 'nights' in t), JSON.stringify(r.data[0]));
 
 console.log('\n--- бронирование ---');
 r = await call('/api/bookings', { method:'POST', token: umida, body:{
