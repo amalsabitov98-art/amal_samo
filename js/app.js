@@ -573,11 +573,13 @@
         return d;
       });
       renderDepartures();
-      // «Новый тур» открывается витриной. Если агент уже был в конструкторе
-      // Карадениза (перезагрузка данных), не выкидываем его на витрину.
-      if (state.builder.tour === "KARADENIZ" && $("builder-karadeniz") &&
-          !$("builder-karadeniz").hidden) {
+      // «Новый тур» открывается витриной. Если агент уже в конструкторе
+      // (Карадениз или программа Умры) — при перезагрузке данных не выкидываем
+      // его оттуда, а перерисовываем; если в сетке программ Умры — её.
+      if ($("builder-karadeniz") && !$("builder-karadeniz").hidden) {
         renderBuilder();
+      } else if ($("builder-umra") && !$("builder-umra").hidden) {
+        renderUmraShowcase();
       } else {
         showBuilderShowcase();
       }
@@ -690,9 +692,14 @@
     showBuilderView("showcase");
   }
 
+  // Куда возвращает «← Все туры» из конструктора mir-jahon: с Карадениза — на
+  // верхнюю витрину, с программы Умры — на сетку из 9 программ.
+  var builderReturn = "showcase";
+
   // Клик по Караденизу → привычный конструктор mir-jahon.
   function openKaradenizBuilder() {
     state.builder = { tour: "KARADENIZ", code: null, counts: {} };
+    builderReturn = "showcase";
     showBuilderView("karadeniz");
     renderBuilder();
   }
@@ -757,10 +764,14 @@
     if (toursReady) toursReady.then(renderUmraShowcase);
   }
 
-  // Клик по карточке программы Умры → её каталог (карточка → калькулятор → бронь).
+  // Клик по карточке программы Умры → тот же конструктор mir-jahon, что и у
+  // Карадениза, но на выбранной программе. «← Все туры» из него вернёт на сетку
+  // программ Умры (builderReturn), а не на верхнюю витрину.
   function openUmraProgram(code) {
-    showBuilderView("catalog");
-    if (builderCatalog) builderCatalog.openTour(code);
+    state.builder = { tour: code, code: null, counts: {} };
+    builderReturn = "umra";
+    showBuilderView("karadeniz");
+    renderBuilder();
   }
 
   // Клик по Японии (пока не разбита на программы) → её каталог напрямую.
@@ -769,15 +780,47 @@
     if (builderCatalog) builderCatalog.openDestination(name);
   }
 
-  // Конструктор «Новый тур» заточен под Карадениз (маршрут, рейсы, отели,
-  // фото — всё его). Поэтому здесь берём ТОЛЬКО заезды Карадениза: после того
-  // как в базу добавили Умру, /api/departures отдаёт и её заезды, и без этого
-  // фильтра в конструктор попадал заезд Умры внутри карадениз-оформления.
-  // Умра бронируется на вкладке «Туры». Общий state.departures не трогаем —
-  // из него бронь каталога берёт заезды и Умры тоже.
+  // Конструктор работает по выбранному туру (state.builder.tour): Карадениз или
+  // одна из программ Умры. Заезды берём только этого тура — иначе в период
+  // попали бы чужие даты.
   function builderDepartures() {
+    var code = state.builder.tour || "KARADENIZ";
     return state.departures.filter(function (d) {
-      return (d.tour_code || "KARADENIZ") === "KARADENIZ";
+      return (d.tour_code || "KARADENIZ") === code;
+    });
+  }
+
+  // Модель размещения: Карадениз — один счётчик «Взрослый», тип номера выводится
+  // из числа людей (в прайсе есть SNG). Умра — выбор типа номера (QUAD/TRPL/DBL),
+  // отдельный счётчик на каждый: SNG в прайсе нет. Ветвимся по наличию SNG, как
+  // и калькулятор в карточке тура, чтобы поведение не разошлось.
+  function usesOccupancy(d) {
+    return (d.prices || []).some(function (p) {
+      return p.kind === "placement" && p.code === "SNG";
+    });
+  }
+  function builderPlacements(d) {
+    return (d.prices || []).filter(function (p) { return p.kind === "placement"; })
+      .slice().sort(function (a, b) { return a.price - b.price; });
+  }
+
+  // Отели программы Умры разбираем из контента карточки (catalogTour.included):
+  // строки-отели несут число ночей, а рейс и услуги — нет. Отели у Умры свои
+  // на каждую программу, поэтому в provisional их не держим (там только рейсы).
+  function umraHotelsFromContent(content) {
+    var inc = (content && content.included) || [];
+    return inc.filter(function (line) {
+      return /\d+\s*ноч/.test(line) && line.indexOf("·") !== -1 &&
+        line.indexOf("Centrum Air") === -1;
+    }).map(function (line) {
+      var parts = line.split("·").map(function (s) { return s.trim(); });
+      var m = (parts[parts.length - 1] || "").match(/(\d+)\s*ноч/);
+      return {
+        city: parts[0] || "",
+        name: parts[1] || "",
+        detail: parts.slice(2, parts.length - 1).join(" · "),
+        nights: m ? Number(m[1]) : null,
+      };
     });
   }
 
@@ -834,7 +877,15 @@
 
   function builderTotals(d) {
     var counts = state.builder.counts, total = 0, people = 0, seats = 0;
-    // Взрослые — одной группой, размещение и цена по их числу.
+    if (!usesOccupancy(d)) {
+      // Умра — по типам номера: каждый паломник занимает место.
+      builderPlacements(d).forEach(function (p) {
+        var n = counts[p.code] || 0;
+        total += n * p.price; people += n; seats += n;
+      });
+      return { total: total, people: people, seats: seats };
+    }
+    // Карадениз — взрослые одной группой, размещение и цена по их числу.
     var adultN = counts.ADULT || 0;
     if (adultN > 0) {
       total += adultN * adultPlacement(d, adultN).price;
@@ -853,18 +904,52 @@
   // Один ряд таблицы «Авиабилеты» — раскладка как в привычном агентствам
   // кабинете: перевозчик, багаж, отправление, прибытие, длительность.
   function flightRow(f) {
+    // У Умры номера рейса и длительности нет — показываем прочерк, не выдумываем.
     return "<tr>" +
       '<td class="tt-mj-fl-check"><span class="tt-mj-tick" aria-hidden="true">✓</span></td>' +
       '<td class="tt-mj-fl-carrier">' +
         '<img class="tt-mj-airline-logo" src="img/centrum-air.svg" alt="' +
-          esc(f.carrier) + '" /><small>' + esc(f.code) + "</small></td>" +
-      '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage) + "</td>" +
+          esc(f.carrier) + '" />' + (f.code ? "<small>" + esc(f.code) + "</small>" : "") + "</td>" +
+      '<td class="tt-mj-fl-bag"><span aria-hidden="true">🧳</span> ' + esc(f.baggage || "—") + "</td>" +
       '<td class="tt-mj-fl-time"><strong>' + esc(f.from_city) + "</strong><small>" +
         (f.date ? formatDate(f.date) + " · " : "") + esc(f.dep) + "</small></td>" +
       '<td class="tt-mj-fl-time"><strong>' + esc(f.to_city) + "</strong><small>" +
         (f.date ? formatDate(f.date) + " · " : "") + esc(f.arr) + "</small></td>" +
-      '<td class="tt-mj-fl-dur"><span aria-hidden="true">🕐</span> ' + esc(f.duration) + "</td>" +
+      '<td class="tt-mj-fl-dur"><span aria-hidden="true">🕐</span> ' + esc(f.duration || "—") + "</td>" +
     "</tr>";
+  }
+
+  // Поле «Отель» конструктора: для Карадениза отели из provisional (со звёздами
+  // и ссылкой на booking), для Умры — разобранные из контента программы.
+  function renderBuilderHotels(d) {
+    var field = $("builder-hotelfield");
+    if (!field) return;
+    if (usesOccupancy(d)) {
+      var hotels = TuronProvisional.hotelsFor(d);
+      field.innerHTML = hotels.length
+        ? hotels.map(function (h) {
+            var name = esc(h.name) + ' <span class="tt-mj-stars">' + "★".repeat(h.stars) + "</span>";
+            var title = h.url
+              ? '<a href="' + esc(h.url) + '" target="_blank" rel="noopener">' + name + "</a>"
+              : name;
+            return "<div><strong>" + title + "</strong><small>" + esc(h.city) +
+              " · " + h.nights + " ноч. · " + esc(h.board) + "</small></div>";
+          }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
+        : "<div><small>Отель уточняется</small></div>";
+      return;
+    }
+    // Умра: контент карточки уже кэширует fillBuilderContent — рисуем из кэша,
+    // а если ещё не пришёл, покажем заглушку (fillBuilderContent перерисует).
+    var c = builderContentCache[d.tour_code];
+    if (!c) { field.innerHTML = "<div><small>Загрузка отелей…</small></div>"; return; }
+    var uh = umraHotelsFromContent(c);
+    field.innerHTML = uh.length
+      ? uh.map(function (h) {
+          return "<div><strong>" + esc(h.name) + "</strong><small>" + esc(h.city) +
+            (h.nights ? " · " + h.nights + " ноч." : "") +
+            (h.detail ? " · " + esc(h.detail) : "") + "</small></div>";
+        }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
+      : "<div><small>Отель уточняется</small></div>";
   }
 
   // Контент карточки (включено / доп. расходы / информация) грузим один раз
@@ -891,6 +976,10 @@
             esc(text) + "</a>"
           : esc(text)) + "</li>";
       });
+      // Отели Умры живут в этом же контенте — как только он пришёл, дорисуем
+      // поле «Отель» текущего заезда (если конструктор всё ещё на этом туре).
+      var cur = builderDeparture();
+      if (cur && cur.tour_code === code) renderBuilderHotels(cur);
     }
     if (builderContentCache[code]) { render(builderContentCache[code]); return; }
     TuronApi.catalogTour(code)
@@ -921,14 +1010,27 @@
     var over = t.seats > d.seats_free;
     var nights = d.nights || 0;
 
+    var occ = usesOccupancy(d);
+
     // ----------------------------------------------- заголовок + маршрут
-    $("builder-title").innerHTML = esc(d.tour_name || "Заезд") +
-      ' <span class="tt-mj-year">Турция · 2026</span>';
-    $("builder-route").innerHTML =
-      "<span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span>";
+    // У Умры имя тура «Умра · TAJ-13» — префикс убираем, он и так в бейдже года.
+    var titleName = occ ? (d.tour_name || "Заезд")
+      : String(d.tour_name || "Программа").replace(/^Умра\s*·\s*/, "");
+    $("builder-title").innerHTML = esc(titleName) +
+      ' <span class="tt-mj-year">' + (occ ? "Турция · 2026" : "Умра · 2026") + "</span>";
+    if (occ) {
+      $("builder-route").innerHTML =
+        "<span>Батуми</span><i>→</i><span>Ризе</span><i>→</i><span>Трабзон</span>";
+    } else {
+      var rl = TuronProvisional.umraRouteLabel(d.transport) || "";
+      $("builder-route").innerHTML = rl.split("→").map(function (c) {
+        return "<span>" + esc(c.trim()) + "</span>";
+      }).join('<i>→</i>');
+    }
 
     // ---------------------------------------------- селектор «Период»
-    // Только заезды Карадениза — Умру сюда не подмешиваем (см. builderDepartures).
+    // Только заезды текущего тура (см. builderDepartures) — чужие даты сюда
+    // не подмешиваем.
     $("builder-departure").innerHTML = builderDepartures().map(function (x) {
       return '<option value="' + esc(x.code) + '"' +
         (x.code === d.code ? " selected" : "") +
@@ -940,19 +1042,7 @@
     }).join("");
 
     // ------------------------------------------- поле «Отель» (пакет)
-    var hotels = TuronProvisional.hotelsFor(d);
-    $("builder-hotelfield").innerHTML = hotels.length
-      ? hotels.map(function (h) {
-          var name = esc(h.name) + ' <span class="tt-mj-stars">' +
-            "★".repeat(h.stars) + "</span>";
-          var title = h.url
-            ? '<a href="' + esc(h.url) + '" target="_blank" rel="noopener">' +
-              name + "</a>"
-            : name;
-          return "<div><strong>" + title + "</strong><small>" + esc(h.city) +
-            " · " + h.nights + " ноч. · " + esc(h.board) + "</small></div>";
-        }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')
-      : "<div><small>Отель уточняется</small></div>";
+    renderBuilderHotels(d);
 
     // -------------------------------------------------- авиабилеты
     var fl = TuronProvisional.flightsFor(d);
@@ -962,10 +1052,8 @@
           "<th>Отправление</th><th>Прибытие</th><th>Длительность</th>" +
         "</tr></thead><tbody>" + flightRow(fl.out) + flightRow(fl.back) +
         "</tbody></table>"
-      : '<p class="tt-mj-empty">Рейсы на этот заезд ещё не опубликованы: ' +
-        'подтверждённая полётная программа — ' + TuronProvisional.SCHEDULE.weekday_label +
-        " по " + TuronProvisional.SCHEDULE.season_end_label +
-        ". Уточните рейсы у оператора.</p>";
+      : '<p class="tt-mj-empty">Рейсы на этот заезд ещё не опубликованы. ' +
+        "Уточните рейсы у оператора.</p>";
 
     // -------------------------------------- шапка карточки туристов
     $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
@@ -990,16 +1078,19 @@
         "</div>" +
       "</div>";
     }
-    // Одна строка «Взрослый»: размещение и цена — по числу взрослых
-    // (1 → одноместный, 2 → двухместный, 3+ → трёхместный). Подпись и цена
-    // меняются на лету. При 0 показываем размещение для одного.
+    // Карадениз — одна строка «Взрослый»: размещение и цена по числу взрослых
+    // (1 → одноместный, 2 → двухместный, 3+ → трёхместный). Умра — по строке на
+    // тип номера (QUAD/TRPL/DBL): размещение там выбор, а не следствие числа.
     var bAdultN = state.builder.counts.ADULT || 0;
     var bAdultPl = adultPlacement(d, bAdultN || 1);
-    $("builder-travellers").innerHTML =
-      paxRow("ADULT", "Взрослый", bAdultPl.label || "", bAdultPl.price, bAdultN) +
-      builderTariffs(d).map(function (r) {
-        return paxRow(r.code, r.title, r.note, r.price, state.builder.counts[r.code] || 0);
-      }).join("");
+    $("builder-travellers").innerHTML = occ
+      ? paxRow("ADULT", "Взрослый", bAdultPl.label || "", bAdultPl.price, bAdultN) +
+        builderTariffs(d).map(function (r) {
+          return paxRow(r.code, r.title, r.note, r.price, state.builder.counts[r.code] || 0);
+        }).join("")
+      : builderPlacements(d).map(function (p) {
+          return paxRow(p.code, "Паломник", p.label, p.price, state.builder.counts[p.code] || 0);
+        }).join("");
 
     // ------------------------------------------------- правила оплаты
     var pol = TuronApi.paymentPolicy(d.date_start);
@@ -1023,30 +1114,44 @@
         '<label class="is-on"><input type="radio" name="tk" checked disabled /> С билетом</label>' +
         '<label class="is-off"><input type="radio" name="tk" disabled /> Без билетов</label>' +
       "</div>" +
-      "<small>Авиаперелёт Ташкент — Трабзон / Батуми включён в цену.</small>";
+      "<small>" + (occ
+        ? "Авиаперелёт Ташкент — Трабзон / Батуми включён в цену."
+        : "Авиаперелёт Ташкент — Джидда / Медина включён в цену.") + "</small>";
 
     // ----------------------------------------- питание / вид / номер
     var placements = d.prices.filter(function (p) { return p.kind === "placement"; })
       .map(function (p) { return p.label; }).join(" · ");
-    $("builder-room").innerHTML =
-      '<div class="tt-mj-roomrow"><span>Виды еды</span><b>BB · завтраки</b></div>' +
-      '<div class="tt-mj-roomrow"><span>Вид из комнаты</span><b>без гарантии вида</b></div>' +
-      '<div class="tt-mj-roomrow"><span>Типы номеров</span><b>' + esc(placements) + "</b></div>";
+    $("builder-room").innerHTML = occ
+      ? '<div class="tt-mj-roomrow"><span>Виды еды</span><b>BB · завтраки</b></div>' +
+        '<div class="tt-mj-roomrow"><span>Вид из комнаты</span><b>без гарантии вида</b></div>' +
+        '<div class="tt-mj-roomrow"><span>Типы номеров</span><b>' + esc(placements) + "</b></div>"
+      : '<div class="tt-mj-roomrow"><span>Питание</span><b>по программе</b></div>' +
+        '<div class="tt-mj-roomrow"><span>Типы номеров</span><b>' + esc(placements) + "</b></div>";
 
     // --------------------------------------------------- «Общий»
     var commission = (d.agency_commission || 0) * t.seats;
     var lines = "";
-    if (bAdultN > 0) {
-      lines += "<div><span>Взрослый · " + esc(bAdultPl.label || "") + " × " + bAdultN +
-        "</span><b>" + money(bAdultN * bAdultPl.price) + "</b></div>";
+    if (occ) {
+      if (bAdultN > 0) {
+        lines += "<div><span>Взрослый · " + esc(bAdultPl.label || "") + " × " + bAdultN +
+          "</span><b>" + money(bAdultN * bAdultPl.price) + "</b></div>";
+      }
+      lines += builderTariffs(d).filter(function (r) {
+        return (state.builder.counts[r.code] || 0) > 0;
+      }).map(function (r) {
+        var n = state.builder.counts[r.code];
+        return "<div><span>" + esc(r.title) + " · " + esc(r.note) + " × " + n +
+          "</span><b>" + money(n * r.price) + "</b></div>";
+      }).join("");
+    } else {
+      lines += builderPlacements(d).filter(function (p) {
+        return (state.builder.counts[p.code] || 0) > 0;
+      }).map(function (p) {
+        var n = state.builder.counts[p.code];
+        return "<div><span>Паломник · " + esc(p.label) + " × " + n +
+          "</span><b>" + money(n * p.price) + "</b></div>";
+      }).join("");
     }
-    lines += builderTariffs(d).filter(function (r) {
-      return (state.builder.counts[r.code] || 0) > 0;
-    }).map(function (r) {
-      var n = state.builder.counts[r.code];
-      return "<div><span>" + esc(r.title) + " · " + esc(r.note) + " × " + n +
-        "</span><b>" + money(n * r.price) + "</b></div>";
-    }).join("");
     $("builder-summary").innerHTML =
       '<div class="tt-mj-total-lines">' + lines + "</div>" +
       '<div class="tt-mj-total-grand"><span>Общий</span><strong>' + money(t.total) +
@@ -1062,21 +1167,38 @@
       cbox.innerHTML = "<span>Комиссия агентства</span><b>" + money(commission) + "</b>";
     }
 
+    // ---------------------------------------------------- фото справа
+    // У Карадениза свой слайдер из 4 фото. Фотографий туров Умры нет —
+    // показываем один узнаваемый кадр (тот же, что на карточках), а слайдер
+    // и его автопрокрутку гасим, чтобы не подсовывать черноморские фото.
+    var mediaEl = $("builder-media");
+    if (mediaEl) {
+      mediaEl.classList.toggle("is-umra", !occ);
+      if (!occ) {
+        stopMediaAuto();
+        $("builder-media-caption").innerHTML =
+          "<small>Мекка и Медина</small><strong>Путь к святыням</strong>";
+      } else {
+        $("builder-media-caption").innerHTML = "<small>Ризе</small><strong>Чайные долины</strong>";
+        startMediaAuto();
+      }
+    }
+
     // --------------------------------------------- кнопки и контент
     var prog = TuronProvisional.programFor(d);
     var progBtn = $("builder-program");
     progBtn.textContent = prog
       ? "⤓ Скачать программу · " + prog.title
-      : "Программа тура · " + (nights || 7) + " ночей";
+      : "Программа тура · " + (nights + 1) + " дней";
     progBtn.dataset.url = prog ? prog.url : "";
     $("builder-book").disabled = t.people === 0 || over;
     fillBuilderContent(d.tour_code || "KARADENIZ");
   }
 
-  // смена заезда и счётчиков
+  // смена заезда и счётчиков — тур конструктора сохраняем (Карадениз/Умра).
   $("panel-builder").addEventListener("change", function (e) {
     if (e.target.id !== "builder-departure") return;
-    state.builder = { tour: "KARADENIZ", code: e.target.value, counts: {} };
+    state.builder = { tour: state.builder.tour || "KARADENIZ", code: e.target.value, counts: {} };
     renderBuilder();
   });
 
@@ -1117,19 +1239,20 @@
     openUmraProgram(card.dataset.program);
   });
 
-  // «← Все туры» — из конструктора Карадениза обратно на витрину.
-  $("builder-back").addEventListener("click", showBuilderShowcase);
-  // «← Все туры» из сетки программ Умры/карточки тура — тоже на витрину туров.
+  // «← Все туры» из конструктора: с Карадениза — на верхнюю витрину, с
+  // программы Умры — обратно на сетку из 9 программ (builderReturn).
+  $("builder-back").addEventListener("click", function () {
+    if (builderReturn === "umra") openUmraShowcase(); else showBuilderShowcase();
+  });
+  // «← Все туры» из сетки программ Умры/карточки тура — на витрину туров.
   $("builder-catalog-back").addEventListener("click", showBuilderShowcase);
 
-  // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
-  // иначе открываем карточку тура в каталоге с программой по дням.
+  // Кнопка «Программа тура»: если есть PDF под направление — качаем его.
+  // У Умры PDF пока нет — честно сообщаем, а не уводим на публичный каталог.
   $("builder-program").addEventListener("click", function () {
     var url = $("builder-program").dataset.url;
     if (url) { window.open(url, "_blank", "noopener"); return; }
-    // Резерв без PDF: открываем каталог. Перерисовку делает refreshTab
-    // внутри маршрута — сам по себе switchTab содержимое не строит.
-    goTab("catalog");
+    flash("PDF-программа этого тура появится позже — уточните у оператора.");
   });
 
   $("panel-builder").addEventListener("click", function (e) {
@@ -2408,19 +2531,27 @@
     // раньше кнопка брала первый попавшийся заезд, и бронь не совпадала
     // с тем, что агент только что посчитал.
     var rows = [];
-    // Взрослые — все в одном размещении по их числу (1 → одноместный,
-    // 2 → двухместный, 3+ → трёхместный). Точную раскладку по номерам агент
-    // поправит в форме брони; сервер пересчитает цену по факту.
-    var adultN = state.builder.counts.ADULT || 0;
-    if (adultN > 0) {
-      var pl = adultPlacement(d, adultN);
-      for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+    if (!usesOccupancy(d)) {
+      // Умра — по типу номера: сколько выбрано QUAD/TRPL/DBL, столько строк с
+      // этим размещением. Раскладку по номерам агент поправит в форме брони.
+      builderPlacements(d).forEach(function (p) {
+        var n = state.builder.counts[p.code] || 0;
+        for (var i = 0; i < n; i++) rows.push({ placement: p.code });
+      });
+    } else {
+      // Карадениз — взрослые в одном размещении по их числу (1 → одноместный,
+      // 2 → двухместный, 3+ → трёхместный). Дети — без размещения, их тариф
+      // определит дата рождения. Сервер пересчитает цену по факту.
+      var adultN = state.builder.counts.ADULT || 0;
+      if (adultN > 0) {
+        var pl = adultPlacement(d, adultN);
+        for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+      }
+      builderTariffs(d).forEach(function (r) {
+        var n = state.builder.counts[r.code] || 0;
+        for (var i = 0; i < n; i++) rows.push({});
+      });
     }
-    builderTariffs(d).forEach(function (r) {
-      var n = state.builder.counts[r.code] || 0;
-      // детям размещение не подставляем: их тариф определит дата рождения
-      for (var i = 0; i < n; i++) rows.push({});
-    });
     openBooking(d.code, null, rows.length ? rows : null);
   });
 

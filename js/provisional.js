@@ -96,6 +96,38 @@
   };
 
   /*
+   * РЕЙСЫ УМРЫ (Centrum Air, чартер)
+   * -------------------------------
+   * Время и маршрут — из подтверждённой оператором программы Умры
+   * (UMRA_PROGRAMS в tools/build-seed.py, поле flight). Одни и те же рейсы
+   * на все программы одной длительности: 13-дневные летят через Джидду
+   * (transport JED), 10-дневные — через Медину (transport MED), обратно из
+   * второго города. Багаж 23 кг — та же авиакомпания и та же политика, что
+   * на рейсах Карадениза. Номеров рейсов и длительности оператор для Умры
+   * не дал — эти ячейки показываем прочерком, чтобы не выдумывать.
+   */
+  var UMRA_ROUTES = {
+    JED: { arrival: "JED", departure: "MED",
+           label: "Ташкент → Джидда → Мекка → Медина → Ташкент" },
+    MED: { arrival: "MED", departure: "JED",
+           label: "Ташкент → Медина → Мекка → Джидда → Ташкент" },
+  };
+  var UMRA_LEGS = {
+    "TAS-JED": { code: "", carrier: "Centrum Air", from: "TAS", from_city: "Ташкент",
+      to: "JED", to_city: "Джидда", dep: "06:20", arr: "11:10",
+      duration: "", baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0 },
+    "MED-TAS": { code: "", carrier: "Centrum Air", from: "MED", from_city: "Медина",
+      to: "TAS", to_city: "Ташкент", dep: "17:30", arr: "01:50",
+      duration: "", baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0 },
+    "TAS-MED": { code: "", carrier: "Centrum Air", from: "TAS", from_city: "Ташкент",
+      to: "MED", to_city: "Медина", dep: "11:00", arr: "15:50",
+      duration: "", baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0 },
+    "JED-TAS": { code: "", carrier: "Centrum Air", from: "JED", from_city: "Джидда",
+      to: "TAS", to_city: "Ташкент", dep: "12:40", arr: "21:20",
+      duration: "", baggage: "23 кг", cabin_baggage: "8 кг", day_offset: 0 },
+  };
+
+  /*
    * 2. ОТЕЛИ И НОЧИ
    * ---------------
    * ПОДТВЕРЖДЕНО ВАУЧЕРАМИ ОПЕРАТОРА (Centrum Air / Etihad):
@@ -258,6 +290,19 @@
      * обратно — из аэропорта вылета, а это разные города.
      */
     flightsFor: function (departure) {
+      // Умра — свои рейсы (Джидда/Медина), без пятничной проверки расписания
+      // Карадениза: у Умры своё окно вылетов из программы.
+      var umraRoute = UMRA_ROUTES[departure.transport];
+      if (umraRoute) {
+        var uout = UMRA_LEGS["TAS-" + umraRoute.arrival];
+        var uback = UMRA_LEGS[umraRoute.departure + "-TAS"];
+        if (!uout || !uback) return null;
+        var uEnd = TuronApi.departureEnd(departure.date_start, departure.nights);
+        return {
+          out: Object.assign({}, uout, { date: shiftDate(departure.date_start, uout.day_offset) }),
+          back: Object.assign({}, uback, { date: shiftDate(uEnd, uback.day_offset) }),
+        };
+      }
       if (!isScheduledDate(departure.date_start)) return null;
       var route = ROUTES[departure.transport];
       if (!route) return null;
@@ -274,6 +319,13 @@
           date: shiftDate(endDate, back.day_offset),
         }),
       };
+    },
+
+    // Маршрут заезда стрелками для шапки конструктора. У Умры — из UMRA_ROUTES,
+    // у Карадениза маршрут зеркальный и рисуется в app.js по своим городам.
+    umraRouteLabel: function (transport) {
+      var r = UMRA_ROUTES[transport];
+      return r ? r.label : null;
     },
 
     servicesFor: servicesFor,

@@ -395,17 +395,26 @@ console.log("\nКабинет агентства");
         (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 5);
   await page.locator("#builder-umra .tt-tourcard[data-program]").first().click();
   await page.waitForTimeout(700);
-  check("клик по программе открывает её карточку с заездами",
-        (await page.locator("#builder-catalog").isVisible()) &&
+  check("клик по программе Умры открывает конструктор mir-jahon",
+        (await page.locator("#builder-karadeniz").isVisible()) &&
         (await page.locator("#builder-umra").isHidden()));
-  const umraRootCrumb = page.locator('#builder-catalog [data-go="root"]').first();
-  check("в карточке программы есть крошка «Каталог»", (await umraRootCrumb.count()) > 0);
-  await umraRootCrumb.click();
+  check("в конструкторе Умры счётчики по типам номера (QUAD/TRPL/DBL)",
+        (await page.locator('#builder-travellers [data-tariff="QUAD"]').count()) > 0 &&
+        (await page.locator('#builder-travellers [data-tariff="DBL"]').count()) > 0);
+  check("в конструкторе Умры нарисована таблица рейсов (Джидда/Медина)",
+        (await page.locator("#builder-flights .tt-mj-fltable tbody tr").count()) === 2);
+  check("в конструкторе Умры есть отели программы",
+        (await page.locator("#builder-hotelfield strong").count()) >= 2);
+  // «← Все туры» из конструктора Умры возвращает на сетку из 9 программ.
+  await page.locator("#builder-back").click();
   await page.waitForTimeout(500);
-  check("крошка «Каталог» возвращает на витрину туров",
-        (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3);
+  check("«← Все туры» из программы Умры возвращает на сетку программ",
+        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 5 &&
+        (await page.locator("#builder-karadeniz").isHidden()));
 
-  // возвращаемся в конструктор Карадениза для следующего блока проверок
+  // возвращаемся к верхней витрине и в конструктор Карадениза для след. блока
+  await page.locator("#builder-catalog-back").click();
+  await page.waitForTimeout(400);
   await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
   await page.waitForTimeout(700);
 

@@ -6739,6 +6739,15 @@ select { font-family: inherit; }
 .tt-mj-media:focus-visible {
   box-shadow: 0 0 0 3px rgba(199, 163, 90, .3), 0 16px 35px rgba(7, 44, 37, .18);
 }
+/* Умра — фотографий тура нет, показываем один узнаваемый кадр (тот же, что на
+   карточках), а слайдер и его управление прячем: черноморские фото Карадениза
+   на программе Умры вводили бы в заблуждение. */
+.tt-mj-media.is-umra {
+  background: #082f29 url("img/umrah-showcase.webp") center / cover no-repeat;
+}
+.tt-mj-media.is-umra .tt-mj-media-slides,
+.tt-mj-media.is-umra .tt-mj-media-dots,
+.tt-mj-media.is-umra .tt-mj-media-arrow { display: none; }
 .tt-mj-media-slides,
 .tt-mj-media-slide,
 .tt-mj-media-slide img {
