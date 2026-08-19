@@ -483,6 +483,16 @@ console.log("\nКабинет агентства");
   await page.waitForTimeout(400);
   check("submit разблокирован после заполнения",
         !(await page.locator("#bm-submit").isDisabled()));
+  // Первый «Забронировать» показывает условия, а не отправляет бронь.
+  await page.locator("#bm-submit").click();
+  await page.waitForTimeout(300);
+  check("первый «Забронировать» показывает условия, бронь не уходит",
+        !(await page.locator("#bm-agree").isHidden()) &&
+        !(await page.locator("#booking-modal").isHidden()));
+  await page.locator("#bm-agree-ok").click();
+  await page.waitForTimeout(200);
+  check("после «Я согласен» условия скрыты", await page.locator("#bm-agree").isHidden());
+  // Повторный «Забронировать» проводит бронь.
   await page.locator("#bm-submit").click();
   await page.waitForTimeout(1000);
   check("бронь создана, окно закрылось",

@@ -19,6 +19,20 @@
   var publicCatalog = null, cabinetCatalog = null, builderCatalog = null;
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
+  // Согласие с условиями бронирования: сбрасывается при открытии окна брони,
+  // ставится по «Я согласен». Пока false — первый «Забронировать» показывает
+  // условия, а не отправляет бронь. На правку состава (замена туриста) не
+  // распространяется — она бесплатна и идёт напрямую.
+  var bookingAgreed = false;
+
+  // Полных дней от сегодня до даты выезда. По нему считается правило отмены
+  // (больше 20 дней — бесплатно, 20 и меньше — штраф 100%).
+  function daysUntil(dateStr) {
+    if (!dateStr) return Infinity;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var dep = new Date(dateStr + "T00:00:00");
+    return Math.round((dep - today) / 86400000);
+  }
   // Промис загрузки каталога туров — сетка программ Умры ждёт его перед
   // отрисовкой, иначе на первом же клике попадёт в ещё пустой state.tours.
   var toursReady = null;
@@ -1377,6 +1391,9 @@
     $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code;
     $("bm-note").value = (booking && booking.note) || "";
     $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
+    // Новое окно — согласие ещё не дано; прячем экран условий, если остался.
+    bookingAgreed = false;
+    if ($("bm-agree")) $("bm-agree").hidden = true;
     $("booking-modal").hidden = false;
     // Чистим форму перед отрисовкой: renderPassengers переносит в новые
     // строки то, что осталось в старых, и без этого данные прошлой брони
@@ -1427,10 +1444,27 @@
   $("bm-passengers").addEventListener("input", updateSummary);
   $("bm-passengers").addEventListener("change", updateSummary);
 
+  // «Я согласен» — подтверждение условий; после него повторный «Забронировать»
+  // проводит бронь. «Назад» просто закрывает условия, оставляя форму.
+  $("bm-agree-ok").addEventListener("click", function () {
+    bookingAgreed = true;
+    $("bm-agree").hidden = true;
+  });
+  $("bm-agree-cancel").addEventListener("click", function () {
+    $("bm-agree").hidden = true;
+  });
+
   $("bm-submit").addEventListener("click", function () {
     var btn = $("bm-submit");
-    btn.disabled = true;
     var editing = state.editing;
+    // Новая бронь: первый клик показывает условия, а не отправляет. Только
+    // после «Я согласен» (bookingAgreed) клик проводит бронь. Правка состава
+    // (замена туриста) бесплатна — её пропускаем без согласия.
+    if (!editing && !bookingAgreed) {
+      $("bm-agree").hidden = false;
+      return;
+    }
+    btn.disabled = true;
     var action = editing
       ? TuronApi.updateBookingPassengers(editing.id, collectPassengers())
       : TuronApi.createBooking({
@@ -1517,9 +1551,25 @@
   $("bookings-list").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-cancel]");
     if (!btn) return;
-    if (!confirm("Отменить бронь? Места вернутся в продажу.")) return;
+    var id = Number(btn.dataset.cancel);
+    var b = state.bookings.filter(function (x) { return x.id === id; })[0];
+    // Правило отмены: больше 20 дней до выезда — бесплатно; 20 дней и меньше —
+    // штраф 100% стоимости, возврата нет. Замена туриста бесплатна и идёт
+    // через правку состава, а не отмену.
+    var msg;
+    if (b && daysUntil(b.date_start) <= 20) {
+      msg = "⚠️ До выезда 20 дней или меньше.\n\n" +
+        "При отмене удерживается 100% стоимости — " + money(b.total_price) +
+        ", возврата нет.\n\nВсё равно отменить бронь " + b.code + "?";
+    } else if (b) {
+      msg = "До выезда больше 20 дней — отмена бесплатная.\n\n" +
+        "Отменить бронь " + b.code + "? Места вернутся в продажу.";
+    } else {
+      msg = "Отменить бронь? Места вернутся в продажу.";
+    }
+    if (!confirm(msg)) return;
     btn.disabled = true;
-    TuronApi.cancelBooking(Number(btn.dataset.cancel)).then(function (res) {
+    TuronApi.cancelBooking(id).then(function (res) {
       flash("Бронь " + res.booking_code + " отменена, освобождено мест: " + res.released_seats);
       return Promise.all([loadDepartures(), loadBookings()]);
     }).catch(function (err) {

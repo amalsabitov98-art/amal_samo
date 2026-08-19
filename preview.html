@@ -1357,6 +1357,7 @@ a { color: inherit; }
   z-index: 50;
 }
 .tt-modal-card {
+  position: relative;
   width: 100%;
   max-width: 720px;
   max-height: 90vh;
@@ -1366,6 +1367,44 @@ a { color: inherit; }
   border: 1px solid var(--tt-border);
   border-radius: var(--tt-radius);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+/* Согласие с условиями бронирования — перекрывает всю карточку окна брони.
+   Появляется по первому «Забронировать», уходит по «Я согласен». */
+.tt-agree {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: color-mix(in srgb, var(--tt-surface) 88%, transparent);
+  backdrop-filter: blur(2px);
+  border-radius: var(--tt-radius);
+}
+.tt-agree-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-warn-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-hover);
+  padding: 22px 24px;
+}
+.tt-agree-card h3 {
+  margin: 0 0 14px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.4rem;
+  color: var(--tt-forest);
+}
+.tt-agree-card ul { margin: 0 0 12px; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; }
+.tt-agree-card li { font-size: 0.86rem; line-height: 1.5; color: var(--tt-text); }
+.tt-agree-card li b { color: var(--tt-forest); }
+.tt-agree-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 .tt-modal-head {
   display: flex;
@@ -7637,6 +7676,30 @@ select { font-family: inherit; }
     <div class="tt-modal-foot">
       <div id="bm-summary"></div>
       <button class="tt-btn" id="bm-submit">Забронировать</button>
+    </div>
+
+    <!-- Согласие с условиями: при первом клике «Забронировать» бронь не
+         отправляется, а показывается это окно поверх формы. Только после
+         «Я согласен» повторный клик «Забронировать» проводит бронь. -->
+    <div id="bm-agree" class="tt-agree" hidden>
+      <div class="tt-agree-card">
+        <h3>Условия бронирования</h3>
+        <ul>
+          <li><b>Оплата:</b> 30% стоимости — в течение 3 дней с брони,
+            оставшиеся 70% — не позднее чем за 20 дней до выезда. Если до
+            выезда меньше 20 дней — 100% в течение суток.</li>
+          <li><b>Отмена:</b> бесплатно, если до выезда больше 20 дней. За
+            20 дней и менее — удерживается <b>100% стоимости</b> тура,
+            возврата нет.</li>
+          <li><b>Замена туриста</b> в брони — бесплатно.</li>
+        </ul>
+        <p class="tt-muted-note">Нажимая «Я согласен», вы подтверждаете, что
+          ознакомили клиента с этими условиями.</p>
+        <div class="tt-agree-actions">
+          <button class="tt-btn secondary" id="bm-agree-cancel" type="button">Назад</button>
+          <button class="tt-btn" id="bm-agree-ok" type="button">Я согласен</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -16686,6 +16749,20 @@ window.TURON_DESTINATIONS = [
   var publicCatalog = null, cabinetCatalog = null, builderCatalog = null;
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
+  // Согласие с условиями бронирования: сбрасывается при открытии окна брони,
+  // ставится по «Я согласен». Пока false — первый «Забронировать» показывает
+  // условия, а не отправляет бронь. На правку состава (замена туриста) не
+  // распространяется — она бесплатна и идёт напрямую.
+  var bookingAgreed = false;
+
+  // Полных дней от сегодня до даты выезда. По нему считается правило отмены
+  // (больше 20 дней — бесплатно, 20 и меньше — штраф 100%).
+  function daysUntil(dateStr) {
+    if (!dateStr) return Infinity;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var dep = new Date(dateStr + "T00:00:00");
+    return Math.round((dep - today) / 86400000);
+  }
   // Промис загрузки каталога туров — сетка программ Умры ждёт его перед
   // отрисовкой, иначе на первом же клике попадёт в ещё пустой state.tours.
   var toursReady = null;
@@ -18044,6 +18121,9 @@ window.TURON_DESTINATIONS = [
     $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code;
     $("bm-note").value = (booking && booking.note) || "";
     $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
+    // Новое окно — согласие ещё не дано; прячем экран условий, если остался.
+    bookingAgreed = false;
+    if ($("bm-agree")) $("bm-agree").hidden = true;
     $("booking-modal").hidden = false;
     // Чистим форму перед отрисовкой: renderPassengers переносит в новые
     // строки то, что осталось в старых, и без этого данные прошлой брони
@@ -18094,10 +18174,27 @@ window.TURON_DESTINATIONS = [
   $("bm-passengers").addEventListener("input", updateSummary);
   $("bm-passengers").addEventListener("change", updateSummary);
 
+  // «Я согласен» — подтверждение условий; после него повторный «Забронировать»
+  // проводит бронь. «Назад» просто закрывает условия, оставляя форму.
+  $("bm-agree-ok").addEventListener("click", function () {
+    bookingAgreed = true;
+    $("bm-agree").hidden = true;
+  });
+  $("bm-agree-cancel").addEventListener("click", function () {
+    $("bm-agree").hidden = true;
+  });
+
   $("bm-submit").addEventListener("click", function () {
     var btn = $("bm-submit");
-    btn.disabled = true;
     var editing = state.editing;
+    // Новая бронь: первый клик показывает условия, а не отправляет. Только
+    // после «Я согласен» (bookingAgreed) клик проводит бронь. Правка состава
+    // (замена туриста) бесплатна — её пропускаем без согласия.
+    if (!editing && !bookingAgreed) {
+      $("bm-agree").hidden = false;
+      return;
+    }
+    btn.disabled = true;
     var action = editing
       ? TuronApi.updateBookingPassengers(editing.id, collectPassengers())
       : TuronApi.createBooking({
@@ -18184,9 +18281,25 @@ window.TURON_DESTINATIONS = [
   $("bookings-list").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-cancel]");
     if (!btn) return;
-    if (!confirm("Отменить бронь? Места вернутся в продажу.")) return;
+    var id = Number(btn.dataset.cancel);
+    var b = state.bookings.filter(function (x) { return x.id === id; })[0];
+    // Правило отмены: больше 20 дней до выезда — бесплатно; 20 дней и меньше —
+    // штраф 100% стоимости, возврата нет. Замена туриста бесплатна и идёт
+    // через правку состава, а не отмену.
+    var msg;
+    if (b && daysUntil(b.date_start) <= 20) {
+      msg = "⚠️ До выезда 20 дней или меньше.\n\n" +
+        "При отмене удерживается 100% стоимости — " + money(b.total_price) +
+        ", возврата нет.\n\nВсё равно отменить бронь " + b.code + "?";
+    } else if (b) {
+      msg = "До выезда больше 20 дней — отмена бесплатная.\n\n" +
+        "Отменить бронь " + b.code + "? Места вернутся в продажу.";
+    } else {
+      msg = "Отменить бронь? Места вернутся в продажу.";
+    }
+    if (!confirm(msg)) return;
     btn.disabled = true;
-    TuronApi.cancelBooking(Number(btn.dataset.cancel)).then(function (res) {
+    TuronApi.cancelBooking(id).then(function (res) {
       flash("Бронь " + res.booking_code + " отменена, освобождено мест: " + res.released_seats);
       return Promise.all([loadDepartures(), loadBookings()]);
     }).catch(function (err) {

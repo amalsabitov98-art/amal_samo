@@ -1336,6 +1336,7 @@ a { color: inherit; }
   z-index: 50;
 }
 .tt-modal-card {
+  position: relative;
   width: 100%;
   max-width: 720px;
   max-height: 90vh;
@@ -1345,6 +1346,44 @@ a { color: inherit; }
   border: 1px solid var(--tt-border);
   border-radius: var(--tt-radius);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+/* Согласие с условиями бронирования — перекрывает всю карточку окна брони.
+   Появляется по первому «Забронировать», уходит по «Я согласен». */
+.tt-agree {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: color-mix(in srgb, var(--tt-surface) 88%, transparent);
+  backdrop-filter: blur(2px);
+  border-radius: var(--tt-radius);
+}
+.tt-agree-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-warn-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-hover);
+  padding: 22px 24px;
+}
+.tt-agree-card h3 {
+  margin: 0 0 14px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.4rem;
+  color: var(--tt-forest);
+}
+.tt-agree-card ul { margin: 0 0 12px; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; }
+.tt-agree-card li { font-size: 0.86rem; line-height: 1.5; color: var(--tt-text); }
+.tt-agree-card li b { color: var(--tt-forest); }
+.tt-agree-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 .tt-modal-head {
   display: flex;
