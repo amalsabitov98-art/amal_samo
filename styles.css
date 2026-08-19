@@ -4114,7 +4114,11 @@ select { font-family: inherit; }
 .tt-search-price strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .tt-public-catalogue {
   position: relative;
-  scroll-margin-top: 150px;
+  /* Полноэкранная витрина направлений: при переходе по «Туры» её верх должен
+     встать ровно в верх окна. Шапка тут absolute и уезжает со страницей
+     (has-hero), фиксированной полосы над витриной нет, поэтому отступа не
+     нужно — со 150px «Туры» не докручивал, и сверху выглядывал предыдущий блок. */
+  scroll-margin-top: 0;
   width: 100vw !important;
   height: 100vh;
   height: 100svh;
