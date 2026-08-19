@@ -5552,8 +5552,9 @@ select { font-family: inherit; }
    маршрут, срок/цена и «Открыть →». Палитра наша, не синяя: лесной зелёный,
    латунь, кремовые карточки. Клик по карточке ведёт в бронирование. */
 /* Конструктор — full-bleed (.is-builder убирает padding контейнера), поэтому
-   витрине задаём свои поля, иначе крайние карточки упираются в край экрана. */
-#builder-showcase { padding: 4px clamp(20px, 3vw, 42px) 48px; }
+   витрине и сетке программ Умры задаём свои поля, иначе крайние карточки
+   упираются в край экрана. */
+#builder-showcase, #builder-umra { padding: 4px clamp(20px, 3vw, 42px) 48px; }
 .tt-workspace-lead { max-width: 1180px; margin: 0 auto 4px; }
 .tt-workspace-lead .tt-eyebrow {
   display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;

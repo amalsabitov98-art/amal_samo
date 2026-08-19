@@ -375,6 +375,30 @@ console.log("\nКабинет агентства");
   check("клик по Караденизу открывает конструктор mir-jahon",
         await page.locator("#builder-karadeniz").isVisible());
 
+  // «Путь к святыням» разбит на 9 карточек-программ той же сеткой, что и
+  // витрина выше; клик по программе открывает её карточку с калькулятором.
+  await page.locator("#builder-back").click();
+  await page.waitForTimeout(400);
+  await page.locator('#builder-showcase .tt-tourcard[data-product="Умра"]').first().click();
+  await page.waitForTimeout(700);
+  check("«Путь к святыням» открывается сеткой из 9 программ",
+        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 9);
+  await page.locator("#builder-umra .tt-tourcard[data-program]").first().click();
+  await page.waitForTimeout(700);
+  check("клик по программе открывает её карточку с заездами",
+        (await page.locator("#builder-catalog").isVisible()) &&
+        (await page.locator("#builder-umra").isHidden()));
+  const umraRootCrumb = page.locator('#builder-catalog [data-go="root"]').first();
+  check("в карточке программы есть крошка «Каталог»", (await umraRootCrumb.count()) > 0);
+  await umraRootCrumb.click();
+  await page.waitForTimeout(500);
+  check("крошка «Каталог» возвращает на витрину туров",
+        (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3);
+
+  // возвращаемся в конструктор Карадениза для следующего блока проверок
+  await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
+  await page.waitForTimeout(700);
+
   // конструктор: рейсы, отели, тарифы
   check("в конструкторе есть заезды",
         (await page.locator("#builder-departure option").count()) > 0);

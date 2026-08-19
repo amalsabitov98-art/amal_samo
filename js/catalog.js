@@ -1132,6 +1132,10 @@
     }
 
     function renderDestinations() {
+      // Хост может перехватить корень каталога — например, кабинет вместо
+      // мозаики направлений показывает свою витрину «Новый тур» и отбивает
+      // сюда клик по крошке «Каталог» из карточки тура/программы.
+      if (cfg.onDestination && cfg.onDestination(null)) return Promise.resolve();
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
         var catalogue =
@@ -1426,6 +1430,9 @@
     }
 
     function renderTours(destination) {
+      // Хост может перехватить конкретное направление — кабинет вместо
+      // видео-лендинга Умры показывает свою сетку из 9 карточек-программ.
+      if (cfg.onDestination && cfg.onDestination(destination)) return Promise.resolve();
       if (destination === "Умра") return renderUmrah();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {

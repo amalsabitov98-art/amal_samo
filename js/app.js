@@ -8,6 +8,9 @@
     builder: { code: null, counts: {} },
     // брони агентства: их читают разделы «Туристы», «Платежи», «Документы»
     bookings: [],
+    // каталог туров — читает и вкладка «Туры», и витрина «Новый тур» (карточки
+    // программ Умры строятся из него, а не из выдуманного списка)
+    tours: [],
     mediaIndex: 0,
   };
 
@@ -16,6 +19,9 @@
   var publicCatalog = null, cabinetCatalog = null, builderCatalog = null;
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
+  // Промис загрузки каталога туров — сетка программ Умры ждёт его перед
+  // отрисовкой, иначе на первом же клике попадёт в ещё пустой state.tours.
+  var toursReady = null;
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
@@ -256,7 +262,15 @@
           openKaradenizBuilder();
           return true;                               // карточку Карадениза каталог не рисует
         },
-        // На витрине (мозаика направлений) кнопку возврата прячем, на странице
+        // Умра — не мозаика и не видео-лендинг, а те же 9 карточек-программ,
+        // что и витрина выше. Корень каталога (клик по крошке «Каталог» из
+        // карточки программы) отбиваем обратно на витрину туров.
+        onDestination: function (name) {
+          if (name === "Умра") { openUmraShowcase(); return true; }
+          if (name == null) { showBuilderShowcase(); return true; }
+          return false;   // Япония и прочие — обычный каталог хоста
+        },
+        // На витрине (карточки туров) кнопку возврата прячем, на странице
         // Умры/Японии/карточке тура — показываем «← Все туры».
         onView: function (view) {
           var back = $("builder-catalog-back");
@@ -267,7 +281,7 @@
 
     var ready = loadDepartures();
     loadBookings();
-    loadTours();
+    toursReady = loadTours();
 
     // Гость выбрал заезд, потом вошёл — доводим его до брони, а не
     // оставляем разбираться заново.
@@ -642,12 +656,15 @@
       }).join("") + "</div>";
   }
 
-  // Переключение между тремя видами экрана «Новый тур».
+  // Переключение между видами экрана «Новый тур».
   function showBuilderView(which) {
     if ($("builder-showcase")) $("builder-showcase").hidden = which !== "showcase";
+    if ($("builder-umra")) $("builder-umra").hidden = which !== "umra";
     if ($("builder-catalog")) $("builder-catalog").hidden = which !== "catalog";
     if ($("builder-karadeniz")) $("builder-karadeniz").hidden = which !== "karadeniz";
-    if ($("builder-catalog-back")) $("builder-catalog-back").hidden = which !== "catalog";
+    if ($("builder-catalog-back")) {
+      $("builder-catalog-back").hidden = which !== "catalog" && which !== "umra";
+    }
   }
 
   function showBuilderShowcase() {
@@ -662,7 +679,58 @@
     renderBuilder();
   }
 
-  // Клик по Умре/Японии → их каталог (программы/туры → карточка → бронь).
+  // Клик по Умре → сетка из 9 карточек-программ (та же логика, что и витрина
+  // выше), клик по программе — её каталог (карточка → калькулятор → бронь).
+  function renderUmraShowcase() {
+    var host = $("builder-umra");
+    if (!host) return;
+    var programs = state.tours.filter(function (t) { return t.destination === "Умра"; });
+    if (!programs.length) {
+      host.innerHTML = '<div class="tt-workspace-lead">' +
+        '<span class="tt-eyebrow">Умра · 2026</span><h2>Путь к святыням</h2></div>' +
+        '<div class="tt-empty-state">Загружаем программы…</div>';
+      return;
+    }
+    host.innerHTML =
+      '<div class="tt-workspace-lead">' +
+        '<span class="tt-eyebrow">Умра · 2026</span>' +
+        "<h2>Путь к святыням — 9 программ</h2>" +
+      "</div>" +
+      '<div class="tt-tourgrid">' + programs.map(function (t) {
+        var price = builderMinPrice(function (d) { return (d.tour_code || "") === t.code; });
+        var title = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
+        var kicker = t.nights ? (t.nights + 1) + " дней" : "Умра";
+        var meta = (t.nights ? t.nights + " ночей" : "") +
+          (price != null ? " · от " + money(price) : "");
+        return '<article class="tt-tourcard" data-program="' + esc(t.code) + '" tabindex="0" role="button">' +
+          '<div class="tt-tourcard-photo"><img src="img/umrah-showcase.webp" alt="' +
+            esc(title) + '" loading="lazy" />' +
+            '<span class="tt-tourcard-kicker">' + esc(kicker) + "</span></div>" +
+          '<div class="tt-tourcard-body">' +
+            "<h3>" + esc(title) + "</h3>" +
+            '<p class="tt-tourcard-route">Мекка · Медина · Джидда</p>' +
+            '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
+            '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+          "</div>" +
+        "</article>";
+      }).join("") + "</div>";
+  }
+
+  function openUmraShowcase() {
+    showBuilderView("umra");
+    renderUmraShowcase();
+    // Программы могли ещё не загрузиться (loadTours асинхронный) — как
+    // только придут, перерисуем ту же сетку уже с данными.
+    if (toursReady) toursReady.then(renderUmraShowcase);
+  }
+
+  // Клик по карточке программы Умры → её каталог (карточка → калькулятор → бронь).
+  function openUmraProgram(code) {
+    showBuilderView("catalog");
+    if (builderCatalog) builderCatalog.openTour(code);
+  }
+
+  // Клик по Японии (пока не разбита на программы) → её каталог напрямую.
   function openBuilderDestination(name) {
     showBuilderView("catalog");
     if (builderCatalog) builderCatalog.openDestination(name);
@@ -985,7 +1053,8 @@
     var p = BUILDER_PRODUCTS.filter(function (x) { return x.key === key; })[0];
     if (!p) return;
     if (p.key === "karadeniz") openKaradenizBuilder();
-    else openBuilderDestination(p.key);   // ключ = имя направления (Умра/Япония)
+    else if (p.key === "Умра") openUmraShowcase();
+    else openBuilderDestination(p.key);   // Япония пока не разбита — её каталог
   }
   $("builder-showcase").addEventListener("click", function (e) {
     var card = e.target.closest("[data-product]");
@@ -999,9 +1068,22 @@
     openBuilderProduct(card.dataset.product);
   });
 
+  // Клик по карточке программы Умры — той же сеткой, что и витрина выше.
+  $("builder-umra").addEventListener("click", function (e) {
+    var card = e.target.closest("[data-program]");
+    if (card) openUmraProgram(card.dataset.program);
+  });
+  $("builder-umra").addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest("[data-program]");
+    if (!card) return;
+    e.preventDefault();
+    openUmraProgram(card.dataset.program);
+  });
+
   // «← Все туры» — из конструктора Карадениза обратно на витрину.
   $("builder-back").addEventListener("click", showBuilderShowcase);
-  // «← Все туры» из карточки Умры/Японии — тоже на витрину туров.
+  // «← Все туры» из сетки программ Умры/карточки тура — тоже на витрину туров.
   $("builder-catalog-back").addEventListener("click", showBuilderShowcase);
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его,
@@ -1344,6 +1426,7 @@
 
   function loadTours() {
     return TuronApi.tours().then(function (list) {
+      state.tours = list;
       $("tours-list").innerHTML = list.map(tourRowHtml).join("") +
         '<p class="tt-muted-note" style="margin-top:16px">' +
         "Комиссия начисляется за каждого проданного туриста. Младенцы до 2 лет " +
