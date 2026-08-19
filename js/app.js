@@ -22,6 +22,9 @@
   // Промис загрузки каталога туров — сетка программ Умры ждёт его перед
   // отрисовкой, иначе на первом же клике попадёт в ещё пустой state.tours.
   var toursReady = null;
+  // Фильтр сетки программ Умры по длительности — переживает перерисовку
+  // (toursReady) и повторные заходы на вкладку.
+  var umraFilter = "13";
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
@@ -684,36 +687,47 @@
   function renderUmraShowcase() {
     var host = $("builder-umra");
     if (!host) return;
-    var programs = state.tours.filter(function (t) { return t.destination === "Умра"; });
-    if (!programs.length) {
+    var all = state.tours.filter(function (t) { return t.destination === "Умра"; });
+    if (!all.length) {
       host.innerHTML = '<div class="tt-workspace-lead">' +
         '<span class="tt-eyebrow">Умра · 2026</span><h2>Путь к святыням</h2></div>' +
         '<div class="tt-empty-state">Загружаем программы…</div>';
       return;
     }
+    var programs = all.filter(function (t) { return String((t.nights || 0) + 1) === umraFilter; });
     host.innerHTML =
       '<div class="tt-workspace-lead">' +
         '<span class="tt-eyebrow">Умра · 2026</span>' +
-        "<h2>Путь к святыням — 9 программ</h2>" +
+        "<h2>Путь к святыням</h2>" +
       "</div>" +
-      '<div class="tt-tourgrid">' + programs.map(function (t) {
-        var price = builderMinPrice(function (d) { return (d.tour_code || "") === t.code; });
-        var title = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
-        var kicker = t.nights ? (t.nights + 1) + " дней" : "Умра";
-        var meta = (t.nights ? t.nights + " ночей" : "") +
-          (price != null ? " · от " + money(price) : "");
-        return '<article class="tt-tourcard" data-program="' + esc(t.code) + '" tabindex="0" role="button">' +
-          '<div class="tt-tourcard-photo"><img src="img/umrah-showcase.webp" alt="' +
-            esc(title) + '" loading="lazy" />' +
-            '<span class="tt-tourcard-kicker">' + esc(kicker) + "</span></div>" +
-          '<div class="tt-tourcard-body">' +
-            "<h3>" + esc(title) + "</h3>" +
-            '<p class="tt-tourcard-route">Мекка · Медина · Джидда</p>' +
-            '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
-            '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
-          "</div>" +
-        "</article>";
-      }).join("") + "</div>";
+      '<div class="tt-umra-filter" role="tablist" aria-label="Длительность программы">' +
+        ["13", "10"].map(function (d) {
+          var active = d === umraFilter;
+          return '<button type="button" class="' + (active ? "is-active" : "") +
+            '" data-umra-days="' + d + '" role="tab" aria-selected="' + active + '">' +
+            d + " дней</button>";
+        }).join("") +
+      "</div>" +
+      (programs.length
+        ? '<div class="tt-tourgrid">' + programs.map(function (t) {
+            var price = builderMinPrice(function (d) { return (d.tour_code || "") === t.code; });
+            var title = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
+            var kicker = t.nights ? (t.nights + 1) + " дней" : "Умра";
+            var meta = (t.nights ? t.nights + " ночей" : "") +
+              (price != null ? " · от " + money(price) : "");
+            return '<article class="tt-tourcard" data-program="' + esc(t.code) + '" tabindex="0" role="button">' +
+              '<div class="tt-tourcard-photo"><img src="img/umrah-showcase.webp" alt="' +
+                esc(title) + '" loading="lazy" />' +
+                '<span class="tt-tourcard-kicker">' + esc(kicker) + "</span></div>" +
+              '<div class="tt-tourcard-body">' +
+                "<h3>" + esc(title) + "</h3>" +
+                '<p class="tt-tourcard-route">Мекка · Медина · Джидда</p>' +
+                '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
+                '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+              "</div>" +
+            "</article>";
+          }).join("") + "</div>"
+        : '<div class="tt-empty-state">Программ с таким сроком пока нет.</div>');
   }
 
   function openUmraShowcase() {
@@ -1069,7 +1083,10 @@
   });
 
   // Клик по карточке программы Умры — той же сеткой, что и витрина выше.
+  // Клик по фильтру длительности перерисовывает сетку без похода на сервер.
   $("builder-umra").addEventListener("click", function (e) {
+    var tab = e.target.closest("[data-umra-days]");
+    if (tab) { umraFilter = tab.dataset.umraDays; renderUmraShowcase(); return; }
     var card = e.target.closest("[data-program]");
     if (card) openUmraProgram(card.dataset.program);
   });

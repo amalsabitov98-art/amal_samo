@@ -376,13 +376,23 @@ console.log("\nКабинет агентства");
         await page.locator("#builder-karadeniz").isVisible());
 
   // «Путь к святыням» разбит на 9 карточек-программ той же сеткой, что и
-  // витрина выше; клик по программе открывает её карточку с калькулятором.
+  // витрина выше, с фильтром по длительности (по умолчанию — 13 дней).
   await page.locator("#builder-back").click();
   await page.waitForTimeout(400);
   await page.locator('#builder-showcase .tt-tourcard[data-product="Умра"]').first().click();
   await page.waitForTimeout(700);
-  check("«Путь к святыням» открывается сеткой из 9 программ",
-        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 9);
+  check("фильтр «13 дней» активен по умолчанию, программ — 5",
+        (await page.locator('#builder-umra [data-umra-days="13"]').getAttribute("class") || "")
+          .includes("is-active") &&
+        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 5);
+  await page.locator('#builder-umra [data-umra-days="10"]').click();
+  await page.waitForTimeout(300);
+  check("фильтр «10 дней» показывает 4 программы",
+        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 4);
+  await page.locator('#builder-umra [data-umra-days="13"]').click();
+  await page.waitForTimeout(300);
+  check("возврат на «13 дней» — снова 5 программ",
+        (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 5);
   await page.locator("#builder-umra .tt-tourcard[data-program]").first().click();
   await page.waitForTimeout(700);
   check("клик по программе открывает её карточку с заездами",
