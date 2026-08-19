@@ -945,7 +945,11 @@
     var uh = umraHotelsFromContent(c);
     field.innerHTML = uh.length
       ? uh.map(function (h) {
-          return "<div><strong>" + esc(h.name) + "</strong><small>" + esc(h.city) +
+          var url = TuronProvisional.umraHotelUrl(h.name);
+          var name = url
+            ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(h.name) + "</a>"
+            : esc(h.name);
+          return "<div><strong>" + name + "</strong><small>" + esc(h.city) +
             (h.nights ? " · " + h.nights + " ноч." : "") +
             (h.detail ? " · " + esc(h.detail) : "") + "</small></div>";
         }).join('<i class="tt-mj-plus" aria-hidden="true">+</i>')

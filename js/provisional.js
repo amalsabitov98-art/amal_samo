@@ -128,6 +128,28 @@
   };
 
   /*
+   * Ссылки на booking.com для отелей программ Умры (нашёл оператор). Ключ —
+   * название отеля ровно как в программе (tools/build-seed.py, UMRA_PROGRAMS),
+   * по нему конструктор делает название кликабельным, как у Карадениза.
+   * Локаль .ru.html — русский интерфейс booking, как в HOTELS выше.
+   * Anjum/Anjum Makkah — один отель; Jumeirah Hotel/Jumeirah Jabal Omar — тоже.
+   */
+  var UMRA_HOTEL_URLS = {
+    "Hawada Hotel Jeddah": "https://www.booking.com/hotel/sa/hawada-pioneer.ru.html",
+    "Taj Park": "https://www.booking.com/hotel/sa/fndq-tj-brk.ru.html",
+    "Grand Al Shahba": "https://www.booking.com/hotel/sa/fndq-jrnd-lshhb-grand-alshahba.ru.html",
+    "Mukhtara Plaza": "https://www.booking.com/hotel/sa/mokhtara-plaza.ru.html",
+    "Anjum": "https://www.booking.com/hotel/sa/anjum-makkah.ru.html",
+    "Anjum Makkah": "https://www.booking.com/hotel/sa/anjum-makkah.ru.html",
+    "Waqf Al Safi": "https://www.booking.com/hotel/sa/bosphorus-waqf-al-safi.ru.html",
+    "Al Shohada": "https://www.booking.com/hotel/sa/al-shohada.ru.html",
+    "Jumeirah Hotel": "https://www.booking.com/hotel/sa/jabal-omar-jumeirah-makkah.ru.html",
+    "Jumeirah Jabal Omar": "https://www.booking.com/hotel/sa/jabal-omar-jumeirah-makkah.ru.html",
+    "Saja Al-Madinah": "https://www.booking.com/hotel/sa/saja-al-madinah.ru.html",
+    "Swissotel Makkah": "https://www.booking.com/hotel/sa/swissotel-makkah.ru.html",
+  };
+
+  /*
    * 2. ОТЕЛИ И НОЧИ
    * ---------------
    * ПОДТВЕРЖДЕНО ВАУЧЕРАМИ ОПЕРАТОРА (Centrum Air / Etihad):
@@ -326,6 +348,11 @@
     umraRouteLabel: function (transport) {
       var r = UMRA_ROUTES[transport];
       return r ? r.label : null;
+    },
+
+    // Ссылка booking.com по названию отеля Умры (или null, если её ещё нет).
+    umraHotelUrl: function (name) {
+      return UMRA_HOTEL_URLS[name] || null;
     },
 
     servicesFor: servicesFor,
