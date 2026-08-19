@@ -85,7 +85,7 @@ def make_password():
 # (агентству она не показывается).
 # (код, название, направление, агентская, операторская, бронируемый, примечание)
 TOURS = [
-    ("KARADENIZ", "Батуми - Ризе - Трабзон", "Турция", 0, 0, 1,
+    ("KARADENIZ", "Батуми - Ризе - Трабзон", "Турция", 50, 0, 1,
      "Еженедельные заезды, цены по типу размещения"),
 ]
 KARADENIZ = "KARADENIZ"
@@ -375,8 +375,12 @@ UMRA_PROGRAMS = [
 DESTINATIONS.append(("Умра", "Умра · Мекка и Медина",
                      "Паломничество: Мекка, Медина, Джидда", "", 2))
 
+# Агентская комиссия Умры по программе (в долларах на туриста): у Anjum,
+# Jumeirah и Swissotel — $100, у остальных — $50 (подтвердил оператор).
+UMRA_COMMISSION_100 = {"ANJUM-13", "ANJUM-10", "JUMEIRAH-13", "JUMEIRAH-10", "SWISSOTEL-10"}
 for _u in UMRA_PROGRAMS:
-    TOURS.append((_u["code"], "Умра · " + _u["prog"], "Умра", 0, 0, 1, _u["dates_note"]))
+    _agc = 100 if _u["prog"] in UMRA_COMMISSION_100 else 50
+    TOURS.append((_u["code"], "Умра · " + _u["prog"], "Умра", _agc, 0, 1, _u["dates_note"]))
     TOUR_DETAILS[_u["code"]] = {
         "nights": _u["nights"],
         "description": (

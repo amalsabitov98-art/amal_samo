@@ -12,7 +12,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -62,7 +62,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -139,7 +139,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -216,7 +216,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -293,7 +293,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -379,7 +379,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -465,7 +465,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -542,7 +542,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -628,7 +628,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -714,7 +714,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -800,7 +800,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -886,7 +886,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -972,7 +972,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1040,7 +1040,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1126,7 +1126,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1212,7 +1212,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1298,7 +1298,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1384,7 +1384,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1470,7 +1470,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1556,7 +1556,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1642,7 +1642,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1728,7 +1728,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1814,7 +1814,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1900,7 +1900,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -1986,7 +1986,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2072,7 +2072,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2158,7 +2158,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2244,7 +2244,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2330,7 +2330,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2416,7 +2416,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2493,7 +2493,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -2570,7 +2570,7 @@ window.TURON_SEED = [
   "tour_code": "KARADENIZ",
   "tour_name": "Батуми - Ризе - Трабзон",
   "nights": 7,
-  "agency_commission": 0,
+  "agency_commission": 50,
   "prices": [
    {
     "code": "DBL",
@@ -4233,7 +4233,7 @@ window.TURON_TOURS = [
   "code": "KARADENIZ",
   "name": "Батуми - Ризе - Трабзон",
   "destination": "Турция",
-  "agency_commission": 0,
+  "agency_commission": 50,
   "is_bookable": 1,
   "note": "Еженедельные заезды, цены по типу размещения",
   "description": "Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и Трабзон за 8 дней. Сопровождение узбекского гида, более 15 экскурсий, отели на первой береговой линии, трансферы на микроавтобусах Sprinter и ужин в грузинской семье.",
@@ -4347,7 +4347,7 @@ window.TURON_TOURS = [
   "code": "UMRA_TAJ13",
   "name": "Умра · TAJ-13",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 50,
   "is_bookable": 1,
   "note": "Август—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
   "description": "Умра по программе TAJ-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Taj Park · 990 м до Харама · 8 ночей; Медина · Grand Al Shahba · 250 м до мечети Пророка · 3 ночи.",
@@ -4377,7 +4377,7 @@ window.TURON_TOURS = [
   "code": "UMRA_TAJ13P",
   "name": "Умра · TAJ-13+",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 50,
   "is_bookable": 1,
   "note": "Июль—август по указанным датам.",
   "description": "Умра по программе TAJ-13+ (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Taj Park · 990 м до Харама · 8 ночей; Медина · Mukhtara Plaza · 250 м до мечети Пророка · 3 ночи.",
@@ -4407,7 +4407,7 @@ window.TURON_TOURS = [
   "code": "UMRA_ANJUM13",
   "name": "Умра · ANJUM-13",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 100,
   "is_bookable": 1,
   "note": "Август по указанным датам.",
   "description": "Умра по программе ANJUM-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Anjum · 250 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
@@ -4437,7 +4437,7 @@ window.TURON_TOURS = [
   "code": "UMRA_SHOHADA13",
   "name": "Умра · SHOHADA-13",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 50,
   "is_bookable": 1,
   "note": "Август по указанным датам.",
   "description": "Умра по программе SHOHADA-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Al Shohada · 250 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
@@ -4467,7 +4467,7 @@ window.TURON_TOURS = [
   "code": "UMRA_JUMEIRAH13",
   "name": "Умра · JUMEIRAH-13",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 100,
   "is_bookable": 1,
   "note": "Август по указанным датам.",
   "description": "Умра по программе JUMEIRAH-13 (13 дней / 12 ночей). Ташкент → Джидда → Мекка → Медина → Ташкент. Джидда · Hawada Hotel Jeddah · 1 ночь; Мекка · Jumeirah Hotel · 100 м до Харама · 8 ночей; Медина · Waqf Al Safi · 50 м до мечети Пророка · 3 ночи.",
@@ -4497,7 +4497,7 @@ window.TURON_TOURS = [
   "code": "UMRA_SAJA10",
   "name": "Умра · SAJA-10",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 50,
   "is_bookable": 1,
   "note": "Июль—сентябрь еженедельно; осенние заезды (октябрь—декабрь) уточняются у оператора.",
   "description": "Умра по программе SAJA-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Saja Al-Madinah · 250 м до мечети Пророка · 4 ночи; Мекка · Taj Park · 990 м до Харама · 5 ночей.",
@@ -4526,7 +4526,7 @@ window.TURON_TOURS = [
   "code": "UMRA_SWISS10",
   "name": "Умра · SWISSOTEL-10",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 100,
   "is_bookable": 1,
   "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
   "description": "Умра по программе SWISSOTEL-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Swissotel Makkah · 50 м до Харама · 5 ночей.",
@@ -4555,7 +4555,7 @@ window.TURON_TOURS = [
   "code": "UMRA_ANJUM10",
   "name": "Умра · ANJUM-10",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 100,
   "is_bookable": 1,
   "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
   "description": "Умра по программе ANJUM-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Anjum Makkah · 250 м до Харама · 5 ночей.",
@@ -4584,7 +4584,7 @@ window.TURON_TOURS = [
   "code": "UMRA_JUMEIRAH10",
   "name": "Умра · JUMEIRAH-10",
   "destination": "Умра",
-  "agency_commission": 0,
+  "agency_commission": 100,
   "is_bookable": 1,
   "note": "Еженедельно с 6 августа по 3 декабря — точные даты уточняются у оператора.",
   "description": "Умра по программе JUMEIRAH-10 (10 дней / 9 ночей). Ташкент → Медина → Мекка → Джидда → Ташкент. Медина · Waqf Al Safi · 50 м до мечети Пророка · 4 ночи; Мекка · Jumeirah Jabal Omar · 100 м до Харама · 5 ночей.",
