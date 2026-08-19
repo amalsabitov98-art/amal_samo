@@ -88,6 +88,35 @@
   var currentScreen = null;
   var pendingRoute = null;     // куда вернуть после входа
   var loginReturn = null;      // откуда пришли на экран входа
+
+  /* Шаги внутри кабинета в истории браузера. Вкладки уже адресуются хешем
+   * (#/app/<вкладка>), но переходы ВНУТРИ вкладки — витрина «Новый тур» →
+   * сетка Умры → конструктор программы, а также окно брони — раньше в историю
+   * не попадали, и кнопка «Назад» браузера уводила со страницы вместо
+   * предыдущего шага. Теперь каждый заход глубже добавляет запись истории тем
+   * же адресом (pushState без смены хеша), а closer описывает, как откатить
+   * шаг назад. Хеш при этом не меняется, поэтому хеш-роутер (он слушает
+   * hashchange) эти шаги не трогает — их ведёт отдельный popstate ниже. */
+  var stepStack = [];          // [{ id, close }] — открытые шаги, глубже — в конце
+  var stepSeq = 0;             // сквозной номер шага (кладём в history.state)
+  var appliedHash = null;      // хеш, который сейчас показывает роутер
+
+  function pushStep(closer) {
+    stepSeq++;
+    stepStack.push({ id: stepSeq, close: closer });
+    window.history.pushState({ ttStep: stepSeq }, "");
+  }
+  // Смена вкладки/экрана обнуляет шаги: их вид уже сменил роутер, а записи в
+  // истории остаются безвредными «фантомами» (лишний Назад просто перерисует
+  // тот же экран).
+  function clearSteps() { stepStack = []; }
+  // Откатить один шаг по кнопке в интерфейсе — тем же путём, что и «Назад»
+  // браузера, чтобы поведение совпадало: history.back поднимет popstate,
+  // а он вызовет closer.
+  function stepBack(fallback) {
+    if (stepStack.length) window.history.back();
+    else if (fallback) fallback();
+  }
   var lastAppRoute = null;     // последняя вкладка кабинета — чтобы кнопка
                                // «Кабинет» возвращала туда, где человек был
 
@@ -126,8 +155,8 @@
   function applyRoute() {
     for (var guard = 0; guard < 5; guard++) {
       var redirect = resolveRoute();
-      if (!redirect) return;                            // экран показан
-      if (window.location.hash === redirect) return;    // уже здесь — стоп
+      if (!redirect) { appliedHash = window.location.hash; return; }   // экран показан
+      if (window.location.hash === redirect) { appliedHash = window.location.hash; return; }
       window.history.replaceState(null, "", redirect);
     }
   }
@@ -276,14 +305,14 @@
         onBook: bookFromCatalog,
         onTour: function (code) {
           if (code !== "KARADENIZ") return false;   // Умра/Япония — обычной карточкой
-          openKaradenizBuilder();
+          viewKaradeniz();                           // внутренняя навигация каталога
           return true;                               // карточку Карадениза каталог не рисует
         },
         // Умра — не мозаика и не видео-лендинг, а те же 9 карточек-программ,
         // что и витрина выше. Корень каталога (клик по крошке «Каталог» из
         // карточки программы) отбиваем обратно на витрину туров.
         onDestination: function (name) {
-          if (name === "Умра") { openUmraShowcase(); return true; }
+          if (name === "Умра") { viewUmra(); return true; }
           if (name == null) { showBuilderShowcase(); return true; }
           return false;   // Япония и прочие — обычный каталог хоста
         },
@@ -331,6 +360,11 @@
      * скрытым, и редирект уходил в бесконечную рекурсию. */
     if (window.location.hash !== want) window.history.replaceState(null, "", want);
     lastAppRoute = want;
+    // Уход на вкладку по адресу закрывает окно брони, если оно осталось
+    // открытым, и обнуляет шаги внутри прежней вкладки: их запись в истории
+    // безвредна, а вид уже сменил роутер.
+    if ($("booking-modal") && !$("booking-modal").hidden) closeBooking();
+    clearSteps();
     switchTab(name);
     refreshTab(name);
   }
@@ -344,6 +378,11 @@
     else if (name === "payments") renderPayments();
     else if (name === "documents") renderDocuments();
     else if (name === "messages") renderMessages();
+    // «Новый тур» при входе на вкладку по адресу/клику всегда открывается
+    // витриной — так и задумано, а шаги вглубь начинаются от чистого корня.
+    // (Внутренние переходы билдера идут без смены адреса, refreshTab их не
+    // трогает.)
+    else if (name === "builder") showBuilderShowcase();
   }
 
   /* В публичной шапке вошедшему показываем «Кабинет» вместо «Войти» —
@@ -685,17 +724,43 @@
     showBuilderView("showcase");
   }
 
-  // Куда возвращает «← Все туры» из конструктора mir-jahon: с Карадениза — на
-  // верхнюю витрину, с программы Умры — на сетку из 9 программ.
-  var builderReturn = "showcase";
+  /* Ниже — «виды» конструктора (низкоуровневая отрисовка, без истории) и
+   * «заходы» (enterX — те же виды, но с записью шага в историю браузера,
+   * чтобы «Назад» вернул на предыдущий вид). Кнопки «← Все туры» и «Назад»
+   * браузера ведут через один stepBack, поэтому поведение совпадает. */
 
-  // Клик по Караденизу → привычный конструктор mir-jahon.
-  function openKaradenizBuilder() {
+  // ВИД: конструктор Карадениза.
+  function viewKaradeniz() {
     state.builder = { tour: "KARADENIZ", code: null, counts: {} };
-    builderReturn = "showcase";
     showBuilderView("karadeniz");
     renderBuilder();
   }
+  // ВИД: конструктор конкретной программы Умры.
+  function viewProgram(code) {
+    state.builder = { tour: code, code: null, counts: {} };
+    showBuilderView("karadeniz");
+    renderBuilder();
+  }
+  // ВИД: сетка из 9 программ Умры.
+  function viewUmra() {
+    showBuilderView("umra");
+    renderUmraShowcase();
+    // Программы могли ещё не загрузиться (loadTours асинхронный) — как только
+    // придут, перерисуем ту же сетку уже с данными.
+    if (toursReady) toursReady.then(renderUmraShowcase);
+  }
+  // ВИД: каталог направления (Япония — пока не разбита на программы).
+  function viewCatalogDest(name) {
+    showBuilderView("catalog");
+    if (builderCatalog) builderCatalog.openDestination(name);
+  }
+
+  // ЗАХОДЫ с витрины (шаг назад — витрина).
+  function openKaradenizBuilder() { pushStep(showBuilderShowcase); viewKaradeniz(); }
+  function openBuilderDestination(name) { pushStep(showBuilderShowcase); viewCatalogDest(name); }
+  function openUmraShowcase() { pushStep(showBuilderShowcase); viewUmra(); }
+  // ЗАХОД в программу с сетки Умры (шаг назад — сетка Умры).
+  function openUmraProgram(code) { pushStep(viewUmra); viewProgram(code); }
 
   // Клик по Умре → сетка из 9 карточек-программ (та же логика, что и витрина
   // выше), клик по программе — её каталог (карточка → калькулятор → бронь).
@@ -747,30 +812,6 @@
             "</article>";
           }).join("") + "</div>"
         : '<div class="tt-empty-state">Программ с таким сроком пока нет.</div>');
-  }
-
-  function openUmraShowcase() {
-    showBuilderView("umra");
-    renderUmraShowcase();
-    // Программы могли ещё не загрузиться (loadTours асинхронный) — как
-    // только придут, перерисуем ту же сетку уже с данными.
-    if (toursReady) toursReady.then(renderUmraShowcase);
-  }
-
-  // Клик по карточке программы Умры → тот же конструктор mir-jahon, что и у
-  // Карадениза, но на выбранной программе. «← Все туры» из него вернёт на сетку
-  // программ Умры (builderReturn), а не на верхнюю витрину.
-  function openUmraProgram(code) {
-    state.builder = { tour: code, code: null, counts: {} };
-    builderReturn = "umra";
-    showBuilderView("karadeniz");
-    renderBuilder();
-  }
-
-  // Клик по Японии (пока не разбита на программы) → её каталог напрямую.
-  function openBuilderDestination(name) {
-    showBuilderView("catalog");
-    if (builderCatalog) builderCatalog.openDestination(name);
   }
 
   // Конструктор работает по выбранному туру (state.builder.tour): Карадениз или
@@ -1228,13 +1269,11 @@
     openUmraProgram(card.dataset.program);
   });
 
-  // «← Все туры» из конструктора: с Карадениза — на верхнюю витрину, с
-  // программы Умры — обратно на сетку из 9 программ (builderReturn).
-  $("builder-back").addEventListener("click", function () {
-    if (builderReturn === "umra") openUmraShowcase(); else showBuilderShowcase();
-  });
-  // «← Все туры» из сетки программ Умры/карточки тура — на витрину туров.
-  $("builder-catalog-back").addEventListener("click", showBuilderShowcase);
+  // «← Все туры» из конструктора и из сетки программ Умры/каталога — тот же
+  // откат на шаг назад, что и кнопка «Назад» браузера (stepBack → history.back
+  // → popstate вызовет closer шага). Если шагов почему-то нет — на витрину.
+  $("builder-back").addEventListener("click", function () { stepBack(showBuilderShowcase); });
+  $("builder-catalog-back").addEventListener("click", function () { stepBack(showBuilderShowcase); });
 
   // Кнопка «Программа тура»: если есть PDF под направление — качаем его.
   // У Умры PDF пока нет — честно сообщаем, а не уводим на публичный каталог.
@@ -1395,6 +1434,9 @@
     bookingAgreed = false;
     if ($("bm-agree")) $("bm-agree").hidden = true;
     $("booking-modal").hidden = false;
+    // Шаг в истории: «Назад» браузера (и × / клик по фону) закроет окно брони,
+    // а не уведёт со страницы.
+    pushStep(closeBooking);
     // Чистим форму перед отрисовкой: renderPassengers переносит в новые
     // строки то, что осталось в старых, и без этого данные прошлой брони
     // всплывали бы в следующей.
@@ -1413,9 +1455,10 @@
     if (btn) openBooking(btn.dataset.book);
   });
 
-  $("bm-close").addEventListener("click", closeBooking);
+  // × и клик по затемнению закрывают окно тем же откатом шага, что и «Назад».
+  $("bm-close").addEventListener("click", function () { stepBack(closeBooking); });
   $("booking-modal").addEventListener("click", function (e) {
-    if (e.target === $("booking-modal")) closeBooking();
+    if (e.target === $("booking-modal")) stepBack(closeBooking);
   });
 
   $("bm-add").addEventListener("click", function () {
@@ -2646,6 +2689,20 @@
   });
 
   window.addEventListener("hashchange", applyRoute);
+
+  /* «Назад»/«Вперёд» браузера. Если адрес сменился — это переход по вкладке
+   * или экрану, его ведёт applyRoute (через hashchange); наши шаги при этом
+   * обнуляем. Если адрес НЕ менялся — значит откатили один из наших шагов
+   * (окно брони, сетка Умры, конструктор): закрываем всё, что глубже целевого
+   * шага из history.state. */
+  window.addEventListener("popstate", function (e) {
+    if (window.location.hash !== appliedHash) { clearSteps(); return; }
+    var targetId = (e.state && e.state.ttStep) || 0;
+    while (stepStack.length && stepStack[stepStack.length - 1].id > targetId) {
+      var s = stepStack.pop();
+      try { s.close(); } catch (_) {}
+    }
+  });
 
   if (TuronApi.isLoggedIn()) {
     restoreSession();
