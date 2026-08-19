@@ -15918,7 +15918,18 @@ window.TURON_DESTINATIONS = [
     }
 
     return {
-      render: draw,
+      // Внешний render() СНАЧАЛА сверяет вид с адресом (когда useHash), потом
+      // рисует. Его зовёт app.js при показе публичного экрана — переход из
+      // кабинета «на главную», первый заход, — там, где внутренний hashchange
+      // мог не сработать (адрес уже был #/), а view остался от прошлого
+      // просмотра. Без сверки render() рисовал устаревший экран (например,
+      // Умру): его же следом перерисовывал hashchange в корень, но обе
+      // отрисовки асинхронные и писали в один контейнер — кто ответит
+      // последним, тот и побеждал. Отсюда редкие «перебросы» в программы Умры.
+      render: function () {
+        if (cfg.useHash) { var v = viewFromHash(); if (v) view = v; }
+        return draw();
+      },
       reset: function () { return go({ kind: "destinations" }, false); },
       openTour: function (code) {
         return go({ kind: "tour", code: code, variant: null }, false);
