@@ -245,25 +245,12 @@
   // Карточки заезда переиспользуют визуал агентской вкладки «Направления»
   // (.tt-dep, .tt-seat-bar) — оператору место в кабинете такое же родное,
   // просто без цен и кнопки «Забронировать»: тут это выбор, а не продажа.
-  function occupancyLevel(d) {
-    var free = d.capacity - d.seats_taken;
-    return free <= 0 ? "is-full" : free <= 10 ? "is-low" : "";
-  }
-
   function opDepCardHtml(d, active) {
-    var pct = d.capacity ? Math.round((d.seats_taken / d.capacity) * 100) : 0;
-    var free = d.capacity - d.seats_taken;
-    return '<button type="button" class="tt-op-dep ' + occupancyLevel(d) +
+    return '<button type="button" class="tt-op-dep' +
       (active ? " is-active" : "") + '" data-departure="' + esc(d.code) + '">' +
       '<div class="tt-dep-date"><strong>' + formatDate(d.date_start) + "</strong>" +
         '<span class="tt-dep-code">' + esc(d.code) + "</span></div>" +
       '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
-      '<div class="tt-dep-seats">' +
-        '<div class="tt-seat-bar"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="tt-seat-text">' +
-          (free <= 0 ? "мест нет" : "занято " + d.seats_taken + " из " + d.capacity) +
-        "</div>" +
-      "</div>" +
     "</button>";
   }
 

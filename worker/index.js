@@ -575,23 +575,19 @@ async function createBooking(request, env, agency, ctx) {
   const commission = (departure.agency_commission || 0) * seatsNeeded;
 
   /*
-   * Ключевое место всей системы: места списываются одним UPDATE с проверкой
-   * лимита прямо в WHERE. Если два агентства бронируют последние места
-   * одновременно, второй UPDATE не найдёт подходящей строки и вернёт 0
-   * изменений — вместо того чтобы продать одно место дважды.
+   * Продажа открыта: ограничения по вместимости больше нет (оператор управляет
+   * ей сам, счётчик мест с реальностью не сверяется). Места по-прежнему
+   * списываем одним UPDATE — seats_taken ведём для сводок, — но потолок
+   * capacity из WHERE убран. Единственное условие — заезд открыт (is_open = 1):
+   * закрытый оператором заезд бронировать нельзя.
    */
   const claim = await env.DB.prepare(
     `UPDATE departures SET seats_taken = seats_taken + ?
-      WHERE id = ? AND seats_taken + ? <= capacity AND is_open = 1`
-  ).bind(seatsNeeded, departure.id, seatsNeeded).run();
+      WHERE id = ? AND is_open = 1`
+  ).bind(seatsNeeded, departure.id).run();
 
   if (!claim.meta.changes) {
-    const fresh = await env.DB.prepare(
-      "SELECT capacity - seats_taken AS seats_free FROM departures WHERE id = ?"
-    ).bind(departure.id).first();
-    return fail(
-      `Не хватает мест: нужно ${seatsNeeded}, свободно ${fresh ? fresh.seats_free : 0}`, 409
-    );
+    return fail("Заезд закрыт для продажи. Уточните у оператора.", 409);
   }
 
   try {
@@ -692,19 +688,15 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
   const newSeats = priced.filter((p) => p.tariff.occupies_seat).length;
   const delta = newSeats - oldSeats;
 
-  // Мест нужно больше — занимаем их так же условно, как при новой брони.
+  // Мест нужно больше — занимаем их так же, как при новой брони. Продажа
+  // открыта: потолок capacity убран, проверяем только что заезд открыт.
   if (delta > 0) {
     const claim = await env.DB.prepare(
       `UPDATE departures SET seats_taken = seats_taken + ?
-        WHERE id = ? AND seats_taken + ? <= capacity AND is_open = 1`
-    ).bind(delta, booking.departure_id, delta).run();
+        WHERE id = ? AND is_open = 1`
+    ).bind(delta, booking.departure_id).run();
     if (!claim.meta.changes) {
-      const fresh = await env.DB.prepare(
-        "SELECT capacity - seats_taken AS seats_free FROM departures WHERE id = ?"
-      ).bind(booking.departure_id).first();
-      return fail(
-        `Не хватает мест: нужно ещё ${delta}, свободно ${fresh ? fresh.seats_free : 0}`, 409
-      );
+      return fail("Заезд закрыт для продажи. Уточните у оператора.", 409);
     }
   } else if (delta < 0) {
     await env.DB.prepare("UPDATE departures SET seats_taken = seats_taken + ? WHERE id = ?")

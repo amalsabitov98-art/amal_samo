@@ -7,10 +7,8 @@
  * состоянием — иначе два каталога на одной странице делили бы одну
  * переменную и мешали друг другу.
  *
- * Гостю остаток мест показывается ведром («20+ мест»), а не точным
- * числом: сколько именно осталось — внутренняя цифра оператора. В
- * кабинете (canBook) выводится точный остаток, агенту он нужен, чтобы
- * планировать группу.
+ * Остаток мест нигде не показывается: продажа открыта, вместимостью
+ * оператор управляет сам (счётчик мест в системе с реальностью не сверяется).
  */
 (function (global) {
   "use strict";
@@ -641,7 +639,7 @@
   /*
    * opts:
    *   root     — контейнер для отрисовки (обязателен)
-   *   canBook  — показывать кнопку брони и точный остаток мест
+   *   canBook  — показывать кнопку брони (в кабинете), иначе «Войти и забронировать»
    *   onBook   — (departureCode) => void, клик по «Забронировать»
    *   onLogin  — (departureCode) => void, гость просит войти
    *   useHash  — держать текущий экран в адресе (#/t/KARADENIZ)
@@ -664,16 +662,6 @@
     // и вешать их надо один раз, а не при каждой отрисовке титульной.
     var heroWakeBound = false;
     var showcaseCleanup = null;
-
-    function seatsLabel(free) {
-      if (free <= 0) return { text: "мест нет", level: "is-full" };
-      if (cfg.canBook) {
-        return { text: "свободно " + free, level: free <= 10 ? "is-low" : "is-ok" };
-      }
-      if (free <= 10) return { text: "осталось " + free, level: "is-low" };
-      if (free <= 20) return { text: "10+ мест", level: "is-ok" };
-      return { text: "20+ мест", level: "is-ok" };
-    }
 
     function errorBox(err) {
       root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
@@ -783,8 +771,6 @@
     function calcHtml(d) {
       var counts = calc.counts;
       var t = calcTotals(d, counts);
-      var available = d.seats_free;
-      var over = t.seats > available;
 
       function calcRow(code, title, note, price, n) {
         return '<div class="tt-calc-row">' +
@@ -824,20 +810,15 @@
       return rows +
         '<div class="tt-calc-total">' +
           "<div><span>Туристов</span><strong>" + t.people + "</strong></div>" +
-          "<div><span>Занимают мест</span><strong>" + t.seats + " из " +
-            available + "</strong></div>" +
+          "<div><span>Занимают мест</span><strong>" + t.seats + "</strong></div>" +
           '<div class="tt-calc-grand"><span>Итого</span><strong>' +
             money(t.total) + "</strong></div>" +
         "</div>" +
-        (over
-          ? '<div class="tt-error-box">Мест не хватает: нужно ' + t.seats +
-            ", свободно " + available + ".</div>"
-          : "") +
         policyHtml(d.date_start, t.total) +
         '<div class="tt-calc-actions">' +
           (cfg.canBook
             ? '<button class="tt-btn" data-book-calc="' + esc(d.code) + '"' +
-              (t.people === 0 || over ? " disabled" : "") + ">Забронировать</button>"
+              (t.people === 0 ? " disabled" : "") + ">Забронировать</button>"
             : '<button class="tt-btn secondary" data-login="' + esc(d.code) +
               '">Войти и забронировать</button>') +
         "</div>";
@@ -848,8 +829,6 @@
         .sort(function (a, b) { return a.price - b.price; });
       var children = d.prices.filter(function (p) { return p.kind === "child"; })
         .sort(function (a, b) { return b.price - a.price; });
-      var seats = seatsLabel(d.seats_free);
-      var full = d.seats_free <= 0;
       var open = calc.code === d.code;
 
       return (
@@ -873,13 +852,10 @@
                 }).join(" · ") + "</div>"
               : "") +
           "</div>" +
-          '<div class="tt-cat-dep-seats ' + seats.level + '">' + seats.text + "</div>" +
           '<div class="tt-cat-dep-action">' +
-            (full
-              ? '<span class="tt-muted-note">нет мест</span>'
-              : '<button class="tt-btn' + (open ? "" : " secondary") +
-                ' tt-btn-sm" data-calc="' + esc(d.code) + '">' +
-                (open ? "Скрыть расчёт" : "Рассчитать") + "</button>") +
+            '<button class="tt-btn' + (open ? "" : " secondary") +
+              ' tt-btn-sm" data-calc="' + esc(d.code) + '">' +
+              (open ? "Скрыть расчёт" : "Рассчитать") + "</button>" +
           "</div>" +
           (open
             ? '<div class="tt-cat-calc">' + calcHtml(d) + "</div>"
@@ -986,7 +962,6 @@
      * Кнопка ведёт в карточку тура — там и прайс, и расчёт, и бронь.
      */
     function searchResultRow(d) {
-      var seats = seatsLabel(d.seats_free);
       var meta = [TRANSPORT[d.transport] || d.transport];
       if (d.nights) {
         meta.push(d.nights + " " + plural(d.nights, "ночь", "ночи", "ночей"));
@@ -1006,7 +981,6 @@
             (d.is_info_tour
               ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
           "</div>" +
-          '<div class="tt-search-seats ' + seats.level + '">' + seats.text + "</div>" +
           '<div class="tt-search-price">' +
             (d.min_price != null
               ? '<span class="tt-muted-note">от</span><strong>' +

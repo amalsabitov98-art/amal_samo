@@ -482,12 +482,8 @@
     var children = d.prices.filter(function (p) { return p.kind === "child"; })
       .sort(function (a, b) { return b.price - a.price; });
 
-    var free = d.seats_free;
-    var pct = d.capacity ? Math.round((d.seats_taken / d.capacity) * 100) : 0;
-    var level = free === 0 ? "is-full" : free <= 10 ? "is-low" : "";
-
     return (
-      '<article class="tt-dep ' + level + '">' +
+      '<article class="tt-dep">' +
         '<div class="tt-dep-main">' +
           '<div class="tt-dep-date">' +
             "<strong>" + formatRange(d.date_start, d.nights) + "</strong>" +
@@ -511,16 +507,8 @@
             : "") +
         "</div>" +
 
-        '<div class="tt-dep-seats">' +
-          '<div class="tt-seat-bar"><i style="width:' + pct + '%"></i></div>' +
-          '<div class="tt-seat-text">' +
-            (free === 0 ? "мест нет" : "свободно <strong>" + free + "</strong> из " + d.capacity) +
-          "</div>" +
-        "</div>" +
-
         '<div class="tt-dep-action">' +
-          '<button class="tt-btn" data-book="' + esc(d.code) + '"' +
-            (free === 0 ? " disabled" : "") + ">Забронировать</button>" +
+          '<button class="tt-btn" data-book="' + esc(d.code) + '">Забронировать</button>' +
         "</div>" +
       "</article>"
     );
@@ -528,7 +516,6 @@
 
   function renderDepartures() {
     var transport = $("f-transport").value;
-    var onlyFree = $("f-available").checked;
     // Доска «Направления» оформлена под Карадениз (фильтр по аэропортам
     // TZX/BUS, «экспедиции»). Заезды Умры сюда не подмешиваем — они без
     // подписи тура читались бы как безымянные заезды Карадениза; Умра видна
@@ -536,18 +523,11 @@
     var list = state.departures.filter(function (d) {
       if ((d.tour_code || "KARADENIZ") !== "KARADENIZ") return false;
       if (transport && d.transport !== transport) return false;
-      if (onlyFree && d.seats_free <= 0) return false;
       return true;
     });
-    var totalFree = list.reduce(function (sum, d) { return sum + d.seats_free; }, 0);
-    var lowCount = list.filter(function (d) {
-      return d.seats_free > 0 && d.seats_free <= Math.max(4, Math.ceil(d.capacity * 0.2));
-    }).length;
     var nextDate = list.length ? formatDate(list[0].date_start) : "—";
     $("departure-stats").innerHTML =
       '<article><span>Предстоящие заезды</span><strong>' + list.length + '</strong><small>по выбранным условиям</small></article>' +
-      '<article><span>Свободные места</span><strong>' + totalFree + '</strong><small>доступно для брони</small></article>' +
-      '<article><span>Мест на исходе</span><strong>' + lowCount + '</strong><small>заездов требуют внимания</small></article>' +
       '<article><span>Ближайший вылет</span><strong class="is-date">' + esc(nextDate) + '</strong><small>следующая экспедиция</small></article>';
     $("departures-list").innerHTML = list.length
       ? list.map(departureCardHtml).join("")
@@ -591,7 +571,6 @@
   }
 
   $("f-transport").addEventListener("change", renderDepartures);
-  $("f-available").addEventListener("change", renderDepartures);
 
   /* ------------------------------------------------------------- билдер
    * «Новый тур» — тот же расчёт, что и калькулятор в каталоге, только в
@@ -831,8 +810,8 @@
       return d.code === state.builder.code;
     })[0];
     if (chosen) return chosen;
-    // по умолчанию — ближайший заезд, где ещё есть места
-    return list.filter(function (d) { return d.seats_free > 0; })[0] || list[0];
+    // по умолчанию — ближайший заезд (продажа открыта, по местам не отсеиваем)
+    return list[0];
   }
 
   // Размещение и цена ОДНОГО взрослого выводятся из числа взрослых
@@ -1011,7 +990,6 @@
     state.builder.code = d.code;
 
     var t = builderTotals(d);
-    var over = t.seats > d.seats_free;
     var nights = d.nights || 0;
 
     var occ = usesOccupancy(d);
@@ -1037,11 +1015,9 @@
     // не подмешиваем.
     $("builder-departure").innerHTML = builderDepartures().map(function (x) {
       return '<option value="' + esc(x.code) + '"' +
-        (x.code === d.code ? " selected" : "") +
-        (x.seats_free <= 0 ? " disabled" : "") + ">" +
+        (x.code === d.code ? " selected" : "") + ">" +
         formatRange(x.date_start, x.nights) +
         (x.nights ? " · " + x.nights + " ночей" : "") +
-        (x.seats_free <= 0 ? " · мест нет" : " · свободно " + x.seats_free) +
       "</option>";
     }).join("");
 
@@ -1061,8 +1037,7 @@
 
     // -------------------------------------- шапка карточки туристов
     $("builder-paxhead").innerHTML = "<strong>" + formatRange(d.date_start, nights) +
-      "</strong><small>" + (nights ? nights + " ночей / " + (nights + 1) + " дней · " : "") +
-      "свободно " + d.seats_free + " из " + d.capacity + "</small>";
+      "</strong>" + (nights ? "<small>" + nights + " ночей / " + (nights + 1) + " дней</small>" : "");
 
     // --------------------------------------------- счётчики туристов
     function paxRow(code, title, note, price, n) {
@@ -1159,11 +1134,7 @@
     $("builder-summary").innerHTML =
       '<div class="tt-mj-total-lines">' + lines + "</div>" +
       '<div class="tt-mj-total-grand"><span>Общий</span><strong>' + money(t.total) +
-        "</strong></div>" +
-      (over
-        ? '<div class="tt-mj-error">Мест не хватает: нужно ' + t.seats +
-          ", свободно " + d.seats_free + ".</div>"
-        : "");
+        "</strong></div>";
 
     var cbox = $("builder-commission");
     cbox.hidden = commission <= 0;
@@ -1195,7 +1166,7 @@
       ? "⤓ Скачать программу · " + prog.title
       : "Программа тура · " + (nights + 1) + " дней";
     progBtn.dataset.url = prog ? prog.url : "";
-    $("builder-book").disabled = t.people === 0 || over;
+    $("builder-book").disabled = t.people === 0;
     fillBuilderContent(d.tour_code || "KARADENIZ");
   }
 
@@ -1346,22 +1317,17 @@
         (passport ? '<span class="tt-price-warn"> · ' + esc(passport) + "</span>" : "");
     });
 
-    // при правке места, уже занятые этой бронью, снова доступны ей самой
-    var available = d.seats_free + (state.editing ? state.editing.seats_used || 0 : 0);
-    var overflow = seats > available;
-    if (overflow) ready = false;
-
+    // Продажа открыта: остаток мест не показываем и по нему не блокируем.
     var commission = (d.agency_commission || 0) * seats;
     $("bm-summary").innerHTML =
       '<div class="tt-sum-line"><span>Пассажиров</span><strong>' + rows.length + "</strong></div>" +
-      '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + " из " + available + " доступных</strong></div>" +
+      '<div class="tt-sum-line"><span>Занимают мест</span><strong>' + seats + "</strong></div>" +
       (commission > 0
         ? '<div class="tt-sum-line tt-earn"><span>Ваша комиссия</span><strong>' +
           money(commission) + "</strong></div>"
         : "") +
       '<div class="tt-sum-total"><span>Итого к оплате</span><strong>' + money(total) + "</strong></div>" +
-      (total > 0 ? TuronCatalog.policyHtml(d.date_start, total) : "") +
-      (overflow ? '<div class="tt-error-box">Мест не хватает — уберите пассажиров или выберите другой заезд.</div>' : "");
+      (total > 0 ? TuronCatalog.policyHtml(d.date_start, total) : "");
 
     $("bm-submit").disabled = !ready;
   }
@@ -1408,8 +1374,7 @@
     $("bm-title").textContent = booking
       ? "Правка брони " + booking.code
       : "Заезд " + formatDate(d.date_start);
-    $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code +
-      " · свободно " + d.seats_free;
+    $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code;
     $("bm-note").value = (booking && booking.note) || "";
     $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
     $("booking-modal").hidden = false;
@@ -2324,7 +2289,7 @@
   function switchTab(name) {
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
-      departures: ["Направления", "Заезды и свободные места"],
+      departures: ["Направления", "Заезды и цены"],
       catalog: ["Каталог туров", "Маршруты и программы"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],

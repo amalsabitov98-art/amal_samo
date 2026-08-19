@@ -269,10 +269,9 @@
       if (t.occupies_seat) seats++;
       total += t.price;
     }
-    if (d.seats_taken + seats > d.capacity) {
-      return Promise.reject(new Error(
-        "Не хватает мест: нужно " + seats + ", свободно " + (d.capacity - d.seats_taken)));
-    }
+    // Продажа открыта: по вместимости не блокируем (счётчик мест с реальностью
+    // не сверяется, вместимостью оператор управляет сам). seats_taken всё равно
+    // ведём — вдруг понадобится сводка, но бронь по нему не отклоняем.
     // Комиссия — за проданного туриста; младенец на руках продажей не считается.
     var commission = (d.agency_commission || 0) * seats;
     d.seats_taken += seats;
@@ -426,11 +425,8 @@
           if (t.occupies_seat) seats++;
           total += t.price;
         }
+        // Продажа открыта: по вместимости не блокируем (см. создание брони).
         var delta = seats - b.seats_used;
-        if (delta > 0 && d.seats_taken + delta > d.capacity) {
-          return Promise.reject(new Error(
-            "Не хватает мест: нужно ещё " + delta + ", свободно " + (d.capacity - d.seats_taken)));
-        }
         d.seats_taken += delta;
         b.passengers = priced;
         b.passengers_count = priced.length;

@@ -444,15 +444,12 @@ console.log("\nКабинет агентства");
   check("слайдер переключает фотографии", firstMedia !== secondMedia,
         `${firstMedia} → ${secondMedia}`);
 
-  // счёт и бронирование. Берём заезд с запасом мест: на ближайшем их может
-  // остаться одно, и кнопка справедливо заблокируется по нехватке мест.
-  let roomy = null;
-  for (const opt of await page.locator("#builder-departure option").all()) {
-    const label = await opt.innerText();
-    const free = label.match(/свободно (\d+)/);
-    if (free && Number(free[1]) >= 3) { roomy = await opt.getAttribute("value"); break; }
-  }
-  check("есть заезд со свободными местами", !!roomy);
+  // счёт и бронирование. Продажа открыта — по местам заезды не отсеиваем,
+  // берём просто первый в списке периода.
+  const roomy = await page.locator("#builder-departure option").first().getAttribute("value");
+  check("в конструкторе есть заезд для брони", !!roomy);
+  check("в дропдауне периода нет «свободно»",
+        !(await page.locator("#builder-departure").innerText()).includes("свободно"));
   await page.selectOption("#builder-departure", roomy);
   await page.waitForTimeout(400);
 
