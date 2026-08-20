@@ -97,6 +97,25 @@ console.log("\nТитульная страница");
         }));
   check("отдельный японский слайд удалён",
         (await page.locator(".tt-japan-sheet").count()) === 0);
+  check("новый полноэкранный блок «О компании» отрисован",
+        await page.locator("#about-company").evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return el.classList.contains("tt-about-company") &&
+            Math.abs(r.width - window.innerWidth) < 1 &&
+            r.height >= window.innerHeight * 0.9;
+        }));
+  check("в блоке «О компании» есть командное фото и три показателя",
+        (await page.locator("#about-company .tt-about-photo").count()) === 1 &&
+        (await page.locator("#about-company .tt-about-stat").count()) === 3 &&
+        await page.locator("#about-company .tt-about-photo").evaluate((img) =>
+          img.complete && img.naturalWidth > 0));
+  check("старый логотип-заглушка из блока «О компании» удалён",
+        (await page.locator("#about-company .tt-about-emblem").count()) === 0);
+  check("блок явно подписан как «О компании»",
+        (await page.locator("#about-company .tt-about-kicker").textContent()).trim() === "О компании");
+  check("показатели размечены как доступный список",
+        await page.locator("#about-company .tt-about-stats").getAttribute("role") === "list" &&
+        (await page.locator("#about-company .tt-about-stat[role='listitem']").count()) === 3);
 
   await page.locator('[data-showcase-card="1"]').click();
   await page.waitForTimeout(1100);

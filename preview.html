@@ -2396,7 +2396,6 @@ a { color: inherit; }
 /* Акценты, которые были золотыми, — в бирюзу. */
 :root:not([data-theme="light"]) #screen-public .tt-public-intro .tt-eyebrow,
 :root:not([data-theme="light"]) #screen-public .tt-public-intro h1 em,
-:root:not([data-theme="light"]) #screen-public .tt-about-copy .tt-eyebrow,
 #screen-public .tt-cat-heading .tt-eyebrow { color: var(--tt-accent); }
 #screen-public .tt-hero-search-field:focus-within { outline-color: var(--tt-accent); }
 
@@ -3003,7 +3002,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4458,109 +4457,115 @@ select { font-family: inherit; }
 }
 
 .tt-about-company {
+  --about-gold: #c79a36;
+  --about-ink: #002b27;
   position: relative;
-  min-height: 520px;
-  display: grid;
-  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(34px, 7vw, 100px);
-  align-items: center;
+  min-height: 100svh;
   overflow: hidden;
-  margin-top: 0;
-  padding: clamp(42px, 7vw, 90px);
-  border-radius: 32px;
-  background:
-    radial-gradient(circle at 7% 9%, rgba(229, 201, 135, 0.15), transparent 23rem),
-    linear-gradient(145deg, #0d352e 0%, #071f1b 100%);
-  color: #fffaf0;
-  box-shadow: 0 30px 90px rgba(7, 37, 31, 0.2);
-  scroll-margin-top: 150px;
+  background: #031e1b;
+  color: #fff8e8;
+  scroll-margin-top: 130px;
 }
-.tt-about-company::after {
+.tt-about-company::before {
   content: "";
   position: absolute;
-  right: -140px;
-  bottom: -220px;
-  width: 520px;
-  height: 520px;
-  border: 1px solid rgba(229, 201, 135, 0.13);
-  border-radius: 50%;
-  box-shadow: 0 0 0 70px rgba(255, 255, 255, 0.018);
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(1, 18, 17, 0.08) 0%, rgba(2, 24, 22, 0.08) 40%, rgba(2, 29, 26, 0.82) 61%, #032b27 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 55%, rgba(0, 0, 0, 0.34));
+  pointer-events: none;
 }
-.tt-about-company > * { position: relative; z-index: 1; }
-.tt-about-brand {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  text-align: center;
+.tt-about-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
-.tt-about-emblem {
-  width: min(23vw, 270px);
-  height: min(26vw, 300px);
-  background: url("img/etihad-mark.png") center / contain no-repeat;
-  filter: drop-shadow(0 25px 38px rgba(0, 0, 0, 0.28));
+.tt-about-main {
+  position: relative;
+  z-index: 2;
+  width: min(41vw, 690px);
+  margin-left: auto;
+  padding: clamp(44px, 8vh, 92px) clamp(34px, 5vw, 82px) clamp(210px, 25vh, 260px) 0;
 }
-.tt-about-brand > span {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.5rem;
-  line-height: 0.95;
-}
-.tt-about-brand small {
+.tt-about-logo {
   display: block;
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.42);
-  font-family: "Manrope", "Segoe UI", sans-serif;
-  font-size: 0.48rem;
-  font-weight: 700;
+  width: clamp(118px, 12vw, 188px);
+  height: auto;
+  margin: 0 0 clamp(24px, 4vh, 42px) auto;
+  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.28));
+}
+.tt-about-kicker {
+  margin: 0 0 14px;
+  color: #d9b85e;
+  font-size: clamp(0.72rem, 0.8vw, 0.9rem);
+  font-weight: 900;
   letter-spacing: 0.18em;
+  line-height: 1.2;
   text-transform: uppercase;
 }
-.tt-about-copy .tt-eyebrow { color: #e5c987; }
-.tt-about-copy h2 {
-  max-width: 800px;
-  margin: 12px 0 22px;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.7rem, 5vw, 5.1rem);
-  font-weight: 500;
-  line-height: 0.92;
+.tt-about-main h2 {
+  max-width: 680px;
+  margin: 0;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+  font-size: clamp(3.4rem, 6vw, 7.5rem);
+  font-stretch: condensed;
+  font-weight: 900;
+  line-height: 0.84;
   letter-spacing: -0.045em;
+  text-transform: uppercase;
+  text-wrap: balance;
 }
-.tt-about-copy > p {
-  max-width: 690px;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 0.8rem;
-  line-height: 1.8;
+.tt-about-main > p:not(.tt-about-kicker) {
+  max-width: 590px;
+  margin: clamp(20px, 3vh, 34px) 0 0;
+  color: rgba(255, 248, 232, 0.88);
+  font-size: clamp(0.95rem, 1.35vw, 1.3rem);
+  line-height: 1.45;
 }
-.tt-about-points {
+.tt-about-stats {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  min-height: clamp(150px, 21vh, 205px);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 35px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  align-items: center;
+  padding: 20px clamp(24px, 8vw, 140px);
+  background: linear-gradient(105deg, #d4aa4b 0%, #bc8724 100%);
+  color: var(--about-ink);
+  box-shadow: 0 -18px 55px rgba(0, 0, 0, 0.22);
 }
-.tt-about-points span {
-  padding: 17px 15px 0 0;
-  color: rgba(255, 255, 255, 0.77);
-  font-size: 0.63rem;
-  line-height: 1.55;
+.tt-about-stat {
+  min-width: 0;
+  padding: 0 clamp(16px, 4vw, 72px);
+  text-align: center;
 }
-.tt-about-points i {
+.tt-about-stat + .tt-about-stat {
+  border-left: 2px solid rgba(0, 59, 52, 0.58);
+}
+.tt-about-stat strong {
   display: block;
-  margin-bottom: 8px;
-  color: var(--tt-accent);
-  font-size: 0.55rem;
-  font-style: normal;
-  font-weight: 700;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+  font-size: clamp(3.1rem, 5.4vw, 6.5rem);
+  font-stretch: condensed;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.035em;
 }
-.tt-about-detail {
-  position: absolute;
-  right: clamp(32px, 5vw, 72px);
-  bottom: 28px;
-  max-width: 400px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.38);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 0.88rem;
-  font-style: italic;
-  text-align: right;
+.tt-about-stat span {
+  display: block;
+  margin-top: 12px;
+  font-size: clamp(0.72rem, 1.1vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 /* «Свяжитесь с нами» — секция после «О компании». Свой тёмный фон-панель
  * (как у about-company), чтобы стеклянные карточки и белый текст читались и
@@ -5337,7 +5342,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
@@ -5394,21 +5399,25 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-cat-hero::after { left: 22px; right: auto; }
   .tt-cat-hero h1 { font-size: 3rem; }
   .tt-about-company {
-    min-height: auto;
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 40px 25px 78px;
-    border-radius: 23px;
+    min-height: max(780px, 100svh);
   }
-  .tt-about-brand {
-    grid-template-columns: 85px 1fr;
-    justify-items: start;
-    align-items: center;
-    text-align: left;
+  .tt-about-company::before {
+    background:
+      linear-gradient(180deg, rgba(2, 22, 20, 0.06) 0%, rgba(2, 27, 24, 0.18) 34%, #032b27 58%, #032b27 100%);
   }
-  .tt-about-emblem { width: 82px; height: 90px; }
-  .tt-about-copy h2 { font-size: 3.1rem; }
-  .tt-about-detail { left: 25px; right: 25px; max-width: none; text-align: left; }
+  .tt-about-photo { height: 59%; object-position: 35% center; }
+  .tt-about-main {
+    width: 100%;
+    margin: 0;
+    padding: clamp(350px, 48vh, 450px) 24px 180px;
+  }
+  .tt-about-logo { width: 112px; margin: 0 0 24px auto; }
+  .tt-about-main h2 { max-width: 620px; font-size: clamp(3rem, 10vw, 5rem); }
+  .tt-about-main p { max-width: 560px; font-size: 0.95rem; }
+  .tt-about-stats { min-height: 156px; padding: 18px 10px; }
+  .tt-about-stat { padding-inline: 10px; }
+  .tt-about-stat strong { font-size: clamp(2.2rem, 9vw, 4rem); }
+  .tt-about-stat span { margin-top: 8px; font-size: clamp(0.55rem, 2.2vw, 0.75rem); }
   .tt-cat-dep { grid-template-columns: 1fr auto; }
   .tt-cat-dep-prices,
   .tt-cat-dep-action,
@@ -5462,15 +5471,15 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-cat-h1 { font-size: 2.8rem; }
   .tt-cat-grid { grid-template-columns: 1fr; }
   .tt-cat-hero h1 { font-size: 2.55rem; }
-  .tt-about-points { grid-template-columns: 1fr; }
-  .tt-about-points span {
-    display: grid;
-    grid-template-columns: 26px 1fr;
-    gap: 6px;
-    align-items: start;
-    padding-top: 11px;
-  }
-  .tt-about-points i { margin: 0; }
+  .tt-about-company { min-height: max(820px, 100svh); }
+  .tt-about-photo { height: 52%; object-position: 34% center; }
+  .tt-about-main { padding: clamp(350px, 43vh, 410px) 20px 176px; }
+  .tt-about-logo { width: 98px; margin-bottom: 20px; }
+  .tt-about-main h2 { font-size: clamp(2.75rem, 14vw, 4rem); }
+  .tt-about-main p { margin-top: 16px; font-size: 0.86rem; }
+  .tt-about-stats { min-height: 150px; }
+  .tt-about-stat strong { font-size: clamp(1.9rem, 9vw, 2.8rem); }
+  .tt-about-stat span { font-size: 0.7rem; }
   .tt-public-footer { display: grid; gap: 5px; }
   .tt-modal { padding: 0; }
   .tt-modal-card { max-height: 100vh; border-radius: 0; }
@@ -13596,12 +13605,13 @@ window.TURON_DESTINATIONS = [
       "catalog.title": "Выберите направление",
       "catalog.text": "Откройте программы, ближайшие даты и доступные варианты размещения.",
       "about.kicker": "О компании",
-      "about.title": "Не просто отправляем в поездку. Собираем путешествие целиком.",
-      "about.text": "Etihad — туроператор из Ташкента. Мы создаём экскурсионные и групповые маршруты, объединяя перелёт, размещение, программу и сопровождение в одной понятной системе.",
-      "about.operator": "Туроператор из Узбекистана",
-      "about.partners": "Работаем с туристами и агентствами",
-      "about.support": "Поддержка на маршруте 24/7",
-      "about.detail": "Команда знает маршрут до деталей: от первой консультации до возвращения домой.",
+      "about.title": "Мы собираем путешествие целиком.",
+      "about.text": "С 2022 года организуем весь путь — от маршрута до возвращения домой.",
+      "about.photoAlt": "Команда Etihad планирует маршрут с партнёрами",
+      "about.facts": "Etihad в цифрах",
+      "about.founded": "Год основания",
+      "about.pilgrims": "Паломников в год",
+      "about.specialists": "Специалистов",
       "contact.kicker": "Свяжитесь с нами",
       "contact.title": "Соберём тур под вас",
       "contact.infoTitle": "Индивидуальный подход",
@@ -13672,12 +13682,13 @@ window.TURON_DESTINATIONS = [
       "catalog.title": "Yo‘nalishni tanlang",
       "catalog.text": "Dasturlar, yaqin sanalar va joylashuv variantlarini ko‘ring.",
       "about.kicker": "Kompaniya haqida",
-      "about.title": "Shunchaki safarga jo‘natmaymiz. Sayohatni to‘liq yaratamiz.",
-      "about.text": "Etihad — Toshkentdagi turoperator. Biz parvoz, mehmonxona, dastur va hamrohlikni yagona tushunarli tizimga birlashtirgan ekskursiya va guruh yo‘nalishlarini yaratamiz.",
-      "about.operator": "O‘zbekistondagi turoperator",
-      "about.partners": "Sayyohlar va agentliklar bilan ishlaymiz",
-      "about.support": "Yo‘nalishda 24/7 ko‘mak",
-      "about.detail": "Jamoamiz birinchi maslahatdan uyga qaytishgacha bo‘lgan har bir bosqichni biladi.",
+      "about.title": "Sayohatni to‘liq tashkil qilamiz.",
+      "about.text": "2022-yildan beri yo‘nalishdan uyga qaytishgacha bo‘lgan butun safarni tashkil qilamiz.",
+      "about.photoAlt": "Etihad jamoasi hamkorlar bilan yo‘nalishni rejalashtirmoqda",
+      "about.facts": "Etihad raqamlarda",
+      "about.founded": "Tashkil topgan yil",
+      "about.pilgrims": "Yiliga ziyoratchilar",
+      "about.specialists": "Mutaxassislar",
       "contact.kicker": "Biz bilan bog‘laning",
       "contact.title": "Turni siz uchun tuzamiz",
       "contact.infoTitle": "Individual yondashuv",
@@ -13748,12 +13759,13 @@ window.TURON_DESTINATIONS = [
       "catalog.title": "Choose a destination",
       "catalog.text": "Explore programmes, upcoming dates and available accommodation options.",
       "about.kicker": "About us",
-      "about.title": "We do more than send you away. We build the whole journey.",
-      "about.text": "Etihad is a Tashkent-based tour operator. We create excursion and group itineraries that bring flights, accommodation, experiences and on-route support into one clear system.",
-      "about.operator": "Tour operator from Uzbekistan",
-      "about.partners": "For travellers and travel agencies",
-      "about.support": "24/7 support along the route",
-      "about.detail": "Our team knows every stage of the journey, from the first conversation to the return home.",
+      "about.title": "We build the entire journey.",
+      "about.text": "Since 2022, we have organised every stage — from the route to the return home.",
+      "about.photoAlt": "The Etihad team planning a route with partners",
+      "about.facts": "Etihad in numbers",
+      "about.founded": "Year founded",
+      "about.pilgrims": "Pilgrims per year",
+      "about.specialists": "Specialists",
       "contact.kicker": "Get in touch",
       "contact.title": "We’ll build your trip",
       "contact.infoTitle": "Tailored to you",
@@ -13824,12 +13836,13 @@ window.TURON_DESTINATIONS = [
       "catalog.title": "Rotanızı seçin",
       "catalog.text": "Programları, yaklaşan tarihleri ve konaklama seçeneklerini inceleyin.",
       "about.kicker": "Hakkımızda",
-      "about.title": "Sadece tatile göndermiyoruz. Yolculuğun tamamını tasarlıyoruz.",
-      "about.text": "Etihad, Taşkent merkezli bir tur operatörüdür. Uçuş, konaklama, program ve rota desteğini tek bir anlaşılır sistemde birleştiren kültür ve grup turları hazırlıyoruz.",
-      "about.operator": "Özbekistan merkezli tur operatörü",
-      "about.partners": "Gezginler ve acenteler için",
-      "about.support": "Rota boyunca 7/24 destek",
-      "about.detail": "Ekibimiz ilk görüşmeden eve dönüşe kadar yolculuğun her ayrıntısını bilir.",
+      "about.title": "Yolculuğun tamamını planlıyoruz.",
+      "about.text": "2022'den beri rotadan eve dönüşe kadar tüm yolculuğu organize ediyoruz.",
+      "about.photoAlt": "Etihad ekibi ortaklarıyla bir rota planlıyor",
+      "about.facts": "Rakamlarla Etihad",
+      "about.founded": "Kuruluş yılı",
+      "about.pilgrims": "Yıllık hac ve umre yolcusu",
+      "about.specialists": "Uzman",
       "contact.kicker": "Bize ulaşın",
       "contact.title": "Turu size göre kuralım",
       "contact.infoTitle": "Size özel yaklaşım",
@@ -15680,22 +15693,23 @@ window.TURON_DESTINATIONS = [
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
-          '<section class="tt-about-company" id="about-company">' +
-            '<div class="tt-about-brand">' +
-              '<i class="tt-about-emblem" aria-hidden="true"></i>' +
-              '<span>Etihad<small>Tashkent · Uzbekistan</small></span>' +
+          '<section class="tt-about-company" id="about-company" aria-labelledby="about-company-title">' +
+            '<img class="tt-about-photo" src="img/about-team.webp" alt="' +
+              esc(tr("about.photoAlt")) + '" />' +
+            '<div class="tt-about-main">' +
+              '<img class="tt-about-logo" src="img/etihad-logo.png" alt="Etihad" />' +
+              '<p class="tt-about-kicker">' + esc(tr("about.kicker")) + '</p>' +
+              '<h2 id="about-company-title">' + esc(tr("about.title")) + '</h2>' +
+              '<p>' + esc(tr("about.text")) + '</p>' +
             "</div>" +
-            '<div class="tt-about-copy">' +
-              '<span class="tt-eyebrow">' + esc(tr("about.kicker")) + "</span>" +
-              "<h2>" + esc(tr("about.title")) + "</h2>" +
-              "<p>" + esc(tr("about.text")) + "</p>" +
-              '<div class="tt-about-points">' +
-                "<span><i>01</i>" + esc(tr("about.operator")) + "</span>" +
-                "<span><i>02</i>" + esc(tr("about.partners")) + "</span>" +
-                "<span><i>03</i>" + esc(tr("about.support")) + "</span>" +
-              "</div>" +
+            '<div class="tt-about-stats" role="list" aria-label="' + esc(tr("about.facts")) + '">' +
+              '<div class="tt-about-stat" role="listitem"><strong>2022</strong><span>' +
+                esc(tr("about.founded")) + '</span></div>' +
+              '<div class="tt-about-stat" role="listitem"><strong>40 000+</strong><span>' +
+                esc(tr("about.pilgrims")) + '</span></div>' +
+              '<div class="tt-about-stat" role="listitem"><strong>100+</strong><span>' +
+                esc(tr("about.specialists")) + '</span></div>' +
             "</div>" +
-            '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
           contactHtml() +
           footerHtml();
