@@ -514,26 +514,28 @@
     if (op.address) rows += contactRow("pin", null, op.address);
     return (
       '<section class="tt-contact" id="contact">' +
-        '<div class="tt-contact-lead">' +
-          '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
-          "<h2>" + esc(tr("contact.title")) + "</h2>" +
-        "</div>" +
-        '<div class="tt-contact-grid">' +
-          '<div class="tt-contact-card tt-contact-info">' +
-            "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
-            "<p>" + esc(tr("contact.infoText")) + "</p>" +
-            '<div class="tt-contact-rows">' + rows + "</div>" +
+        '<div class="tt-contact-inner">' +
+          '<div class="tt-contact-lead">' +
+            '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
+            "<h2>" + esc(tr("contact.title")) + "</h2>" +
           "</div>" +
-          '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
-            '<input id="cf-name" type="text" autocomplete="name" ' +
-              'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
-            '<input id="cf-contact" type="text" ' +
-              'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
-            '<textarea id="cf-msg" rows="3" ' +
-              'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
-            '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
-            '<p class="tt-contact-note" id="cf-note" hidden></p>' +
-          "</form>" +
+          '<div class="tt-contact-grid">' +
+            '<div class="tt-contact-card tt-contact-info">' +
+              "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
+              "<p>" + esc(tr("contact.infoText")) + "</p>" +
+              '<div class="tt-contact-rows">' + rows + "</div>" +
+            "</div>" +
+            '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
+              '<input id="cf-name" type="text" autocomplete="name" ' +
+                'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
+              '<input id="cf-contact" type="text" ' +
+                'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
+              '<textarea id="cf-msg" rows="3" ' +
+                'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
+              '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
+              '<p class="tt-contact-note" id="cf-note" hidden></p>' +
+            "</form>" +
+          "</div>" +
         "</div>" +
       "</section>"
     );

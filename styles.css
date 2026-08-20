@@ -2982,7 +2982,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4550,10 +4550,14 @@ select { font-family: inherit; }
    * тема-зависимый --tt-accent (в светлой теме он коралловый и на тёмном фоне
    * смотрелся бы сломанным — половина кнопки оранжевая). */
   --cc: #4fd6e8;
+  /* На весь экран: та же схема, что у hero-видео и других full-bleed секций —
+   * .tt-contact добавлена в список исключений у #screen-public > .tt-container
+   * (иначе получила бы width:min(1380px,100%) и центрировалась бы карточкой
+   * с полями по бокам). Ширину/центрирование контента внутри держит
+   * .tt-contact-inner, а не сама секция. */
   position: relative;
   margin-top: clamp(26px, 4vw, 46px);
   padding: clamp(38px, 6vw, 78px) clamp(22px, 5vw, 74px);
-  border-radius: 32px;
   overflow: hidden;
   background:
     radial-gradient(circle at 90% 6%, rgba(79, 214, 232, 0.16), transparent 24rem),
@@ -4562,6 +4566,10 @@ select { font-family: inherit; }
   color: #f4f7fb;
   box-shadow: 0 30px 90px rgba(4, 10, 22, 0.35);
   scroll-margin-top: 130px;
+}
+.tt-contact-inner {
+  max-width: 1180px;
+  margin: 0 auto;
 }
 .tt-contact-lead {
   max-width: 640px;
@@ -5308,7 +5316,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }

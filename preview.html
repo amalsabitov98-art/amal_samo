@@ -3003,7 +3003,7 @@ select { font-family: inherit; }
   max-width: none;
   padding: 0 0 42px;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4571,10 +4571,14 @@ select { font-family: inherit; }
    * тема-зависимый --tt-accent (в светлой теме он коралловый и на тёмном фоне
    * смотрелся бы сломанным — половина кнопки оранжевая). */
   --cc: #4fd6e8;
+  /* На весь экран: та же схема, что у hero-видео и других full-bleed секций —
+   * .tt-contact добавлена в список исключений у #screen-public > .tt-container
+   * (иначе получила бы width:min(1380px,100%) и центрировалась бы карточкой
+   * с полями по бокам). Ширину/центрирование контента внутри держит
+   * .tt-contact-inner, а не сама секция. */
   position: relative;
   margin-top: clamp(26px, 4vw, 46px);
   padding: clamp(38px, 6vw, 78px) clamp(22px, 5vw, 74px);
-  border-radius: 32px;
   overflow: hidden;
   background:
     radial-gradient(circle at 90% 6%, rgba(79, 214, 232, 0.16), transparent 24rem),
@@ -4583,6 +4587,10 @@ select { font-family: inherit; }
   color: #f4f7fb;
   box-shadow: 0 30px 90px rgba(4, 10, 22, 0.35);
   scroll-margin-top: 130px;
+}
+.tt-contact-inner {
+  max-width: 1180px;
+  margin: 0 auto;
 }
 .tt-contact-lead {
   max-width: 640px;
@@ -5329,7 +5337,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-contact) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
@@ -14824,26 +14832,28 @@ window.TURON_DESTINATIONS = [
     if (op.address) rows += contactRow("pin", null, op.address);
     return (
       '<section class="tt-contact" id="contact">' +
-        '<div class="tt-contact-lead">' +
-          '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
-          "<h2>" + esc(tr("contact.title")) + "</h2>" +
-        "</div>" +
-        '<div class="tt-contact-grid">' +
-          '<div class="tt-contact-card tt-contact-info">' +
-            "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
-            "<p>" + esc(tr("contact.infoText")) + "</p>" +
-            '<div class="tt-contact-rows">' + rows + "</div>" +
+        '<div class="tt-contact-inner">' +
+          '<div class="tt-contact-lead">' +
+            '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
+            "<h2>" + esc(tr("contact.title")) + "</h2>" +
           "</div>" +
-          '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
-            '<input id="cf-name" type="text" autocomplete="name" ' +
-              'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
-            '<input id="cf-contact" type="text" ' +
-              'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
-            '<textarea id="cf-msg" rows="3" ' +
-              'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
-            '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
-            '<p class="tt-contact-note" id="cf-note" hidden></p>' +
-          "</form>" +
+          '<div class="tt-contact-grid">' +
+            '<div class="tt-contact-card tt-contact-info">' +
+              "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
+              "<p>" + esc(tr("contact.infoText")) + "</p>" +
+              '<div class="tt-contact-rows">' + rows + "</div>" +
+            "</div>" +
+            '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
+              '<input id="cf-name" type="text" autocomplete="name" ' +
+                'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
+              '<input id="cf-contact" type="text" ' +
+                'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
+              '<textarea id="cf-msg" rows="3" ' +
+                'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
+              '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
+              '<p class="tt-contact-note" id="cf-note" hidden></p>' +
+            "</form>" +
+          "</div>" +
         "</div>" +
       "</section>"
     );
