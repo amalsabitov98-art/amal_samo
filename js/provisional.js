@@ -216,7 +216,7 @@
     phone: MANAGERS[0].phone,
     phone_href: MANAGERS[0].phone_href,
     telegram_href: MANAGERS[0].telegram_href,
-    email: "info@turontourism.uz",
+    email: "info@etihad.uz",
     address: "город Ташкент, Алмазарский район, улица Нурафшон, 51",
   };
 
