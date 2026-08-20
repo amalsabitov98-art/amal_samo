@@ -21,6 +21,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# Отчёт печатается по-русски. Консоль Windows по умолчанию не UTF-8, и
+# print() с кириллицей падал бы UnicodeEncodeError — переключаем поток сами.
+# reconfigure есть с Python 3.7; errors="replace" — страховка на экзотические
+# терминалы, чтобы отчёт вышел пусть и с «?», но не уронил проверку.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 
 def significant(text):
     """Строки SQL без агентств, комментариев и пустот."""
@@ -47,9 +55,13 @@ def main():
         return 1
 
     env = dict(os.environ, TURON_SEED_PASSWORD="check-only")
+    # encoding="utf-8" обязателен: без него text=True декодирует вывод
+    # генератора кодировкой системы, и на Windows (cp1251) сид с кириллицей
+    # падает с UnicodeDecodeError ещё до сравнения. На Linux/macOS локаль
+    # обычно и так UTF-8, поэтому баг был не виден.
     generated = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "build-seed.py")],
-        capture_output=True, text=True, env=env, cwd=str(ROOT),
+        capture_output=True, text=True, encoding="utf-8", env=env, cwd=str(ROOT),
     ).stdout
 
     want = significant(generated)

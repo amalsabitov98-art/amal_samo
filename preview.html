@@ -15139,6 +15139,20 @@ window.TURON_DESTINATIONS = [
     // CTA витрины может открыть не верх направления, а конкретный блок.
     // Храним намерение до hashchange: именно он перерисовывает страницу.
     var pendingScrollTarget = null;
+    /*
+     * Число туристов из поиска на титульной. Раньше фильтр «Количество
+     * человек» только сужал выдачу по остатку мест — а мест у нас с запасом
+     * и продажа не ограничена, поэтому он не отсекал ничего и был
+     * декоративным. Теперь он ещё и переносит намерение в карточку: агент
+     * искал «на 4 человек» → карточка открывается на выбранной дате с уже
+     * набранными 4 туристами, и сразу видно сумму.
+     *
+     * searchPeople — что выбрано в форме сейчас (нужно при отрисовке строк
+     * выдачи); pendingSelection — намерение, переживающее переход по хешу
+     * (сам переход перерисовывает страницу, как и pendingScrollTarget выше).
+     */
+    var searchPeople = 0;
+    var pendingSelection = null;   // { departure, people }
     // Открытый калькулятор: код заезда и счётчики по тарифам.
     var calc = { code: null, counts: {} };
     // Последняя загруженная карточка тура — чтобы нажатия «+/−» в
@@ -15350,6 +15364,39 @@ window.TURON_DESTINATIONS = [
       );
     }
 
+    /*
+     * Вариант маршрута ↔ аэропорт прилёта. Правило железное, подтверждено
+     * оператором: BUS — прилёт в Батуми, TZX — прилёт в Трабзон. Раньше
+     * связи не было, переключатель стоял вручную и под ним висело «уточните
+     * у оператора» — агент мог показать клиенту чужой маршрут (у Карадениза
+     * варианты зеркальные, перепутать их — отправить группу не в ту сторону).
+     *
+     * Определяем по ТЕКСТУ заголовка варианта, а не по коду A/B: код — просто
+     * порядок сортировки и может смениться, а формулировка «прилёт в …» и
+     * есть само правило. Не распознали — возвращаем null, и тогда ничего не
+     * переключаем: молча показать не тот маршрут хуже, чем оставить выбор
+     * агенту.
+     */
+    function variantTransport(v) {
+      var t = String((v && v.title) || "");
+      if (/прил[её]т в Батуми/i.test(t)) return "BUS";
+      if (/прил[её]т в Трабзон/i.test(t)) return "TZX";
+      return null;
+    }
+
+    // Вариант, соответствующий аэропорту заезда (или null, если тур без
+    // вариантов / правило к нему не применимо).
+    function variantForDeparture(tour, departureCode) {
+      if (!tour || !tour.variants || tour.variants.length < 2) return null;
+      var dep = (tour.departures || []).filter(function (d) {
+        return d.code === departureCode;
+      })[0];
+      if (!dep || !dep.transport) return null;
+      return tour.variants.filter(function (v) {
+        return variantTransport(v) === dep.transport;
+      })[0] || null;
+    }
+
     function programmeBlock(tour) {
       if (!tour.variants || !tour.variants.length) return "";
       var active = tour.variants.filter(function (v) { return v.code === view.variant; })[0]
@@ -15360,9 +15407,10 @@ window.TURON_DESTINATIONS = [
               (v.code === active.code ? " is-active" : "") +
               '" data-variant="' + esc(v.code) + '">' + esc(v.title) + "</button>";
           }).join("") + "</div>" +
-          '<p class="tt-muted-note">Это два разных маршрута с разным направлением ' +
-          "перелёта, а не два описания одного. Какой вариант у выбранного заезда — " +
-          "уточните у оператора.</p>"
+          '<p class="tt-muted-note">Это два разных маршрута, а не два описания ' +
+          "одного. Вариант определяет аэропорт прилёта заезда: «Авиа · Батуми» — " +
+          "прилёт в Батуми, «Авиа · Трабзон» — прилёт в Трабзон. Откройте расчёт " +
+          "на нужной дате — программа переключится на её маршрут сама.</p>"
         : "";
       if (!active.days.length)
         return '<section class="tt-cat-block" id="tour-programme"><h2>Программа</h2>' +
@@ -15473,7 +15521,11 @@ window.TURON_DESTINATIONS = [
                 money(d.min_price) + "</strong>"
               : "") +
           "</div>" +
-          '<button class="tt-btn tt-btn-sm" data-tour="' + esc(d.tour_code) + '">' +
+          // data-departure/-people переносят выбор из поиска в карточку тура:
+        // открыть расчёт именно на этой дате и на найденное число туристов.
+        '<button class="tt-btn tt-btn-sm" data-tour="' + esc(d.tour_code) +
+          '" data-departure="' + esc(d.code) + '"' +
+          (searchPeople ? ' data-people="' + searchPeople + '"' : "") + ">" +
             "Программа и цены</button>" +
         "</article>"
       );
@@ -15570,6 +15622,9 @@ window.TURON_DESTINATIONS = [
       form.addEventListener("change", showCount);
       form.addEventListener("submit", function (e) {
         e.preventDefault();
+        // Строки выдачи читают его при отрисовке (searchResultRow), чтобы
+        // положить выбор в кнопку и донести до карточки тура.
+        searchPeople = Number(peopleSel.value) || 0;
         var found = matches();
         out.hidden = false;
         out.innerHTML =
@@ -15924,8 +15979,37 @@ window.TURON_DESTINATIONS = [
       loading();
       return TuronApi.catalogTour(code).then(function (tour) {
         loadedTour = tour;
+        applyPendingSelection(tour);   // до paintTour: он рисует уже открытый расчёт
         paintTour(tour);
       }).catch(errorBox);
+    }
+
+    /*
+     * Перенос выбора из поиска: открыть расчёт на найденной дате и набрать
+     * заявленное число туристов.
+     *
+     * Туристов подставляем ТОЛЬКО там, где размещение выводится из размера
+     * группы (Карадениз: 1 → одноместный, 2 → двухместный, 3+ → трёхместный —
+     * см. usesOccupancy). У Умры тип номера QUAD/TRPL/DBL — это выбор бюджета
+     * паломника, а не следствие того, что их четверо: подставить за него
+     * четырёхместный значило бы решить за клиента и показать не ту сумму.
+     * Там просто открываем расчёт на нужной дате, счётчики агент проставит сам.
+     */
+    function applyPendingSelection(tour) {
+      var want = pendingSelection;
+      pendingSelection = null;
+      if (!want) return;
+      var dep = (tour.departures || []).filter(function (d) {
+        return d.code === want.departure;
+      })[0];
+      if (!dep) return;   // дату уже сняли с продажи — карточка просто откроется
+
+      calc = { code: dep.code, counts: {} };
+      if (want.people > 0 && usesOccupancy(dep)) calc.counts.ADULT = want.people;
+
+      // Программа — маршрута этой даты (BUS → Батуми, TZX → Трабзон).
+      var v = variantForDeparture(tour, dep.code);
+      if (v) view.variant = v.code;
     }
 
     function paintTour(tour) {
@@ -16166,7 +16250,13 @@ window.TURON_DESTINATIONS = [
       }
 
       var tour = e.target.closest("[data-tour]");
-      if (tour) return go({ kind: "tour", code: tour.dataset.tour, variant: null }, true);
+      if (tour) {
+        // Пришли из выдачи поиска — несём с собой дату и число туристов.
+        pendingSelection = tour.dataset.departure
+          ? { departure: tour.dataset.departure, people: Number(tour.dataset.people) || 0 }
+          : null;
+        return go({ kind: "tour", code: tour.dataset.tour, variant: null }, true);
+      }
 
       var crumb = e.target.closest("[data-go]");
       if (crumb) {
@@ -16191,8 +16281,19 @@ window.TURON_DESTINATIONS = [
       var toggle = e.target.closest("[data-calc]");
       if (toggle) {
         var code = toggle.dataset.calc;
-        calc = calc.code === code ? { code: null, counts: {} }
-                                  : { code: code, counts: {} };
+        var opening = calc.code !== code;
+        calc = opening ? { code: code, counts: {} } : { code: null, counts: {} };
+        // Открыли расчёт на конкретной дате — программа переключается на
+        // маршрут ЭТОГО заезда (по его аэропорту). Иначе агент считает цену
+        // на 21 августа, а рядом висит программа зеркального маршрута.
+        if (opening) {
+          var want = variantForDeparture(loadedTour, code);
+          if (want && want.code !== view.variant) {
+            view.variant = want.code;
+            var block = root.querySelector("#tour-programme");
+            if (block) block.outerHTML = programmeBlock(loadedTour);
+          }
+        }
         return rerenderDepartures();
       }
 

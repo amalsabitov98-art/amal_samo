@@ -189,10 +189,27 @@ console.log("\nТитульная страница");
   const rows = await page.locator("#tour-search-results .tt-search-row").count();
   check("выдача поиска отрисована", rows > 0, rows + " строк");
 
-  await page.locator("#tour-search-results .tt-search-row .tt-btn").first().click();
+  // Выбор из поиска должен доехать до карточки: кнопка несёт дату и число
+  // туристов, иначе фильтр «Количество человек» остаётся декоративным.
+  const firstBtn = page.locator("#tour-search-results .tt-search-row .tt-btn").first();
+  const carriedDeparture = await firstBtn.getAttribute("data-departure");
+  const carriedPeople = await firstBtn.getAttribute("data-people");
+  check("кнопка выдачи несёт выбранную дату", !!carriedDeparture, String(carriedDeparture));
+  check("кнопка выдачи несёт число туристов", carriedPeople === "5", String(carriedPeople));
+
+  await firstBtn.click();
   await page.waitForTimeout(700);
   check("из выдачи открывается карточка тура",
         (await page.evaluate(() => location.hash)).startsWith("#/t/"));
+
+  // Расчёт открыт сразу на той дате, что нашли, и с набранными туристами.
+  const calcOpen = await page.locator(".tt-cat-calc").count();
+  check("расчёт открыт сразу на найденной дате", calcOpen === 1, calcOpen + " открытых");
+  const adultCount = await page
+    .locator('.tt-cat-calc .tt-calc-row:has([data-tariff="ADULT"]) output')
+    .first().textContent().catch(() => null);
+  check("число туристов из поиска подставлено в расчёт", adultCount === "5",
+        `в счётчике «${adultCount}»`);
 
   check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
   await page.close();
@@ -219,6 +236,32 @@ console.log("\nКарточка тура Карадениз");
         await page.locator(".tt-tour-bg video.tt-hero-video source[src='img/tour-karadeniz-hero.mp4']").count() === 1);
   check("фон закреплён (position:fixed), а не прокручивается вместе со страницей",
         await page.locator(".tt-tour-bg").evaluate((el) => getComputedStyle(el).position === "fixed"));
+
+  /* Вариант маршрута привязан к аэропорту заезда: BUS — прилёт в Батуми,
+   * TZX — прилёт в Трабзон. Маршруты зеркальные, поэтому показать не тот —
+   * значит отправить группу в обратную сторону; проверяем оба направления. */
+  const depCodes = await page.locator("[data-calc]").evaluateAll(
+    (els) => els.map((e) => e.dataset.calc));
+  const busDep = depCodes.find((c) => c.startsWith("BUS"));
+  const tzxDep = depCodes.find((c) => c.startsWith("TZX"));
+  const activeVariant = () => page.locator(".tt-cat-variant.is-active")
+    .first().textContent().catch(() => "");
+  check("в карточке есть заезды обоих аэропортов", !!busDep && !!tzxDep,
+        JSON.stringify(depCodes.slice(0, 4)));
+
+  await page.locator(`[data-calc="${tzxDep}"]`).first().click();
+  await page.waitForTimeout(400);
+  check("расчёт на заезде TZX переключает программу на прилёт в Трабзон",
+        (await activeVariant()).includes("прилёт в Трабзон"), await activeVariant());
+
+  await page.locator(`[data-calc="${tzxDep}"]`).first().click();   // закрыть
+  await page.waitForTimeout(200);
+  await page.locator(`[data-calc="${busDep}"]`).first().click();
+  await page.waitForTimeout(400);
+  check("расчёт на заезде BUS переключает программу на прилёт в Батуми",
+        (await activeVariant()).includes("прилёт в Батуми"), await activeVariant());
+  await page.locator(`[data-calc="${busDep}"]`).first().click();   // закрыть за собой
+  await page.waitForTimeout(200);
 
   // Раскладка Умры: текст-герой идёт полосой сверху (не во весь экран —
    // иначе заголовок уезжал в самый низ и над ним зияла пустая «пропасть»),
