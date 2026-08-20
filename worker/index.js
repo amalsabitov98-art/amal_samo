@@ -551,11 +551,18 @@ async function notifyTelegram(env, b) {
  * включить только одно уведомление, оставив второе выключенным. Пока
  * переменные не заданы, молча ничего не отправляет (как и notifyTelegram),
  * и это не ошибка запроса: фронтенд в этом случае откатывается на mailto.
+ *
+ * CONTACT_TELEGRAM_CHAT_ID может быть НЕСКОЛЬКИМИ id через запятую (та же
+ * схема, что у ALLOWED_ORIGIN выше в файле) — удобно на время проверки:
+ * свой личный id рядом с id шефа, оба получат сообщение, потом свой можно
+ * убрать. delivered в ответе — true, если ушло хотя бы одному.
  */
 async function notifyContactRequest(env, body) {
   const token = env.CONTACT_TELEGRAM_BOT_TOKEN;
-  const chatId = env.CONTACT_TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return false;
+  const raw = env.CONTACT_TELEGRAM_CHAT_ID;
+  if (!token || !raw) return false;
+  const chatIds = String(raw).split(",").map((s) => s.trim()).filter(Boolean);
+  if (!chatIds.length) return false;
 
   const text =
     "📩 <b>Заявка с сайта</b>\n" +
@@ -563,16 +570,19 @@ async function notifyContactRequest(env, body) {
     "Контакт: " + tgEscape(body.contact) + "\n\n" +
     tgEscape(body.message);
 
-  try {
-    const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-    });
-    return res.ok;
-  } catch (_) {
-    return false;
-  }
+  const results = await Promise.all(chatIds.map(async (chatId) => {
+    try {
+      const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+      });
+      return res.ok;
+    } catch (_) {
+      return false;
+    }
+  }));
+  return results.some(Boolean);
 }
 
 // Простое ограничение частоты — переиспользует таблицу login_attempts
