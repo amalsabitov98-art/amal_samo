@@ -540,6 +540,18 @@
       "</section>"
     );
   }
+  /*
+   * Заявка сначала пробует уйти в Telegram оператору через воркер
+   * (TuronApi.contactRequest → notifyContactRequest на бэкенде). Откат на
+   * mailto — в трёх случаях, которые формой не различаются, потому что
+   * агенту всё равно важен только результат «сообщение куда-то ушло»:
+   *   1) демо-режим (нет apiBaseUrl) — API отклоняет сразу;
+   *   2) воркер недоступен/старой версии без этого маршрута — сеть/404;
+   *   3) воркер есть, но TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID ещё не заданы
+   *      (см. wrangler.toml) — запрос отвечает 200, но delivered: false.
+   * Без отката заявка в третьем случае беззвучно терялась бы, а оператор
+   * не задал бы токен, потому что не узнал бы, что это вообще нужно.
+   */
   function initContactForm(scope) {
     var form = scope.querySelector("#contact-form");
     if (!form) return;
@@ -555,17 +567,33 @@
         note.textContent = tr("contact.fill");
         return;
       }
-      var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
-      var body = tr("contact.name") + ": " + name + "\n" +
-                 tr("contact.contact") + ": " + contact + "\n\n" + msg;
-      var mail = "mailto:" + (op.email || "") +
-        "?subject=" + encodeURIComponent(tr("contact.subject")) +
-        "&body=" + encodeURIComponent(body);
-      global.location.href = mail;
-      note.hidden = false;
-      note.className = "tt-contact-note is-ok";
-      note.textContent = tr("contact.sent");
-      form.reset();
+      var btn = form.querySelector(".tt-contact-send");
+      btn.disabled = true;
+
+      function viaMail() {
+        var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
+        var body = tr("contact.name") + ": " + name + "\n" +
+                   tr("contact.contact") + ": " + contact + "\n\n" + msg;
+        global.location.href = "mailto:" + (op.email || "") +
+          "?subject=" + encodeURIComponent(tr("contact.subject")) +
+          "&body=" + encodeURIComponent(body);
+        showSent(tr("contact.sent"));
+      }
+      function showSent(text) {
+        note.hidden = false;
+        note.className = "tt-contact-note is-ok";
+        note.textContent = text;
+        form.reset();
+        btn.disabled = false;
+      }
+
+      (global.TuronApi && global.TuronApi.contactRequest
+        ? global.TuronApi.contactRequest({ name: name, contact: contact, message: msg })
+        : Promise.reject(new Error("no api"))
+      ).then(function (res) {
+        if (res && res.delivered) showSent(tr("contact.sentApi"));
+        else viaMail();
+      }).catch(viaMail);
     });
   }
 

@@ -4,6 +4,8 @@
  * Маршруты:
  *   POST /api/login          вход по логину/паролю, отдаёт токен сессии
  *   POST /api/logout         погасить текущую сессию
+ *   POST /api/public/contact-request  заявка с формы «Свяжитесь с нами»
+ *                             (без входа) — уходит в Telegram оператору
  *   GET  /api/me             кто вошёл
  *   GET  /api/departures     заезды со свободными местами и прайсом
  *   POST /api/bookings       создать бронь (место занимается сразу)
@@ -537,6 +539,69 @@ async function notifyTelegram(env, b) {
   }
 }
 
+/*
+ * Заявка с публичной формы «Свяжитесь с нами» (гость хочет тур под себя,
+ * не выбирая из готовых программ). Использует ТЕ ЖЕ TELEGRAM_BOT_TOKEN и
+ * TELEGRAM_CHAT_ID, что и уведомление о брони выше — один бот на оба
+ * случая, отдельно настраивать нечего. Пока переменные не заданы, молча
+ * ничего не отправляет (как и notifyTelegram), и это не ошибка запроса:
+ * фронтенд в этом случае откатывается на mailto.
+ */
+async function notifyContactRequest(env, body) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+
+  const text =
+    "📩 <b>Заявка с сайта</b>\n" +
+    "Имя: <b>" + tgEscape(body.name) + "</b>\n" +
+    "Контакт: " + tgEscape(body.contact) + "\n\n" +
+    tgEscape(body.message);
+
+  try {
+    const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+    return res.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+// Простое ограничение частоты — переиспользует таблицу login_attempts
+// (та же защита от перебора, что и у входа) с фиктивным «логином»
+// CONTACT_RATE_KEY: своей таблицы под один маленький маршрут заводить
+// незачем, а колонки (ip, attempted_at) подходят как есть.
+const CONTACT_RATE_KEY = "__contact_form__";
+const CONTACT_WINDOW_MINUTES = 15;
+const CONTACT_MAX_PER_IP = 5;
+
+async function handleContactRequest(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const name = String(body.name || "").trim().slice(0, 120);
+  const contact = String(body.contact || "").trim().slice(0, 120);
+  const message = String(body.message || "").trim().slice(0, 2000);
+  if (!name || !contact || !message) return fail("Заполните имя, контакт и сообщение");
+
+  const ip = request.headers.get("CF-Connecting-IP") ||
+             request.headers.get("X-Forwarded-For") || "unknown";
+  const since = `-${CONTACT_WINDOW_MINUTES} minutes`;
+  const recent = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM login_attempts
+     WHERE login = ? AND ip = ? AND attempted_at > datetime('now', ?)`
+  ).bind(CONTACT_RATE_KEY, ip, since).first();
+  if ((recent.n || 0) >= CONTACT_MAX_PER_IP) {
+    return fail(`Слишком много заявок. Попробуйте через ${CONTACT_WINDOW_MINUTES} минут.`, 429);
+  }
+  await env.DB.prepare("INSERT INTO login_attempts (login, ip) VALUES (?, ?)")
+    .bind(CONTACT_RATE_KEY, ip).run();
+
+  const sent = await notifyContactRequest(env, { name, contact, message });
+  return json({ ok: true, delivered: sent });
+}
+
 async function createBooking(request, env, agency, ctx) {
   const body = await request.json();
   const passengers = Array.isArray(body.passengers) ? body.passengers : [];
@@ -1049,6 +1114,10 @@ async function route(request, env, ctx) {
       const tour = await catalogTour(env, pubTour[1]);
       if (!tour) return fail("Тур не найден", 404);
       return json(tour);
+    }
+
+    if (path === "/api/public/contact-request" && request.method === "POST") {
+      return await handleContactRequest(request, env);
     }
 
     // всё ниже — только для вошедшего агентства

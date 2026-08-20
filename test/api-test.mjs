@@ -290,6 +290,25 @@ check('несуществующий тур → 404', r.status === 404, JSON.stri
 r = await call('/api/bookings');
 check('бронь без входа по-прежнему закрыта', r.status === 401, JSON.stringify(r.data));
 
+console.log('\n--- заявка «Свяжитесь с нами» ---');
+r = await call('/api/public/contact-request', { method:'POST', body:{ name:'', contact:'', message:'' } });
+check('пустая заявка → 400', r.status === 400, JSON.stringify(r.data));
+r = await call('/api/public/contact-request', { method:'POST',
+  body:{ name:'Тест Тестов', contact:'+998900000000', message:'Хочу тур в Японию на майские' } });
+check('заявка принята', r.status === 200 && r.data.ok === true, JSON.stringify(r.data));
+check('без TELEGRAM_CHAT_ID в этом окружении — delivered: false, а не тихая ложь',
+      r.data.delivered === false, JSON.stringify(r.data));
+
+// Выше уже одна заявка с этого IP — добираем до лимита (5) той же формой.
+for (let i = 0; i < 4; i++) {
+  r = await call('/api/public/contact-request', { method:'POST',
+    body:{ name:'Тест', contact:'t@t.uz', message:'ещё заявка ' + i } });
+}
+check('пятая заявка подряд ещё проходит', r.status === 200, JSON.stringify(r.data));
+r = await call('/api/public/contact-request', { method:'POST',
+  body:{ name:'Тест', contact:'t@t.uz', message:'шестая подряд' } });
+check('шестая заявка с того же IP → 429', r.status === 429, JSON.stringify(r.data));
+
 console.log('\n--- защита от перебора пароля ---');
 // ofotour в тестах выше нигде не логинился успешно, поэтому его счётчик чист
 let blocked = null;

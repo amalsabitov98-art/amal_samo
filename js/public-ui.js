@@ -79,6 +79,7 @@
       "contact.send": "Отправить сообщение",
       "contact.fill": "Заполните имя, контакт и сообщение.",
       "contact.sent": "Открываем почту — сообщение уже внутри.",
+      "contact.sentApi": "Заявка отправлена, мы скоро свяжемся с вами.",
       "contact.subject": "Заявка на индивидуальный тур",
       "rate.source": "ЦБ РУз",
       "rate.unavailable": "курс временно недоступен"
@@ -151,6 +152,7 @@
       "contact.send": "Xabar yuborish",
       "contact.fill": "Ism, kontakt va xabarni to‘ldiring.",
       "contact.sent": "Pochta ochilmoqda — xabar ichida.",
+      "contact.sentApi": "So‘rov yuborildi, tez orada bog‘lanamiz.",
       "contact.subject": "Individual turga so‘rov",
       "rate.source": "O‘zbekiston MB",
       "rate.unavailable": "kurs vaqtincha mavjud emas"
@@ -223,6 +225,7 @@
       "contact.send": "Send message",
       "contact.fill": "Fill in your name, contact and message.",
       "contact.sent": "Opening your mail — the message is inside.",
+      "contact.sentApi": "Request sent — we’ll be in touch shortly.",
       "contact.subject": "Custom tour request",
       "rate.source": "CBU",
       "rate.unavailable": "rate temporarily unavailable"
@@ -295,6 +298,7 @@
       "contact.send": "Mesaj gönder",
       "contact.fill": "Ad, iletişim ve mesajı doldurun.",
       "contact.sent": "Posta açılıyor — mesaj içinde.",
+      "contact.sentApi": "Talep gönderildi, yakında sizinle iletişime geçeceğiz.",
       "contact.subject": "Özel tur talebi",
       "rate.source": "Özbekistan MB",
       "rate.unavailable": "kur geçici olarak kullanılamıyor"
