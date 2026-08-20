@@ -1281,22 +1281,23 @@
           '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
-          '<section class="tt-about-company" id="about-company">' +
-            '<div class="tt-about-brand">' +
-              '<i class="tt-about-emblem" aria-hidden="true"></i>' +
-              '<span>Etihad<small>Tashkent · Uzbekistan</small></span>' +
+          '<section class="tt-about-company" id="about-company" aria-labelledby="about-company-title">' +
+            '<img class="tt-about-photo" src="img/about-team.webp" alt="' +
+              esc(tr("about.photoAlt")) + '" />' +
+            '<div class="tt-about-main">' +
+              '<img class="tt-about-logo" src="img/etihad-logo.png" alt="Etihad" />' +
+              '<p class="tt-about-kicker">' + esc(tr("about.kicker")) + '</p>' +
+              '<h2 id="about-company-title">' + esc(tr("about.title")) + '</h2>' +
+              '<p>' + esc(tr("about.text")) + '</p>' +
             "</div>" +
-            '<div class="tt-about-copy">' +
-              '<span class="tt-eyebrow">' + esc(tr("about.kicker")) + "</span>" +
-              "<h2>" + esc(tr("about.title")) + "</h2>" +
-              "<p>" + esc(tr("about.text")) + "</p>" +
-              '<div class="tt-about-points">' +
-                "<span><i>01</i>" + esc(tr("about.operator")) + "</span>" +
-                "<span><i>02</i>" + esc(tr("about.partners")) + "</span>" +
-                "<span><i>03</i>" + esc(tr("about.support")) + "</span>" +
-              "</div>" +
+            '<div class="tt-about-stats" role="list" aria-label="' + esc(tr("about.facts")) + '">' +
+              '<div class="tt-about-stat" role="listitem"><strong>2022</strong><span>' +
+                esc(tr("about.founded")) + '</span></div>' +
+              '<div class="tt-about-stat" role="listitem"><strong>40 000+</strong><span>' +
+                esc(tr("about.pilgrims")) + '</span></div>' +
+              '<div class="tt-about-stat" role="listitem"><strong>100+</strong><span>' +
+                esc(tr("about.specialists")) + '</span></div>' +
             "</div>" +
-            '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
           contactHtml() +
           footerHtml();
