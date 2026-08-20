@@ -116,6 +116,20 @@ console.log("\nТитульная страница");
   check("показатели размечены как доступный список",
         await page.locator("#about-company .tt-about-stats").getAttribute("role") === "list" &&
         (await page.locator("#about-company .tt-about-stat[role='listitem']").count()) === 3);
+  check("логотип не использует растровую надпись с белым ореолом",
+        await page.locator("#about-company .tt-about-brand-lockup").evaluate((el) => {
+          const mark = el.querySelector('img[src="img/etihad-mark.png"]');
+          const word = el.querySelector(".tt-about-logo-word");
+          return !!mark && !!word && word.textContent.trim() === "ETIHAD" &&
+            !el.querySelector('img[src="img/etihad-logo.png"]');
+        }).catch(() => false));
+  check("заголовок «О компании» не зажат в узкой колонке",
+        await page.locator("#about-company h2").evaluate((el) => {
+          const rect = el.getBoundingClientRect();
+          const style = getComputedStyle(el);
+          return rect.width >= 600 &&
+            parseFloat(style.lineHeight) / parseFloat(style.fontSize) >= 0.9;
+        }));
 
   await page.locator('[data-showcase-card="1"]').click();
   await page.waitForTimeout(1100);

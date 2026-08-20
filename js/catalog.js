@@ -1340,7 +1340,10 @@
             '<img class="tt-about-photo" src="img/about-team.webp" alt="' +
               esc(tr("about.photoAlt")) + '" />' +
             '<div class="tt-about-main">' +
-              '<img class="tt-about-logo" src="img/etihad-logo.png" alt="Etihad" />' +
+              '<div class="tt-about-brand-lockup" role="img" aria-label="Etihad">' +
+                '<img class="tt-about-logo-mark" src="img/etihad-mark.png" alt="" />' +
+                '<span class="tt-about-logo-word" aria-hidden="true">ETIHAD</span>' +
+              '</div>' +
               '<p class="tt-about-kicker">' + esc(tr("about.kicker")) + '</p>' +
               '<h2 id="about-company-title">' + esc(tr("about.title")) + '</h2>' +
               '<p>' + esc(tr("about.text")) + '</p>' +

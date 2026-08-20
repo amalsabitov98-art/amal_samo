@@ -4466,16 +4466,33 @@ select { font-family: inherit; }
 .tt-about-main {
   position: relative;
   z-index: 2;
-  width: min(41vw, 690px);
+  width: min(50vw, 800px);
   margin-left: auto;
-  padding: clamp(44px, 8vh, 92px) clamp(34px, 5vw, 82px) clamp(210px, 25vh, 260px) 0;
+  padding: clamp(44px, 8vh, 92px) clamp(34px, 5vw, 82px) clamp(210px, 25vh, 260px) clamp(28px, 3vw, 54px);
 }
-.tt-about-logo {
-  display: block;
-  width: clamp(118px, 12vw, 188px);
-  height: auto;
+.tt-about-brand-lockup {
+  display: grid;
+  justify-items: center;
+  width: clamp(136px, 13vw, 198px);
   margin: 0 0 clamp(24px, 4vh, 42px) auto;
-  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.24));
+}
+.tt-about-logo-mark {
+  display: block;
+  width: 78%;
+  height: auto;
+}
+.tt-about-logo-word {
+  display: block;
+  margin-top: 5px;
+  color: #d7ba6a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.86rem, 1.25vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  line-height: 1;
+  text-indent: 0.28em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.38);
 }
 .tt-about-kicker {
   margin: 0 0 14px;
@@ -4490,11 +4507,11 @@ select { font-family: inherit; }
   max-width: 680px;
   margin: 0;
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
-  font-size: clamp(3.4rem, 6vw, 7.5rem);
+  font-size: clamp(3rem, 5.1vw, 6.5rem);
   font-stretch: condensed;
   font-weight: 900;
-  line-height: 0.84;
-  letter-spacing: -0.045em;
+  line-height: 0.92;
+  letter-spacing: -0.025em;
   text-transform: uppercase;
   text-wrap: balance;
 }
@@ -5453,7 +5470,8 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-about-company { min-height: max(820px, 100svh); }
   .tt-about-photo { height: 52%; object-position: 34% center; }
   .tt-about-main { padding: clamp(350px, 43vh, 410px) 20px 176px; }
-  .tt-about-logo { width: 98px; margin-bottom: 20px; }
+  .tt-about-brand-lockup { width: 106px; margin-bottom: 20px; }
+  .tt-about-logo-word { font-size: 0.72rem; }
   .tt-about-main h2 { font-size: clamp(2.75rem, 14vw, 4rem); }
   .tt-about-main p { margin-top: 16px; font-size: 0.86rem; }
   .tt-about-stats { min-height: 150px; }
