@@ -71,6 +71,12 @@ console.log("\nТитульная страница");
   check("каруселей с картинками больше нет",
         (await page.locator(".tt-hero-slide").count()) === 0);
   check("панель поиска на месте", await page.locator("#tour-search").isVisible());
+  check("пункты выпадающих фильтров контрастны на системном светлом фоне",
+        await page.locator("#ts-dest option").first().evaluate((el) => {
+          const style = getComputedStyle(el);
+          return style.color === "rgb(18, 49, 42)" &&
+            style.backgroundColor === "rgb(255, 250, 240)";
+        }));
   check("в автослайдере три главных направления",
         (await page.locator(".tt-destination-showcase .tt-showcase-slide").count()) === 3);
   check("Карадениз стоит первым и назван главным продуктом",

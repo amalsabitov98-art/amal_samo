@@ -4093,6 +4093,14 @@ select { font-family: inherit; }
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 }
+/* Нативное меню select на Windows открывается светлым даже над тёмным героем.
+ * Явно задаём ему светлую схему и контрастные пункты, иначе option наследует
+ * белый текст закрытого поля и становится невидимым на системном белом фоне. */
+.tt-hero-search-field select { color-scheme: light; }
+.tt-hero-search-field select option {
+  background-color: #fffaf0;
+  color: #12312a;
+}
 .tt-hero-search-field select:focus-visible { outline: none; }
 .tt-hero-search-field:focus-within {
   outline: 2px solid #e5c987;
