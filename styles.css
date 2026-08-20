@@ -2468,12 +2468,39 @@ a { color: inherit; }
 /* Раскладка подвала от темы НЕ зависит: базовое правило ниже по файлу
    делает его флексом в капсе (так он выглядел, когда в нём был один
    копирайт), и в светлой теме новые колонки от этого разъезжались. */
+/* Подвал — тёмная полоса во всю ширину, продолжение секции контактов над
+   ним. В светлой теме он был прозрачным, под ним просвечивал кремовый фон
+   страницы, и под тёмными «Свяжитесь с нами» торчал белый блок. Цвета здесь
+   ФИКСИРОВАННЫЕ, не тема-зависимые: полоса всегда тёмная, значит и текст на
+   ней всегда светлый — иначе в светлой теме он стал бы тёмным на тёмном.
+   Ширину контента держат .tt-foot-cols / .tt-foot-bottom, сам подвал
+   исключён из центрирующего правила .tt-container (см. список :not выше). */
 #screen-public .tt-public-footer {
   display: block;
-  padding: 34px 3px 0;
+  padding: 34px clamp(20px, 4vw, 64px) 0;
   text-transform: none;
   letter-spacing: normal;
   font-size: 0.78rem;
+  background: #070b18;
+  color: #93a8b0;
+  border-top: none;
+  padding-bottom: 34px;
+}
+#screen-public .tt-public-footer .tt-foot-cols,
+#screen-public .tt-public-footer .tt-foot-bottom {
+  width: min(1380px, 100%);
+  margin-inline: auto;
+}
+#screen-public .tt-public-footer .tt-foot-cols strong,
+#screen-public .tt-public-footer .tt-foot-brand { color: #f4f7fb; }
+#screen-public .tt-public-footer .tt-foot-cols a,
+#screen-public .tt-public-footer .tt-foot-link,
+#screen-public .tt-public-footer .tt-muted-note { color: #93a8b0; }
+#screen-public .tt-public-footer .tt-foot-cols a:hover,
+#screen-public .tt-public-footer .tt-foot-link:hover { color: #4fd6e8; }
+#screen-public .tt-public-footer .tt-foot-bottom {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  color: #7c909a;
 }
 .tt-foot-cols {
   display: grid;
@@ -2997,9 +3024,13 @@ select { font-family: inherit; }
 #screen-public > .tt-container {
   width: 100%;
   max-width: none;
-  padding: 0 0 42px;
+  /* Нижнего отступа НЕТ: подвал — тёмная полоса во всю ширину и должен
+     доходить до самого низа. С отступом под ним оставалась светлая кайма
+     фона страницы. Воздух под текстом подвала даёт его собственный
+     padding-bottom. */
+  padding: 0;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact) {
+#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4461,7 +4492,12 @@ select { font-family: inherit; }
   overflow: hidden;
   background: #031e1b;
   color: #fff8e8;
-  scroll-margin-top: 130px;
+  /* Блок ровно в высоту окна, поэтому отступа под прокрутку тут быть НЕ
+     должно: с ним «О компании» в меню приземляла блок на 130px ниже верха
+     экрана, и ровно столько же — золотая полоса с цифрами 2022 / 40 000+ /
+     100+ — уходило за нижний край. Липкой шапки на публичной странице нет
+     (.tt-public-header — position: relative), компенсировать нечего. */
+  scroll-margin-top: 0;
 }
 .tt-about-company::before {
   content: "";
@@ -5355,8 +5391,8 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-account-btn { min-height: 40px; padding: 7px 10px; }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
-  #screen-public > .tt-container { padding: 0 0 70px; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact) { padding-inline: 15px; }
+  #screen-public > .tt-container { padding: 0; }
+  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }

@@ -131,6 +131,39 @@ console.log("\nТитульная страница");
             parseFloat(style.lineHeight) / parseFloat(style.fontSize) >= 0.9;
         }));
 
+  /* Переход по кнопке «О компании» в меню. Блок ровно в высоту окна, поэтому
+   * любой scroll-margin-top срезает снизу ровно столько же — а снизу там
+   * золотая полоса с цифрами 2022 / 40 000+ / 100+. Проверяем не отступ, а
+   * то, что реально видно: цифры целиком в кадре. */
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(200);
+  await page.locator('[data-scroll-target="about-company"]').first().click();
+  await page.waitForTimeout(1400);
+  check("переход «О компании» показывает блок целиком, вместе с цифрами",
+        await page.evaluate(() => {
+          const s = document.querySelector("#about-company").getBoundingClientRect();
+          const st = document.querySelector("#about-company .tt-about-stats").getBoundingClientRect();
+          return s.bottom <= window.innerHeight + 2 && st.bottom <= window.innerHeight + 2 &&
+                 st.top >= -2;
+        }));
+
+  /* Подвал — тёмная полоса во всю ширину и до самого низа. Был прозрачным:
+   * в светлой теме под тёмной секцией контактов торчал белый блок, а под
+   * самим подвалом — светлая кайма от нижнего отступа страницы. */
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(600);
+  check("подвал непрозрачный и доходит до низа страницы",
+        await page.evaluate(() => {
+          const f = document.querySelector(".tt-public-footer");
+          const r = f.getBoundingClientRect();
+          const bg = getComputedStyle(f).backgroundColor;
+          const opaque = bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+          return opaque && Math.round(r.width) === window.innerWidth &&
+                 r.bottom >= window.innerHeight - 1;
+        }));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(400);
+
   await page.locator('[data-showcase-card="1"]').click();
   await page.waitForTimeout(1100);
   check("превью Умры разворачивается в активный полноэкранный кадр",
