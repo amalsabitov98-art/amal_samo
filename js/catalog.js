@@ -419,6 +419,14 @@
    * по туру, и фильтр по месяцу врал бы (тур с ближайшим заездом в августе
    * пропал бы из сентябрьской выдачи, хотя сентябрьские заезды у него есть).
    */
+  // Существительное после числа туристов («1 человек» / «2 человека» /
+  // «5 человек») — то же русское правило, что и у countWord/plural выше;
+  // на других языках все три формы в словаре совпадают, поэтому подстановка
+  // безвредна и там.
+  function peopleWord(n) {
+    return plural(n, tr("search.personOne"), tr("search.personFew"), tr("search.personMany"));
+  }
+
   function searchPanelHtml() {
     function field(id, label, first) {
       return '<label class="tt-hero-search-field" for="' + id + '">' +
@@ -426,11 +434,25 @@
         '<select id="' + id + '"><option value="">' + esc(first) + "</option></select>" +
         "</label>";
     }
+    // Количество туристов — не аэропорт (тот уже виден и в самой выдаче
+    // результата, отдельный фильтр по нему был избыточен). Фильтрует по
+    // остатку мест самого заезда (seats_free), поэтому варианты фиксированные
+    // 1..5+, а не строятся из данных, как направление/месяц.
+    var peopleField =
+      '<label class="tt-hero-search-field" for="ts-people">' +
+        "<span>" + esc(tr("search.people")) + "</span>" +
+        '<select id="ts-people"><option value="">' + esc(tr("search.anyPeople")) + "</option>" +
+        [1, 2, 3, 4, 5].map(function (n) {
+          var label = (n === 5 ? "5+" : String(n)) + " " + peopleWord(n);
+          return '<option value="' + n + '">' + esc(label) + "</option>";
+        }).join("") +
+        "</select>" +
+      "</label>";
     return (
       '<form class="tt-hero-search" id="tour-search" novalidate>' +
         field("ts-dest", tr("search.destination"), tr("search.anyDestination")) +
         field("ts-month", tr("search.month"), tr("search.anyMonth")) +
-        field("ts-airport", tr("search.airport"), tr("search.anyAirport")) +
+        peopleField +
         '<button class="tt-hero-search-btn" type="submit">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true">' +
             '<circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" />' +
@@ -1149,7 +1171,7 @@
 
       var destSel = form.querySelector("#ts-dest");
       var monthSel = form.querySelector("#ts-month");
-      var airSel = form.querySelector("#ts-airport");
+      var peopleSel = form.querySelector("#ts-people");
       var hint = form.querySelector("[data-search-hint]");
       var all = [];
 
@@ -1157,7 +1179,8 @@
         return all.filter(function (d) {
           if (destSel.value && d.destination !== destSel.value) return false;
           if (monthSel.value && monthKey(d.date_start) !== monthSel.value) return false;
-          if (airSel.value && d.transport !== airSel.value) return false;
+          // «5+» хранится как value="5" — сравнение >= покрывает и его.
+          if (peopleSel.value && d.seats_free < Number(peopleSel.value)) return false;
           return true;
         });
       }
@@ -1179,8 +1202,8 @@
         all = list || [];
         if (!all.length) return;
 
-        var seenD = {}, seenM = {}, seenA = {};
-        var dests = [], months = [], airs = [];
+        var seenD = {}, seenM = {};
+        var dests = [], months = [];
         all.forEach(function (d) {
           if (d.destination && !seenD[d.destination]) {
             seenD[d.destination] = 1;
@@ -1191,16 +1214,11 @@
             seenM[mk] = 1;
             months.push({ value: mk, label: monthLabel(d.date_start) });
           }
-          if (d.transport && !seenA[d.transport]) {
-            seenA[d.transport] = 1;
-            airs.push({ value: d.transport, label: TRANSPORT[d.transport] || d.transport });
-          }
         });
         months.sort(function (a, b) { return a.value < b.value ? -1 : 1; });
 
         addOptions(destSel, dests);
         addOptions(monthSel, months);
-        addOptions(airSel, airs);
         showCount();
         renderUpcoming(all);
       }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });

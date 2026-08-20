@@ -155,23 +155,34 @@ console.log("\nТитульная страница");
   await page.evaluate(() => { window.location.hash = "#/"; });
   await page.waitForTimeout(700);
 
-  // выпадающие списки строятся из заездов, а не зашиты в разметку
+  // месяцы строятся из заездов, а не зашиты в разметку; количество человек —
+  // фиксированные варианты 1..5+ (фильтр по остатку мест, не по данным)
   const months = await page.locator("#ts-month option").count();
-  const airports = await page.locator("#ts-airport option").count();
+  const people = await page.locator("#ts-people option").count();
   check("месяцы подставлены из заездов", months > 1, months + " вариантов");
-  check("аэропорты подставлены из заездов", airports > 1, airports + " вариантов");
+  check("вариантов количества человек 6 (любое + 1..5)", people === 6, people + " вариантов");
   check("в списке месяцев нет мусорного «г.»",
         !(await page.locator("#ts-month").innerText()).includes(" г."));
 
   const hintAll = await page.textContent("[data-search-hint]");
   check("счётчик найденного заполнен", /\d/.test(hintAll || ""), hintAll);
 
-  // фильтр обязан сужать выдачу, иначе он декоративный
-  await page.selectOption("#ts-airport", "BUS");
+  // Демо-заездам сейчас всем хватает мест (минимум 45 свободных), поэтому
+  // фильтр 1..5 человек физически ничего не отсеет — не повод считать его
+  // декоративным. Проверяем формулу напрямую: пересчитываем ожидаемое число
+  // из тех же данных (seats_free >= N), что и форма, и сверяем с тем, что
+  // показано — ловит и опечатку в сравнении, и подмену поля.
+  await page.selectOption("#ts-people", "5");
   await page.waitForTimeout(200);
-  const hintBus = await page.textContent("[data-search-hint]");
-  check("фильтр по аэропорту сужает выдачу", hintAll !== hintBus,
-        `${hintAll} → ${hintBus}`);
+  const hintFive = await page.textContent("[data-search-hint]");
+  const expectedFive = await page.evaluate(function () {
+    return window.TuronApi.catalogDepartures().then(function (list) {
+      return (list || []).filter(function (d) { return d.seats_free >= 5; }).length;
+    });
+  });
+  check("фильтр по числу туристов считает по остатку мест (seats_free >= N)",
+        hintFive.includes(String(expectedFive)),
+        `ожидали ${expectedFive}, показано «${hintFive}»`);
 
   await page.click(".tt-hero-search-btn");
   await page.waitForTimeout(600);

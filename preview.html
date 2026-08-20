@@ -13579,15 +13579,18 @@ window.TURON_DESTINATIONS = [
       "search.anyDestination": "Все направления",
       "search.month": "Месяц выезда",
       "search.anyMonth": "Любая дата",
-      "search.airport": "Аэропорт прилёта",
-      "search.anyAirport": "Любой",
+      "search.people": "Количество человек",
+      "search.anyPeople": "Любое",
+      "search.personOne": "человек",
+      "search.personFew": "человека",
+      "search.personMany": "человек",
       "search.submit": "Найти туры",
       "search.found": "Найдено",
       "search.foundOne": "заезд",
       "search.foundFew": "заезда",
       "search.foundMany": "заездов",
       "search.none": "Ничего не найдено",
-      "search.noneHint": "По этим условиям заездов нет. Попробуйте другой месяц или аэропорт.",
+      "search.noneHint": "По этим условиям заездов нет. Попробуйте другой месяц или число туристов.",
       "search.resultsKicker": "Результаты поиска",
       "catalog.kicker": "Коллекция Etihad",
       "catalog.title": "Выберите направление",
@@ -13652,15 +13655,18 @@ window.TURON_DESTINATIONS = [
       "search.anyDestination": "Barcha yo‘nalishlar",
       "search.month": "Jo‘nash oyi",
       "search.anyMonth": "Istalgan sana",
-      "search.airport": "Qo‘nish aeroporti",
-      "search.anyAirport": "Istalgan",
+      "search.people": "Sayohatchilar soni",
+      "search.anyPeople": "Istalgan",
+      "search.personOne": "kishi",
+      "search.personFew": "kishi",
+      "search.personMany": "kishi",
       "search.submit": "Turlarni topish",
       "search.found": "Topildi",
       "search.foundOne": "jo‘nash",
       "search.foundFew": "jo‘nash",
       "search.foundMany": "jo‘nash",
       "search.none": "Hech narsa topilmadi",
-      "search.noneHint": "Bu shartlar bo‘yicha jo‘nashlar yo‘q. Boshqa oy yoki aeroportni tanlang.",
+      "search.noneHint": "Bu shartlar bo‘yicha jo‘nashlar yo‘q. Boshqa oy yoki sayohatchilar sonini tanlang.",
       "search.resultsKicker": "Qidiruv natijalari",
       "catalog.kicker": "Etihad kolleksiyasi",
       "catalog.title": "Yo‘nalishni tanlang",
@@ -13725,15 +13731,18 @@ window.TURON_DESTINATIONS = [
       "search.anyDestination": "All destinations",
       "search.month": "Departure month",
       "search.anyMonth": "Any date",
-      "search.airport": "Arrival airport",
-      "search.anyAirport": "Any",
+      "search.people": "Number of travellers",
+      "search.anyPeople": "Any",
+      "search.personOne": "person",
+      "search.personFew": "people",
+      "search.personMany": "people",
       "search.submit": "Find tours",
       "search.found": "Found",
       "search.foundOne": "departure",
       "search.foundFew": "departures",
       "search.foundMany": "departures",
       "search.none": "Nothing found",
-      "search.noneHint": "No departures match these filters. Try another month or airport.",
+      "search.noneHint": "No departures match these filters. Try another month or group size.",
       "search.resultsKicker": "Search results",
       "catalog.kicker": "The Etihad collection",
       "catalog.title": "Choose a destination",
@@ -13798,15 +13807,18 @@ window.TURON_DESTINATIONS = [
       "search.anyDestination": "Tüm rotalar",
       "search.month": "Kalkış ayı",
       "search.anyMonth": "Herhangi bir tarih",
-      "search.airport": "Varış havalimanı",
-      "search.anyAirport": "Herhangi biri",
+      "search.people": "Kişi sayısı",
+      "search.anyPeople": "Herhangi biri",
+      "search.personOne": "kişi",
+      "search.personFew": "kişi",
+      "search.personMany": "kişi",
       "search.submit": "Tur ara",
       "search.found": "Bulundu",
       "search.foundOne": "kalkış",
       "search.foundFew": "kalkış",
       "search.foundMany": "kalkış",
       "search.none": "Sonuç bulunamadı",
-      "search.noneHint": "Bu filtrelere uyan kalkış yok. Başka bir ay veya havalimanı deneyin.",
+      "search.noneHint": "Bu filtrelere uyan kalkış yok. Başka bir ay veya kişi sayısı deneyin.",
       "search.resultsKicker": "Arama sonuçları",
       "catalog.kicker": "Etihad koleksiyonu",
       "catalog.title": "Rotanızı seçin",
@@ -14751,6 +14763,14 @@ window.TURON_DESTINATIONS = [
    * по туру, и фильтр по месяцу врал бы (тур с ближайшим заездом в августе
    * пропал бы из сентябрьской выдачи, хотя сентябрьские заезды у него есть).
    */
+  // Существительное после числа туристов («1 человек» / «2 человека» /
+  // «5 человек») — то же русское правило, что и у countWord/plural выше;
+  // на других языках все три формы в словаре совпадают, поэтому подстановка
+  // безвредна и там.
+  function peopleWord(n) {
+    return plural(n, tr("search.personOne"), tr("search.personFew"), tr("search.personMany"));
+  }
+
   function searchPanelHtml() {
     function field(id, label, first) {
       return '<label class="tt-hero-search-field" for="' + id + '">' +
@@ -14758,11 +14778,25 @@ window.TURON_DESTINATIONS = [
         '<select id="' + id + '"><option value="">' + esc(first) + "</option></select>" +
         "</label>";
     }
+    // Количество туристов — не аэропорт (тот уже виден и в самой выдаче
+    // результата, отдельный фильтр по нему был избыточен). Фильтрует по
+    // остатку мест самого заезда (seats_free), поэтому варианты фиксированные
+    // 1..5+, а не строятся из данных, как направление/месяц.
+    var peopleField =
+      '<label class="tt-hero-search-field" for="ts-people">' +
+        "<span>" + esc(tr("search.people")) + "</span>" +
+        '<select id="ts-people"><option value="">' + esc(tr("search.anyPeople")) + "</option>" +
+        [1, 2, 3, 4, 5].map(function (n) {
+          var label = (n === 5 ? "5+" : String(n)) + " " + peopleWord(n);
+          return '<option value="' + n + '">' + esc(label) + "</option>";
+        }).join("") +
+        "</select>" +
+      "</label>";
     return (
       '<form class="tt-hero-search" id="tour-search" novalidate>' +
         field("ts-dest", tr("search.destination"), tr("search.anyDestination")) +
         field("ts-month", tr("search.month"), tr("search.anyMonth")) +
-        field("ts-airport", tr("search.airport"), tr("search.anyAirport")) +
+        peopleField +
         '<button class="tt-hero-search-btn" type="submit">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true">' +
             '<circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" />' +
@@ -15481,7 +15515,7 @@ window.TURON_DESTINATIONS = [
 
       var destSel = form.querySelector("#ts-dest");
       var monthSel = form.querySelector("#ts-month");
-      var airSel = form.querySelector("#ts-airport");
+      var peopleSel = form.querySelector("#ts-people");
       var hint = form.querySelector("[data-search-hint]");
       var all = [];
 
@@ -15489,7 +15523,8 @@ window.TURON_DESTINATIONS = [
         return all.filter(function (d) {
           if (destSel.value && d.destination !== destSel.value) return false;
           if (monthSel.value && monthKey(d.date_start) !== monthSel.value) return false;
-          if (airSel.value && d.transport !== airSel.value) return false;
+          // «5+» хранится как value="5" — сравнение >= покрывает и его.
+          if (peopleSel.value && d.seats_free < Number(peopleSel.value)) return false;
           return true;
         });
       }
@@ -15511,8 +15546,8 @@ window.TURON_DESTINATIONS = [
         all = list || [];
         if (!all.length) return;
 
-        var seenD = {}, seenM = {}, seenA = {};
-        var dests = [], months = [], airs = [];
+        var seenD = {}, seenM = {};
+        var dests = [], months = [];
         all.forEach(function (d) {
           if (d.destination && !seenD[d.destination]) {
             seenD[d.destination] = 1;
@@ -15523,16 +15558,11 @@ window.TURON_DESTINATIONS = [
             seenM[mk] = 1;
             months.push({ value: mk, label: monthLabel(d.date_start) });
           }
-          if (d.transport && !seenA[d.transport]) {
-            seenA[d.transport] = 1;
-            airs.push({ value: d.transport, label: TRANSPORT[d.transport] || d.transport });
-          }
         });
         months.sort(function (a, b) { return a.value < b.value ? -1 : 1; });
 
         addOptions(destSel, dests);
         addOptions(monthSel, months);
-        addOptions(airSel, airs);
         showCount();
         renderUpcoming(all);
       }).catch(function () { /* поиск необязателен — каталог уже отрисован */ });
