@@ -648,10 +648,29 @@ console.log("\nОператор — обзор, карточки заездов,
   const depCount = await depCards.count();
   check("карточки заездов заменили select", depCount > 0, depCount + " карточек");
   if (depCount > 1) {
+    /* Заездов за сезон десятки: сетка карточек выше, список пассажиров ниже
+     * сгиба. Раньше клик грузил список исправно, но на экране НИЧЕГО не
+     * менялось — оператор считал, что кнопка не работает, и шёл в Excel.
+     * Проверяем именно это: страница доезжает до результата, а сам результат
+     * подписан тем заездом, по которому кликнули. */
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    const wantCode = await depCards.nth(1).getAttribute("data-departure");
     await depCards.nth(1).click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(1200);   // прокрутка smooth
     check("клик по карточке заезда переключает выбор",
           await depCards.nth(1).evaluate((el) => el.classList.contains("is-active")));
+    const seen = await page.evaluate(() => {
+      const r = document.querySelector("#adm-manifest").getBoundingClientRect();
+      return { top: Math.round(r.top), winH: window.innerHeight, scrollY: Math.round(window.scrollY) };
+    });
+    check("после клика список пассажиров попадает на экран",
+          seen.scrollY > 0 && seen.top < seen.winH, JSON.stringify(seen));
+    const headText = await page.locator(".tt-manifest-head").innerText().catch(() => "");
+    check("список подписан выбранным заездом",
+          headText.includes(wantCode), `ждали ${wantCode}, шапка «${headText.replace(/\n/g, " ")}»`);
+    check("в шапке видна загрузка заезда (занято N из M)",
+          /занято \d+ из \d+/.test(headText), headText.replace(/\n/g, " "));
   }
   await page.fill("#adm-departure-search", "несуществующий-код-xyz");
   await page.waitForTimeout(400);

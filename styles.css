@@ -1493,6 +1493,24 @@ a { color: inherit; }
 .tt-earn strong, .tt-earn-value { color: var(--tt-success); }
 .tt-owed-value { color: var(--tt-warn-text); }
 
+/* Шапка списка пассажиров: какой заезд открыт. Раньше при клике по карточке
+   на экране не менялось ничего заметного (сетка заездов выше, список ниже
+   сгиба), и оператор не понимал, сработало ли. */
+.tt-manifest-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+}
+.tt-manifest-when { display: flex; align-items: baseline; gap: 10px; }
+.tt-manifest-when strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.tt-manifest-seats { margin-left: auto; }
+
 .tt-earnings {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

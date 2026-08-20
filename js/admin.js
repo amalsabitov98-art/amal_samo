@@ -295,13 +295,52 @@
     state.selectedDeparture = code;
     renderDepartureCards();
     loadManifest();
+    /*
+     * Прокрутка к результату. Заездов за сезон десятки, сетка карточек выше
+     * списка — при 20+ заездах список пассажиров уезжает под сгиб, и после
+     * клика на экране НИЧЕГО не менялось: оператор думал, что кнопка не
+     * работает, и шёл выгружать Excel. Сам список при этом грузился исправно.
+     *
+     * rAF, а не прямой вызов: со страницы «Обзор» клик сначала зовёт
+     * setSelectedDeparture, а сразу за ним jumpToTab("manifest") — если
+     * прокрутить синхронно, переключение вкладки следом сбросит позицию.
+     */
+    var box = $("adm-manifest");
+    if (!box || !box.scrollIntoView) return;
+    global.requestAnimationFrame(function () {
+      var smooth = !(global.matchMedia &&
+        global.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      box.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+    });
+  }
+
+  /*
+   * Шапка списка: какой именно заезд открыт и его загрузка. Рисуется ВСЕГДА,
+   * в том числе когда пассажиров нет — иначе пустой экран не отвечал на
+   * вопрос «а почему пусто». У заездов, проданных до запуска системы,
+   * seats_taken больше нуля при пустом списке, и счётчик это прямо показывает.
+   */
+  function manifestHeadHtml(d) {
+    if (!d) return "";
+    var taken = Number(d.seats_taken || 0);
+    var cap = Number(d.capacity || 0);
+    return '<div class="tt-manifest-head">' +
+      '<div class="tt-manifest-when">' +
+        "<strong>" + formatDate(d.date_start) + "</strong>" +
+        '<span class="tt-dep-code">' + esc(d.code) + "</span>" +
+      "</div>" +
+      '<span class="tt-badge">' + esc(TRANSPORT[d.transport] || d.transport) + "</span>" +
+      (cap ? '<span class="tt-manifest-seats tt-muted-note">занято ' + taken +
+        " из " + cap + "</span>" : "") +
+    "</div>";
   }
 
   function renderManifest(data) {
     state.current = data;
     var pax = data.passengers;
+    var head = manifestHeadHtml(data.departure);
     if (!pax.length) {
-      $("adm-manifest").innerHTML =
+      $("adm-manifest").innerHTML = head +
         '<div class="tt-empty-state">На этот заезд ещё нет броней через кабинет.' +
         '<div class="tt-muted-note">Места, проданные до запуска системы, ' +
         "учтены в счётчике заезда, но пофамильно их здесь нет.</div></div>";
@@ -310,7 +349,7 @@
     }
     $("adm-export").disabled = false;
 
-    var head = MANIFEST_COLUMNS.map(function (c) { return "<th>" + esc(c[0]) + "</th>"; }).join("");
+    var cols = MANIFEST_COLUMNS.map(function (c) { return "<th>" + esc(c[0]) + "</th>"; }).join("");
     var body = pax.map(function (p) {
       return "<tr>" + MANIFEST_COLUMNS.map(function (c) {
         return "<td>" + esc(c[1](p)) + "</td>";
@@ -318,7 +357,7 @@
     }).join("");
 
     var sum = data.summary || {};
-    $("adm-manifest").innerHTML =
+    $("adm-manifest").innerHTML = head +
       '<div class="tt-earnings">' +
         '<div><span>Броней</span><strong>' + (sum.bookings_count || 0) + "</strong></div>" +
         '<div><span>Пассажиров</span><strong>' + pax.length +
@@ -329,7 +368,7 @@
         '<div><span>Долг</span><strong' + (sum.owed > 0 ? ' class="tt-owed-value"' : "") + ">" +
           money(sum.owed || 0) + "</strong></div>" +
       "</div>" +
-      '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' + head +
+      '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' + cols +
       "</tr></thead><tbody>" + body + "</tbody></table></div>";
   }
 
