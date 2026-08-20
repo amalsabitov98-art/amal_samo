@@ -5,7 +5,9 @@
  *   POST /api/login          вход по логину/паролю, отдаёт токен сессии
  *   POST /api/logout         погасить текущую сессию
  *   POST /api/public/contact-request  заявка с формы «Свяжитесь с нами»
- *                             (без входа) — уходит в Telegram оператору
+ *                             (без входа) — уходит в Telegram шефу, СВОИМ
+ *                             ботом (CONTACT_TELEGRAM_*), отдельным от бота
+ *                             с бронями (TELEGRAM_*)
  *   GET  /api/me             кто вошёл
  *   GET  /api/departures     заезды со свободными местами и прайсом
  *   POST /api/bookings       создать бронь (место занимается сразу)
@@ -541,15 +543,18 @@ async function notifyTelegram(env, b) {
 
 /*
  * Заявка с публичной формы «Свяжитесь с нами» (гость хочет тур под себя,
- * не выбирая из готовых программ). Использует ТЕ ЖЕ TELEGRAM_BOT_TOKEN и
- * TELEGRAM_CHAT_ID, что и уведомление о брони выше — один бот на оба
- * случая, отдельно настраивать нечего. Пока переменные не заданы, молча
- * ничего не отправляет (как и notifyTelegram), и это не ошибка запроса:
- * фронтенд в этом случае откатывается на mailto.
+ * не выбирая из готовых программ). СВОИ переменные окружения —
+ * CONTACT_TELEGRAM_BOT_TOKEN / CONTACT_TELEGRAM_CHAT_ID, отдельные от
+ * TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID у брони: это разные адресаты
+ * (заявки на индивидуальный тур ушли бы не туда, куда броням) и не
+ * обязательно один и тот же бот/чат. Настраиваются независимо; можно
+ * включить только одно уведомление, оставив второе выключенным. Пока
+ * переменные не заданы, молча ничего не отправляет (как и notifyTelegram),
+ * и это не ошибка запроса: фронтенд в этом случае откатывается на mailto.
  */
 async function notifyContactRequest(env, body) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
+  const token = env.CONTACT_TELEGRAM_BOT_TOKEN;
+  const chatId = env.CONTACT_TELEGRAM_CHAT_ID;
   if (!token || !chatId) return false;
 
   const text =
