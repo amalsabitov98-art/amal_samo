@@ -287,9 +287,12 @@ body {
   height: 38px;
   margin: 0;
   color: #f5efe1;
-  opacity: 0;
+  /* Видна ВСЕГДА. Была opacity: 0 и показывалась только анимацией на время
+     смены слайда — города мелькали полсекунды и пропадали, прочитать их было
+     невозможно. Теперь это постоянная часть таймера. */
+  opacity: 1;
   pointer-events: none;
-  transform: translateY(4px);
+  transform: none;
 }
 .tt-showcase-route-line {
   position: absolute;
@@ -298,7 +301,7 @@ body {
   top: 18px;
   height: 1px;
   background: #d2a64c;
-  transform: scaleX(0);
+  transform: scaleX(1);
   transform-origin: left center;
 }
 .tt-showcase-route-stops {
@@ -348,8 +351,13 @@ body {
 .tt-destination-showcase.is-route-changing .tt-showcase-route-line {
   animation: tt-route-draw .54s .05s cubic-bezier(.2, .72, .2, 1) both;
 }
-.tt-destination-showcase.is-route-changing .tt-showcase-route-dot {
-  animation: tt-route-travel .62s .05s cubic-bezier(.3, .65, .2, 1) both;
+/* Точка проходит маршрут ровно за время показа слайда: она и есть индикатор
+   загрузки, синхронный с полосой прогресса ниже. */
+.tt-destination-showcase.is-timer-running .tt-showcase-route-dot {
+  animation: tt-route-travel var(--tt-showcase-duration, 5000ms) linear forwards;
+}
+.tt-destination-showcase.is-timer-paused .tt-showcase-route-dot {
+  animation-play-state: paused;
 }
 .tt-showcase-controls {
   position: absolute;
@@ -400,10 +408,6 @@ body {
   background: #e5ca81;
   transform: scaleX(0);
   transform-origin: left center;
-}
-.tt-destination-showcase.is-route-changing .tt-showcase-timer > i > b {
-  opacity: 0;
-  animation: none;
 }
 .tt-destination-showcase.is-timer-running .tt-showcase-timer b {
   animation: tt-showcase-progress var(--tt-showcase-duration, 5000ms) linear forwards;
@@ -461,8 +465,8 @@ body {
   to { left: 100%; }
 }
 @keyframes tt-route-inline {
-  0%, 100% { opacity: 0; transform: translateY(4px); }
-  15%, 78% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* -------------------------------------------------------------------------
@@ -14800,8 +14804,12 @@ window.TURON_DESTINATIONS = [
     }
 
     function startClock(delay) {
-      if (destroyed || reduced || !showcaseStarted || global.document.hidden ||
-          box.classList.contains("is-route-changing")) return;
+      /* Раньше здесь стояла ещё проверка is-route-changing: маршрут и полоса
+       * прогресса сменяли друг друга, и на время показа городов часы
+       * останавливались. Теперь маршрут виден всегда, а бегущая по нему точка
+       * И ЕСТЬ индикатор — значит часы должны идти с первого кадра нового
+       * слайда, иначе точка на 0.7с замирает в начале маршрута. */
+      if (destroyed || reduced || !showcaseStarted || global.document.hidden) return;
       remaining = delay == null ? remaining : delay;
       startedAt = Date.now();
       box.style.setProperty("--tt-showcase-duration", remaining + "ms");
@@ -14832,9 +14840,13 @@ window.TURON_DESTINATIONS = [
       });
     }
 
-    function hideRoute() {
+    /* Маршрут больше не прячется. Раньше города показывались только на время
+     * перехода (0.72с) и исчезали — на экране они мелькали, и прочитать их
+     * было невозможно. Теперь строка городов видна всё время показа слайда,
+     * а меняется вместе с ним; is-route-changing — только короткая анимация
+     * перерисовки на стыке, а не признак «маршрут показан». */
+    function endRouteChange() {
       box.classList.remove("is-route-changing");
-      route.setAttribute("aria-hidden", "true");
     }
 
     function showRoute(index) {
@@ -14843,12 +14855,11 @@ window.TURON_DESTINATIONS = [
       box.classList.remove("is-route-changing");
       void route.offsetWidth;
       box.classList.add("is-route-changing");
-      route.setAttribute("aria-hidden", "false");
       if (routeTimer) global.clearTimeout(routeTimer);
+      // Часы не перезапускаем: их уже завёл show() сразу после смены слайда.
       routeTimer = global.setTimeout(function () {
-        hideRoute();
+        endRouteChange();
         routeTimer = null;
-        startClock(remaining);
       }, 720);
     }
 
@@ -14919,6 +14930,8 @@ window.TURON_DESTINATIONS = [
     global.document.addEventListener("visibilitychange", onVisibility);
     arrangeCards();
     updateRoute(active);
+    // Строка городов — постоянная часть таймера, а не всплывающая подсказка.
+    route.setAttribute("aria-hidden", "false");
     if (reduced) {
       box.classList.add("is-reduced-motion");
       showcaseStarted = true;
@@ -14945,7 +14958,7 @@ window.TURON_DESTINATIONS = [
       if (animationTimer) global.clearTimeout(animationTimer);
       if (routeTimer) global.clearTimeout(routeTimer);
       if (visibilityObserver) visibilityObserver.disconnect();
-      hideRoute();
+      endRouteChange();
       global.document.removeEventListener("visibilitychange", onVisibility);
     };
   }

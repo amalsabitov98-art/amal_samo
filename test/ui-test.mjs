@@ -214,10 +214,22 @@ console.log("\nТитульная страница");
         await page.locator('[data-showcase-slide="0"] .tt-showcase-copy').evaluate((el) =>
           Number(getComputedStyle(el).opacity) < 0.1));
   await page.waitForTimeout(880);
-  check("после маршрута нижняя линия снова становится таймером",
+  /* Города остаются на экране весь показ слайда, а не мелькают 0.7с на
+   * переходе: раньше строка пряталась сразу после анимации и прочитать
+   * маршрут было невозможно. is-route-changing — только короткая
+   * перерисовка на стыке, снимается, а сама строка видимой остаётся. */
+  check("после перехода маршрут остаётся на экране, а не прячется",
         await page.locator("[data-showcase-route]").evaluate((el) =>
-          el.getAttribute("aria-hidden") === "true" &&
+          el.getAttribute("aria-hidden") === "false" &&
+          Number(getComputedStyle(el).opacity) > 0.9 &&
           !el.closest("[data-showcase]").classList.contains("is-route-changing")));
+  check("точка идёт по маршруту как индикатор показа слайда",
+        await page.evaluate(async () => {
+          const dot = document.querySelector(".tt-showcase-route-dot");
+          const was = parseFloat(getComputedStyle(dot).left);
+          await new Promise((r) => setTimeout(r, 700));
+          return parseFloat(getComputedStyle(dot).left) > was;
+        }));
   check("превью Умры разворачивается в активный полноэкранный кадр",
         await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
           el.classList.contains("is-active") && el.getAttribute("aria-hidden") === "false"));

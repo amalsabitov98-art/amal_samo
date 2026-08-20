@@ -264,8 +264,12 @@
     }
 
     function startClock(delay) {
-      if (destroyed || reduced || !showcaseStarted || global.document.hidden ||
-          box.classList.contains("is-route-changing")) return;
+      /* Раньше здесь стояла ещё проверка is-route-changing: маршрут и полоса
+       * прогресса сменяли друг друга, и на время показа городов часы
+       * останавливались. Теперь маршрут виден всегда, а бегущая по нему точка
+       * И ЕСТЬ индикатор — значит часы должны идти с первого кадра нового
+       * слайда, иначе точка на 0.7с замирает в начале маршрута. */
+      if (destroyed || reduced || !showcaseStarted || global.document.hidden) return;
       remaining = delay == null ? remaining : delay;
       startedAt = Date.now();
       box.style.setProperty("--tt-showcase-duration", remaining + "ms");
@@ -296,9 +300,13 @@
       });
     }
 
-    function hideRoute() {
+    /* Маршрут больше не прячется. Раньше города показывались только на время
+     * перехода (0.72с) и исчезали — на экране они мелькали, и прочитать их
+     * было невозможно. Теперь строка городов видна всё время показа слайда,
+     * а меняется вместе с ним; is-route-changing — только короткая анимация
+     * перерисовки на стыке, а не признак «маршрут показан». */
+    function endRouteChange() {
       box.classList.remove("is-route-changing");
-      route.setAttribute("aria-hidden", "true");
     }
 
     function showRoute(index) {
@@ -307,12 +315,11 @@
       box.classList.remove("is-route-changing");
       void route.offsetWidth;
       box.classList.add("is-route-changing");
-      route.setAttribute("aria-hidden", "false");
       if (routeTimer) global.clearTimeout(routeTimer);
+      // Часы не перезапускаем: их уже завёл show() сразу после смены слайда.
       routeTimer = global.setTimeout(function () {
-        hideRoute();
+        endRouteChange();
         routeTimer = null;
-        startClock(remaining);
       }, 720);
     }
 
@@ -383,6 +390,8 @@
     global.document.addEventListener("visibilitychange", onVisibility);
     arrangeCards();
     updateRoute(active);
+    // Строка городов — постоянная часть таймера, а не всплывающая подсказка.
+    route.setAttribute("aria-hidden", "false");
     if (reduced) {
       box.classList.add("is-reduced-motion");
       showcaseStarted = true;
@@ -409,7 +418,7 @@
       if (animationTimer) global.clearTimeout(animationTimer);
       if (routeTimer) global.clearTimeout(routeTimer);
       if (visibilityObserver) visibilityObserver.disconnect();
-      hideRoute();
+      endRouteChange();
       global.document.removeEventListener("visibilitychange", onVisibility);
     };
   }
