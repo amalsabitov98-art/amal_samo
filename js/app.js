@@ -16,7 +16,7 @@
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
   // Экземпляры независимы, создаются по одному разу.
-  var publicCatalog = null, cabinetCatalog = null, builderCatalog = null;
+  var publicCatalog = null, builderCatalog = null;
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
   // Согласие с условиями бронирования: сбрасывается при открытии окна брони,
@@ -288,13 +288,6 @@
       return;
     }
 
-    if (!cabinetCatalog) {
-      cabinetCatalog = TuronCatalog.create({
-        root: $("cabinet-catalog"),
-        canBook: true,
-        onBook: bookFromCatalog,
-      });
-    }
     // «Новый тур» — витрина туров: этот каталог рисует мозаику направлений и
     // карточки Умры/Японии с бронью. Карадениз он НЕ рисует сам — отдаёт хосту
     // через onTour, и мы показываем привычный конструктор mir-jahon.
@@ -373,8 +366,7 @@
    * Вызывается и по клику, и по «назад», и после F5 — иначе вкладка,
    * открытая по адресу, оставалась бы пустой. */
   function refreshTab(name) {
-    if (name === "catalog" && cabinetCatalog) cabinetCatalog.render();
-    else if (name === "travellers") renderTravellers();
+    if (name === "travellers") renderTravellers();
     else if (name === "payments") renderPayments();
     else if (name === "documents") renderDocuments();
     else if (name === "messages") renderMessages();
@@ -2383,7 +2375,6 @@
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
       departures: ["Направления", "Заезды и цены"],
-      catalog: ["Каталог туров", "Маршруты и программы"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
@@ -2398,7 +2389,7 @@
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["builder", "departures", "catalog", "bookings", "tours", "travellers",
+    ["builder", "departures", "bookings", "tours", "travellers",
      "payments", "documents", "messages", "overview", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);

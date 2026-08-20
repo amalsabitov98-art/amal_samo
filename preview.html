@@ -4562,6 +4562,148 @@ select { font-family: inherit; }
   font-style: italic;
   text-align: right;
 }
+/* «Свяжитесь с нами» — секция после «О компании». Свой тёмный фон-панель
+ * (как у about-company), чтобы стеклянные карточки и белый текст читались и
+ * в тёмной, и в светлой теме страницы. Стекло на референсе фиолетовое, но
+ * держим фирменные бирюзу и латунь. */
+.tt-contact {
+  /* Панель всегда тёмная, поэтому акцент внутри — ФИКСИРОВАННАЯ бирюза, а не
+   * тема-зависимый --tt-accent (в светлой теме он коралловый и на тёмном фоне
+   * смотрелся бы сломанным — половина кнопки оранжевая). */
+  --cc: #4fd6e8;
+  position: relative;
+  margin-top: clamp(26px, 4vw, 46px);
+  padding: clamp(38px, 6vw, 78px) clamp(22px, 5vw, 74px);
+  border-radius: 32px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 90% 6%, rgba(79, 214, 232, 0.16), transparent 24rem),
+    radial-gradient(circle at 4% 104%, rgba(229, 201, 135, 0.11), transparent 22rem),
+    linear-gradient(150deg, #0e1a33 0%, #070b18 100%);
+  color: #f4f7fb;
+  box-shadow: 0 30px 90px rgba(4, 10, 22, 0.35);
+  scroll-margin-top: 130px;
+}
+.tt-contact-lead {
+  max-width: 640px;
+  margin: 0 auto clamp(26px, 4vw, 42px);
+  text-align: center;
+}
+.tt-contact-lead .tt-eyebrow { justify-content: center; color: var(--cc); }
+.tt-contact-lead h2 {
+  margin: 10px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: 1.03;
+}
+.tt-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 28px);
+  align-items: stretch;
+}
+.tt-contact-card {
+  position: relative;
+  padding: clamp(24px, 3.4vw, 38px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 24px 60px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+}
+.tt-contact-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+.tt-contact-info { display: flex; flex-direction: column; }
+.tt-contact-info h3 {
+  margin: 0 0 12px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  line-height: 1.05;
+}
+.tt-contact-info p {
+  margin: 0 0 24px;
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+.tt-contact-rows { display: grid; gap: 12px; margin-top: auto; }
+.tt-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+a.tt-contact-row:hover { color: var(--cc); }
+.tt-contact-row svg {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 11px;
+  fill: none;
+  stroke: var(--cc);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.tt-contact-form { display: grid; gap: 12px; align-content: start; }
+.tt-contact-form input,
+.tt-contact-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+.tt-contact-form input::placeholder,
+.tt-contact-form textarea::placeholder { color: rgba(255, 255, 255, 0.5); }
+.tt-contact-form input:focus,
+.tt-contact-form textarea:focus {
+  outline: none;
+  border-color: var(--cc);
+  box-shadow: 0 0 0 3px rgba(79, 214, 232, 0.22);
+}
+.tt-contact-send {
+  margin-top: 4px;
+  padding: 15px 18px;
+  border: none;
+  border-radius: 13px;
+  color: #05221f;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  background: linear-gradient(120deg, var(--cc), #7be8f4);
+  box-shadow: 0 14px 30px rgba(79, 214, 232, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-contact-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(79, 214, 232, 0.4);
+}
+.tt-contact-note { margin: 4px 0 0; font-size: 0.72rem; line-height: 1.5; }
+.tt-contact-note.is-ok { color: var(--cc); }
+.tt-contact-note.is-err { color: #ff9a9a; }
+@media (max-width: 720px) {
+  .tt-contact-grid { grid-template-columns: 1fr; }
+}
+
 .tt-public-footer {
   display: flex;
   justify-content: space-between;
@@ -7330,7 +7472,6 @@ select { font-family: inherit; }
     <div class="tt-tabs">
       <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span>Новый тур</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span>Бронирования</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="catalog"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="2" /><path d="M9 7V5h6v2M4 12h16M10 12v2h4v-2" /></svg></span><span>Туры</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="travellers"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.5-3.5 2.3-5 5.5-5s5 1.5 5.5 5M15 6.5a2.6 2.6 0 0 1 0 5M16.5 14c2.5.3 3.7 1.8 4 5" /></svg></span><span>Туристы</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="payments"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></svg></span><span>Платежи</span></button>
       <button class="tt-tab tt-tab-ag" data-tab="tours"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8M16 7h4v4" /><circle cx="7" cy="7" r="2.5" /><path d="M7 5.5v3" /></svg></span><span>Комиссии</span></button>
@@ -7534,10 +7675,6 @@ select { font-family: inherit; }
       <div id="departure-stats" class="tt-stat-grid" aria-live="polite"></div>
       <div id="departures-list"></div>
       </section>
-
-    <section id="panel-catalog" hidden>
-      <div id="cabinet-catalog"></div>
-    </section>
 
     <section id="panel-bookings" hidden>
       <div id="earnings-summary"></div>
@@ -13444,6 +13581,17 @@ window.TURON_DESTINATIONS = [
       "about.partners": "Работаем с туристами и агентствами",
       "about.support": "Поддержка на маршруте 24/7",
       "about.detail": "Команда знает маршрут до деталей: от первой консультации до возвращения домой.",
+      "contact.kicker": "Свяжитесь с нами",
+      "contact.title": "Соберём тур под вас",
+      "contact.infoTitle": "Индивидуальный подход",
+      "contact.infoText": "Мы не ограничены готовыми программами. Любой маршрут, даты, отели и состав группы — под ваши задачи. Расскажите, чего хотите, остальное берём на себя.",
+      "contact.name": "Ваше имя",
+      "contact.contact": "Телефон или e-mail",
+      "contact.message": "Расскажите о поездке…",
+      "contact.send": "Отправить сообщение",
+      "contact.fill": "Заполните имя, контакт и сообщение.",
+      "contact.sent": "Открываем почту — сообщение уже внутри.",
+      "contact.subject": "Заявка на индивидуальный тур",
       "rate.source": "ЦБ РУз",
       "rate.unavailable": "курс временно недоступен"
     },
@@ -13505,6 +13653,17 @@ window.TURON_DESTINATIONS = [
       "about.partners": "Sayyohlar va agentliklar bilan ishlaymiz",
       "about.support": "Yo‘nalishda 24/7 ko‘mak",
       "about.detail": "Jamoamiz birinchi maslahatdan uyga qaytishgacha bo‘lgan har bir bosqichni biladi.",
+      "contact.kicker": "Biz bilan bog‘laning",
+      "contact.title": "Turni siz uchun tuzamiz",
+      "contact.infoTitle": "Individual yondashuv",
+      "contact.infoText": "Biz tayyor dasturlar bilan cheklanmaganmiz. Har qanday yo‘nalish, sanalar, mehmonxonalar va guruh tarkibi — sizning ehtiyojingizga mos. Nima xohlaganingizni ayting, qolganini o‘zimiz hal qilamiz.",
+      "contact.name": "Ismingiz",
+      "contact.contact": "Telefon yoki e-mail",
+      "contact.message": "Sayohat haqida yozing…",
+      "contact.send": "Xabar yuborish",
+      "contact.fill": "Ism, kontakt va xabarni to‘ldiring.",
+      "contact.sent": "Pochta ochilmoqda — xabar ichida.",
+      "contact.subject": "Individual turga so‘rov",
       "rate.source": "O‘zbekiston MB",
       "rate.unavailable": "kurs vaqtincha mavjud emas"
     },
@@ -13566,6 +13725,17 @@ window.TURON_DESTINATIONS = [
       "about.partners": "For travellers and travel agencies",
       "about.support": "24/7 support along the route",
       "about.detail": "Our team knows every stage of the journey, from the first conversation to the return home.",
+      "contact.kicker": "Get in touch",
+      "contact.title": "We’ll build your trip",
+      "contact.infoTitle": "Tailored to you",
+      "contact.infoText": "We’re not limited to fixed packages. Any route, dates, hotels and group — shaped around you. Tell us what you want, we handle the rest.",
+      "contact.name": "Your name",
+      "contact.contact": "Phone or e-mail",
+      "contact.message": "Tell us about your trip…",
+      "contact.send": "Send message",
+      "contact.fill": "Fill in your name, contact and message.",
+      "contact.sent": "Opening your mail — the message is inside.",
+      "contact.subject": "Custom tour request",
       "rate.source": "CBU",
       "rate.unavailable": "rate temporarily unavailable"
     },
@@ -13627,6 +13797,17 @@ window.TURON_DESTINATIONS = [
       "about.partners": "Gezginler ve acenteler için",
       "about.support": "Rota boyunca 7/24 destek",
       "about.detail": "Ekibimiz ilk görüşmeden eve dönüşe kadar yolculuğun her ayrıntısını bilir.",
+      "contact.kicker": "Bize ulaşın",
+      "contact.title": "Turu size göre kuralım",
+      "contact.infoTitle": "Size özel yaklaşım",
+      "contact.infoText": "Hazır paketlerle sınırlı değiliz. Her rota, tarih, otel ve grup — size göre şekillenir. Ne istediğinizi söyleyin, gerisini biz halledelim.",
+      "contact.name": "Adınız",
+      "contact.contact": "Telefon veya e-posta",
+      "contact.message": "Seyahatinizden bahsedin…",
+      "contact.send": "Mesaj gönder",
+      "contact.fill": "Ad, iletişim ve mesajı doldurun.",
+      "contact.sent": "Posta açılıyor — mesaj içinde.",
+      "contact.subject": "Özel tur talebi",
       "rate.source": "Özbekistan MB",
       "rate.unavailable": "kur geçici olarak kullanılamıyor"
     }
@@ -14606,6 +14787,96 @@ window.TURON_DESTINATIONS = [
    * берутся из js/provisional.js (подтверждены оператором), а не пишутся
    * здесь руками: иначе телефон пришлось бы править в двух местах.
    */
+  /*
+   * ------------------------------------------------------- «Свяжитесь с нами»
+   * Секция после «О компании». Смысл — показать, что оператор НЕ ограничен
+   * готовыми программами: любой маршрут, даты, отели и состав собираются
+   * индивидуально. Слева — контакты (из TuronProvisional.OPERATOR, как и в
+   * подвале, чтобы телефон/почта не жили в разметке), справа — форма.
+   *
+   * Форма честная: у нас нет отдельного бэкенда под заявки, поэтому «Отправить»
+   * СОБИРАЕТ письмо и открывает почтовый клиент на адрес оператора с уже
+   * заполненным сообщением (mailto — работает везде, без сервера). Молча
+   * «отправить в никуда» нельзя. Когда появится маршрут воркера под заявки,
+   * сюда достаточно подставить fetch вместо mailto.
+   */
+  function contactIcon(kind) {
+    var p = {
+      mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
+      phone: '<path d="M6 4h3l1.6 4-2 1.4a12 12 0 0 0 5.4 5.4l1.4-2 4 1.6v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4 6.2 2 2 0 0 1 6 4z"/>',
+      tg: '<path d="M20.5 5.5L3.8 11.8c-1 .4-1 1.7.1 2l4.2 1.3 1.6 4.6c.3.8 1.3 1 1.9.3l2.3-2.4 4.2 3.1c.7.5 1.7.1 1.9-.7l2.8-13c.2-1-.7-1.8-1.6-1.4z"/>',
+      pin: '<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    };
+    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + p[kind] + "</svg>";
+  }
+  function contactRow(kind, href, text, blank) {
+    var inner = contactIcon(kind) + "<span>" + esc(text) + "</span>";
+    if (!href) return '<div class="tt-contact-row">' + inner + "</div>";
+    return '<a class="tt-contact-row" href="' + esc(href) + '"' +
+      (blank ? ' target="_blank" rel="noopener"' : "") + ">" + inner + "</a>";
+  }
+  function contactHtml() {
+    var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
+    var rows = "";
+    if (op.email) rows += contactRow("mail", "mailto:" + op.email, op.email);
+    if (op.phone) rows += contactRow("phone", "tel:" + (op.phone_href || op.phone), op.phone);
+    if (op.telegram_href) rows += contactRow("tg", op.telegram_href, "Telegram", true);
+    if (op.address) rows += contactRow("pin", null, op.address);
+    return (
+      '<section class="tt-contact" id="contact">' +
+        '<div class="tt-contact-lead">' +
+          '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
+          "<h2>" + esc(tr("contact.title")) + "</h2>" +
+        "</div>" +
+        '<div class="tt-contact-grid">' +
+          '<div class="tt-contact-card tt-contact-info">' +
+            "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
+            "<p>" + esc(tr("contact.infoText")) + "</p>" +
+            '<div class="tt-contact-rows">' + rows + "</div>" +
+          "</div>" +
+          '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
+            '<input id="cf-name" type="text" autocomplete="name" ' +
+              'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
+            '<input id="cf-contact" type="text" ' +
+              'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
+            '<textarea id="cf-msg" rows="3" ' +
+              'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
+            '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
+            '<p class="tt-contact-note" id="cf-note" hidden></p>' +
+          "</form>" +
+        "</div>" +
+      "</section>"
+    );
+  }
+  function initContactForm(scope) {
+    var form = scope.querySelector("#contact-form");
+    if (!form) return;
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.querySelector("#cf-name").value.trim();
+      var contact = form.querySelector("#cf-contact").value.trim();
+      var msg = form.querySelector("#cf-msg").value.trim();
+      var note = form.querySelector("#cf-note");
+      if (!name || !contact || !msg) {
+        note.hidden = false;
+        note.className = "tt-contact-note is-err";
+        note.textContent = tr("contact.fill");
+        return;
+      }
+      var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
+      var body = tr("contact.name") + ": " + name + "\n" +
+                 tr("contact.contact") + ": " + contact + "\n\n" + msg;
+      var mail = "mailto:" + (op.email || "") +
+        "?subject=" + encodeURIComponent(tr("contact.subject")) +
+        "&body=" + encodeURIComponent(body);
+      global.location.href = mail;
+      note.hidden = false;
+      note.className = "tt-contact-note is-ok";
+      note.textContent = tr("contact.sent");
+      form.reset();
+    });
+  }
+
   function footerHtml() {
     var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || null;
     if (!op) {
@@ -15289,6 +15560,7 @@ window.TURON_DESTINATIONS = [
             "</div>" +
             '<p class="tt-about-detail">' + esc(tr("about.detail")) + "</p>" +
           "</section>" +
+          contactHtml() +
           footerHtml();
         showcaseCleanup = initDestinationShowcase(root);
         // «Уменьшить движение» — ролик не крутим, остаётся кадр-постер.
@@ -15306,6 +15578,7 @@ window.TURON_DESTINATIONS = [
           keepHeroPlaying(video);
         }
         initSearch();
+        initContactForm(root);
       }).catch(errorBox);
     }
 
@@ -16761,7 +17034,7 @@ window.TURON_DESTINATIONS = [
 
   // Каталоги: гостевой (на публичном экране) и кабинетный (вкладка).
   // Экземпляры независимы, создаются по одному разу.
-  var publicCatalog = null, cabinetCatalog = null, builderCatalog = null;
+  var publicCatalog = null, builderCatalog = null;
   // Заезд, который гость выбрал до входа: откроем бронь сразу после логина.
   var pendingBooking = null;
   // Согласие с условиями бронирования: сбрасывается при открытии окна брони,
@@ -17033,13 +17306,6 @@ window.TURON_DESTINATIONS = [
       return;
     }
 
-    if (!cabinetCatalog) {
-      cabinetCatalog = TuronCatalog.create({
-        root: $("cabinet-catalog"),
-        canBook: true,
-        onBook: bookFromCatalog,
-      });
-    }
     // «Новый тур» — витрина туров: этот каталог рисует мозаику направлений и
     // карточки Умры/Японии с бронью. Карадениз он НЕ рисует сам — отдаёт хосту
     // через onTour, и мы показываем привычный конструктор mir-jahon.
@@ -17118,8 +17384,7 @@ window.TURON_DESTINATIONS = [
    * Вызывается и по клику, и по «назад», и после F5 — иначе вкладка,
    * открытая по адресу, оставалась бы пустой. */
   function refreshTab(name) {
-    if (name === "catalog" && cabinetCatalog) cabinetCatalog.render();
-    else if (name === "travellers") renderTravellers();
+    if (name === "travellers") renderTravellers();
     else if (name === "payments") renderPayments();
     else if (name === "documents") renderDocuments();
     else if (name === "messages") renderMessages();
@@ -19128,7 +19393,6 @@ window.TURON_DESTINATIONS = [
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
       departures: ["Направления", "Заезды и цены"],
-      catalog: ["Каталог туров", "Маршруты и программы"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
@@ -19143,7 +19407,7 @@ window.TURON_DESTINATIONS = [
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["builder", "departures", "catalog", "bookings", "tours", "travellers",
+    ["builder", "departures", "bookings", "tours", "travellers",
      "payments", "documents", "messages", "overview", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);

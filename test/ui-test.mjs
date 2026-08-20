@@ -329,23 +329,6 @@ console.log("\nКабинет агентства");
   check("боковая панель сворачивается",
         await page.locator("#screen-app").evaluate((el) => el.classList.contains("is-sidebar-collapsed")));
 
-  // Тот же .tt-cat-hero, что и на публичной карточке, но в кабинете рядом
-  // с сайдбаром — должен остаться компактной карточкой без видео, а не
-  // растянуться на весь экран, как на публике.
-  await page.locator('.tt-tab[data-tab="catalog"]').first().click({ force: true });
-  await page.waitForTimeout(500);
-  await page.locator("#panel-catalog button:has-text('Открыть маршрут')").first().click();
-  await page.waitForTimeout(600);
-  const cabInfo = await page.evaluate(() => {
-    const h = document.querySelector(".tt-cat-hero");
-    return {
-      heroH: h ? h.getBoundingClientRect().height : 0,
-      bgVideo: !!document.querySelector(".tt-tour-bg"),
-    };
-  });
-  check("в кабинете карточка тура остаётся компактной, без видео",
-        cabInfo.heroH > 0 && cabInfo.heroH < 500 && !cabInfo.bgVideo,
-        JSON.stringify(cabInfo));
   check("компактный режим запоминается",
         await page.evaluate(() => localStorage.getItem("turon.sidebar.compact")) === "1");
   await page.click("#sidebar-collapse");

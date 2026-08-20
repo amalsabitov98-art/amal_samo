@@ -4541,6 +4541,148 @@ select { font-family: inherit; }
   font-style: italic;
   text-align: right;
 }
+/* «Свяжитесь с нами» — секция после «О компании». Свой тёмный фон-панель
+ * (как у about-company), чтобы стеклянные карточки и белый текст читались и
+ * в тёмной, и в светлой теме страницы. Стекло на референсе фиолетовое, но
+ * держим фирменные бирюзу и латунь. */
+.tt-contact {
+  /* Панель всегда тёмная, поэтому акцент внутри — ФИКСИРОВАННАЯ бирюза, а не
+   * тема-зависимый --tt-accent (в светлой теме он коралловый и на тёмном фоне
+   * смотрелся бы сломанным — половина кнопки оранжевая). */
+  --cc: #4fd6e8;
+  position: relative;
+  margin-top: clamp(26px, 4vw, 46px);
+  padding: clamp(38px, 6vw, 78px) clamp(22px, 5vw, 74px);
+  border-radius: 32px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 90% 6%, rgba(79, 214, 232, 0.16), transparent 24rem),
+    radial-gradient(circle at 4% 104%, rgba(229, 201, 135, 0.11), transparent 22rem),
+    linear-gradient(150deg, #0e1a33 0%, #070b18 100%);
+  color: #f4f7fb;
+  box-shadow: 0 30px 90px rgba(4, 10, 22, 0.35);
+  scroll-margin-top: 130px;
+}
+.tt-contact-lead {
+  max-width: 640px;
+  margin: 0 auto clamp(26px, 4vw, 42px);
+  text-align: center;
+}
+.tt-contact-lead .tt-eyebrow { justify-content: center; color: var(--cc); }
+.tt-contact-lead h2 {
+  margin: 10px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: 1.03;
+}
+.tt-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 28px);
+  align-items: stretch;
+}
+.tt-contact-card {
+  position: relative;
+  padding: clamp(24px, 3.4vw, 38px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 24px 60px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+}
+.tt-contact-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+.tt-contact-info { display: flex; flex-direction: column; }
+.tt-contact-info h3 {
+  margin: 0 0 12px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  line-height: 1.05;
+}
+.tt-contact-info p {
+  margin: 0 0 24px;
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+.tt-contact-rows { display: grid; gap: 12px; margin-top: auto; }
+.tt-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+a.tt-contact-row:hover { color: var(--cc); }
+.tt-contact-row svg {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 11px;
+  fill: none;
+  stroke: var(--cc);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.tt-contact-form { display: grid; gap: 12px; align-content: start; }
+.tt-contact-form input,
+.tt-contact-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+.tt-contact-form input::placeholder,
+.tt-contact-form textarea::placeholder { color: rgba(255, 255, 255, 0.5); }
+.tt-contact-form input:focus,
+.tt-contact-form textarea:focus {
+  outline: none;
+  border-color: var(--cc);
+  box-shadow: 0 0 0 3px rgba(79, 214, 232, 0.22);
+}
+.tt-contact-send {
+  margin-top: 4px;
+  padding: 15px 18px;
+  border: none;
+  border-radius: 13px;
+  color: #05221f;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  background: linear-gradient(120deg, var(--cc), #7be8f4);
+  box-shadow: 0 14px 30px rgba(79, 214, 232, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-contact-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(79, 214, 232, 0.4);
+}
+.tt-contact-note { margin: 4px 0 0; font-size: 0.72rem; line-height: 1.5; }
+.tt-contact-note.is-ok { color: var(--cc); }
+.tt-contact-note.is-err { color: #ff9a9a; }
+@media (max-width: 720px) {
+  .tt-contact-grid { grid-template-columns: 1fr; }
+}
+
 .tt-public-footer {
   display: flex;
   justify-content: space-between;
