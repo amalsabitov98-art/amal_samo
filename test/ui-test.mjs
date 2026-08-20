@@ -79,20 +79,14 @@ console.log("\nТитульная страница");
         }));
   check("в автослайдере три главных направления",
         (await page.locator(".tt-destination-showcase .tt-showcase-slide").count()) === 3);
-  check("невидимая ниже первого экрана витрина ещё не запускает интро и таймер",
+  check("невидимая ниже первого экрана витрина ещё не запускает таймер",
         await page.locator("[data-showcase]").evaluate((el) =>
           el.dataset.activeIndex === "0" &&
-          !el.classList.contains("is-intro-complete") &&
           !el.classList.contains("is-timer-running")));
   await page.locator("#tour-catalog").scrollIntoViewIfNeeded();
   await page.waitForTimeout(180);
-  check("загрузочное интро брендово и не привязано к одному направлению",
-        await page.locator(".tt-showcase-intro").evaluate((el) => {
-          const text = el.textContent;
-          return !!el.querySelector('img[src="img/etihad-mark.png"]') &&
-            text.includes("Собираем ваше путешествие") &&
-            !/Батуми|Ризе|Трабзон|Мекка|Медина|Токио|Киото/.test(text);
-        }).catch(() => false));
+  check("у витрины нет отдельного полноэкранного загрузчика",
+        (await page.locator(".tt-showcase-intro, .tt-showcase-flight").count()) === 0);
   check("Карадениз стоит первым и назван главным продуктом",
         await page.locator(".tt-showcase-slide").first().evaluate((el) =>
           el.classList.contains("is-karadeniz") &&
@@ -112,11 +106,9 @@ console.log("\nТитульная страница");
         (await page.locator("[data-showcase-progress]").count()) === 1 &&
         (await page.locator("[data-showcase-prev], [data-showcase-next]").count()) === 2 &&
         (await page.locator(".tt-showcase-dots [data-showcase-goto]").count()) === 3);
-  await page.waitForTimeout(1450);
-  check("после брендового интро управление витриной разблокировано",
+  check("при появлении витрины её нижний таймер запускается сразу",
         await page.locator("[data-showcase]").evaluate((el) =>
-          el.classList.contains("is-intro-complete") &&
-          el.querySelector(".tt-showcase-intro").getAttribute("aria-hidden") === "true"));
+          el.classList.contains("is-timer-running")));
   check("витрина занимает ровно ширину и высоту окна",
         await page.locator(".tt-public-catalogue").evaluate((el) => {
           const r = el.getBoundingClientRect();
@@ -174,6 +166,9 @@ console.log("\nТитульная страница");
           return s.bottom <= window.innerHeight + 2 && st.bottom <= window.innerHeight + 2 &&
                  st.top >= -2;
         }));
+  check("таймер витрины приостанавливается, когда она ушла за пределы экрана",
+        await page.locator("[data-showcase]").evaluate((el) =>
+          el.classList.contains("is-timer-paused")));
 
   /* Между блоком «О компании» и секцией контактов не должно быть зазора:
    * блок заканчивается сплошной золотой полосой, и любой промежуток
@@ -204,20 +199,25 @@ console.log("\nТитульная страница");
 
   await page.locator('[data-showcase-card="1"]').click();
   await page.waitForTimeout(80);
-  check("карточка выбранного направления разворачивается поверх сцены",
+  check("смена направления не создаёт полноэкранный слой поверх карточек",
         await page.locator("[data-showcase]").evaluate((el) => {
-          const flight = el.querySelector(".tt-showcase-flight");
-          return el.classList.contains("is-switching") &&
-            !!flight && flight.dataset.destination === "Умра";
+          return !el.querySelector(".tt-showcase-flight, .tt-showcase-intro");
         }));
-  check("золотая линия получает маршрут нового направления",
+  check("маршрут нового направления анимируется внутри нижнего таймера",
         await page.locator("[data-showcase-route]").evaluate((el) =>
           el.getAttribute("data-active-route") === "Мекка · Медина · Джидда" &&
-          el.textContent.includes("Мекка") && el.textContent.includes("Джидда")));
-  await page.waitForTimeout(1020);
-  check("временный слой перехода удаляется после анимации",
-        (await page.locator(".tt-showcase-flight").count()) === 0 &&
-        !await page.locator("[data-showcase]").evaluate((el) => el.classList.contains("is-switching")));
+          el.closest(".tt-showcase-timer") !== null &&
+          el.textContent.includes("Мекка") && el.textContent.includes("Джидда") &&
+          el.closest("[data-showcase]").classList.contains("is-route-changing")));
+  await page.waitForTimeout(140);
+  check("текст уходящего слайда исчезает до появления нового",
+        await page.locator('[data-showcase-slide="0"] .tt-showcase-copy').evaluate((el) =>
+          Number(getComputedStyle(el).opacity) < 0.1));
+  await page.waitForTimeout(880);
+  check("после маршрута нижняя линия снова становится таймером",
+        await page.locator("[data-showcase-route]").evaluate((el) =>
+          el.getAttribute("aria-hidden") === "true" &&
+          !el.closest("[data-showcase]").classList.contains("is-route-changing")));
   check("превью Умры разворачивается в активный полноэкранный кадр",
         await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
           el.classList.contains("is-active") && el.getAttribute("aria-hidden") === "false"));
@@ -342,14 +342,13 @@ console.log("\nВитрина без движения");
   await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
 
-  check("при reduced-motion брендовый экран пропускается сразу",
-        await page.locator("[data-showcase]").evaluate((el) =>
-          el.classList.contains("is-intro-complete") &&
-          el.querySelector(".tt-showcase-intro").getAttribute("aria-hidden") === "true"));
+  check("при reduced-motion полноэкранных загрузчиков нет",
+        (await page.locator(".tt-showcase-intro, .tt-showcase-flight").count()) === 0);
   await page.locator('[data-showcase-card="1"]').click();
   await page.waitForTimeout(80);
-  check("при reduced-motion направление меняется без летящей карточки",
-        (await page.locator(".tt-showcase-flight").count()) === 0 &&
+  check("при reduced-motion направление меняется без анимации маршрута",
+        !await page.locator("[data-showcase]").evaluate((el) =>
+          el.classList.contains("is-route-changing")) &&
         await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
           el.classList.contains("is-active")));
   await page.close();

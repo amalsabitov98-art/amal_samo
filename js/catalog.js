@@ -167,14 +167,6 @@
     ];
     return '<div class="tt-destination-showcase" data-showcase data-active-index="0" ' +
       'role="region" aria-roledescription="carousel" aria-label="Главные направления">' +
-      '<div class="tt-showcase-intro" aria-hidden="false">' +
-        '<div class="tt-showcase-intro-brand">' +
-          '<img src="img/etihad-mark.png" alt="">' +
-          '<span>ETIHAD</span>' +
-        '</div>' +
-        '<p>Собираем ваше путешествие</p>' +
-        '<span class="tt-showcase-intro-line"><i></i><b></b><b></b><b></b></span>' +
-      '</div>' +
       '<div class="tt-showcase-stage">' +
         slides.map(function (slide, index) {
           return '<article class="tt-showcase-slide ' + slide.cls +
@@ -200,10 +192,6 @@
           '</article>';
         }).join("") +
       '</div>' +
-      '<div class="tt-showcase-route" data-showcase-route aria-hidden="true">' +
-        '<span class="tt-showcase-route-line"></span>' +
-        '<span class="tt-showcase-route-stops" data-showcase-route-stops></span>' +
-      '</div>' +
       '<div class="tt-showcase-previews" aria-label="Следующие направления">' +
         slides.map(function (slide, index) {
           return '<button class="tt-showcase-card ' + slide.cls + '" type="button" ' +
@@ -225,7 +213,13 @@
         '</div>' +
         '<div class="tt-showcase-timer">' +
           '<span data-showcase-count>01 / 03</span>' +
-          '<i aria-hidden="true"><b data-showcase-progress></b></i>' +
+          '<i aria-hidden="true"><b data-showcase-progress></b>' +
+            '<span class="tt-showcase-timer-route" data-showcase-route aria-hidden="true">' +
+              '<span class="tt-showcase-route-line"></span>' +
+              '<span class="tt-showcase-route-stops" data-showcase-route-stops></span>' +
+              '<em class="tt-showcase-route-dot"></em>' +
+            '</span>' +
+          '</i>' +
         '</div>' +
         '<div class="tt-showcase-dots" role="group" aria-label="Выбрать направление">' +
           slides.map(function (slide, index) {
@@ -248,14 +242,13 @@
     var count = box.querySelector("[data-showcase-count]");
     var progress = box.querySelector("[data-showcase-progress]");
     var status = box.querySelector("[data-showcase-status]");
-    var intro = box.querySelector(".tt-showcase-intro");
     var route = box.querySelector("[data-showcase-route]");
     var routeStops = box.querySelector("[data-showcase-route-stops]");
     var reduced = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var active = 0, timer = null, animationTimer = null, introTimer = null, flightTimer = null;
+    var active = 0, timer = null, animationTimer = null, routeTimer = null;
     var visibilityObserver = null;
     var startedAt = 0, remaining = Number(slides[0].dataset.duration) || 6000;
-    var transitioning = false, destroyed = false, introDone = false;
+    var transitioning = false, destroyed = false, showcaseStarted = false;
 
     function titleOf(index) {
       var title = slides[index].querySelector("h2");
@@ -271,7 +264,8 @@
     }
 
     function startClock(delay) {
-      if (destroyed || reduced || !introDone || global.document.hidden) return;
+      if (destroyed || reduced || !showcaseStarted || global.document.hidden ||
+          box.classList.contains("is-route-changing")) return;
       remaining = delay == null ? remaining : delay;
       startedAt = Date.now();
       box.style.setProperty("--tt-showcase-duration", remaining + "ms");
@@ -302,76 +296,42 @@
       });
     }
 
-    function removeFlight() {
-      var flight = box.querySelector(".tt-showcase-flight");
-      if (flight) flight.remove();
-      box.classList.remove("is-switching");
+    function hideRoute() {
+      box.classList.remove("is-route-changing");
       route.setAttribute("aria-hidden", "true");
     }
 
-    function createFlight(index, sourceCard) {
+    function showRoute(index) {
       updateRoute(index);
       if (reduced) return;
-      var card = sourceCard || cards[index];
-      if (!card || card.hidden) return;
-      var rect = card.getBoundingClientRect();
-      var flight = card.cloneNode(true);
-      flight.hidden = false;
-      flight.removeAttribute("data-showcase-goto");
-      flight.removeAttribute("data-showcase-card");
-      flight.removeAttribute("aria-label");
-      flight.setAttribute("aria-hidden", "true");
-      flight.classList.add("tt-showcase-flight");
-      flight.dataset.destination = slides[index].dataset.destination || "";
-      flight.style.setProperty("--tt-flight-left", rect.left + "px");
-      flight.style.setProperty("--tt-flight-top", rect.top + "px");
-      flight.style.setProperty("--tt-flight-width", rect.width + "px");
-      flight.style.setProperty("--tt-flight-height", rect.height + "px");
-      box.appendChild(flight);
-      box.classList.add("is-switching");
+      box.classList.remove("is-route-changing");
+      void route.offsetWidth;
+      box.classList.add("is-route-changing");
       route.setAttribute("aria-hidden", "false");
-      global.requestAnimationFrame(function () {
-        global.requestAnimationFrame(function () { flight.classList.add("is-flying"); });
-      });
-      if (flightTimer) global.clearTimeout(flightTimer);
-      flightTimer = global.setTimeout(function () {
-        removeFlight();
-        flightTimer = null;
+      if (routeTimer) global.clearTimeout(routeTimer);
+      routeTimer = global.setTimeout(function () {
+        hideRoute();
+        routeTimer = null;
+        startClock(remaining);
       }, 720);
     }
 
-    function finishIntro() {
-      if (introDone || destroyed) return;
-      introDone = true;
-      box.classList.add("is-intro-complete");
-      intro.setAttribute("aria-hidden", "true");
+    function beginShowcase() {
+      if (showcaseStarted || destroyed) return;
+      showcaseStarted = true;
       startClock(remaining);
     }
 
-    function beginShowcase() {
-      if (introDone || introTimer || destroyed) return;
-      if (global.__ttShowcaseIntroPlayed) {
-        finishIntro();
-        return;
-      }
-      global.__ttShowcaseIntroPlayed = true;
-      box.classList.add("is-intro-running");
-      introTimer = global.setTimeout(function () {
-        finishIntro();
-        introTimer = null;
-      }, 1500);
-    }
-
-    function show(next, source, sourceCard) {
+    function show(next, source) {
       next = (next + slides.length) % slides.length;
       if (transitioning) return;
-      if (!introDone) finishIntro();
+      if (!showcaseStarted) beginShowcase();
       stopClock();
       var old = active;
       active = next;
       if (old !== active) {
         transitioning = true;
-        createFlight(active, sourceCard);
+        showRoute(active);
         if (animationTimer) global.clearTimeout(animationTimer);
         slides[old].classList.remove("is-active", "is-entering");
         slides[old].classList.add("is-leaving");
@@ -403,8 +363,7 @@
       if (!target || !box.contains(target)) return;
       if (target.hasAttribute("data-showcase-prev")) show(active - 1, "prev");
       else if (target.hasAttribute("data-showcase-next")) show(active + 1, "next");
-      else show(Number(target.dataset.showcaseGoto), "manual",
-        target.classList.contains("tt-showcase-card") ? target : null);
+      else show(Number(target.dataset.showcaseGoto), "manual");
     }
 
     function onKey(event) {
@@ -426,13 +385,18 @@
     updateRoute(active);
     if (reduced) {
       box.classList.add("is-reduced-motion");
-      finishIntro();
+      showcaseStarted = true;
     } else if ("IntersectionObserver" in global) {
       visibilityObserver = new global.IntersectionObserver(function (entries) {
-        if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
-        visibilityObserver.disconnect();
-        visibilityObserver = null;
-        beginShowcase();
+        var entry = entries.filter(function (item) { return item.target === box; })[0];
+        if (!entry) return;
+        if (entry.isIntersecting) {
+          var wasStarted = showcaseStarted;
+          beginShowcase();
+          if (wasStarted) startClock(remaining);
+        } else if (showcaseStarted) {
+          stopClock();
+        }
       }, { threshold: .28 });
       visibilityObserver.observe(box);
     } else {
@@ -443,10 +407,9 @@
       destroyed = true;
       if (timer) global.clearTimeout(timer);
       if (animationTimer) global.clearTimeout(animationTimer);
-      if (introTimer) global.clearTimeout(introTimer);
-      if (flightTimer) global.clearTimeout(flightTimer);
+      if (routeTimer) global.clearTimeout(routeTimer);
       if (visibilityObserver) visibilityObserver.disconnect();
-      removeFlight();
+      hideRoute();
       global.document.removeEventListener("visibilitychange", onVisibility);
     };
   }
