@@ -79,11 +79,28 @@ console.log("\nТитульная страница");
         }));
   check("в автослайдере три главных направления",
         (await page.locator(".tt-destination-showcase .tt-showcase-slide").count()) === 3);
+  check("невидимая ниже первого экрана витрина ещё не запускает интро и таймер",
+        await page.locator("[data-showcase]").evaluate((el) =>
+          el.dataset.activeIndex === "0" &&
+          !el.classList.contains("is-intro-complete") &&
+          !el.classList.contains("is-timer-running")));
+  await page.locator("#tour-catalog").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(180);
+  check("загрузочное интро брендово и не привязано к одному направлению",
+        await page.locator(".tt-showcase-intro").evaluate((el) => {
+          const text = el.textContent;
+          return !!el.querySelector('img[src="img/etihad-mark.png"]') &&
+            text.includes("Собираем ваше путешествие") &&
+            !/Батуми|Ризе|Трабзон|Мекка|Медина|Токио|Киото/.test(text);
+        }).catch(() => false));
   check("Карадениз стоит первым и назван главным продуктом",
         await page.locator(".tt-showcase-slide").first().evaluate((el) =>
           el.classList.contains("is-karadeniz") &&
-          el.classList.contains("is-active") &&
           el.textContent.includes("Загадочный Карадениз")));
+  check("у каждого направления задан собственный маршрут перехода",
+        await page.locator("[data-showcase-slide]").evaluateAll((slides) =>
+          slides.map((el) => el.dataset.routeStops).join("|") ===
+            "Батуми · Ризе · Трабзон|Мекка · Медина · Джидда|Токио · Киото · Нара · Хаконэ"));
   check("Умра и Япония собраны двумя следующими превью",
         await page.locator(".tt-showcase-previews").evaluate((el) =>
           [...el.children].filter((child) => !child.hidden).length === 2 &&
@@ -95,6 +112,11 @@ console.log("\nТитульная страница");
         (await page.locator("[data-showcase-progress]").count()) === 1 &&
         (await page.locator("[data-showcase-prev], [data-showcase-next]").count()) === 2 &&
         (await page.locator(".tt-showcase-dots [data-showcase-goto]").count()) === 3);
+  await page.waitForTimeout(1450);
+  check("после брендового интро управление витриной разблокировано",
+        await page.locator("[data-showcase]").evaluate((el) =>
+          el.classList.contains("is-intro-complete") &&
+          el.querySelector(".tt-showcase-intro").getAttribute("aria-hidden") === "true"));
   check("витрина занимает ровно ширину и высоту окна",
         await page.locator(".tt-public-catalogue").evaluate((el) => {
           const r = el.getBoundingClientRect();
@@ -181,7 +203,21 @@ console.log("\nТитульная страница");
   await page.waitForTimeout(400);
 
   await page.locator('[data-showcase-card="1"]').click();
-  await page.waitForTimeout(1100);
+  await page.waitForTimeout(80);
+  check("карточка выбранного направления разворачивается поверх сцены",
+        await page.locator("[data-showcase]").evaluate((el) => {
+          const flight = el.querySelector(".tt-showcase-flight");
+          return el.classList.contains("is-switching") &&
+            !!flight && flight.dataset.destination === "Умра";
+        }));
+  check("золотая линия получает маршрут нового направления",
+        await page.locator("[data-showcase-route]").evaluate((el) =>
+          el.getAttribute("data-active-route") === "Мекка · Медина · Джидда" &&
+          el.textContent.includes("Мекка") && el.textContent.includes("Джидда")));
+  await page.waitForTimeout(1020);
+  check("временный слой перехода удаляется после анимации",
+        (await page.locator(".tt-showcase-flight").count()) === 0 &&
+        !await page.locator("[data-showcase]").evaluate((el) => el.classList.contains("is-switching")));
   check("превью Умры разворачивается в активный полноэкранный кадр",
         await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
           el.classList.contains("is-active") && el.getAttribute("aria-hidden") === "false"));
@@ -294,6 +330,28 @@ console.log("\nТитульная страница");
         `в счётчике «${adultCount}»`);
 
   check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
+// Пользователь, отключивший анимации в ОС, не должен ждать интро или видеть
+// увеличивающийся клон карточки. Само переключение направления сохраняется.
+console.log("\nВитрина без движения");
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+
+  check("при reduced-motion брендовый экран пропускается сразу",
+        await page.locator("[data-showcase]").evaluate((el) =>
+          el.classList.contains("is-intro-complete") &&
+          el.querySelector(".tt-showcase-intro").getAttribute("aria-hidden") === "true"));
+  await page.locator('[data-showcase-card="1"]').click();
+  await page.waitForTimeout(80);
+  check("при reduced-motion направление меняется без летящей карточки",
+        (await page.locator(".tt-showcase-flight").count()) === 0 &&
+        await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
+          el.classList.contains("is-active")));
   await page.close();
 }
 

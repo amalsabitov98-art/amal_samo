@@ -79,6 +79,95 @@ body {
   background: #071713;
   isolation: isolate;
 }
+.tt-showcase-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 27px;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(30, 75, 61, .22), transparent 38%),
+    #061712;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .34s ease, visibility 0s linear .34s;
+}
+.tt-showcase-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .12;
+  background: var(--tt-showcase-image) center / cover no-repeat;
+  filter: saturate(.5) contrast(1.1);
+}
+.tt-showcase-intro-brand {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.tt-showcase-intro-brand img {
+  display: block;
+  width: clamp(82px, 8vw, 126px);
+  height: auto;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .28));
+  animation: tt-intro-mark .7s cubic-bezier(.2, .75, .2, 1) both;
+}
+.tt-showcase-intro-brand span {
+  color: #1d6848;
+  font: 600 clamp(.78rem, 1.15vw, 1.08rem)/1 Georgia, serif;
+  letter-spacing: .37em;
+  text-indent: .37em;
+  animation: tt-intro-copy .6s .18s ease both;
+}
+.tt-showcase-intro p {
+  position: relative;
+  margin: 0;
+  color: #f5efe1;
+  font: 500 clamp(1.65rem, 3vw, 3.35rem)/1 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.025em;
+  animation: tt-intro-copy .6s .3s ease both;
+}
+.tt-showcase-intro-line {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: min(58vw, 820px);
+  height: 18px;
+}
+.tt-showcase-intro-line i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #c99d43;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: tt-intro-line 1s .28s cubic-bezier(.2, .72, .2, 1) forwards;
+}
+.tt-showcase-intro-line b {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #d6ae5b;
+  border-radius: 50%;
+  background: #061712;
+  opacity: 0;
+  animation: tt-intro-stop .28s ease forwards;
+}
+.tt-showcase-intro-line b:nth-of-type(1) { animation-delay: .42s; }
+.tt-showcase-intro-line b:nth-of-type(2) { animation-delay: .75s; }
+.tt-showcase-intro-line b:nth-of-type(3) { animation-delay: 1.04s; }
+.tt-destination-showcase.is-intro-complete .tt-showcase-intro {
+  opacity: 0;
+  visibility: hidden;
+}
 .tt-showcase-slide {
   position: absolute;
   inset: 0;
@@ -194,6 +283,7 @@ body {
   grid-template-columns: repeat(2, minmax(190px, 1fr));
   gap: clamp(12px, 1.4vw, 22px);
   width: min(49vw, 750px);
+  transition: opacity .16s ease;
 }
 .tt-showcase-card {
   position: relative;
@@ -274,6 +364,89 @@ body {
 .tt-showcase-card:focus-visible .tt-showcase-card-image { transform: scale(1.065); filter: saturate(1.06); }
 .tt-showcase-card:hover .tt-showcase-card-arrow { color: #15241f; background: #e5ca81; transform: translateX(4px); }
 .tt-showcase-card:focus-visible { outline: 3px solid #e5ca81; outline-offset: 3px; }
+.tt-showcase-flight {
+  position: fixed;
+  left: var(--tt-flight-left);
+  top: var(--tt-flight-top);
+  z-index: 11;
+  width: var(--tt-flight-width);
+  height: var(--tt-flight-height) !important;
+  margin: 0;
+  pointer-events: none;
+  animation: none;
+  transition:
+    left .68s cubic-bezier(.7, 0, .18, 1),
+    top .68s cubic-bezier(.7, 0, .18, 1),
+    width .68s cubic-bezier(.7, 0, .18, 1),
+    height .68s cubic-bezier(.7, 0, .18, 1),
+    border-radius .68s ease;
+}
+.tt-showcase-flight.is-flying {
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh !important;
+  height: 100svh !important;
+  border-radius: 0;
+}
+.tt-showcase-flight .tt-showcase-card-copy,
+.tt-showcase-flight .tt-showcase-card-arrow { opacity: 0; transition: opacity .16s ease; }
+.tt-showcase-flight .tt-showcase-card-shade {
+  background: linear-gradient(180deg, rgba(2, 12, 10, .12), rgba(2, 12, 10, .72));
+}
+.tt-showcase-route {
+  position: absolute;
+  left: clamp(70px, 14vw, 230px);
+  right: clamp(70px, 14vw, 230px);
+  top: 52%;
+  z-index: 13;
+  height: 62px;
+  color: #f5efe1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+.tt-showcase-route-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  height: 1px;
+  background: #d2a64c;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.tt-showcase-route-stops {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.tt-showcase-route-stops span {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-width: 70px;
+  color: #f5efe1;
+  font: 650 clamp(.56rem, .7vw, .7rem)/1 Manrope, sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.tt-showcase-route-stops span::before {
+  content: "";
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #d2a64c;
+  border-radius: 50%;
+  background: #0a1b16;
+}
+.tt-destination-showcase.is-switching .tt-showcase-route {
+  animation: tt-route-bridge .72s ease both;
+}
+.tt-destination-showcase.is-switching .tt-showcase-route-line {
+  animation: tt-route-draw .54s .05s cubic-bezier(.2, .72, .2, 1) both;
+}
 .tt-showcase-controls {
   position: absolute;
   left: clamp(28px, 4.2vw, 78px);
@@ -283,7 +456,12 @@ body {
   display: flex;
   align-items: center;
   gap: clamp(18px, 2.1vw, 34px);
+  transition: opacity .16s ease;
 }
+.tt-showcase-copy { transition: opacity .16s ease; }
+.tt-destination-showcase.is-switching .tt-showcase-copy,
+.tt-destination-showcase.is-switching .tt-showcase-previews,
+.tt-destination-showcase.is-switching .tt-showcase-controls { opacity: 0; }
 .tt-showcase-nav { display: flex; gap: 8px; }
 .tt-showcase-nav button {
   display: grid;
@@ -370,6 +548,21 @@ body {
 @keyframes tt-copy-enter {
   from { opacity: 0; transform: translateY(24px); clip-path: inset(100% 0 0); }
   to { opacity: 1; transform: translateY(0); clip-path: inset(0); }
+}
+@keyframes tt-intro-mark {
+  from { opacity: 0; transform: translateY(12px) scale(.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tt-intro-copy {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tt-intro-line { to { transform: scaleX(1); } }
+@keyframes tt-intro-stop { to { opacity: 1; } }
+@keyframes tt-route-draw { to { transform: scaleX(1); } }
+@keyframes tt-route-bridge {
+  0%, 100% { opacity: 0; transform: translateY(12px); }
+  20%, 76% { opacity: 1; transform: translateY(0); }
 }
 
 /* -------------------------------------------------------------------------
@@ -543,6 +736,11 @@ body {
 
 @media (max-width: 620px) {
   .tt-public-catalogue { height: 100svh; min-height: 620px; }
+  .tt-showcase-intro { gap: 20px; padding: 22px; }
+  .tt-showcase-intro p { max-width: 330px; text-align: center; }
+  .tt-showcase-intro-line { width: min(78vw, 360px); }
+  .tt-showcase-route { left: 22px; right: 22px; top: 46%; }
+  .tt-showcase-route-stops span { min-width: 48px; font-size: .48rem; letter-spacing: .04em; }
   .tt-showcase-slide.is-karadeniz .tt-showcase-image { background-position: 48% center; }
   .tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 63% center; }
   .tt-showcase-slide.is-japan .tt-showcase-image { background-position: 57% center; }
@@ -594,6 +792,9 @@ body {
   .tt-showcase-card-image,
   .tt-showcase-card-arrow,
   .tt-umrah-program summary > i { transition: none; animation: none; }
+  .tt-showcase-intro,
+  .tt-showcase-route,
+  .tt-showcase-flight { display: none; }
   .tt-showcase-timer b { transform: scaleX(1); }
 }
 
@@ -14608,10 +14809,20 @@ window.TURON_DESTINATIONS = [
     ];
     return '<div class="tt-destination-showcase" data-showcase data-active-index="0" ' +
       'role="region" aria-roledescription="carousel" aria-label="Главные направления">' +
+      '<div class="tt-showcase-intro" aria-hidden="false">' +
+        '<div class="tt-showcase-intro-brand">' +
+          '<img src="img/etihad-mark.png" alt="">' +
+          '<span>ETIHAD</span>' +
+        '</div>' +
+        '<p>Собираем ваше путешествие</p>' +
+        '<span class="tt-showcase-intro-line"><i></i><b></b><b></b><b></b></span>' +
+      '</div>' +
       '<div class="tt-showcase-stage">' +
         slides.map(function (slide, index) {
           return '<article class="tt-showcase-slide ' + slide.cls +
             (index === 0 ? " is-active" : "") + '" data-showcase-slide="' + index +
+            '" data-destination="' + esc(slide.destination) +
+            '" data-route-stops="' + esc(slide.route) +
             '" data-duration="' + slide.duration + '" aria-hidden="' +
             (index === 0 ? "false" : "true") + '">' +
             '<span class="tt-showcase-image" style="--tt-showcase-image:url(\'' +
@@ -14630,6 +14841,10 @@ window.TURON_DESTINATIONS = [
             '</div>' +
           '</article>';
         }).join("") +
+      '</div>' +
+      '<div class="tt-showcase-route" data-showcase-route aria-hidden="true">' +
+        '<span class="tt-showcase-route-line"></span>' +
+        '<span class="tt-showcase-route-stops" data-showcase-route-stops></span>' +
       '</div>' +
       '<div class="tt-showcase-previews" aria-label="Следующие направления">' +
         slides.map(function (slide, index) {
@@ -14675,10 +14890,14 @@ window.TURON_DESTINATIONS = [
     var count = box.querySelector("[data-showcase-count]");
     var progress = box.querySelector("[data-showcase-progress]");
     var status = box.querySelector("[data-showcase-status]");
+    var intro = box.querySelector(".tt-showcase-intro");
+    var route = box.querySelector("[data-showcase-route]");
+    var routeStops = box.querySelector("[data-showcase-route-stops]");
     var reduced = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var active = 0, timer = null, animationTimer = null;
+    var active = 0, timer = null, animationTimer = null, introTimer = null, flightTimer = null;
+    var visibilityObserver = null;
     var startedAt = 0, remaining = Number(slides[0].dataset.duration) || 6000;
-    var transitioning = false, destroyed = false;
+    var transitioning = false, destroyed = false, introDone = false;
 
     function titleOf(index) {
       var title = slides[index].querySelector("h2");
@@ -14694,7 +14913,7 @@ window.TURON_DESTINATIONS = [
     }
 
     function startClock(delay) {
-      if (destroyed || reduced || global.document.hidden) return;
+      if (destroyed || reduced || !introDone || global.document.hidden) return;
       remaining = delay == null ? remaining : delay;
       startedAt = Date.now();
       box.style.setProperty("--tt-showcase-duration", remaining + "ms");
@@ -14714,14 +14933,87 @@ window.TURON_DESTINATIONS = [
       });
     }
 
-    function show(next, source) {
+    function updateRoute(index) {
+      var value = slides[index].dataset.routeStops || "";
+      route.dataset.activeRoute = value;
+      routeStops.replaceChildren();
+      value.split(" · ").forEach(function (label) {
+        var stop = global.document.createElement("span");
+        stop.textContent = label;
+        routeStops.appendChild(stop);
+      });
+    }
+
+    function removeFlight() {
+      var flight = box.querySelector(".tt-showcase-flight");
+      if (flight) flight.remove();
+      box.classList.remove("is-switching");
+      route.setAttribute("aria-hidden", "true");
+    }
+
+    function createFlight(index, sourceCard) {
+      updateRoute(index);
+      if (reduced) return;
+      var card = sourceCard || cards[index];
+      if (!card || card.hidden) return;
+      var rect = card.getBoundingClientRect();
+      var flight = card.cloneNode(true);
+      flight.hidden = false;
+      flight.removeAttribute("data-showcase-goto");
+      flight.removeAttribute("data-showcase-card");
+      flight.removeAttribute("aria-label");
+      flight.setAttribute("aria-hidden", "true");
+      flight.classList.add("tt-showcase-flight");
+      flight.dataset.destination = slides[index].dataset.destination || "";
+      flight.style.setProperty("--tt-flight-left", rect.left + "px");
+      flight.style.setProperty("--tt-flight-top", rect.top + "px");
+      flight.style.setProperty("--tt-flight-width", rect.width + "px");
+      flight.style.setProperty("--tt-flight-height", rect.height + "px");
+      box.appendChild(flight);
+      box.classList.add("is-switching");
+      route.setAttribute("aria-hidden", "false");
+      global.requestAnimationFrame(function () {
+        global.requestAnimationFrame(function () { flight.classList.add("is-flying"); });
+      });
+      if (flightTimer) global.clearTimeout(flightTimer);
+      flightTimer = global.setTimeout(function () {
+        removeFlight();
+        flightTimer = null;
+      }, 720);
+    }
+
+    function finishIntro() {
+      if (introDone || destroyed) return;
+      introDone = true;
+      box.classList.add("is-intro-complete");
+      intro.setAttribute("aria-hidden", "true");
+      startClock(remaining);
+    }
+
+    function beginShowcase() {
+      if (introDone || introTimer || destroyed) return;
+      if (global.__ttShowcaseIntroPlayed) {
+        finishIntro();
+        return;
+      }
+      global.__ttShowcaseIntroPlayed = true;
+      box.classList.add("is-intro-running");
+      introTimer = global.setTimeout(function () {
+        finishIntro();
+        introTimer = null;
+      }, 1500);
+    }
+
+    function show(next, source, sourceCard) {
       next = (next + slides.length) % slides.length;
       if (transitioning) return;
+      if (!introDone) finishIntro();
       stopClock();
       var old = active;
       active = next;
       if (old !== active) {
         transitioning = true;
+        createFlight(active, sourceCard);
         if (animationTimer) global.clearTimeout(animationTimer);
         slides[old].classList.remove("is-active", "is-entering");
         slides[old].classList.add("is-leaving");
@@ -14734,7 +15026,7 @@ window.TURON_DESTINATIONS = [
           slides.forEach(function (slide) { slide.classList.remove("is-leaving", "is-entering"); });
           transitioning = false;
           animationTimer = null;
-        }, 600);
+        }, reduced ? 0 : 720);
       }
       box.dataset.activeIndex = String(active);
       count.textContent = "0" + (active + 1) + " / 03";
@@ -14753,7 +15045,8 @@ window.TURON_DESTINATIONS = [
       if (!target || !box.contains(target)) return;
       if (target.hasAttribute("data-showcase-prev")) show(active - 1, "prev");
       else if (target.hasAttribute("data-showcase-next")) show(active + 1, "next");
-      else show(Number(target.dataset.showcaseGoto), "manual");
+      else show(Number(target.dataset.showcaseGoto), "manual",
+        target.classList.contains("tt-showcase-card") ? target : null);
     }
 
     function onKey(event) {
@@ -14772,13 +15065,30 @@ window.TURON_DESTINATIONS = [
     box.addEventListener("keydown", onKey);
     global.document.addEventListener("visibilitychange", onVisibility);
     arrangeCards();
-    if (!reduced) startClock(remaining);
-    else box.classList.add("is-reduced-motion");
+    updateRoute(active);
+    if (reduced) {
+      box.classList.add("is-reduced-motion");
+      finishIntro();
+    } else if ("IntersectionObserver" in global) {
+      visibilityObserver = new global.IntersectionObserver(function (entries) {
+        if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+        visibilityObserver.disconnect();
+        visibilityObserver = null;
+        beginShowcase();
+      }, { threshold: .28 });
+      visibilityObserver.observe(box);
+    } else {
+      beginShowcase();
+    }
 
     return function () {
       destroyed = true;
       if (timer) global.clearTimeout(timer);
       if (animationTimer) global.clearTimeout(animationTimer);
+      if (introTimer) global.clearTimeout(introTimer);
+      if (flightTimer) global.clearTimeout(flightTimer);
+      if (visibilityObserver) visibilityObserver.disconnect();
+      removeFlight();
       global.document.removeEventListener("visibilitychange", onVisibility);
     };
   }
