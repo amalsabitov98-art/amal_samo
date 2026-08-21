@@ -18,15 +18,43 @@
   function setToken(t) { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
 
   // ------------------------------------------------------------- сеть
-  function request(path, options) {
-    options = options || {};
+  /*
+   * Один сорвавшийся запрос раньше убивал страницу насмерть: воркер на
+   * Cloudflare после простоя стартует «на холодную», D1 иногда отвечает не с
+   * первой попытки, а телефон на ходу переключается с Wi-Fi на LTE — любой
+   * из этих случаев отклонял fetch, и каталог заменялся текстом ошибки без
+   * шанса на повтор. Отсюда «иногда захожу — не удалось загрузить каталог».
+   *
+   * Поэтому переходные сбои перезапрашиваем сами, с нарастающей паузой.
+   * ТОЛЬКО GET: повторить POST нельзя — /api/bookings создал бы вторую
+   * бронь на тех же пассажиров, а это хуже любой ошибки загрузки.
+   */
+  var RETRY_DELAYS = [400, 1200];   // паузы между попытками, мс
+  var REQUEST_TIMEOUT = 12000;      // на попытку; без него висим до победного
+
+  // 5xx и 429 — сервер жив, но сейчас не может; такое проходит само.
+  // 4xx (401 «протух токен», 404, 400) детерминированы — повтор даст то же.
+  function retriable(err) {
+    if (err && err.status) return err.status >= 500 || err.status === 429;
+    return true; // обрыв сети или таймаут: fetch отклонился без статуса
+  }
+
+  function attempt(path, options, method) {
+    // AbortController есть во всех живых браузерах, но если его нет —
+    // работаем без таймаута, а не падаем.
+    var ctrl = global.AbortController ? new global.AbortController() : null;
+    var timer = ctrl && global.setTimeout(function () { ctrl.abort(); }, REQUEST_TIMEOUT);
+
     var headers = { "Content-Type": "application/json" };
     if (getToken()) headers.Authorization = "Bearer " + getToken();
+
     return fetch(API_BASE + path, {
-      method: options.method || "GET",
+      method: method,
       headers: headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: ctrl ? ctrl.signal : undefined,
     }).then(function (r) {
+      if (timer) global.clearTimeout(timer);
       return r.json().catch(function () { return {}; }).then(function (data) {
         if (!r.ok) {
           // Помечаем статусом, чтобы вызвавший отличал «токен протух» (401)
@@ -38,7 +66,27 @@
         }
         return data;
       });
+    }, function (err) {
+      if (timer) global.clearTimeout(timer);
+      throw err;
     });
+  }
+
+  function request(path, options) {
+    options = options || {};
+    var method = options.method || "GET";
+    var canRetry = method === "GET";
+
+    function run(tryIndex) {
+      return attempt(path, options, method).catch(function (err) {
+        if (!canRetry || tryIndex >= RETRY_DELAYS.length || !retriable(err)) throw err;
+        return new Promise(function (resolve) {
+          global.setTimeout(resolve, RETRY_DELAYS[tryIndex]);
+        }).then(function () { return run(tryIndex + 1); });
+      });
+    }
+
+    return run(0);
   }
 
   // ------------------------------------------------------- демо-хранилище

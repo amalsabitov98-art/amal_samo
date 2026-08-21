@@ -983,9 +983,34 @@
     var showcaseCleanup = null;
     var upcomingCleanup = null;
 
+    /*
+     * Номер поколения отрисовки. Пока ответ едет, пользователь успевает
+     * кликнуть дальше — и старый запрос завершается уже поверх нового экрана:
+     * сорвался он (тогда «не удалось загрузить каталог» затирало нормально
+     * открытую страницу) или, наоборот, доехал успешно (тогда возвращался
+     * экран, с которого уже ушли). Отсюда «гуляю по сайту и вылезает ошибка».
+     * Каждая отрисовка забирает свой номер и в конце проверяет, что он всё
+     * ещё актуален; опоздавшие ответы молча выбрасываются.
+     */
+    var drawSeq = 0;
+    function nextSeq() { return ++drawSeq; }
+    function stale(seq) { return seq !== drawSeq; }
+
     function errorBox(err) {
       root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
-        '<div class="tt-muted-note">' + esc(err.message) + "</div></div>";
+        '<div class="tt-muted-note">' + esc(err.message) + "</div>" +
+        // Без кнопки единственным выходом была перезагрузка страницы:
+        // повторных запросов сюда уже никто не делал.
+        '<button class="tt-btn tt-btn-sm" type="button" data-catalog-retry>' +
+          "Повторить</button></div>";
+    }
+
+    // Ошибку показываем, только если экран за время запроса не сменился.
+    function failWith(seq) {
+      return function (err) {
+        if (stale(seq)) return;
+        errorBox(err);
+      };
     }
 
     function loading() {
@@ -1537,8 +1562,10 @@
       // мозаики направлений показывает свою витрину «Новый тур» и отбивает
       // сюда клик по крошке «Каталог» из карточки тура/программы.
       if (cfg.onDestination && cfg.onDestination(null)) return Promise.resolve();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
+        if (stale(seq)) return;
         var catalogue =
           '<section class="tt-public-catalogue" id="tour-catalog">' +
             destinationMosaic(list || []) +
@@ -1619,7 +1646,7 @@
         }
         initSearch();
         initContactForm(root);
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     // Программа Умры → код бронируемого тура (заезды и цены в seed/БД,
@@ -1850,8 +1877,10 @@
       // видео-лендинга Умры показывает свою сетку из 9 карточек-программ.
       if (cfg.onDestination && cfg.onDestination(destination)) return Promise.resolve();
       if (destination === "Умра") return renderUmrah();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        if (stale(seq)) return;
         // Направление с ровно одним туром не нуждается в промежуточном
         // списке — там будет одна строка на всю страницу, а клиенту всё
         // равно нужна карточка. Сразу подменяем маршрут на неё, чтобы
@@ -1871,7 +1900,7 @@
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
             : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>') +
           "</div></section>";
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     function renderTour(code) {
@@ -1879,12 +1908,14 @@
       // показывает Карадениз в своём конструкторе mir-jahon, а не в общей
       // карточке). Если onTour вернул true — каталог карточку не рисует.
       if (cfg.onTour && cfg.onTour(code)) return Promise.resolve();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogTour(code).then(function (tour) {
+        if (stale(seq)) return;
         loadedTour = tour;
         applyPendingSelection(tour);   // до paintTour: он рисует уже открытый расчёт
         paintTour(tour);
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     /*
@@ -2146,6 +2177,10 @@
     }
 
     root.addEventListener("click", function (e) {
+      // «Повторить» на экране ошибки: перерисовываем текущий вид заново.
+      // Раньше выхода отсюда не было вообще — только перезагрузка страницы.
+      if (e.target.closest("[data-catalog-retry]")) return draw();
+
       var tile = e.target.closest("[data-dest]");
       if (tile) {
         pendingScrollTarget = tile.dataset.scrollAfterRoute || null;

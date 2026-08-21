@@ -13032,15 +13032,43 @@ window.TURON_DESTINATIONS = [
   function setToken(t) { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
 
   // ------------------------------------------------------------- сеть
-  function request(path, options) {
-    options = options || {};
+  /*
+   * Один сорвавшийся запрос раньше убивал страницу насмерть: воркер на
+   * Cloudflare после простоя стартует «на холодную», D1 иногда отвечает не с
+   * первой попытки, а телефон на ходу переключается с Wi-Fi на LTE — любой
+   * из этих случаев отклонял fetch, и каталог заменялся текстом ошибки без
+   * шанса на повтор. Отсюда «иногда захожу — не удалось загрузить каталог».
+   *
+   * Поэтому переходные сбои перезапрашиваем сами, с нарастающей паузой.
+   * ТОЛЬКО GET: повторить POST нельзя — /api/bookings создал бы вторую
+   * бронь на тех же пассажиров, а это хуже любой ошибки загрузки.
+   */
+  var RETRY_DELAYS = [400, 1200];   // паузы между попытками, мс
+  var REQUEST_TIMEOUT = 12000;      // на попытку; без него висим до победного
+
+  // 5xx и 429 — сервер жив, но сейчас не может; такое проходит само.
+  // 4xx (401 «протух токен», 404, 400) детерминированы — повтор даст то же.
+  function retriable(err) {
+    if (err && err.status) return err.status >= 500 || err.status === 429;
+    return true; // обрыв сети или таймаут: fetch отклонился без статуса
+  }
+
+  function attempt(path, options, method) {
+    // AbortController есть во всех живых браузерах, но если его нет —
+    // работаем без таймаута, а не падаем.
+    var ctrl = global.AbortController ? new global.AbortController() : null;
+    var timer = ctrl && global.setTimeout(function () { ctrl.abort(); }, REQUEST_TIMEOUT);
+
     var headers = { "Content-Type": "application/json" };
     if (getToken()) headers.Authorization = "Bearer " + getToken();
+
     return fetch(API_BASE + path, {
-      method: options.method || "GET",
+      method: method,
       headers: headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: ctrl ? ctrl.signal : undefined,
     }).then(function (r) {
+      if (timer) global.clearTimeout(timer);
       return r.json().catch(function () { return {}; }).then(function (data) {
         if (!r.ok) {
           // Помечаем статусом, чтобы вызвавший отличал «токен протух» (401)
@@ -13052,7 +13080,27 @@ window.TURON_DESTINATIONS = [
         }
         return data;
       });
+    }, function (err) {
+      if (timer) global.clearTimeout(timer);
+      throw err;
     });
+  }
+
+  function request(path, options) {
+    options = options || {};
+    var method = options.method || "GET";
+    var canRetry = method === "GET";
+
+    function run(tryIndex) {
+      return attempt(path, options, method).catch(function (err) {
+        if (!canRetry || tryIndex >= RETRY_DELAYS.length || !retriable(err)) throw err;
+        return new Promise(function (resolve) {
+          global.setTimeout(resolve, RETRY_DELAYS[tryIndex]);
+        }).then(function () { return run(tryIndex + 1); });
+      });
+    }
+
+    return run(0);
   }
 
   // ------------------------------------------------------- демо-хранилище
@@ -15831,9 +15879,34 @@ window.TURON_DESTINATIONS = [
     var showcaseCleanup = null;
     var upcomingCleanup = null;
 
+    /*
+     * Номер поколения отрисовки. Пока ответ едет, пользователь успевает
+     * кликнуть дальше — и старый запрос завершается уже поверх нового экрана:
+     * сорвался он (тогда «не удалось загрузить каталог» затирало нормально
+     * открытую страницу) или, наоборот, доехал успешно (тогда возвращался
+     * экран, с которого уже ушли). Отсюда «гуляю по сайту и вылезает ошибка».
+     * Каждая отрисовка забирает свой номер и в конце проверяет, что он всё
+     * ещё актуален; опоздавшие ответы молча выбрасываются.
+     */
+    var drawSeq = 0;
+    function nextSeq() { return ++drawSeq; }
+    function stale(seq) { return seq !== drawSeq; }
+
     function errorBox(err) {
       root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
-        '<div class="tt-muted-note">' + esc(err.message) + "</div></div>";
+        '<div class="tt-muted-note">' + esc(err.message) + "</div>" +
+        // Без кнопки единственным выходом была перезагрузка страницы:
+        // повторных запросов сюда уже никто не делал.
+        '<button class="tt-btn tt-btn-sm" type="button" data-catalog-retry>' +
+          "Повторить</button></div>";
+    }
+
+    // Ошибку показываем, только если экран за время запроса не сменился.
+    function failWith(seq) {
+      return function (err) {
+        if (stale(seq)) return;
+        errorBox(err);
+      };
     }
 
     function loading() {
@@ -16385,8 +16458,10 @@ window.TURON_DESTINATIONS = [
       // мозаики направлений показывает свою витрину «Новый тур» и отбивает
       // сюда клик по крошке «Каталог» из карточки тура/программы.
       if (cfg.onDestination && cfg.onDestination(null)) return Promise.resolve();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogDestinations().then(function (list) {
+        if (stale(seq)) return;
         var catalogue =
           '<section class="tt-public-catalogue" id="tour-catalog">' +
             destinationMosaic(list || []) +
@@ -16467,7 +16542,7 @@ window.TURON_DESTINATIONS = [
         }
         initSearch();
         initContactForm(root);
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     // Программа Умры → код бронируемого тура (заезды и цены в seed/БД,
@@ -16698,8 +16773,10 @@ window.TURON_DESTINATIONS = [
       // видео-лендинга Умры показывает свою сетку из 9 карточек-программ.
       if (cfg.onDestination && cfg.onDestination(destination)) return Promise.resolve();
       if (destination === "Умра") return renderUmrah();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogTours(destination).then(function (list) {
+        if (stale(seq)) return;
         // Направление с ровно одним туром не нуждается в промежуточном
         // списке — там будет одна строка на всю страницу, а клиенту всё
         // равно нужна карточка. Сразу подменяем маршрут на неё, чтобы
@@ -16719,7 +16796,7 @@ window.TURON_DESTINATIONS = [
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
             : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>') +
           "</div></section>";
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     function renderTour(code) {
@@ -16727,12 +16804,14 @@ window.TURON_DESTINATIONS = [
       // показывает Карадениз в своём конструкторе mir-jahon, а не в общей
       // карточке). Если onTour вернул true — каталог карточку не рисует.
       if (cfg.onTour && cfg.onTour(code)) return Promise.resolve();
+      var seq = nextSeq();
       loading();
       return TuronApi.catalogTour(code).then(function (tour) {
+        if (stale(seq)) return;
         loadedTour = tour;
         applyPendingSelection(tour);   // до paintTour: он рисует уже открытый расчёт
         paintTour(tour);
-      }).catch(errorBox);
+      }).catch(failWith(seq));
     }
 
     /*
@@ -16994,6 +17073,10 @@ window.TURON_DESTINATIONS = [
     }
 
     root.addEventListener("click", function (e) {
+      // «Повторить» на экране ошибки: перерисовываем текущий вид заново.
+      // Раньше выхода отсюда не было вообще — только перезагрузка страницы.
+      if (e.target.closest("[data-catalog-retry]")) return draw();
+
       var tile = e.target.closest("[data-dest]");
       if (tile) {
         pendingScrollTarget = tile.dataset.scrollAfterRoute || null;

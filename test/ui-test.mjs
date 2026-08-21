@@ -1100,6 +1100,158 @@ console.log("\nМобильная вёрстка");
   await page.close();
 }
 
+/* --------------------------------------------- устойчивость к сбоям сети
+ * Симптом был: «иногда захожу на сайт — не удалось загрузить каталог».
+ * Причин две, и обе проверяются здесь.
+ *
+ * (1) Один сорвавшийся запрос убивал страницу: воркер после простоя
+ *     стартует на холодную, телефон переключается с Wi-Fi на LTE — fetch
+ *     отклонялся, и повторить было некому.
+ * (2) Ответ опаздывал к уже другому экрану и затирал его.
+ *
+ * Первый блок гоняет НАСТОЯЩИЙ js/api.js (не превью — в нём apiBaseUrl
+ * затёрт под демо, и сетевой код не работал бы вовсе) на пустой странице
+ * с подменённым fetch. */
+console.log("\nУстойчивость к сбоям сети");
+{
+  const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");
+  const page = await browser.newPage();
+  // Не about:blank: у него непрозрачный origin, а api.js читает localStorage
+  // (токен) и падает с SecurityError. Берём обычную страницу превью и
+  // переопределяем TuronApi поверх неё — модуль читает apiBaseUrl при
+  // инициализации, поэтому с непустым адресом включается сетевой путь.
+  await page.goto("file://" + PREVIEW, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => { window.TURON_CONFIG = { apiBaseUrl: "https://stub.test" }; });
+  await page.addScriptTag({ content: apiSource });
+
+  // Ставим счётчик вызовов и сценарий ответов на каждый тест. Регрессия в
+  // ретраях выражается отклонённым промисом — ловим его здесь, чтобы тест
+  // отчитался честным FAIL, а не обрывал весь прогон исключением.
+  async function withFetch(script) {
+    try { return await page.evaluate(script); }
+    catch (e) { return { error: String(e.message || e) }; }
+  }
+
+  const flaky = await withFetch(async () => {
+    let calls = 0;
+    window.fetch = () => {
+      calls++;
+      if (calls === 1) return Promise.reject(new TypeError("Failed to fetch"));
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([{ name: "Турция" }]) });
+    };
+    const data = await window.TuronApi.catalogDestinations();
+    return { calls, ok: Array.isArray(data) && data.length === 1 };
+  });
+  check("сорвавшийся GET повторяется и всё-таки доезжает",
+        flaky.calls === 2 && flaky.ok, JSON.stringify(flaky));
+
+  const fivehundred = await withFetch(async () => {
+    let calls = 0;
+    window.fetch = () => {
+      calls++;
+      if (calls < 3) {
+        return Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({}) });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
+    };
+    await window.TuronApi.catalogDestinations();
+    return calls;
+  });
+  check("503 от холодного воркера переживается повтором",
+        fivehundred === 3, JSON.stringify(fivehundred));
+
+  // 404/401 детерминированы: повтор вернёт ровно то же, дёргать сеть незачем.
+  const notFound = await withFetch(async () => {
+    let calls = 0;
+    window.fetch = () => {
+      calls++;
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({ error: "нет" }) });
+    };
+    try { await window.TuronApi.catalogDestinations(); } catch (e) { return { calls, msg: e.message }; }
+    return { calls, msg: "не отклонился" };
+  });
+  check("404 не повторяется — ответ детерминирован",
+        notFound.calls === 1, JSON.stringify(notFound));
+
+  /* САМОЕ ВАЖНОЕ: POST повторять нельзя. Повтор /api/bookings создал бы
+   * вторую бронь на тех же пассажиров — это хуже любой ошибки загрузки. */
+  const post = await withFetch(async () => {
+    let calls = 0;
+    window.fetch = () => {
+      calls++;
+      return Promise.reject(new TypeError("Failed to fetch"));
+    };
+    try { await window.TuronApi.login("umida", "x"); } catch (e) { return calls; }
+    return calls;
+  });
+  check("POST НЕ повторяется (иначе дубль брони)", post === 1, JSON.stringify(post));
+
+  const giveUp = await withFetch(async () => {
+    let calls = 0;
+    window.fetch = () => { calls++; return Promise.reject(new TypeError("Failed to fetch")); };
+    try { await window.TuronApi.catalogDestinations(); } catch (e) { return calls; }
+    return -1;
+  });
+  check("повторы не бесконечны — сдаёмся после трёх попыток",
+        giveUp === 3, JSON.stringify(giveUp));
+
+  await page.close();
+}
+
+/* Гонка запросов на живой странице: ответ, опоздавший к уже другому
+ * экрану, не должен ни показывать ошибку, ни возвращать старый вид. */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+
+  // Каталог отвечает с задержкой и ошибкой, и пока он «едет», уходим на тур.
+  await page.evaluate(() => {
+    window.TuronApi.catalogDestinations = () => new Promise((_, rej) =>
+      setTimeout(() => rej(new Error("сеть отвалилась")), 500));
+  });
+  await page.evaluate(() => { window.location.hash = "#/"; });
+  await page.waitForTimeout(120);
+  await page.evaluate(() => { window.location.hash = "#/t/KARADENIZ"; });
+  await page.waitForTimeout(1100);
+
+  const afterRace = await page.evaluate(() => ({
+    hasError: document.body.innerText.includes("Не удалось загрузить каталог"),
+    hasTour: !!document.querySelector(".tt-tour-bg, .tt-cat-block, [data-calc]"),
+  }));
+  check("опоздавшая ошибка не затирает уже открытый экран",
+        !afterRace.hasError, JSON.stringify(afterRace));
+  check("после гонки на экране именно тот раздел, куда ушли",
+        afterRace.hasTour, JSON.stringify(afterRace));
+
+  /* Когда ошибка всё же законна (текущий экран не загрузился), у неё должна
+   * быть кнопка выхода: раньше единственным способом была перезагрузка. */
+  await page.evaluate(() => {
+    window.TuronApi.catalogDestinations = () => Promise.reject(new Error("сеть отвалилась"));
+    window.location.hash = "#/";
+  });
+  await page.waitForTimeout(500);
+  check("на экране ошибки есть кнопка «Повторить»",
+        (await page.locator("[data-catalog-retry]").count()) === 1);
+
+  // Чиним «сеть» и жмём повтор — каталог обязан подняться без перезагрузки.
+  await page.evaluate(() => {
+    const seed = (window.TURON_TOURS || []).map((t) => t.destination);
+    const uniq = [...new Set(seed)].map((name) => ({ name, title: name, tours: 1, departures: 1 }));
+    window.TuronApi.catalogDestinations = () => Promise.resolve(uniq);
+  });
+  await page.locator("[data-catalog-retry]").click();
+  await page.waitForTimeout(700);
+  const recovered = await page.evaluate(() => ({
+    gone: !document.body.innerText.includes("Не удалось загрузить каталог"),
+    tiles: document.querySelectorAll("[data-dest]").length,
+  }));
+  check("«Повторить» поднимает каталог без перезагрузки страницы",
+        recovered.gone && recovered.tiles > 0, JSON.stringify(recovered));
+
+  await page.close();
+}
+
 await browser.close();
 console.log(`\nИтого: ${passed} пройдено, ${failed} провалено`);
 process.exit(failed ? 1 : 0);
