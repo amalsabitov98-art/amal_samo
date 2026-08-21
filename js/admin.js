@@ -42,7 +42,17 @@
     cancelled: "отменена",
     payment: "оплата",
     refund: "возврат",
+    passport: "исправлен документ",
+    cancel_requested: "запрошена отмена",
   };
+
+  // Полных дней до выезда — по нему показывается удержание при отмене.
+  // Граница одна на оплату и на штраф, см. TuronApi.FINAL_DAYS.
+  function daysUntil(dateStr) {
+    if (!dateStr) return Infinity;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((new Date(dateStr + "T00:00:00") - today) / 86400000);
+  }
 
   // Даты из воркера приходят как «YYYY-MM-DD HH:MM:SS» по UTC без смещения;
   // демо-режим (js/api.js) отдаёт готовый ISO с «T»/«Z». Слепой
@@ -349,11 +359,18 @@
     }
     $("adm-export").disabled = false;
 
-    var cols = MANIFEST_COLUMNS.map(function (c) { return "<th>" + esc(c[0]) + "</th>"; }).join("");
+    // Правка документа живёт ИМЕННО здесь: оператор смотрит ведомость и
+    // видит опечатку в паспорте глазами — чинить её логично на месте, а не
+    // разыскивая бронь в общем списке.
+    var cols = MANIFEST_COLUMNS.map(function (c) { return "<th>" + esc(c[0]) + "</th>"; })
+      .join("") + "<th></th>";
     var body = pax.map(function (p) {
       return "<tr>" + MANIFEST_COLUMNS.map(function (c) {
         return "<td>" + esc(c[1](p)) + "</td>";
-      }).join("") + "</tr>";
+      }).join("") +
+        '<td><button class="tt-btn secondary tt-btn-sm" data-fix-doc="' +
+          p.passenger_id + '">Исправить</button></td>' +
+      "</tr>";
     }).join("");
 
     var sum = data.summary || {};
@@ -539,6 +556,12 @@
               '<button class="tt-btn tt-btn-sm" data-pay="' + esc(b.code) +
               '" data-balance="' + b.balance + '">Внести оплату</button>') +
             '<button class="tt-btn secondary tt-btn-sm" data-history="' + b.id + '">История</button>' +
+            // Отмену проводит только оператор — у агентства этой кнопки нет,
+            // оно шлёт заявку (см. requestCancel в worker/index.js).
+            (cancelled ? "" :
+              '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
+                '" data-code="' + esc(b.code) + '" data-total="' + b.total_price +
+                '" data-date="' + esc(b.date_start) + '">Отменить</button>') +
           "</div>" +
           '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
@@ -696,6 +719,50 @@
       if (state.current) downloadCsv(state.current.departure.code, state.current.passengers);
     });
 
+    /*
+     * Исправление данных документа. Правятся ТОЛЬКО ФИО, номер и срок —
+     * размещение, дата рождения и цена не трогаются, поэтому сумма брони
+     * и число мест измениться не могут. Для смены состава есть отдельная
+     * операция; путать их нельзя (см. updatePassengerDocument в воркере).
+     */
+    $("adm-manifest").addEventListener("click", function (e) {
+      var fix = e.target.closest("[data-fix-doc]");
+      if (!fix) return;
+      var id = Number(fix.dataset.fixDoc);
+      var pax = ((state.current && state.current.passengers) || [])
+        .filter(function (p) { return p.passenger_id === id; })[0];
+      if (!pax) return;
+
+      var name = prompt("ФИО как в паспорте:", pax.full_name || "");
+      if (name === null) return;
+      var num = prompt("Номер паспорта:", pax.passport_number || "");
+      if (num === null) return;
+      var exp = prompt("Срок действия (ГГГГ-ММ-ДД, можно пусто):",
+        pax.passport_expiry || "");
+      if (exp === null) return;
+
+      name = String(name).trim();
+      num = String(num).trim();
+      exp = String(exp).trim();
+      if (!name || !num) { alert("ФИО и номер паспорта обязательны."); return; }
+      if (exp && !/^\d{4}-\d{2}-\d{2}$/.test(exp)) {
+        alert("Срок действия — в формате ГГГГ-ММ-ДД, например 2030-05-17.");
+        return;
+      }
+
+      fix.disabled = true;
+      TuronApi.adminUpdateDocument(id, {
+        full_name: name, passport_number: num, passport_expiry: exp,
+      }).then(function (res) {
+        if (res.changed === false) { alert("Данные не изменились."); fix.disabled = false; return; }
+        loadManifest();
+        alert("Документ исправлен. Правка записана в историю брони.");
+      }).catch(function (err) {
+        alert(err.message);
+        fix.disabled = false;
+      });
+    });
+
     $("adm-bookings").addEventListener("click", function (e) {
       var hist = e.target.closest("[data-history]");
       if (hist) {
@@ -717,6 +784,30 @@
         });
         return;
       }
+      var cancelBtn = e.target.closest("[data-cancel]");
+      if (cancelBtn) {
+        var cid = Number(cancelBtn.dataset.cancel);
+        // Показываем удержание по тому же правилу, что видит агентство,
+        // чтобы оператор не считал его в уме перед разговором с агентом.
+        var left = daysUntil(cancelBtn.dataset.date);
+        var warn = left <= TuronApi.FINAL_DAYS
+          ? "До выезда " + TuronApi.FINAL_DAYS + " дней или меньше — удержание 100% (" +
+            money(Number(cancelBtn.dataset.total) || 0) + ").\n\n"
+          : "До выезда больше " + TuronApi.FINAL_DAYS + " дней — без удержания.\n\n";
+        if (!confirm(warn + "Отменить бронь " + cancelBtn.dataset.code +
+                     "? Места вернутся в продажу.")) return;
+        cancelBtn.disabled = true;
+        TuronApi.adminCancelBooking(cid).then(function (res) {
+          Admin.reload();
+          alert("Бронь " + res.booking_code + " отменена, освобождено мест: " +
+            res.released_seats + ".");
+        }).catch(function (err) {
+          alert(err.message);
+          cancelBtn.disabled = false;
+        });
+        return;
+      }
+
       var btn = e.target.closest("[data-pay]");
       if (!btn) return;
       var code = btn.dataset.pay;

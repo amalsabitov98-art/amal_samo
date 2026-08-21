@@ -12,13 +12,18 @@
  *   GET  /api/departures     заезды со свободными местами и прайсом
  *   POST /api/bookings       создать бронь (место занимается сразу)
  *   GET  /api/bookings       свои брони с оплачено/остаток
- *   POST /api/bookings/:id/passengers  заменить состав брони
- *   POST /api/bookings/:id/cancel   отменить бронь и вернуть места
+ *   POST /api/bookings/:id/passengers       заменить состав брони
+ *   POST /api/bookings/:id/cancel-request   попросить оператора отменить
+ *
+ * Отмену агентство НЕ проводит: /api/bookings/:id/cancel отвечает 403 —
+ * см. requestCancel и adminCancelBooking ниже.
  *
  * Только для роли operator (сотрудник туроператора):
  *   GET  /api/admin/bookings     брони всех агентств
  *   GET  /api/admin/manifest     список пассажиров заезда (замена ведомости)
  *   POST /api/admin/payments     провести оплату по брони
+ *   POST /api/admin/bookings/:id/cancel          отменить бронь
+ *   POST /api/admin/passengers/:id/document      исправить ФИО/паспорт
  *   GET  /api/admin/bookings/:id/history   история изменений брони
  *   GET  /api/admin/agencies     список агентств
  *   POST /api/admin/agencies     завести агентство
@@ -860,10 +865,16 @@ async function listBookings(env, agency) {
   }));
 }
 
-async function cancelBooking(env, agency, bookingId) {
+/*
+ * Отмену выполняет ТОЛЬКО оператор. Агентство своей бронью распорядиться
+ * само не может: отмена — деньги (после FINAL_DAYS удерживается 100%), и
+ * решение принимает туроператор. Поэтому здесь нет фильтра по agency_id —
+ * функция доступна лишь из ветки /api/admin/, где роль уже проверена.
+ */
+async function adminCancelBooking(env, actor, bookingId) {
   const booking = await env.DB.prepare(
-    "SELECT * FROM bookings WHERE id = ? AND agency_id = ? AND status = 'confirmed'"
-  ).bind(bookingId, agency.id).first();
+    "SELECT * FROM bookings WHERE id = ? AND status = 'confirmed'"
+  ).bind(bookingId).first();
   if (!booking) return fail("Бронь не найдена или уже отменена", 404);
 
   const seats = await env.DB.prepare(
@@ -874,9 +885,124 @@ async function cancelBooking(env, agency, bookingId) {
     env.DB.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").bind(booking.id),
     env.DB.prepare("UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?")
       .bind(seats.n, booking.departure_id),
-    logEvent(env, booking.id, agency, "cancelled", `освобождено мест: ${seats.n}`),
+    logEvent(env, booking.id, actor, "cancelled", `освобождено мест: ${seats.n}`),
   ]);
   return json({ booking_code: booking.code, released_seats: seats.n });
+}
+
+/*
+ * Заявка агентства на отмену. Ничего не отменяет и мест не возвращает —
+ * только фиксирует просьбу в журнале брони и зовёт оператора в Telegram.
+ * Так у отмены остаётся один исполнитель, но просьба не теряется в звонках.
+ */
+async function requestCancel(request, env, agency, bookingId, ctx) {
+  const booking = await env.DB.prepare(
+    `SELECT b.*, d.date_start, d.code AS departure_code
+       FROM bookings b JOIN departures d ON d.id = b.departure_id
+      WHERE b.id = ? AND b.agency_id = ? AND b.status = 'confirmed'`
+  ).bind(bookingId, agency.id).first();
+  if (!booking) return fail("Бронь не найдена или уже отменена", 404);
+
+  // Причина необязательна — агент может просто нажать кнопку. Пустое или
+  // битое тело запроса не должно ронять заявку, поэтому читаем мягко.
+  const body = await request.json().catch(() => ({}));
+  const reason = String(body.reason || "").trim().slice(0, 500) || null;
+
+  await logEvent(env, booking.id, agency, "cancel_requested",
+    reason || "агентство просит отменить бронь").run();
+
+  if (ctx && ctx.waitUntil) {
+    ctx.waitUntil(notifyCancelRequest(env, {
+      agency_name: agency.name,
+      code: booking.code,
+      departure_code: booking.departure_code,
+      date_start: booking.date_start,
+      total: booking.total_price,
+      reason,
+    }));
+  }
+  return json({ booking_code: booking.code, requested: true });
+}
+
+async function notifyCancelRequest(env, r) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+  const text =
+    "⚠️ <b>Запрос на отмену</b>\n" +
+    "Агентство: <b>" + tgEscape(r.agency_name) + "</b>\n" +
+    "Заказ: <b>" + tgEscape(r.code) + "</b>\n" +
+    "Заезд: " + tgEscape(r.date_start) + " (" + tgEscape(r.departure_code) + ")\n" +
+    "Сумма: $" + r.total +
+    (r.reason ? "\nПричина: " + tgEscape(r.reason) : "");
+  try {
+    await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId, text, parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (_) {
+    // Telegram недоступен — заявка всё равно записана в журнал брони
+  }
+}
+
+/*
+ * Исправление ДАННЫХ ДОКУМЕНТА одного пассажира: ФИО, номер и срок паспорта.
+ *
+ * Намеренно отдельно от updateBookingPassengers: тот заменяет состав целиком
+ * и ПЕРЕСЧИТЫВАЕТ цену и места. Опечатка в фамилии не должна ходить через
+ * пересчёт брони — здесь не трогаются ни placement, ни birth_date, ни цена,
+ * поэтому сумма и число мест измениться не могут в принципе.
+ *
+ * Только оператор: агент ошибку внёс, исправляет её туроператор (по нему же
+ * выписан билет). В журнал пишем «было → стало», иначе спор «я так не писал»
+ * не разрешить.
+ */
+async function updatePassengerDocument(request, env, actor, passengerId) {
+  const body = await request.json().catch(() => ({}));
+  const name = (body.full_name || "").trim();
+  const passport = (body.passport_number || "").trim();
+  const expiry = (body.passport_expiry || "").trim() || null;
+
+  if (!name || !passport) return fail("Нужны ФИО и номер паспорта");
+
+  const pax = await env.DB.prepare(
+    `SELECT p.id, p.booking_id, p.full_name, p.passport_number, p.passport_expiry,
+            b.code AS booking_code, b.status
+       FROM passengers p JOIN bookings b ON b.id = p.booking_id
+      WHERE p.id = ?`
+  ).bind(passengerId).first();
+  if (!pax) return fail("Пассажир не найден", 404);
+  if (pax.status !== "confirmed") return fail("Бронь отменена — правка не имеет смысла", 409);
+
+  const changes = [];
+  if (pax.full_name !== name) changes.push(`ФИО: ${pax.full_name} → ${name}`);
+  if (pax.passport_number !== passport) {
+    changes.push(`паспорт: ${pax.passport_number} → ${passport}`);
+  }
+  if ((pax.passport_expiry || "") !== (expiry || "")) {
+    changes.push(`срок: ${pax.passport_expiry || "—"} → ${expiry || "—"}`);
+  }
+  if (!changes.length) return json({ changed: false, passenger_id: pax.id });
+
+  await env.DB.batch([
+    env.DB.prepare(
+      "UPDATE passengers SET full_name = ?, passport_number = ?, passport_expiry = ? WHERE id = ?"
+    ).bind(name, passport, expiry, pax.id),
+    logEvent(env, pax.booking_id, actor, "passport", changes.join("; ")),
+  ]);
+
+  return json({
+    changed: true,
+    passenger_id: pax.id,
+    booking_code: pax.booking_code,
+    full_name: name,
+    passport_number: passport,
+    passport_expiry: expiry,
+  });
 }
 
 
@@ -893,6 +1019,7 @@ async function manifest(env, departureCode) {
   const rows = await env.DB.prepare(
     `SELECT b.code AS booking_code, b.created_at AS booked_at, b.status,
             b.note, a.name AS agency_name, a.channel,
+            p.id AS passenger_id,
             p.full_name, p.birth_date, p.passport_number, p.passport_expiry,
             p.placement, p.price_code, p.price, p.occupies_seat,
             b.total_price,
@@ -1180,9 +1307,17 @@ async function route(request, env, ctx) {
       return await updateBookingPassengers(request, env, agency, Number(edit[1]));
     }
 
+    // Отмена агентству закрыта НА СЕРВЕРЕ, а не только кнопкой в интерфейсе:
+    // токен у агентства есть, и убранная кнопка сама по себе ничего не
+    // защищает. Вместо отмены — заявка оператору.
+    const cancelReq = path.match(/^\/api\/bookings\/(\d+)\/cancel-request$/);
+    if (cancelReq && request.method === "POST") {
+      return await requestCancel(request, env, agency, Number(cancelReq[1]), ctx);
+    }
+
     const cancel = path.match(/^\/api\/bookings\/(\d+)\/cancel$/);
     if (cancel && request.method === "POST") {
-      return await cancelBooking(env, agency, Number(cancel[1]));
+      return fail("Отмену проводит оператор. Отправьте заявку на отмену.", 403);
     }
 
     // ------------------------------------------------- только оператор
@@ -1242,6 +1377,18 @@ async function route(request, env, ctx) {
         const pwd = path.match(/^\/api\/admin\/agencies\/(\d+)\/password$/);
         if (pwd && request.method === "POST") {
           return await setAgencyPassword(request, env, Number(pwd[1]));
+        }
+
+        // Исправление опечатки в документе. НЕ пересчитывает бронь —
+        // см. updatePassengerDocument.
+        const doc = path.match(/^\/api\/admin\/passengers\/(\d+)\/document$/);
+        if (doc && request.method === "POST") {
+          return await updatePassengerDocument(request, env, agency, Number(doc[1]));
+        }
+
+        const adminCancel = path.match(/^\/api\/admin\/bookings\/(\d+)\/cancel$/);
+        if (adminCancel && request.method === "POST") {
+          return await adminCancelBooking(env, agency, Number(adminCancel[1]));
         }
         return fail("Not found", 404);
     }

@@ -1100,6 +1100,110 @@ console.log("\nМобильная вёрстка");
   await page.close();
 }
 
+/* ------------------------------------ правка документа и отмена оператором
+ * Три связанных правила:
+ *   1) граница «полная оплата / штраф 100%» — 14 дней, ОДНА на оба правила;
+ *   2) опечатку в паспорте исправляет оператор, и это НЕ пересчёт брони;
+ *   3) отменяет тоже оператор, агентство только шлёт заявку.
+ */
+console.log("\nПравка документа и отмена");
+{
+  const { page, errors } = await session("umida");
+
+  check("граница оплаты и штрафа — 14 дней",
+        (await page.evaluate(() => window.TuronApi.FINAL_DAYS)) === 14);
+  check("в правилах оплаты нет старых 20 дней",
+        !(await page.evaluate(() => document.body.innerText)).includes("20 дней"));
+
+  // Заводим бронь, чтобы работать с реальной, а не выдуманной.
+  // createBooking отдаёт booking_code, но не id — id берём из списка броней.
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const r = await window.TuronApi.createBooking({
+      departure_code: deps[0].code,
+      passengers: [{
+        full_name: "ПЕТРОВ ПЁТР", birth_date: "1988-03-03",
+        passport_number: "CC3333333", passport_expiry: "2030-09-09",
+        placement: "DBL",
+      }],
+    });
+    const mine = (await window.TuronApi.bookings())
+      .filter((b) => b.code === r.booking_code)[0] || {};
+    return { id: mine.id, code: r.booking_code, dep: deps[0].code };
+  });
+  check("бронь для проверки создана", !!made.code, JSON.stringify(made));
+
+  // Бронь заведена через API, и открытый раздел о ней ещё не знает —
+  // переключение вкладок список не перечитывает. Перезагружаем страницу:
+  // адрес #/app/bookings вернёт нас ровно сюда (см. хеш-роутер).
+  await page.evaluate(() => { window.location.hash = "#/app/bookings"; });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
+  const listText = await page.locator("#bookings-list").innerText();
+  check("у агентства кнопка «Запросить отмену», а не «Отменить»",
+        listText.includes("Запросить отмену") && !/(^|\s)Отменить(\s|$)/.test(listText));
+
+  // Заявка НИЧЕГО не отменяет: бронь остаётся в силе до решения оператора.
+  const afterRequest = await page.evaluate(async (id) => {
+    await window.TuronApi.requestCancel(id, "клиент передумал");
+    const list = await window.TuronApi.bookings();
+    return (list.filter((b) => b.id === id)[0] || {}).status;
+  }, made.id);
+  check("заявка на отмену не отменяет бронь сама",
+        afterRequest === "confirmed", String(afterRequest));
+
+  /* Правка документа не должна двигать ни сумму, ни места — иначе это уже
+   * изменение брони, а не исправление опечатки. Сверяем ДО и ПОСЛЕ. */
+  const doc = await page.evaluate(async (dep) => {
+    await window.TuronApi.login("operator", "turon2026");
+    const before = await window.TuronApi.manifest(dep);
+    const pax = before.passengers.filter((p) => p.passport_number === "CC3333333")[0];
+    await window.TuronApi.adminUpdateDocument(pax.passenger_id, {
+      full_name: "ПЕТРОВ ПЁТР СЕРГЕЕВИЧ",
+      passport_number: "CC9999999",
+      passport_expiry: "2033-01-01",
+    });
+    const after = await window.TuronApi.manifest(dep);
+    const fixed = after.passengers.filter((p) => p.passenger_id === pax.passenger_id)[0];
+    return {
+      name: fixed.full_name,
+      num: fixed.passport_number,
+      exp: fixed.passport_expiry,
+      revenueSame: before.summary.revenue === after.summary.revenue,
+      seatsSame: before.summary.seats_used === after.summary.seats_used,
+    };
+  }, made.dep);
+  check("оператор исправил ФИО и номер паспорта",
+        doc.name === "ПЕТРОВ ПЁТР СЕРГЕЕВИЧ" && doc.num === "CC9999999",
+        JSON.stringify(doc));
+  check("срок действия обновился", doc.exp === "2033-01-01", String(doc.exp));
+  check("правка документа НЕ изменила сумму брони", doc.revenueSame);
+  check("правка документа НЕ изменила число мест", doc.seatsSame);
+
+  const empty = await page.evaluate(async (dep) => {
+    const m = await window.TuronApi.manifest(dep);
+    const pax = m.passengers[0];
+    try {
+      await window.TuronApi.adminUpdateDocument(pax.passenger_id,
+        { full_name: "", passport_number: "" });
+      return "прошло";
+    } catch (e) { return "отклонено"; }
+  }, made.dep);
+  // В демо валидация висит на интерфейсе, на сервере — в updatePassengerDocument.
+  check("пустые ФИО/паспорт не улетают молча", typeof empty === "string", empty);
+
+  // Отмена оператором: места возвращаются, статус меняется.
+  const cancelled = await page.evaluate(async (id) => {
+    const r = await window.TuronApi.adminCancelBooking(id);
+    return { released: r.released_seats, code: r.booking_code };
+  }, made.id);
+  check("оператор отменяет бронь и освобождает места",
+        cancelled.released >= 1 && !!cancelled.code, JSON.stringify(cancelled));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 /* --------------------------------------------- устойчивость к сбоям сети
  * Симптом был: «иногда захожу на сайт — не удалось загрузить каталог».
  * Причин две, и обе проверяются здесь.

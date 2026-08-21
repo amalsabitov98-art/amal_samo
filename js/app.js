@@ -25,8 +25,9 @@
   // распространяется — она бесплатна и идёт напрямую.
   var bookingAgreed = false;
 
-  // Полных дней от сегодня до даты выезда. По нему считается правило отмены
-  // (больше 20 дней — бесплатно, 20 и меньше — штраф 100%).
+  // Полных дней от сегодня до даты выезда. По нему считается правило отмены:
+  // больше TuronApi.FINAL_DAYS — бесплатно, столько и меньше — штраф 100%.
+  // Это та же граница, что и у полной оплаты, — см. FINAL_DAYS в api.js.
   function daysUntil(dateStr) {
     if (!dateStr) return Infinity;
     var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -1123,8 +1124,10 @@
     $("builder-payplan").innerHTML =
       '<ul class="tt-mj-rules">' +
         "<li><b>30%</b> стоимости — в течение <b>3 дней</b> с брони, оставшиеся " +
-          "<b>70%</b> — не позднее чем за <b>20 дней</b> до выезда.</li>" +
-        "<li>Если до выезда меньше <b>20 дней</b> — <b>100%</b> в течение <b>суток</b>.</li>" +
+          "<b>70%</b> — не позднее чем за <b>" + TuronApi.FINAL_DAYS +
+          " дней</b> до выезда.</li>" +
+        "<li>Если до выезда меньше <b>" + TuronApi.FINAL_DAYS +
+          " дней</b> — <b>100%</b> в течение <b>суток</b>.</li>" +
       "</ul>" +
       (t.total > 0
         ? '<div class="tt-mj-schedule">' + pol.steps.map(function (s) {
@@ -1549,7 +1552,9 @@
         "</div>" +
         '<div class="tt-booking-action">' +
           (cancelled ? "" :
-            '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id + '">Отменить</button>') +
+            // «Запросить», а не «Отменить»: саму отмену проводит оператор.
+            '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
+              '">Запросить отмену</button>') +
         "</div>" +
       "</article>"
     );
@@ -1588,25 +1593,40 @@
     if (!btn) return;
     var id = Number(btn.dataset.cancel);
     var b = state.bookings.filter(function (x) { return x.id === id; })[0];
-    // Правило отмены: больше 20 дней до выезда — бесплатно; 20 дней и меньше —
-    // штраф 100% стоимости, возврата нет. Замена туриста бесплатна и идёт
-    // через правку состава, а не отмену.
-    var msg;
-    if (b && daysUntil(b.date_start) <= 20) {
-      msg = "⚠️ До выезда 20 дней или меньше.\n\n" +
-        "При отмене удерживается 100% стоимости — " + money(b.total_price) +
-        ", возврата нет.\n\nВсё равно отменить бронь " + b.code + "?";
-    } else if (b) {
-      msg = "До выезда больше 20 дней — отмена бесплатная.\n\n" +
-        "Отменить бронь " + b.code + "? Места вернутся в продажу.";
-    } else {
-      msg = "Отменить бронь? Места вернутся в продажу.";
+    /*
+     * Агентство отмену НЕ проводит — только просит оператора. Отмена это
+     * деньги: за FINAL_DAYS до выезда и ближе удерживается 100% стоимости,
+     * и решение принимает туроператор. Размер удержания показываем ЗДЕСЬ,
+     * до отправки заявки, чтобы агент звонил клиенту уже понимая цену
+     * вопроса, а не узнавал о ней от оператора постфактум.
+     *
+     * Замена туриста — не отмена: она идёт через правку состава.
+     */
+    var days = TuronApi.FINAL_DAYS;
+    var contact = "";
+    if (global.TuronProvisional && TuronProvisional.OPERATOR) {
+      contact = (TuronProvisional.OPERATOR.managers || [])
+        .map(function (m) { return m.name + " " + m.phone; }).join("\n");
     }
+    var msg;
+    if (b && daysUntil(b.date_start) <= days) {
+      msg = "⚠️ До выезда " + days + " дней или меньше.\n\n" +
+        "При отмене удерживается 100% стоимости — " + money(b.total_price) +
+        ", возврата нет.\n\nОтправить оператору заявку на отмену брони " +
+        b.code + "?";
+    } else if (b) {
+      msg = "До выезда больше " + days + " дней — отмена без удержания.\n\n" +
+        "Отправить оператору заявку на отмену брони " + b.code + "?";
+    } else {
+      msg = "Отправить оператору заявку на отмену брони?";
+    }
+    if (contact) msg += "\n\nСрочно — свяжитесь напрямую:\n" + contact;
     if (!confirm(msg)) return;
     btn.disabled = true;
-    TuronApi.cancelBooking(id).then(function (res) {
-      flash("Бронь " + res.booking_code + " отменена, освобождено мест: " + res.released_seats);
-      return Promise.all([loadDepartures(), loadBookings()]);
+    TuronApi.requestCancel(id).then(function (res) {
+      flash("Заявка по брони " + res.booking_code +
+        " отправлена — оператор свяжется с вами.");
+      btn.disabled = false;
     }).catch(function (err) {
       alert(err.message);
       btn.disabled = false;

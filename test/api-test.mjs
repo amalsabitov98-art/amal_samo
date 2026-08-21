@@ -174,14 +174,64 @@ check('дубль логина отклонён', r.status === 400);
 r = await call('/api/admin/agencies', { method:'POST', token: op, body:{ login:'short', name:'X', password:'123' } });
 check('короткий пароль отклонён', r.status === 400);
 
+console.log('\n--- исправление документа ---');
+// Опечатку в паспорте чинит оператор, и это НЕ пересчёт брони: цена и места
+// остаться должны прежними, иначе правка превращается в изменение состава.
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+const paxRow = r.data.passengers[0];
+const revenueBefore = r.data.summary.revenue;
+const seatsBefore = r.data.summary.seats_used;
+check('в ведомости есть passenger_id', Number.isInteger(paxRow.passenger_id),
+      JSON.stringify(paxRow).slice(0, 120));
+
+r = await call('/api/admin/passengers/' + paxRow.passenger_id + '/document', {
+  method:'POST', token: op,
+  body:{ full_name:'ИСПРАВЛЕН И И', passport_number:'FX7777777', passport_expiry:'2033-03-03' } });
+check('оператор исправил документ', r.status === 200 && r.data.changed === true,
+      JSON.stringify(r.data));
+
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+const fixed = r.data.passengers.find(p => p.passenger_id === paxRow.passenger_id);
+check('ФИО и паспорт обновились',
+      fixed.full_name === 'ИСПРАВЛЕН И И' && fixed.passport_number === 'FX7777777',
+      JSON.stringify(fixed).slice(0, 140));
+check('сумма заезда не изменилась', r.data.summary.revenue === revenueBefore,
+      r.data.summary.revenue + ' было ' + revenueBefore);
+check('число мест не изменилось', r.data.summary.seats_used === seatsBefore,
+      r.data.summary.seats_used + ' было ' + seatsBefore);
+
+r = await call('/api/admin/passengers/' + paxRow.passenger_id + '/document', {
+  method:'POST', token: op, body:{ full_name:'', passport_number:'' } });
+check('пустые ФИО/паспорт отклонены', r.status === 400, JSON.stringify(r.data));
+
+r = await call('/api/admin/passengers/' + paxRow.passenger_id + '/document', {
+  method:'POST', token: umida,
+  body:{ full_name:'ХАКЕР Х', passport_number:'ZZ0000000' } });
+check('агентству правка документа закрыта', r.status === 403, JSON.stringify(r.data));
+
 console.log('\n--- отмена ---');
 r = await call('/api/bookings', { token: umida });
 const id = r.data[0].id;
+
+// Отмена — деньги (после FINAL_DAYS удерживается 100%), проводит её оператор.
+// Агентству маршрут закрыт НА СЕРВЕРЕ: убрать кнопку мало, токен у агентства
+// есть. Вместо отмены агентство шлёт заявку.
 r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
-check('бронь отменена', r.status === 200 && r.data.released_seats === 2, JSON.stringify(r.data));
+check('агентству отмена запрещена', r.status === 403, JSON.stringify(r.data));
+
+r = await call('/api/bookings/' + id + '/cancel-request', {
+  method:'POST', token: umida, body:{ reason:'клиент передумал' } });
+check('заявка на отмену принята', r.status === 200 && r.data.requested === true,
+      JSON.stringify(r.data));
+r = await call('/api/bookings', { token: umida });
+check('заявка не отменяет бронь сама',
+      r.data.find(b => b.id === id).status === 'confirmed');
+
+r = await call('/api/admin/bookings/' + id + '/cancel', { method:'POST', token: op });
+check('оператор отменил бронь', r.status === 200 && r.data.released_seats === 2, JSON.stringify(r.data));
 r = await call('/api/departures', { token: umida });
 check('места вернулись', r.data.find(d=>d.code==='TZX2808').seats_free === freeBefore);
-r = await call('/api/bookings/' + id + '/cancel', { method:'POST', token: umida });
+r = await call('/api/admin/bookings/' + id + '/cancel', { method:'POST', token: op });
 check('повторная отмена отклонена', r.status === 404);
 
 console.log('\n--- журнал действий ---');
@@ -192,6 +242,18 @@ check('есть запись о создании', log.some(e => e.action === 'c
 check('есть записи о правке', log.filter(e => e.action === 'edited').length === 2,
       JSON.stringify(log.map(e=>e.action)));
 check('есть оплата', log.some(e => e.action === 'payment'), JSON.stringify(log.map(e=>e.action)));
+// Правка документа и заявка на отмену должны быть видны в истории: без
+// записи «было → стало» спор «я так не писал» не разрешить.
+check('правка документа записана', log.some(e => e.action === 'passport'),
+      JSON.stringify(log.map(e=>e.action)));
+check('в правке видно было → стало',
+      (log.find(e => e.action === 'passport') || {}).details?.includes('→'),
+      JSON.stringify((log.find(e => e.action === 'passport') || {}).details));
+check('заявка на отмену записана', log.some(e => e.action === 'cancel_requested'),
+      JSON.stringify(log.map(e=>e.action)));
+check('причина отмены сохранена',
+      (log.find(e => e.action === 'cancel_requested') || {}).details === 'клиент передумал',
+      JSON.stringify((log.find(e => e.action === 'cancel_requested') || {}).details));
 check('видно, кто создал', log.find(e => e.action === 'created').actor_name === 'UMIDA',
       log.find(e => e.action === 'created').actor_name);
 check('оплату провёл оператор', log.find(e => e.action === 'payment').actor_role === 'operator',

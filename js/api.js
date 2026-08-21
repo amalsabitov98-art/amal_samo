@@ -231,20 +231,30 @@
 
   /*
    * Правила оплаты. Обычный порядок: 30% в течение 3 дней с момента брони,
-   * остальные 70% — не позднее чем за 20 дней до выезда. Если до выезда
-   * осталось меньше 20 дней, рассрочки нет: вся сумма в течение суток.
+   * остальные 70% — не позднее чем за FINAL_DAYS дней до выезда. Если до
+   * выезда осталось меньше, рассрочки нет: вся сумма в течение суток.
    *
    * Возвращает шаги с долей и крайним сроком, чтобы и карточка тура, и
    * бронь считали одно и то же, а не каждый по-своему.
    */
   var DAY_MS = 86400000;
 
+  /*
+   * ОДНА граница на два правила сразу: до неё действует рассрочка и отмена
+   * бесплатна, после — платить надо всё сразу и при отмене удерживается
+   * 100%. Разъехаться им нельзя: если платёж уедет раньше штрафа, между
+   * этими датами деньги уже собраны полностью, а отмена ещё бесплатная —
+   * оператор возвращает всё. Поэтому число ОДНО и экспортируется наружу:
+   * до этого оно было продублировано в api.js, app.js и catalog.js.
+   */
+  var FINAL_DAYS = 14;
+
   function paymentPolicy(departureDate, bookingDate) {
     var dep = new Date(departureDate + "T00:00:00Z");
     var from = bookingDate ? new Date(bookingDate) : new Date();
     var daysLeft = Math.floor((dep - from) / DAY_MS);
 
-    if (daysLeft < 20) {
+    if (daysLeft < FINAL_DAYS) {
       return {
         urgent: true,
         days_left: daysLeft,
@@ -266,8 +276,8 @@
         },
         {
           share: 0.7,
-          due: new Date(dep.getTime() - 20 * DAY_MS),
-          label: "не позднее чем за 20 дней до выезда",
+          due: new Date(dep.getTime() - FINAL_DAYS * DAY_MS),
+          label: "не позднее чем за " + FINAL_DAYS + " дней до выезда",
         },
       ],
     };
@@ -295,12 +305,27 @@
     return Promise.resolve({ token: "demo-" + agency.id, agency: agency });
   }
 
+  // Сквозной номер пассажира по всему демо-хранилищу: считаем от максимума,
+  // а не от длины списка, иначе после правки состава номера повторились бы.
+  function nextDemoPassengerId(s) {
+    var max = 0;
+    (s.bookings || []).forEach(function (b) {
+      (b.passengers || []).forEach(function (p) {
+        if (p.id > max) max = p.id;
+      });
+    });
+    return max + 1;
+  }
+
   function demoCreateBooking(payload) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
 
     var priced = [], seats = 0, total = 0;
+    // База номеров берётся ОДИН раз: внутри цикла новая бронь ещё не в
+    // хранилище, и каждый вызов возвращал бы одно и то же число.
+    var paxId = nextDemoPassengerId(s);
     for (var i = 0; i < payload.passengers.length; i++) {
       var p = payload.passengers[i];
       var t = priceFor(p, d);
@@ -309,6 +334,9 @@
           "Для заезда " + d.code + " нет цены на размещение " + p.placement));
       }
       priced.push({
+        // id нужен операторской правке документа: она адресует конкретного
+        // пассажира. В боевой базе это p.id, здесь выдаём сквозной номер.
+        id: paxId++,
         full_name: p.full_name, birth_date: p.birth_date,
         passport_number: p.passport_number, passport_expiry: p.passport_expiry || "",
         placement: p.placement, price_code: t.code, tariff: t.label,
@@ -474,10 +502,15 @@
         if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
         var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
         var priced = [], seats = 0, total = 0;
+        var paxId = nextDemoPassengerId(s);
         for (var i = 0; i < passengers.length; i++) {
           var t = priceFor(passengers[i], d);
           if (!t) return Promise.reject(new Error("Нет цены на размещение " + passengers[i].placement));
           priced.push(Object.assign({}, passengers[i], {
+            // Сохраняем прежний номер, если строка уже была в брони: иначе
+            // операторская правка документа теряла бы адресата после
+            // любого изменения состава.
+            id: passengers[i].id || paxId++,
             price_code: t.code, tariff: t.label, price: t.price, occupies_seat: t.occupies_seat,
           }));
           if (t.occupies_seat) seats++;
@@ -512,7 +545,25 @@
       return request("/api/bookings");
     },
 
-    cancelBooking: function (id) {
+    /*
+     * Заявка агентства на отмену. Саму бронь НЕ трогает: отмена — деньги
+     * (после FINAL_DAYS удерживается 100%), и проводит её оператор. Здесь
+     * только фиксируется просьба и уходит уведомление.
+     */
+    requestCancel: function (id, reason) {
+      if (!API_BASE) {
+        var s = demoState();
+        var b = s.bookings.filter(function (x) { return x.id === id; })[0];
+        if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
+        return Promise.resolve({ booking_code: b.code, requested: true });
+      }
+      return request("/api/bookings/" + id + "/cancel-request", {
+        method: "POST", body: { reason: reason || "" },
+      });
+    },
+
+    // Реальная отмена — только оператор (маршрут в ветке /api/admin/).
+    adminCancelBooking: function (id) {
       if (!API_BASE) {
         var s = demoState();
         var b = s.bookings.filter(function (x) { return x.id === id; })[0];
@@ -523,7 +574,32 @@
         saveDemo(s);
         return Promise.resolve({ booking_code: b.code, released_seats: b.seats_used });
       }
-      return request("/api/bookings/" + id + "/cancel", { method: "POST" });
+      return request("/api/admin/bookings/" + id + "/cancel", { method: "POST" });
+    },
+
+    /*
+     * Исправление данных документа (ФИО, номер, срок). Ни цену, ни места
+     * не трогает — это не изменение брони, а починка опечатки.
+     */
+    adminUpdateDocument: function (passengerId, data) {
+      if (!API_BASE) {
+        var s = demoState();
+        var found = null;
+        s.bookings.forEach(function (b) {
+          (b.passengers || []).forEach(function (p) {
+            if (p.id === passengerId) found = p;
+          });
+        });
+        if (!found) return Promise.reject(new Error("Пассажир не найден"));
+        found.full_name = data.full_name;
+        found.passport_number = data.passport_number;
+        found.passport_expiry = data.passport_expiry || null;
+        saveDemo(s);
+        return Promise.resolve(Object.assign({ changed: true, passenger_id: passengerId }, data));
+      }
+      return request("/api/admin/passengers/" + passengerId + "/document", {
+        method: "POST", body: data,
+      });
     },
 
 
@@ -585,6 +661,10 @@
         }).forEach(function (b) {
           (b.passengers || []).forEach(function (p) {
             rows.push(Object.assign({}, p, {
+              // В боевой ведомости воркер отдаёт p.id под именем
+              // passenger_id — держим то же имя, иначе кнопка правки
+              // документа в демо адресовала бы undefined.
+              passenger_id: p.id,
               booking_code: b.code, booked_at: b.created_at, note: b.note,
               agency_name: (byId[b.agency_id] || {}).name || "—",
               channel: "B2B", total_price: b.total_price, booking_paid: b.paid,
@@ -688,6 +768,9 @@
     passportIssue: passportIssue,
     ageOn: ageOn,
     paymentPolicy: paymentPolicy,
+    // Граница «полная оплата / штраф 100%» — читают app.js и catalog.js,
+    // чтобы число жило в одном месте, а не в трёх.
+    FINAL_DAYS: FINAL_DAYS,
     departureEnd: departureEnd,
   };
 

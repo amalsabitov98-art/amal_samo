@@ -496,7 +496,8 @@
     return '<div class="tt-cat-policy' + (pol.urgent ? " is-urgent" : "") + '">' +
       "<h4>Порядок оплаты</h4><ul>" + rows + "</ul>" +
       (pol.urgent
-        ? '<p class="tt-muted-note">До выезда меньше 20 дней — рассрочки нет.</p>'
+        ? '<p class="tt-muted-note">До выезда меньше ' + TuronApi.FINAL_DAYS +
+          " дней — рассрочки нет.</p>"
         : "") +
       "</div>";
   }
