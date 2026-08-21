@@ -765,13 +765,17 @@
    * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
    * фото именно того заезда» тут нет и быть не может.
    */
-  var ROUTE_PHOTOS = [
-    "img/hero-rize-batumi.webp",
-    "img/tour-rize-tea-valley.webp",
-    "img/hero-batumi-sunset.webp",
-    "img/tour-batumi-boulevard.webp",
-    "img/hero-rize-morning.webp",
-  ];
+  // «21» и «авг» раздельно: в расписании крупное число дня — главный якорь
+  // для глаза, поэтому дата разбирается на части, а не печатается строкой.
+  function dayNum(iso) {
+    return new Date(iso + "T00:00:00Z").getUTCDate();
+  }
+  // ru-RU short выдаёт «авг.» — точка в капсе выглядит опечаткой.
+  function monthShort(iso) {
+    return new Date(iso + "T00:00:00Z")
+      .toLocaleDateString("ru-RU", { month: "short", timeZone: "UTC" })
+      .replace(".", "");
+  }
 
   // «4 — 11 сентября»: месяц не повторяем, если он один и тот же.
   function dateSpan(dateStart, nights) {
@@ -800,7 +804,7 @@
       if (!g) {
         g = byDate[d.date_start] = {
           date_start: d.date_start, nights: d.nights, tour_code: d.tour_code,
-          transports: [], min_price: null,
+          transports: [], min_price: null, seats_free: null,
         };
         order.push(g);
       }
@@ -808,33 +812,63 @@
       if (d.min_price != null && (g.min_price == null || d.min_price < g.min_price)) {
         g.min_price = d.min_price;
       }
+      // По группе берём ЛУЧШИЙ остаток из двух аэропортов: на дату места
+      // действительно есть, если они есть хоть на одном из заездов недели.
+      if (d.seats_free != null) {
+        g.seats_free = g.seats_free == null
+          ? d.seats_free : Math.max(g.seats_free, d.seats_free);
+      }
     });
     return order;
   }
 
-  function upcomingCard(g, i) {
-    var air = g.transports.map(function (t) {
+  /*
+   * Строка расписания. Фотографий тут намеренно НЕТ, и возвращать их не надо:
+   * раньше фон брался по НОМЕРУ карточки (ROUTE_PHOTOS[i % длина]), а живых
+   * фотографий у нас только турецко-грузинские — заезд умры выходил с видом
+   * Батуми, а два заезда одного тура получали разные картинки. Фотографий
+   * туров нет вообще (см. TODO), подбирать нечего, поэтому блок держится на
+   * типографике: дата крупным числом, остальное — подписи.
+   */
+  function upcomingRow(g) {
+    var cities = g.transports.map(function (t) {
       // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
       return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
     }).join(" · ");
-    var meta = ["Авиа · " + air];
+
+    var end = TuronApi.departureEnd(g.date_start, g.nights);
+    var sub = [];
     if (g.nights) {
-      meta.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
+      sub.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
     }
+    if (end) sub.push("по " + dateLong(end));
+
+    // Гостю остаток отдаётся ведром: seats_free приходит обрезанным до 21
+    // (api.js), точного числа за этим порогом мы и не знаем.
+    var seats = "";
+    if (g.seats_free != null && g.seats_free > 0) {
+      seats = g.seats_free >= 21
+        ? "20+ мест"
+        : g.seats_free + " " + plural(g.seats_free, "место", "места", "мест");
+    }
+
     return (
-      '<button class="tt-up-card" data-tour="' + esc(g.tour_code) + '" ' +
-        'style="background-image:url(' +
-        esc(ROUTE_PHOTOS[i % ROUTE_PHOTOS.length]) + ')">' +
-        '<span class="tt-up-body">' +
-          '<span class="tt-up-meta">' + esc(meta.join(" · ")) + "</span>" +
-          '<span class="tt-up-date">' + esc(dateSpan(g.date_start, g.nights)) + "</span>" +
-          '<span class="tt-up-foot">' +
-            (g.min_price != null
-              ? '<span class="tt-up-price"><i>от</i>' + money(g.min_price) + "</span>"
-              : "<span></span>") +
-            '<span class="tt-up-go">' + esc(tr("upcoming.action")) + " →</span>" +
-          "</span>" +
+      '<button class="tt-up-row" data-tour="' + esc(g.tour_code) + '" ' +
+        'aria-label="' + esc(tr("upcoming.action") + ", " +
+          dateSpan(g.date_start, g.nights)) + '">' +
+        '<span class="tt-up-when">' +
+          "<b>" + dayNum(g.date_start) + "</b>" +
+          "<i>" + esc(monthShort(g.date_start)) + "</i>" +
         "</span>" +
+        '<span class="tt-up-main">' +
+          '<span class="tt-up-route">' + esc(cities) + "</span>" +
+          '<span class="tt-up-sub">' + esc(sub.join(" · ")) + "</span>" +
+        "</span>" +
+        '<span class="tt-up-seats">' + esc(seats) + "</span>" +
+        '<span class="tt-up-price">' +
+          (g.min_price != null ? "<i>от</i>" + money(g.min_price) : "") +
+        "</span>" +
+        '<span class="tt-up-arrow" aria-hidden="true">→</span>' +
       "</button>"
     );
   }
@@ -1304,8 +1338,8 @@
           esc(tr("upcoming.kicker")) + "</span><h2>" +
           esc(tr("upcoming.title")) + "</h2></div><p>" +
           esc(tr("upcoming.text")) + "</p></div>" +
-        '<div class="tt-up-grid">' +
-          soon.map(upcomingCard).join("") +
+        '<div class="tt-up-list">' +
+          soon.map(upcomingRow).join("") +
         "</div>";
     }
 

@@ -320,6 +320,42 @@ console.log("\nТитульная страница");
   const hintAll = await page.textContent("[data-search-hint]");
   check("счётчик найденного заполнен", /\d/.test(hintAll || ""), hintAll);
 
+  /* «Ближайшие заезды» — расписание, а не плитки с фотографиями. Раньше фон
+   * брался по НОМЕРУ карточки из списка турецко-грузинских снимков, и заезд
+   * умры выходил с видом Батуми; блок был вообще не покрыт тестами, поэтому
+   * подмена жила незамеченной. Здесь и проверяем, что фотографий нет. */
+  const upRows = await page.locator(".tt-up-row").count();
+  check("ближайшие заезды отрисованы строками расписания", upRows > 0,
+        upRows + " строк");
+  check("в строках заездов нет фоновых фотографий",
+        await page.locator(".tt-up-list").evaluate((el) =>
+          [...el.querySelectorAll("*")].every((n) =>
+            getComputedStyle(n).backgroundImage === "none")));
+  check("у каждой строки крупное число дня и месяц",
+        await page.locator(".tt-up-list").evaluate((el) =>
+          [...el.querySelectorAll(".tt-up-row")].every((r) => {
+            const d = r.querySelector(".tt-up-when b");
+            const m = r.querySelector(".tt-up-when i");
+            return d && m && /^\d{1,2}$/.test(d.textContent.trim()) &&
+                   m.textContent.trim().length > 1 &&
+                   !m.textContent.includes(".");
+          })));
+  check("строка ведёт в тур и подписана для скринридера",
+        await page.locator(".tt-up-row").first().evaluate((el) =>
+          !!el.dataset.tour && (el.getAttribute("aria-label") || "").length > 5));
+  check("остаток мест отдан ведром, без точного числа за порогом",
+        await page.locator(".tt-up-list").evaluate((el) =>
+          [...el.querySelectorAll(".tt-up-seats")].every((s) => {
+            const t = s.textContent.trim();
+            return t === "" || /^20\+ мест$/.test(t) ||
+                   /^([1-9]|1\d|20) (место|места|мест)$/.test(t);
+          })));
+  check("стрелка появляется только по наведению",
+        await page.locator(".tt-up-row").first().evaluate((el) =>
+          getComputedStyle(el.querySelector(".tt-up-arrow")).opacity === "0"));
+  check("подзаголовок не обещает наличие мест",
+        !(await page.locator("#upcoming-departures").innerText()).includes("хватает"));
+
   // Демо-заездам сейчас всем хватает мест (минимум 45 свободных), поэтому
   // фильтр 1..5 человек физически ничего не отсеет — не повод считать его
   // декоративным. Проверяем формулу напрямую: пересчитываем ожидаемое число

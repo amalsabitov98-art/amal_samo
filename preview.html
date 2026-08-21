@@ -2753,97 +2753,98 @@ a { color: inherit; }
   margin-bottom: clamp(56px, 7vw, 96px);
   scroll-margin-top: 150px;
 }
-.tt-up-grid {
+/* Расписание, а не плитки: заезд — это прежде всего ДАТА, поэтому строка
+   держится на крупном числе дня, а не на фоновой фотографии. Разделители —
+   волосяные линии, весь ряд кликабелен, стрелка выезжает по наведению
+   (повторять «Программа и цены» в каждой строке незачем). */
+.tt-up-list { border-top: 1px solid var(--tt-border); }
+.tt-up-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-.tt-up-card {
-  position: relative;
-  min-height: 300px;
-  display: flex;
-  align-items: flex-end;
-  padding: 0;
-  border: 1px solid var(--tt-border);
-  border-radius: var(--tt-radius-lg);
-  /* фон-картинка приходит инлайном из upcomingCard */
-  background-color: var(--tt-surface);
-  background-size: cover;
-  background-position: center;
-  color: #fffaf0;
+  grid-template-columns: auto minmax(0, 1fr) auto auto 22px;
+  align-items: center;
+  gap: clamp(14px, 2.4vw, 36px);
+  width: 100%;
+  padding: 19px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--tt-border);
+  border-radius: 0;
+  /* у <button> в этом файле нет сброса фона и цвета — без явных значений
+     браузер подставит серый ButtonFace и чёрный ButtonText */
+  background: transparent;
+  color: var(--tt-text);
   text-align: left;
   cursor: pointer;
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: background 0.25s ease, padding 0.25s ease;
 }
-/* Затемнение снизу — под текст. Без него подпись пропадала на светлых
-   кадрах (небо на закате), а на тёмных читалась нормально: проверять
-   такие карточки надо на самом светлом фото, а не на первом попавшемся. */
-.tt-up-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    rgba(4, 12, 15, 0.08) 0%,
-    rgba(4, 12, 15, 0.52) 52%,
-    rgba(4, 12, 15, 0.88) 100%);
-}
-.tt-up-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--tt-shadow-hover);
-}
-.tt-up-card:focus-visible {
-  outline: 2px solid var(--tt-accent);
-  outline-offset: 3px;
-}
-.tt-up-body {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  width: 100%;
-  padding: 18px;
-}
-.tt-up-meta {
-  color: rgba(255, 250, 240, 0.82);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.tt-up-date {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.72rem;
-  font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-}
-.tt-up-foot {
+.tt-up-row:hover { background: var(--tt-surface); padding-inline: 18px 6px; }
+.tt-up-row:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: -2px; }
+.tt-up-when {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 7px;
+  min-width: 68px;
+}
+.tt-up-when b {
+  /* цвет от --tt-text, а не --tt-forest: в тёмной публичной теме forest
+     почти чёрный, и число пропало бы на фоне */
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2.55rem;
+  font-weight: 600;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+}
+.tt-up-when i {
+  color: var(--tt-accent);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tt-up-route {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.tt-up-sub {
+  display: block;
   margin-top: 4px;
+  color: var(--tt-text-muted);
+  font-size: 0.78rem;
+}
+.tt-up-seats {
+  color: var(--tt-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .tt-up-price {
-  font-size: 1.1rem;
+  font-size: 1.16rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .tt-up-price i {
-  margin-right: 5px;
-  color: rgba(255, 250, 240, 0.7);
+  margin-right: 6px;
+  color: var(--tt-text-muted);
   font-size: 0.62rem;
   font-style: normal;
   font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.tt-up-go {
+.tt-up-arrow {
   color: var(--tt-accent);
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 1rem;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
+.tt-up-row:hover .tt-up-arrow,
+.tt-up-row:focus-visible .tt-up-arrow { opacity: 1; transform: none; }
 
 .tt-benefits {
   display: grid;
@@ -5629,7 +5630,18 @@ a.tt-contact-row:hover { color: var(--cc); }
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
      они обрезают «Все направления» на середине слова. */
-  .tt-up-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Пять колонок в 720px не помещаются: остаток мест и стрелка уходят,
+     остаются дата, маршрут и цена — то, ради чего строку и читают. */
+  .tt-up-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 15px;
+    padding: 16px 4px;
+  }
+  .tt-up-row:hover { padding-inline: 8px 4px; }
+  .tt-up-when { min-width: 54px; }
+  .tt-up-when b { font-size: 2.05rem; }
+  .tt-up-seats,
+  .tt-up-arrow { display: none; }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search-btn { grid-column: 1 / -1; }
   .tt-search-row {
@@ -5725,7 +5737,10 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
   .tt-theme-btn { width: 40px; height: 40px; }
-  .tt-up-grid { grid-template-columns: 1fr; }
+  .tt-up-when { min-width: 46px; }
+  .tt-up-when b { font-size: 1.8rem; }
+  .tt-up-route { font-size: 0.94rem; }
+  .tt-up-price { font-size: 1.02rem; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-dep { display: block; }
@@ -13847,7 +13862,7 @@ window.TURON_DESTINATIONS = [
       "benefit.support.text": "Медицинская страховка на весь период и связь с нами в любое время.",
       "upcoming.kicker": "Даты в продаже",
       "upcoming.title": "Ближайшие заезды",
-      "upcoming.text": "Даты, аэропорт и цена — всё, что нужно, чтобы выбрать. Мест ещё хватает.",
+      "upcoming.text": "Даты, аэропорт и цена — всё, что нужно, чтобы выбрать.",
       "upcoming.action": "Программа и цены",
       "search.destination": "Направление",
       "search.anyDestination": "Все направления",
@@ -13924,7 +13939,7 @@ window.TURON_DESTINATIONS = [
       "benefit.support.text": "Butun davrga tibbiy sug‘urta va istalgan vaqtda biz bilan aloqa.",
       "upcoming.kicker": "Sotuvdagi sanalar",
       "upcoming.title": "Eng yaqin jo‘nashlar",
-      "upcoming.text": "Sana, aeroport va narx — tanlash uchun kerakli hammasi. Joylar hali bor.",
+      "upcoming.text": "Sana, aeroport va narx — tanlash uchun kerakli hammasi.",
       "upcoming.action": "Dastur va narxlar",
       "search.destination": "Yo‘nalish",
       "search.anyDestination": "Barcha yo‘nalishlar",
@@ -14001,7 +14016,7 @@ window.TURON_DESTINATIONS = [
       "benefit.support.text": "Medical insurance for the whole period and our team on call anytime.",
       "upcoming.kicker": "Dates on sale",
       "upcoming.title": "Upcoming departures",
-      "upcoming.text": "Dates, airport and price — everything you need to choose. Seats still available.",
+      "upcoming.text": "Dates, airport and price — everything you need to choose.",
       "upcoming.action": "Programme and prices",
       "search.destination": "Destination",
       "search.anyDestination": "All destinations",
@@ -14078,7 +14093,7 @@ window.TURON_DESTINATIONS = [
       "benefit.support.text": "Tüm dönem için sağlık sigortası ve dilediğiniz an bize ulaşma imkânı.",
       "upcoming.kicker": "Satıştaki tarihler",
       "upcoming.title": "Yaklaşan kalkışlar",
-      "upcoming.text": "Tarih, havalimanı ve fiyat — seçim için gereken her şey. Yerler hâlâ mevcut.",
+      "upcoming.text": "Tarih, havalimanı ve fiyat — seçim için gereken her şey.",
       "upcoming.action": "Program ve fiyatlar",
       "search.destination": "Rota",
       "search.anyDestination": "Tüm rotalar",
@@ -15387,13 +15402,17 @@ window.TURON_DESTINATIONS = [
    * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
    * фото именно того заезда» тут нет и быть не может.
    */
-  var ROUTE_PHOTOS = [
-    "img/hero-rize-batumi.webp",
-    "img/tour-rize-tea-valley.webp",
-    "img/hero-batumi-sunset.webp",
-    "img/tour-batumi-boulevard.webp",
-    "img/hero-rize-morning.webp",
-  ];
+  // «21» и «авг» раздельно: в расписании крупное число дня — главный якорь
+  // для глаза, поэтому дата разбирается на части, а не печатается строкой.
+  function dayNum(iso) {
+    return new Date(iso + "T00:00:00Z").getUTCDate();
+  }
+  // ru-RU short выдаёт «авг.» — точка в капсе выглядит опечаткой.
+  function monthShort(iso) {
+    return new Date(iso + "T00:00:00Z")
+      .toLocaleDateString("ru-RU", { month: "short", timeZone: "UTC" })
+      .replace(".", "");
+  }
 
   // «4 — 11 сентября»: месяц не повторяем, если он один и тот же.
   function dateSpan(dateStart, nights) {
@@ -15422,7 +15441,7 @@ window.TURON_DESTINATIONS = [
       if (!g) {
         g = byDate[d.date_start] = {
           date_start: d.date_start, nights: d.nights, tour_code: d.tour_code,
-          transports: [], min_price: null,
+          transports: [], min_price: null, seats_free: null,
         };
         order.push(g);
       }
@@ -15430,33 +15449,63 @@ window.TURON_DESTINATIONS = [
       if (d.min_price != null && (g.min_price == null || d.min_price < g.min_price)) {
         g.min_price = d.min_price;
       }
+      // По группе берём ЛУЧШИЙ остаток из двух аэропортов: на дату места
+      // действительно есть, если они есть хоть на одном из заездов недели.
+      if (d.seats_free != null) {
+        g.seats_free = g.seats_free == null
+          ? d.seats_free : Math.max(g.seats_free, d.seats_free);
+      }
     });
     return order;
   }
 
-  function upcomingCard(g, i) {
-    var air = g.transports.map(function (t) {
+  /*
+   * Строка расписания. Фотографий тут намеренно НЕТ, и возвращать их не надо:
+   * раньше фон брался по НОМЕРУ карточки (ROUTE_PHOTOS[i % длина]), а живых
+   * фотографий у нас только турецко-грузинские — заезд умры выходил с видом
+   * Батуми, а два заезда одного тура получали разные картинки. Фотографий
+   * туров нет вообще (см. TODO), подбирать нечего, поэтому блок держится на
+   * типографике: дата крупным числом, остальное — подписи.
+   */
+  function upcomingRow(g) {
+    var cities = g.transports.map(function (t) {
       // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
       return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
     }).join(" · ");
-    var meta = ["Авиа · " + air];
+
+    var end = TuronApi.departureEnd(g.date_start, g.nights);
+    var sub = [];
     if (g.nights) {
-      meta.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
+      sub.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
     }
+    if (end) sub.push("по " + dateLong(end));
+
+    // Гостю остаток отдаётся ведром: seats_free приходит обрезанным до 21
+    // (api.js), точного числа за этим порогом мы и не знаем.
+    var seats = "";
+    if (g.seats_free != null && g.seats_free > 0) {
+      seats = g.seats_free >= 21
+        ? "20+ мест"
+        : g.seats_free + " " + plural(g.seats_free, "место", "места", "мест");
+    }
+
     return (
-      '<button class="tt-up-card" data-tour="' + esc(g.tour_code) + '" ' +
-        'style="background-image:url(' +
-        esc(ROUTE_PHOTOS[i % ROUTE_PHOTOS.length]) + ')">' +
-        '<span class="tt-up-body">' +
-          '<span class="tt-up-meta">' + esc(meta.join(" · ")) + "</span>" +
-          '<span class="tt-up-date">' + esc(dateSpan(g.date_start, g.nights)) + "</span>" +
-          '<span class="tt-up-foot">' +
-            (g.min_price != null
-              ? '<span class="tt-up-price"><i>от</i>' + money(g.min_price) + "</span>"
-              : "<span></span>") +
-            '<span class="tt-up-go">' + esc(tr("upcoming.action")) + " →</span>" +
-          "</span>" +
+      '<button class="tt-up-row" data-tour="' + esc(g.tour_code) + '" ' +
+        'aria-label="' + esc(tr("upcoming.action") + ", " +
+          dateSpan(g.date_start, g.nights)) + '">' +
+        '<span class="tt-up-when">' +
+          "<b>" + dayNum(g.date_start) + "</b>" +
+          "<i>" + esc(monthShort(g.date_start)) + "</i>" +
         "</span>" +
+        '<span class="tt-up-main">' +
+          '<span class="tt-up-route">' + esc(cities) + "</span>" +
+          '<span class="tt-up-sub">' + esc(sub.join(" · ")) + "</span>" +
+        "</span>" +
+        '<span class="tt-up-seats">' + esc(seats) + "</span>" +
+        '<span class="tt-up-price">' +
+          (g.min_price != null ? "<i>от</i>" + money(g.min_price) : "") +
+        "</span>" +
+        '<span class="tt-up-arrow" aria-hidden="true">→</span>' +
       "</button>"
     );
   }
@@ -15926,8 +15975,8 @@ window.TURON_DESTINATIONS = [
           esc(tr("upcoming.kicker")) + "</span><h2>" +
           esc(tr("upcoming.title")) + "</h2></div><p>" +
           esc(tr("upcoming.text")) + "</p></div>" +
-        '<div class="tt-up-grid">' +
-          soon.map(upcomingCard).join("") +
+        '<div class="tt-up-list">' +
+          soon.map(upcomingRow).join("") +
         "</div>";
     }
 
