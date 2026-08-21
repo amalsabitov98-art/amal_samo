@@ -401,27 +401,29 @@ body {
   width: 38px;
   height: 38px;
   padding: 0;
-  border: 1px solid rgba(0,0,0,.4);
+  border: 1px solid rgba(20,15,5,.55);
   border-radius: 50%;
   background:
-    linear-gradient(155deg, rgba(255,255,255,.24), rgba(255,255,255,0) 42%),
-    radial-gradient(circle at 32% 26%, #2f6a4c, #14432c 60%, #0b2519 100%);
+    repeating-linear-gradient(115deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.05) 1px 2px),
+    linear-gradient(155deg, rgba(255,255,255,.85), rgba(255,255,255,0) 40%),
+    radial-gradient(circle at 34% 28%, #f4f0e6, #cfc7b4 46%, #a49a80 78%, #7d735c 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,.2) inset,
-    0 -3px 4px rgba(0,0,0,.5) inset,
-    0 3px 6px rgba(0,0,0,.4),
-    0 1px 0 rgba(229,202,129,.16);
-  color: #f3e6c4;
+    0 1px 0 rgba(255,255,255,.75) inset,
+    0 -3px 4px rgba(0,0,0,.4) inset,
+    0 3px 6px rgba(0,0,0,.45),
+    0 1px 0 rgba(229,202,129,.25);
+  color: #3a3324;
   cursor: pointer;
   transition: transform .15s ease, box-shadow .2s ease, background .3s ease, border-color .3s ease, color .3s ease;
 }
-.tt-showcase-nav button svg { width: 15px; height: 15px; display: block; }
+.tt-showcase-nav button svg { width: 15px; height: 15px; display: block; filter: drop-shadow(0 1px 0 rgba(255,255,255,.5)); }
 .tt-showcase-nav button:hover {
-  border-color: rgba(229,202,129,.6);
-  color: #fff;
+  border-color: #e5ca81;
+  color: #1f1b10;
   background:
-    linear-gradient(155deg, rgba(255,255,255,.32), rgba(255,255,255,0) 46%),
-    radial-gradient(circle at 32% 26%, #3c7d59, #175434 60%, #0b2519 100%);
+    repeating-linear-gradient(115deg, rgba(255,255,255,.2) 0 1px, rgba(0,0,0,.05) 1px 2px),
+    linear-gradient(155deg, rgba(255,255,255,.9), rgba(255,255,255,0) 40%),
+    radial-gradient(circle at 34% 28%, #fbf6e8, #e8d9ad 46%, #cdb676 78%, #a5885b 100%);
 }
 .tt-showcase-nav button:active {
   transform: translateY(1px) scale(.95);
