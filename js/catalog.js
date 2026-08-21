@@ -1375,12 +1375,15 @@
       var soon = groupByDate(list || []).slice(0, 12);
       if (!soon.length) { box.hidden = true; return; }
       box.hidden = false;
+      // Заголовка у блока нет намеренно — карточки идут сразу под панелью
+      // поиска. Название остаётся только для скринридера: без него секция
+      // была бы безымянной, а на слух «просто набор кнопок с датами».
+      box.setAttribute("aria-label", tr("upcoming.title"));
       box.innerHTML =
-        '<div class="tt-up-top">' +
-          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
-            esc(tr("upcoming.kicker")) + "</span><h2>" +
-            esc(tr("upcoming.title")) + "</h2></div><p>" +
-            esc(tr("upcoming.text")) + "</p></div>" +
+        '<div class="tt-up-slider">' +
+          '<div class="tt-up-track" data-up-track>' +
+            soon.map(upcomingCard).join("") +
+          "</div>" +
           '<div class="tt-up-nav">' +
             '<button type="button" data-up-prev aria-label="Предыдущие заезды">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -1393,9 +1396,6 @@
                 'aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
             "</button>" +
           "</div>" +
-        "</div>" +
-        '<div class="tt-up-track" data-up-track>' +
-          soon.map(upcomingCard).join("") +
         "</div>";
       if (upcomingCleanup) upcomingCleanup();
       upcomingCleanup = initUpcomingSlider(box);

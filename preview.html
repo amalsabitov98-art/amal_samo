@@ -2777,24 +2777,17 @@ a { color: inherit; }
   width: min(1380px, 100%);
   margin-inline: auto;
   margin-bottom: 0;
-  padding: clamp(46px, 7vh, 92px) clamp(20px, 4vw, 64px) clamp(74px, 11vh, 132px);
+  /* Сверху отступа почти нет: карточки должны идти сразу под панелью
+     поиска (заголовок блока убран), поэтому воздух даёт только нижняя
+     часть героя. Снизу — полноценный запас до следующей секции. */
+  padding: clamp(18px, 3vh, 38px) clamp(20px, 4vw, 64px) clamp(74px, 11vh, 132px);
 }
 /* Заезды лежат на живом видео, поэтому весь блок светлый по тексту и
-   прозрачный по фону — своей плашки у него нет. */
-.tt-up-top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-}
-.tt-hero-canvas .tt-upcoming,
-.tt-hero-canvas .tt-upcoming .tt-cat-heading h2,
-.tt-hero-canvas .tt-upcoming .tt-cat-heading p { color: #fffaf0; }
-.tt-hero-canvas .tt-upcoming .tt-cat-heading p { color: rgba(255, 250, 240, 0.8); }
-/* Через #screen-public: у публичной палитры кикер красится акцентом
-   (в светлой теме — оранжевым), а на синем кадре он тонул. Золото читается
-   на обеих темах, потому что фон под ним — ролик, а не фон страницы. */
-#screen-public .tt-hero-canvas .tt-upcoming .tt-eyebrow { color: #e5c987; }
+   прозрачный по фону — своей плашки у него нет. Заголовка у блока тоже нет:
+   карточки идут сразу под панелью поиска, а стрелки вынесены на края
+   дорожки — отдельная полоса под них съедала бы этот «сразу». */
+.tt-hero-canvas .tt-upcoming { color: #fffaf0; }
+.tt-up-slider { position: relative; }
 
 /* Дорожка слайдера. scroll-snap ЗДЕСЬ по оси X и заперт внутри дорожки —
    это не тот постраничный снап, что убирали со страницы, вертикальную
@@ -2807,7 +2800,6 @@ a { color: inherit; }
 .tt-up-track {
   display: flex;
   gap: 18px;
-  margin-top: clamp(20px, 2.6vw, 32px);
   padding-bottom: 4px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
@@ -2943,9 +2935,13 @@ a { color: inherit; }
 .tt-up-card:hover .tt-up-arrow,
 .tt-up-card:focus-visible .tt-up-arrow { opacity: 1; transform: none; }
 
-/* Стрелки слайдера — то же стекло, что и панели карточек. */
-.tt-up-nav { display: flex; flex: none; gap: 9px; }
+/* Стрелки слайдера — то же стекло, что и панели карточек. Лежат ПОВЕРХ
+   краёв дорожки, а не строкой над ней: заголовка у блока нет, и отдельная
+   полоса под стрелки отодвигала бы карточки от панели поиска. */
 .tt-up-nav button {
+  position: absolute;
+  top: calc(50% - 20px);
+  z-index: 3;
   display: grid;
   place-items: center;
   width: 40px;
@@ -2962,6 +2958,8 @@ a { color: inherit; }
   transition: background 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
 }
 .tt-up-nav button svg { width: 16px; height: 16px; display: block; }
+.tt-up-nav [data-up-prev] { left: -14px; }
+.tt-up-nav [data-up-next] { right: -14px; }
 .tt-up-nav button:hover:not(:disabled) {
   border-color: #e5ca81;
   background: rgba(20, 56, 44, 0.55);
@@ -5832,7 +5830,10 @@ a.tt-contact-row:hover { color: var(--cc); }
   /* Четыре карточки в 720px превращаются в марки: показываем две, дальше
      листается. Заголовок и стрелки в столбик — рядом они не помещаются. */
   .tt-up-track { gap: 14px; }
-  .tt-up-top { flex-direction: column; align-items: flex-start; gap: 14px; }
+  /* На узком экране стрелки не свисают за край — прижимаем их внутрь,
+     иначе половина кнопки уезжала бы за границу окна. */
+  .tt-up-nav [data-up-prev] { left: 4px; }
+  .tt-up-nav [data-up-next] { right: 4px; }
   .tt-up-card {
     flex-basis: calc((100% - 14px) / 2);
     min-height: clamp(250px, 30vh, 300px);
@@ -14057,9 +14058,7 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Русскоговорящий узбекский гид сопровождает всю поездку.",
       "benefit.support.title": "Страховка и поддержка 24/7",
       "benefit.support.text": "Медицинская страховка на весь период и связь с нами в любое время.",
-      "upcoming.kicker": "Даты в продаже",
       "upcoming.title": "Ближайшие заезды",
-      "upcoming.text": "Даты, аэропорт и цена — всё, что нужно, чтобы выбрать.",
       "upcoming.action": "Программа и цены",
       "search.destination": "Направление",
       "search.anyDestination": "Все направления",
@@ -14134,9 +14133,7 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Rus tilida so‘zlashuvchi o‘zbek gid butun sayohat davomida yoningizda.",
       "benefit.support.title": "Sug‘urta va 24/7 ko‘mak",
       "benefit.support.text": "Butun davrga tibbiy sug‘urta va istalgan vaqtda biz bilan aloqa.",
-      "upcoming.kicker": "Sotuvdagi sanalar",
       "upcoming.title": "Eng yaqin jo‘nashlar",
-      "upcoming.text": "Sana, aeroport va narx — tanlash uchun kerakli hammasi.",
       "upcoming.action": "Dastur va narxlar",
       "search.destination": "Yo‘nalish",
       "search.anyDestination": "Barcha yo‘nalishlar",
@@ -14211,9 +14208,7 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "A Russian-speaking Uzbek guide accompanies the whole trip.",
       "benefit.support.title": "Insurance and 24/7 support",
       "benefit.support.text": "Medical insurance for the whole period and our team on call anytime.",
-      "upcoming.kicker": "Dates on sale",
       "upcoming.title": "Upcoming departures",
-      "upcoming.text": "Dates, airport and price — everything you need to choose.",
       "upcoming.action": "Programme and prices",
       "search.destination": "Destination",
       "search.anyDestination": "All destinations",
@@ -14288,9 +14283,7 @@ window.TURON_DESTINATIONS = [
       "benefit.guide.text": "Rusça konuşan Özbek rehber tüm yolculuk boyunca yanınızda.",
       "benefit.support.title": "Sigorta ve 7/24 destek",
       "benefit.support.text": "Tüm dönem için sağlık sigortası ve dilediğiniz an bize ulaşma imkânı.",
-      "upcoming.kicker": "Satıştaki tarihler",
       "upcoming.title": "Yaklaşan kalkışlar",
-      "upcoming.text": "Tarih, havalimanı ve fiyat — seçim için gereken her şey.",
       "upcoming.action": "Program ve fiyatlar",
       "search.destination": "Rota",
       "search.anyDestination": "Tüm rotalar",
@@ -16209,12 +16202,15 @@ window.TURON_DESTINATIONS = [
       var soon = groupByDate(list || []).slice(0, 12);
       if (!soon.length) { box.hidden = true; return; }
       box.hidden = false;
+      // Заголовка у блока нет намеренно — карточки идут сразу под панелью
+      // поиска. Название остаётся только для скринридера: без него секция
+      // была бы безымянной, а на слух «просто набор кнопок с датами».
+      box.setAttribute("aria-label", tr("upcoming.title"));
       box.innerHTML =
-        '<div class="tt-up-top">' +
-          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
-            esc(tr("upcoming.kicker")) + "</span><h2>" +
-            esc(tr("upcoming.title")) + "</h2></div><p>" +
-            esc(tr("upcoming.text")) + "</p></div>" +
+        '<div class="tt-up-slider">' +
+          '<div class="tt-up-track" data-up-track>' +
+            soon.map(upcomingCard).join("") +
+          "</div>" +
           '<div class="tt-up-nav">' +
             '<button type="button" data-up-prev aria-label="Предыдущие заезды">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -16227,9 +16223,6 @@ window.TURON_DESTINATIONS = [
                 'aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
             "</button>" +
           "</div>" +
-        "</div>" +
-        '<div class="tt-up-track" data-up-track>' +
-          soon.map(upcomingCard).join("") +
         "</div>";
       if (upcomingCleanup) upcomingCleanup();
       upcomingCleanup = initUpcomingSlider(box);
