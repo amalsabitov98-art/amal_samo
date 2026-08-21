@@ -2822,7 +2822,7 @@ a { color: inherit; }
   border-radius: 22px;
   /* фото приходит инлайном как --tt-up-photo (см. upcomingCard) */
   background: var(--tt-up-photo, none) center / cover no-repeat,
-              linear-gradient(160deg, #174a37, #0a2820);
+              radial-gradient(120% 95% at 26% 14%, #1f6249, #0a2820 68%);
   /* у <button> в этом файле нет сброса цвета — без явного значения
      браузер подставит чёрный ButtonText */
   color: #fffaf0;
@@ -2844,6 +2844,22 @@ a { color: inherit; }
   background: linear-gradient(180deg,
     rgba(4, 14, 12, 0.05) 0%, rgba(4, 14, 12, 0.3) 55%, rgba(4, 14, 12, 0.62) 100%);
   pointer-events: none;
+}
+/* Без фото (направления вроде умры — своих кадров ещё нет) карточка была
+   плоским зелёным прямоугольником: у стекла нечего размывать, панель у
+   нижнего края никак не выделялась, а весь верх пустовал. Знак Etihad
+   бледным водяным клеймом занимает эту пустоту и держит карточку узнаваемой
+   даже без фотографии, вместо стокового фото или пустоты. */
+.tt-up-card.is-plain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url(img/etihad-mark.png) center 32% / 116px no-repeat;
+  opacity: 0.16;
+  pointer-events: none;
+}
+.tt-up-card.is-plain .tt-up-glass {
+  background: rgba(6, 22, 18, 0.58);
 }
 
 /* Матовое стекло в духе Apple: размытие подложки, светлый внутренний кант

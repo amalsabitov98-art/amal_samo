@@ -356,6 +356,26 @@ console.log("\nТитульная страница");
   check("пути к фотографиям корректны", photoState.allValid);
   check("у турецких заездов фото не потерялось", photoState.turkeyPlain === 0,
         photoState.turkeyPlain + " без фото");
+  /* Без фото карточка раньше была голым текстом на плоской заливке — стеклу
+   * нечего размывать без фотографии за ним. Знак Etihad водяным клеймом
+   * держит карточку узнаваемой; проверяем, что он подставлен именно на
+   * .is-plain, а не на карточки с фото (там он лишний). */
+  const plainMark = await page.locator(".tt-up-track").evaluate((el) => {
+    const cards = [...el.querySelectorAll(".tt-up-card")];
+    const plain = cards.filter((c) => c.classList.contains("is-plain"));
+    const withPhoto = cards.filter((c) => !c.classList.contains("is-plain"));
+    return {
+      plainCount: plain.length,
+      plainHasMark: plain.every((c) =>
+        getComputedStyle(c, "::before").backgroundImage.includes("etihad-mark")),
+      photoHasNoMark: withPhoto.every((c) =>
+        getComputedStyle(c, "::before").backgroundImage === "none"),
+    };
+  });
+  if (plainMark.plainCount > 0) {
+    check("карточки без фото несут водяной знак Etihad", plainMark.plainHasMark);
+    check("карточки с фото знак не дублируют", plainMark.photoHasNoMark);
+  }
   check("панель карточки — матовое стекло с размытием",
         await page.locator(".tt-up-glass").first().evaluate((el) => {
           const s = getComputedStyle(el);
