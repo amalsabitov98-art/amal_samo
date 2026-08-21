@@ -2871,22 +2871,7 @@ a { color: inherit; }
   .tt-benefit { padding: 22px 20px; }
 }
 
-html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
-/* Полноэкранные секции гостевой главной — герой, каталог, «О компании»,
- * контакты, подвал — довешивают скролл до начала секции, когда инерция и
- * так тормозит рядом с границей. Внутри длинной секции (каталог с плитками
- * туров) обычная свободная прокрутка не трогается. Осознанно НЕ mandatory:
- * жёсткий snap перетягивал канат с programmatic scrollIntoView (переход по
- * хешу на #about-company, клик по крошке и т.п.) — соскроллив куда просят,
- * mandatory тут же оттягивал обратно к границе секции, и Playwright-клики
- * по элементам вне текущего окна повисали в бесконечном ретрае. */
-.tt-public-intro:not(.tt-has-japan-sheet),
-.tt-public-catalogue,
-.tt-about-company,
-.tt-contact,
-.tt-public-footer {
-  scroll-snap-align: start;
-}
+html { scroll-behavior: smooth; }
 
 body {
   min-width: 320px;
@@ -5757,7 +5742,7 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; scroll-snap-type: none; }
+  html { scroll-behavior: auto; }
   .tt-reveal-ready,
   .tt-reveal-ready.is-visible {
     opacity: 1;
