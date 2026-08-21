@@ -293,9 +293,17 @@
       var value = slides[index].dataset.routeStops || "";
       route.dataset.activeRoute = value;
       routeStops.replaceChildren();
-      value.split(" · ").forEach(function (label) {
+      var labels = value.split(" · ");
+      labels.forEach(function (label, i) {
         var stop = global.document.createElement("span");
         stop.textContent = label;
+        /* Доля маршрута, на которой стоит город: 0 — первый, 1 — последний.
+         * По ней CSS считает задержку подсветки (--tt-showcase-duration ×
+         * долю), и город загорается ровно когда до него доходит бегущая
+         * точка. Считать в JS покадрово не нужно — обе анимации линейные и
+         * идут от одного значения длительности, поэтому просто совпадают. */
+        stop.style.setProperty("--tt-stop-at",
+          labels.length > 1 ? String(i / (labels.length - 1)) : "0");
         routeStops.appendChild(stop);
       });
     }

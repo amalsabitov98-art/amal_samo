@@ -294,15 +294,32 @@ body {
   pointer-events: none;
   transform: none;
 }
+/* Маршрут двухслойный: снизу приглушённая нитка всего пути, сверху яркая
+   заливка пройденного участка. Одна сплошная линия не показывала, сколько
+   уже «пролетели» — единственной подсказкой была бегущая точка. */
 .tt-showcase-route-line {
   position: absolute;
   left: 0;
   right: 0;
   top: 18px;
   height: 1px;
-  background: #d2a64c;
+  background: rgba(210, 166, 76, .28);
   transform: scaleX(1);
   transform-origin: left center;
+}
+.tt-showcase-route-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #d2a64c, #f0d089);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.tt-destination-showcase.is-timer-running .tt-showcase-route-line::after {
+  animation: tt-route-fill var(--tt-showcase-duration, 5000ms) linear forwards;
+}
+.tt-destination-showcase.is-timer-paused .tt-showcase-route-line::after {
+  animation-play-state: paused;
 }
 .tt-showcase-route-stops {
   position: absolute;
@@ -310,14 +327,43 @@ body {
   display: flex;
   justify-content: space-between;
 }
+/* Города ждут своей очереди приглушёнными и загораются, когда до них
+   доходит точка. Задержку берём из доли маршрута (--tt-stop-at, её ставит
+   updateRoute) — та же линейная шкала, что у точки и заливки, поэтому
+   подсветка совпадает с приходом без покадрового счёта в JS. */
 .tt-showcase-route-stops span {
   position: relative;
   min-width: 54px;
-  color: #f5efe1;
+  color: rgba(245, 239, 225, .42);
   font: 650 clamp(.47rem, .58vw, .59rem)/1 Manrope, sans-serif;
   letter-spacing: .07em;
   text-align: center;
   text-transform: uppercase;
+}
+.tt-destination-showcase.is-timer-running .tt-showcase-route-stops span {
+  animation: tt-stop-light .34s ease forwards;
+  animation-delay: calc(var(--tt-showcase-duration, 5000ms) * var(--tt-stop-at, 0));
+}
+.tt-destination-showcase.is-timer-running .tt-showcase-route-stops span::after {
+  animation: tt-stop-fill .34s ease forwards;
+  animation-delay: calc(var(--tt-showcase-duration, 5000ms) * var(--tt-stop-at, 0));
+}
+.tt-destination-showcase.is-timer-paused .tt-showcase-route-stops span,
+.tt-destination-showcase.is-timer-paused .tt-showcase-route-stops span::after {
+  animation-play-state: paused;
+}
+/* «Уменьшить движение»: таймер не запускается вовсе, поэтому подсветка по
+   расписанию не сработала бы и маршрут остался бы навсегда приглушённым.
+   Показываем его сразу целиком — без анимации, но и без полумёртвого вида. */
+.tt-destination-showcase.is-reduced-motion .tt-showcase-route-line::after {
+  transform: scaleX(1);
+}
+.tt-destination-showcase.is-reduced-motion .tt-showcase-route-stops span {
+  color: #fff8df;
+}
+.tt-destination-showcase.is-reduced-motion .tt-showcase-route-stops span::after {
+  border-color: #f3d68d;
+  background: #f3d68d;
 }
 .tt-showcase-route-stops span::after {
   content: "";
@@ -327,7 +373,7 @@ body {
   z-index: 2;
   width: 7px;
   height: 7px;
-  border: 1px solid #d2a64c;
+  border: 1px solid rgba(210, 166, 76, .45);
   border-radius: 50%;
   background: #0a1b16;
   transform: translateX(-50%);
@@ -460,6 +506,15 @@ body {
   to { opacity: 0; transform: translateY(-10px); }
 }
 @keyframes tt-route-draw { to { transform: scaleX(1); } }
+@keyframes tt-route-fill { to { transform: scaleX(1); } }
+@keyframes tt-stop-light { to { color: #fff8df; } }
+@keyframes tt-stop-fill {
+  to {
+    border-color: #f3d68d;
+    background: #f3d68d;
+    box-shadow: 0 0 10px rgba(243, 214, 141, .75);
+  }
+}
 @keyframes tt-route-travel {
   from { left: 0; }
   to { left: 100%; }
@@ -14833,9 +14888,17 @@ window.TURON_DESTINATIONS = [
       var value = slides[index].dataset.routeStops || "";
       route.dataset.activeRoute = value;
       routeStops.replaceChildren();
-      value.split(" · ").forEach(function (label) {
+      var labels = value.split(" · ");
+      labels.forEach(function (label, i) {
         var stop = global.document.createElement("span");
         stop.textContent = label;
+        /* Доля маршрута, на которой стоит город: 0 — первый, 1 — последний.
+         * По ней CSS считает задержку подсветки (--tt-showcase-duration ×
+         * долю), и город загорается ровно когда до него доходит бегущая
+         * точка. Считать в JS покадрово не нужно — обе анимации линейные и
+         * идут от одного значения длительности, поэтому просто совпадают. */
+        stop.style.setProperty("--tt-stop-at",
+          labels.length > 1 ? String(i / (labels.length - 1)) : "0");
         routeStops.appendChild(stop);
       });
     }

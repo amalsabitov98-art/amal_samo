@@ -230,6 +230,29 @@ console.log("\nТитульная страница");
           await new Promise((r) => setTimeout(r, 700));
           return parseFloat(getComputedStyle(dot).left) > was;
         }));
+  /* Пройденный город ярче предстоящего, иначе линия не рассказывает, где мы
+   * сейчас: до этого все три горели одинаково и прогресс показывала только
+   * сама точка. Первый город загорается сразу (--tt-stop-at: 0), последний —
+   * в конце показа, поэтому сравниваем именно их. */
+  check("пройденные города ярче предстоящих",
+        await page.evaluate(() => {
+          const spans = [...document.querySelectorAll(".tt-showcase-route-stops span")];
+          if (spans.length < 2) return false;
+          const alpha = (el) => {
+            const m = getComputedStyle(el).color.match(/[\d.]+/g);
+            return m && m.length > 3 ? Number(m[3]) : 1;
+          };
+          return alpha(spans[0]) > alpha(spans[spans.length - 1]);
+        }));
+  check("яркая заливка покрывает только пройденный участок маршрута",
+        await page.evaluate(() => {
+          const line = document.querySelector(".tt-showcase-route-line");
+          const fill = getComputedStyle(line, "::after").transform;
+          if (!fill || fill === "none") return false;
+          // matrix(a, ...) — a и есть scaleX заливки: 0 в начале, 1 в конце
+          const a = Number(fill.match(/matrix\(([\d.]+)/)?.[1]);
+          return a > 0 && a < 1;
+        }));
   check("превью Умры разворачивается в активный полноэкранный кадр",
         await page.locator('[data-showcase-slide="1"]').evaluate((el) =>
           el.classList.contains("is-active") && el.getAttribute("aria-hidden") === "false"));
