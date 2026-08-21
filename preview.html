@@ -2810,11 +2810,14 @@ a { color: inherit; }
 
 .tt-up-card {
   position: relative;
-  flex: 0 0 calc((100% - 3 * 18px) / 4);
+  /* Три в ряд, а не четыре: заголовок блока убран, высоту освободил он же,
+     и при четырёх колонках карточка выходила узкой (≈300px при 1440) —
+     почти колонкой. Три дают пропорцию около 4:5, фотография читается. */
+  flex: 0 0 calc((100% - 2 * 18px) / 3);
   display: flex;
   align-items: flex-end;
-  min-height: clamp(300px, 34vh, 380px);
-  padding: 13px;
+  min-height: clamp(390px, 54vh, 540px);
+  padding: 15px;
   border: 0;
   border-radius: 22px;
   /* фото приходит инлайном как --tt-up-photo (см. upcomingCard) */
@@ -2851,11 +2854,11 @@ a { color: inherit; }
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   width: 100%;
-  padding: 15px 16px 14px;
+  padding: 18px 19px 17px;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 15px;
+  border-radius: 17px;
   background: rgba(12, 34, 29, 0.34);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -2873,14 +2876,14 @@ a { color: inherit; }
 .tt-up-when { display: flex; align-items: baseline; gap: 6px; }
 .tt-up-when b {
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.1rem;
+  font-size: 2.7rem;
   font-weight: 600;
   line-height: 0.86;
   letter-spacing: -0.03em;
 }
 .tt-up-when i {
   color: #e5ca81;
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -2888,20 +2891,20 @@ a { color: inherit; }
 }
 .tt-up-seats {
   color: rgba(255, 250, 240, 0.76);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .tt-up-route {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 .tt-up-sub {
   color: rgba(255, 250, 240, 0.74);
-  font-size: 0.72rem;
+  font-size: 0.79rem;
 }
 .tt-up-foot {
   display: flex;
@@ -2911,15 +2914,15 @@ a { color: inherit; }
   margin-top: 6px;
 }
 .tt-up-price {
-  font-size: 1.08rem;
+  font-size: 1.28rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .tt-up-price i {
-  margin-right: 5px;
+  margin-right: 6px;
   color: rgba(255, 250, 240, 0.7);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   font-style: normal;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -5836,9 +5839,11 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-up-nav [data-up-next] { right: 4px; }
   .tt-up-card {
     flex-basis: calc((100% - 14px) / 2);
-    min-height: clamp(250px, 30vh, 300px);
+    min-height: clamp(300px, 40vh, 380px);
   }
-  .tt-up-when b { font-size: 1.85rem; }
+  .tt-up-when b { font-size: 2.1rem; }
+  .tt-up-route { font-size: 1rem; }
+  .tt-up-price { font-size: 1.14rem; }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search-btn { grid-column: 1 / -1; }
   .tt-search-row {
