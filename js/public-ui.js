@@ -743,7 +743,7 @@
     revealObserver = null;
 
     var targets = Array.prototype.slice.call(container.querySelectorAll(
-      ".tt-public-intro, .tt-public-catalogue, .tt-about-company"
+      ".tt-public-intro, .tt-public-catalogue, .tt-about-company, .tt-contact, .tt-public-footer"
     ));
     if (!targets.length) return;
 

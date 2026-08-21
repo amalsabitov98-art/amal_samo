@@ -5489,6 +5489,11 @@ a.tt-contact-row:hover { color: var(--cc); }
   opacity: 1;
   transform: translateY(0);
 }
+/* У «Контактов» верхний край стыкуется впритык с золотой полосой «О компании»
+ * (см. тест «золотая полоса переходит в контакты встык») — сдвиг translateY
+ * в непоказанном состоянии отодвигал бы блок и открывал тёмный зазор до
+ * появления анимации, поэтому здесь только затухание, без смещения. */
+.tt-contact.tt-reveal-ready { transform: none; }
 .tt-dep,
 .tt-cat-tile,
 .tt-cat-tour,
@@ -14542,7 +14547,7 @@ window.TURON_DESTINATIONS = [
     revealObserver = null;
 
     var targets = Array.prototype.slice.call(container.querySelectorAll(
-      ".tt-public-intro, .tt-public-catalogue, .tt-about-company"
+      ".tt-public-intro, .tt-public-catalogue, .tt-about-company, .tt-contact, .tt-public-footer"
     ));
     if (!targets.length) return;
 
