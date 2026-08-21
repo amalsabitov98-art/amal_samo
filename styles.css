@@ -394,21 +394,41 @@ body {
   align-items: center;
   gap: clamp(18px, 2.1vw, 34px);
 }
-.tt-showcase-nav { display: flex; gap: 8px; }
+.tt-showcase-nav { display: flex; gap: 10px; }
 .tt-showcase-nav button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   padding: 0;
-  border: 1px solid rgba(255,255,255,.38);
+  border: 1px solid rgba(0,0,0,.4);
   border-radius: 50%;
-  background: rgba(4,16,13,.18);
-  color: #fff;
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.24), rgba(255,255,255,0) 42%),
+    radial-gradient(circle at 32% 26%, #2f6a4c, #14432c 60%, #0b2519 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.2) inset,
+    0 -3px 4px rgba(0,0,0,.5) inset,
+    0 3px 6px rgba(0,0,0,.4),
+    0 1px 0 rgba(229,202,129,.16);
+  color: #f3e6c4;
   cursor: pointer;
-  transition: border-color .3s ease, background .3s ease;
+  transition: transform .15s ease, box-shadow .2s ease, background .3s ease, border-color .3s ease, color .3s ease;
 }
-.tt-showcase-nav button:hover { border-color: #e5ca81; background: rgba(4,16,13,.55); }
+.tt-showcase-nav button svg { width: 15px; height: 15px; display: block; }
+.tt-showcase-nav button:hover {
+  border-color: rgba(229,202,129,.6);
+  color: #fff;
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.32), rgba(255,255,255,0) 46%),
+    radial-gradient(circle at 32% 26%, #3c7d59, #175434 60%, #0b2519 100%);
+}
+.tt-showcase-nav button:active {
+  transform: translateY(1px) scale(.95);
+  box-shadow:
+    0 2px 5px rgba(0,0,0,.6) inset,
+    0 1px 0 rgba(255,255,255,.1) inset;
+}
 .tt-showcase-nav button:focus-visible,
 .tt-showcase-dots button:focus-visible { outline: 2px solid #e5ca81; outline-offset: 3px; }
 .tt-showcase-timer {

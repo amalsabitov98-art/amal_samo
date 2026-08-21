@@ -208,8 +208,12 @@
       '</div>' +
       '<div class="tt-showcase-controls">' +
         '<div class="tt-showcase-nav">' +
-          '<button type="button" data-showcase-prev aria-label="Предыдущее направление">←</button>' +
-          '<button type="button" data-showcase-next aria-label="Следующее направление">→</button>' +
+          '<button type="button" data-showcase-prev aria-label="Предыдущее направление">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>' +
+          '</button>' +
+          '<button type="button" data-showcase-next aria-label="Следующее направление">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
+          '</button>' +
         '</div>' +
         '<div class="tt-showcase-timer">' +
           '<span data-showcase-count>01 / 03</span>' +
