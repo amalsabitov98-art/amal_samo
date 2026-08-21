@@ -320,41 +320,87 @@ console.log("\nТитульная страница");
   const hintAll = await page.textContent("[data-search-hint]");
   check("счётчик найденного заполнен", /\d/.test(hintAll || ""), hintAll);
 
-  /* «Ближайшие заезды» — расписание, а не плитки с фотографиями. Раньше фон
-   * брался по НОМЕРУ карточки из списка турецко-грузинских снимков, и заезд
-   * умры выходил с видом Батуми; блок был вообще не покрыт тестами, поэтому
-   * подмена жила незамеченной. Здесь и проверяем, что фотографий нет. */
-  const upRows = await page.locator(".tt-up-row").count();
-  check("ближайшие заезды отрисованы строками расписания", upRows > 0,
-        upRows + " строк");
-  check("в строках заездов нет фоновых фотографий",
-        await page.locator(".tt-up-list").evaluate((el) =>
-          [...el.querySelectorAll("*")].every((n) =>
-            getComputedStyle(n).backgroundImage === "none")));
-  check("у каждой строки крупное число дня и месяц",
-        await page.locator(".tt-up-list").evaluate((el) =>
-          [...el.querySelectorAll(".tt-up-row")].every((r) => {
-            const d = r.querySelector(".tt-up-when b");
-            const m = r.querySelector(".tt-up-when i");
+  /* «Ближайшие заезды» лежат на том же ролике, что и герой: фон даёт один
+   * липкий слой в общем холсте, поэтому стыка между экранами нет. Блок был
+   * вообще не покрыт тестами — из-за этого долго жила подмена фотографий:
+   * кадр брался по НОМЕРУ карточки из общего списка турецко-грузинских
+   * снимков, и заезд умры выходил с видом Батуми. Теперь кадр закреплён за
+   * направлением, что здесь и проверяется. */
+  const upCards = await page.locator(".tt-up-card").count();
+  check("ближайшие заезды отрисованы карточками", upCards > 0, upCards + " карточек");
+  check("герой и заезды лежат в общем холсте с одним роликом",
+        await page.locator(".tt-hero-canvas").evaluate((el) =>
+          !!el.querySelector(".tt-public-intro") &&
+          !!el.querySelector(".tt-upcoming") &&
+          el.querySelectorAll("video").length === 1));
+  check("фон заездов — липкий слой, а не второй ролик",
+        await page.locator(".tt-hero-bg").evaluate((el) =>
+          getComputedStyle(el).position === "sticky"));
+  /* Ключ DESTINATION_PHOTOS — значение tours.destination («Турция»), а не
+   * заголовок плитки («Турция и Грузия»). Промах по ключу молча оставляет
+   * ВСЕ карточки без фото, поэтому мало проверить формат: нужен хотя бы
+   * один реально подставленный кадр. */
+  const photoState = await page.locator(".tt-up-track").evaluate((el) => {
+    const cards = [...el.querySelectorAll(".tt-up-card")];
+    const photos = cards.map((c) => c.style.getPropertyValue("--tt-up-photo").trim());
+    return {
+      withPhoto: photos.filter(Boolean).length,
+      allValid: photos.every((p) => !p || /^url\(img\/[\w.-]+\)$/.test(p)),
+      // у турецких заездов фото есть, у умры — нет (кадров не прислали)
+      turkeyPlain: cards.filter((c) =>
+        c.textContent.includes("Батуми") && c.classList.contains("is-plain")).length,
+    };
+  });
+  check("фотографии реально подставлены (ключ направления не промахнулся)",
+        photoState.withPhoto > 0, photoState.withPhoto + " с фото");
+  check("пути к фотографиям корректны", photoState.allValid);
+  check("у турецких заездов фото не потерялось", photoState.turkeyPlain === 0,
+        photoState.turkeyPlain + " без фото");
+  check("панель карточки — матовое стекло с размытием",
+        await page.locator(".tt-up-glass").first().evaluate((el) => {
+          const s = getComputedStyle(el);
+          return (s.backdropFilter || s.webkitBackdropFilter || "").includes("blur");
+        }));
+  check("у каждой карточки крупное число дня и месяц без точки",
+        await page.locator(".tt-up-track").evaluate((el) =>
+          [...el.querySelectorAll(".tt-up-card")].every((c) => {
+            const d = c.querySelector(".tt-up-when b");
+            const m = c.querySelector(".tt-up-when i");
             return d && m && /^\d{1,2}$/.test(d.textContent.trim()) &&
-                   m.textContent.trim().length > 1 &&
-                   !m.textContent.includes(".");
+                   m.textContent.trim().length > 1 && !m.textContent.includes(".");
           })));
-  check("строка ведёт в тур и подписана для скринридера",
-        await page.locator(".tt-up-row").first().evaluate((el) =>
+  check("карточка ведёт в тур и подписана для скринридера",
+        await page.locator(".tt-up-card").first().evaluate((el) =>
           !!el.dataset.tour && (el.getAttribute("aria-label") || "").length > 5));
   check("остаток мест отдан ведром, без точного числа за порогом",
-        await page.locator(".tt-up-list").evaluate((el) =>
+        await page.locator(".tt-up-track").evaluate((el) =>
           [...el.querySelectorAll(".tt-up-seats")].every((s) => {
             const t = s.textContent.trim();
             return t === "" || /^20\+ мест$/.test(t) ||
                    /^([1-9]|1\d|20) (место|места|мест)$/.test(t);
           })));
-  check("стрелка появляется только по наведению",
-        await page.locator(".tt-up-row").first().evaluate((el) =>
-          getComputedStyle(el.querySelector(".tt-up-arrow")).opacity === "0"));
   check("подзаголовок не обещает наличие мест",
         !(await page.locator("#upcoming-departures").innerText()).includes("хватает"));
+
+  /* Слайдер: «назад» погашена в начале, «вперёд» реально листает дорожку.
+   * Горизонтальный scroll-snap заперт внутри дорожки — вертикальную
+   * прокрутку страницы он не трогает (тот, постраничный, снимали). */
+  check("в начале слайдера «назад» погашена",
+        await page.locator("[data-up-prev]").evaluate((el) => el.disabled));
+  const scrolledBy = await page.evaluate(async () => {
+    const track = document.querySelector("[data-up-track]");
+    const before = track.scrollLeft;
+    document.querySelector("[data-up-next]").click();
+    await new Promise((r) => setTimeout(r, 700));
+    return track.scrollLeft - before;
+  });
+  check("«вперёд» листает дорожку заездов", scrolledBy > 0, scrolledBy + "px");
+  check("после листания «назад» доступна",
+        !(await page.locator("[data-up-prev]").evaluate((el) => el.disabled)));
+  check("снап слайдера только горизонтальный, страницу не трогает",
+        await page.locator(".tt-up-track").evaluate((el) =>
+          getComputedStyle(el).scrollSnapType.startsWith("x") &&
+          getComputedStyle(document.documentElement).scrollSnapType === "none"));
 
   // Демо-заездам сейчас всем хватает мест (минимум 45 свободных), поэтому
   // фильтр 1..5 человек физически ничего не отсеет — не повод считать его

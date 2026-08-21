@@ -2577,11 +2577,27 @@ a { color: inherit; }
 :root:not([data-theme="light"]) #screen-public .tt-public-intro {
   background: #05090b;
 }
+/* Внутри общего холста герой обязан быть ПРОЗРАЧНЫМ: под ним лежит липкий
+   ролик, общий со вторым экраном. Правило выше сильнее (0,3,1 против 0,2,0
+   у .tt-hero-canvas > .tt-public-intro), поэтому гасить его надо здесь, в
+   том же скоупе, — иначе сплошной #05090b закрашивал видео, и над блоком
+   заездов висела чёрная плита с резкой линией на стыке. */
+:root:not([data-theme="light"]) #screen-public .tt-hero-canvas > .tt-public-intro {
+  background: transparent;
+}
 :root:not([data-theme="light"]) #screen-public .tt-public-intro::before {
   background:
     linear-gradient(180deg, rgba(4, 10, 12, 0.24) 0%, rgba(5, 14, 17, 0.06) 34%,
                     rgba(5, 14, 17, 0.14) 62%, rgba(4, 10, 12, 0.72) 100%),
     linear-gradient(0deg, rgba(6, 22, 27, 0.24), rgba(6, 22, 27, 0.24));
+}
+/* Тонировка ролика в тёмной теме — бирюзовая, а не зелёная: на чёрной
+   странице зелёный кадр читался бы пятном. Слой общий на весь холст. */
+:root:not([data-theme="light"]) #screen-public .tt-hero-bg::after {
+  background:
+    linear-gradient(180deg, rgba(4, 10, 12, 0.28) 0%, rgba(5, 14, 17, 0.1) 32%,
+                    rgba(5, 14, 17, 0.36) 66%, rgba(4, 10, 12, 0.76) 100%),
+    linear-gradient(0deg, rgba(6, 22, 27, 0.26), rgba(6, 22, 27, 0.26));
 }
 :root:not([data-theme="light"]) #screen-public .tt-public-hero-copy {
   background: radial-gradient(ellipse 76% 86% at 50% 50%,
@@ -2732,98 +2748,205 @@ a { color: inherit; }
   margin-bottom: clamp(56px, 7vw, 96px);
   scroll-margin-top: 150px;
 }
-/* Расписание, а не плитки: заезд — это прежде всего ДАТА, поэтому строка
-   держится на крупном числе дня, а не на фоновой фотографии. Разделители —
-   волосяные линии, весь ряд кликабелен, стрелка выезжает по наведению
-   (повторять «Программа и цены» в каждой строке незачем). */
-.tt-up-list { border-top: 1px solid var(--tt-border); }
-.tt-up-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto 22px;
-  align-items: center;
-  gap: clamp(14px, 2.4vw, 36px);
-  width: 100%;
-  padding: 19px 12px;
+/* Внутри холста блок больше не прямой ребёнок .tt-container, поэтому колонку
+   и боковые отступы задаёт себе сам — теми же значениями, что контейнер даёт
+   остальным секциям. Вертикальные отступы делают из него полноценный второй
+   экран, а не полосу сразу под героем. */
+.tt-hero-canvas > .tt-upcoming {
+  width: min(1380px, 100%);
+  margin-inline: auto;
+  margin-bottom: 0;
+  padding: clamp(46px, 7vh, 92px) clamp(20px, 4vw, 64px) clamp(74px, 11vh, 132px);
+}
+/* Заезды лежат на живом видео, поэтому весь блок светлый по тексту и
+   прозрачный по фону — своей плашки у него нет. */
+.tt-up-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+.tt-hero-canvas .tt-upcoming,
+.tt-hero-canvas .tt-upcoming .tt-cat-heading h2,
+.tt-hero-canvas .tt-upcoming .tt-cat-heading p { color: #fffaf0; }
+.tt-hero-canvas .tt-upcoming .tt-cat-heading p { color: rgba(255, 250, 240, 0.8); }
+/* Через #screen-public: у публичной палитры кикер красится акцентом
+   (в светлой теме — оранжевым), а на синем кадре он тонул. Золото читается
+   на обеих темах, потому что фон под ним — ролик, а не фон страницы. */
+#screen-public .tt-hero-canvas .tt-upcoming .tt-eyebrow { color: #e5c987; }
+
+/* Дорожка слайдера. scroll-snap ЗДЕСЬ по оси X и заперт внутри дорожки —
+   это не тот постраничный снап, что убирали со страницы, вертикальную
+   прокрутку он не трогает. Полосу прокрутки прячем: листают стрелками,
+   свайпом и колесом, а системная полоса под стеклом выглядит заплаткой. */
+/* Flex, а не grid: у grid-дорожки колонки задавались через minmax(0, …),
+   и 12 карточек послушно ужимались до 80px вместо того, чтобы вылезти за
+   край — прокручивать становилось нечего. У flex-элементов shrink явно
+   выключен, поэтому дорожка всегда шире окна и реально листается. */
+.tt-up-track {
+  display: flex;
+  gap: 18px;
+  margin-top: clamp(20px, 2.6vw, 32px);
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.tt-up-track::-webkit-scrollbar { display: none; }
+
+.tt-up-card {
+  position: relative;
+  flex: 0 0 calc((100% - 3 * 18px) / 4);
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(300px, 34vh, 380px);
+  padding: 13px;
   border: 0;
-  border-bottom: 1px solid var(--tt-border);
-  border-radius: 0;
-  /* у <button> в этом файле нет сброса фона и цвета — без явных значений
-     браузер подставит серый ButtonFace и чёрный ButtonText */
-  background: transparent;
-  color: var(--tt-text);
+  border-radius: 22px;
+  /* фото приходит инлайном как --tt-up-photo (см. upcomingCard) */
+  background: var(--tt-up-photo, none) center / cover no-repeat,
+              linear-gradient(160deg, #174a37, #0a2820);
+  /* у <button> в этом файле нет сброса цвета — без явного значения
+     браузер подставит чёрный ButtonText */
+  color: #fffaf0;
   text-align: left;
   cursor: pointer;
-  transition: background 0.25s ease, padding 0.25s ease;
+  overflow: hidden;
+  scroll-snap-align: start;
+  transition: transform 0.3s cubic-bezier(0.2, 0.72, 0.28, 1),
+              box-shadow 0.3s ease;
 }
-.tt-up-row:hover { background: var(--tt-surface); padding-inline: 18px 6px; }
-.tt-up-row:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: -2px; }
-.tt-up-when {
+.tt-up-card:hover { transform: translateY(-5px); box-shadow: 0 22px 44px rgba(3, 20, 16, 0.45); }
+.tt-up-card:focus-visible { outline: 2px solid #e5ca81; outline-offset: 3px; }
+/* Затемнение под стеклом: на светлых кадрах (небо на закате) панель иначе
+   теряет контраст — проверять надо на самом светлом фото, а не на первом. */
+.tt-up-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(4, 14, 12, 0.05) 0%, rgba(4, 14, 12, 0.3) 55%, rgba(4, 14, 12, 0.62) 100%);
+  pointer-events: none;
+}
+
+/* Матовое стекло в духе Apple: размытие подложки, светлый внутренний кант
+   сверху и тонкая тёмная линия снизу — так панель читается «толщиной», а
+   не плоской прозрачной плашкой. */
+.tt-up-glass {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 15px 16px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 15px;
+  background: rgba(12, 34, 29, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 10px 26px rgba(3, 18, 15, 0.3);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+.tt-up-head {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  min-width: 68px;
+  justify-content: space-between;
+  gap: 10px;
 }
+.tt-up-when { display: flex; align-items: baseline; gap: 6px; }
 .tt-up-when b {
-  /* цвет от --tt-text, а не --tt-forest: в тёмной публичной теме forest
-     почти чёрный, и число пропало бы на фоне */
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.55rem;
+  font-size: 2.1rem;
   font-weight: 600;
   line-height: 0.86;
   letter-spacing: -0.03em;
 }
 .tt-up-when i {
-  color: var(--tt-accent);
-  font-size: 0.64rem;
+  color: #e5ca81;
+  font-size: 0.6rem;
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.tt-up-route {
-  display: block;
-  font-size: 1.02rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.tt-up-sub {
-  display: block;
-  margin-top: 4px;
-  color: var(--tt-text-muted);
-  font-size: 0.78rem;
-}
 .tt-up-seats {
-  color: var(--tt-text-muted);
-  font-size: 0.68rem;
+  color: rgba(255, 250, 240, 0.76);
+  font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
 }
+.tt-up-route {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.tt-up-sub {
+  color: rgba(255, 250, 240, 0.74);
+  font-size: 0.72rem;
+}
+.tt-up-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
 .tt-up-price {
-  font-size: 1.16rem;
+  font-size: 1.08rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .tt-up-price i {
-  margin-right: 6px;
-  color: var(--tt-text-muted);
-  font-size: 0.62rem;
+  margin-right: 5px;
+  color: rgba(255, 250, 240, 0.7);
+  font-size: 0.6rem;
   font-style: normal;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .tt-up-arrow {
-  color: var(--tt-accent);
-  font-size: 1rem;
+  color: #e5ca81;
+  font-size: 0.95rem;
+  transform: translateX(-4px);
   opacity: 0;
-  transform: translateX(-6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.tt-up-row:hover .tt-up-arrow,
-.tt-up-row:focus-visible .tt-up-arrow { opacity: 1; transform: none; }
+.tt-up-card:hover .tt-up-arrow,
+.tt-up-card:focus-visible .tt-up-arrow { opacity: 1; transform: none; }
+
+/* Стрелки слайдера — то же стекло, что и панели карточек. */
+.tt-up-nav { display: flex; flex: none; gap: 9px; }
+.tt-up-nav button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+  background: rgba(12, 34, 29, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  color: #fffaf0;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+}
+.tt-up-nav button svg { width: 16px; height: 16px; display: block; }
+.tt-up-nav button:hover:not(:disabled) {
+  border-color: #e5ca81;
+  background: rgba(20, 56, 44, 0.55);
+}
+.tt-up-nav button:disabled { opacity: 0.32; cursor: default; }
+.tt-up-nav button:focus-visible { outline: 2px solid #e5ca81; outline-offset: 3px; }
 
 .tt-benefits {
   display: grid;
@@ -3207,7 +3330,7 @@ select { font-family: inherit; }
      padding-bottom. */
   padding: 0;
 }
-#screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) {
+#screen-public > .tt-container > :not(.tt-hero-canvas):not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) {
   width: min(1380px, 100%);
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 64px);
@@ -4099,8 +4222,12 @@ select { font-family: inherit; }
      .tt-hero-content держит центрирование в границах ровно одного экрана
      (100svh), а лишние 45svh просто остаются пустым продолжением видео
      ниже — их и открывает прокрутка. */
-  min-height: 145svh;
-  overflow: hidden;
+  /* ВАЖНО: высота переехала на .tt-hero-video внутри .tt-hero-bg (ниже).
+     Сам герой теперь ровно экран — 145svh остались у ролика, чтобы кольцо
+     по-прежнему не обрезалось, но растягивать под них ещё и блок больше не
+     нужно: ниже героя идёт не пустое продолжение видео, а второй экран
+     с заездами, и фон им обоим даёт один липкий слой. */
+  min-height: 100svh;
   /* Стыкуем video-hero и витрину без пустой полосы; небольшой нахлёст\n     исключает субпиксельный шов при масштабировании браузера. */\n  margin-bottom: -1px;
   border-radius: 0;
   background: #082b25;
@@ -4165,12 +4292,84 @@ select { font-family: inherit; }
   pointer-events: none;
 }
 .tt-public-intro > * { position: relative; z-index: 3; }
-.tt-hero-video {
+
+/* ---------------------------------------- общий холст героя и заездов
+   Первый экран и «Ближайшие заезды» лежат на ОДНОМ ролике: .tt-hero-bg
+   липкий и остаётся на месте, пока холст прокручивается мимо. Поэтому
+   переход между экранами бесшовный по построению — склеивать нечего,
+   фон буквально не меняется, второй ролик не грузится.
+
+   Почему не «растянуть видео на оба экрана»: cover центрирует кадр по
+   блоку, и глобус уехал бы на середину холста, то есть в заезды, а из
+   героя пропал. Липкий слой держит кадр ровно в окне. */
+.tt-hero-canvas {
+  position: relative;
+  isolation: isolate;
+}
+.tt-hero-bg {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+/* Тонировка ролика под палитру сайта и затемнение под текст — на весь
+   липкий слой, а не только на герой: заезды лежат на том же кадре. */
+.tt-hero-bg::after {
+  content: "";
   position: absolute;
   inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3, 24, 21, 0.24) 0%, rgba(4, 31, 27, 0.1) 32%,
+                    rgba(4, 31, 27, 0.34) 66%, rgba(3, 24, 21, 0.72) 100%),
+    linear-gradient(0deg, rgba(8, 43, 37, 0.2), rgba(8, 43, 37, 0.2));
+  pointer-events: none;
+}
+/* Контент вытягивается наверх поверх липкого слоя ровно на его высоту. */
+.tt-hero-canvas > .tt-public-intro {
+  margin-top: -100svh;
+  background: transparent;
+}
+/* Внутри холста тонировку даёт .tt-hero-bg::after, а растворение низа —
+   .tt-hero-canvas::after. Собственные слои героя тут только удвоили бы
+   затемнение и прочертили бы градиент прямо посреди холста. */
+.tt-hero-canvas > .tt-public-intro::before,
+.tt-hero-canvas > .tt-public-intro::after { content: none; }
+.tt-hero-canvas > .tt-public-intro,
+.tt-hero-canvas > .tt-upcoming {
+  position: relative;
+  z-index: 2;
+}
+/* Растворение НИЗА ХОЛСТА в фоне страницы (раньше было у героя — теперь
+   под ним второй экран, и градиент резал бы его пополам). */
+.tt-hero-canvas::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  height: clamp(64px, 8vh, 112px);
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0) 0%,
+    color-mix(in srgb, var(--tt-bg) 18%, transparent) 58%,
+    color-mix(in srgb, var(--tt-bg) 62%, transparent) 84%,
+    var(--tt-bg) 100%);
+  pointer-events: none;
+}
+
+.tt-hero-video {
+  position: absolute;
+  left: 0;
   z-index: 0;
   width: 100%;
-  height: 100%;
+  /* 145svh при окне в 100svh: ролик выше своего окна, лишнее срезается
+     сверху и снизу поровну (top = -(145-100)/2). Ровно та геометрия, что
+     была у прежнего блока 145svh, — кольцо целое вплоть до 21:9, — только
+     теперь она у самого ролика, а не у секции. Уменьшать нельзя: на
+     100svh широкие мониторы режут кольцо по кромке. */
+  height: 145svh;
+  top: calc((100svh - 145svh) / 2);
   /* cover, не contain: contain давал полосы по бокам почти на любом экране
      шире 16:9, а видео должно быть «на весь экран» без полей.
      Запас под обрезку даёт высота блока (145svh, см. .tt-public-intro выше),
@@ -5586,7 +5785,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-subnav { min-height: 49px; padding: 5px 15px; }
   .tt-public-subnav button { min-height: 36px; padding: 7px 10px; font-size: 0.62rem; }
   #screen-public > .tt-container { padding: 0; }
-  #screen-public > .tt-container > :not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) { padding-inline: 15px; }
+  #screen-public > .tt-container > :not(.tt-hero-canvas):not(.tt-public-intro):not(.tt-japan-sheet):not(.tt-destination-page):not(.tt-tour-bg):not(.tt-cat-hero):not(.tt-about-company):not(.tt-contact):not(.tt-public-footer) { padding-inline: 15px; }
   #screen-public .tt-destination-inner { padding-inline: 15px; }
   .tt-app-header { padding: 13px 17px; }
   .tt-app-header h1 { font-size: 1.7rem; }
@@ -5609,18 +5808,15 @@ a.tt-contact-row:hover { color: var(--cc); }
   }
   /* Панель поиска в две строки: три поля рядом не влезают, а сжатые до 150px
      они обрезают «Все направления» на середине слова. */
-  /* Пять колонок в 720px не помещаются: остаток мест и стрелка уходят,
-     остаются дата, маршрут и цена — то, ради чего строку и читают. */
-  .tt-up-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 15px;
-    padding: 16px 4px;
+  /* Четыре карточки в 720px превращаются в марки: показываем две, дальше
+     листается. Заголовок и стрелки в столбик — рядом они не помещаются. */
+  .tt-up-track { gap: 14px; }
+  .tt-up-top { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .tt-up-card {
+    flex-basis: calc((100% - 14px) / 2);
+    min-height: clamp(250px, 30vh, 300px);
   }
-  .tt-up-row:hover { padding-inline: 8px 4px; }
-  .tt-up-when { min-width: 54px; }
-  .tt-up-when b { font-size: 2.05rem; }
-  .tt-up-seats,
-  .tt-up-arrow { display: none; }
+  .tt-up-when b { font-size: 1.85rem; }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-hero-search-btn { grid-column: 1 / -1; }
   .tt-search-row {
@@ -5716,10 +5912,11 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-public-intro p { max-width: 94%; }
   .tt-hero-search { grid-template-columns: minmax(0, 1fr); }
   .tt-theme-btn { width: 40px; height: 40px; }
-  .tt-up-when { min-width: 46px; }
-  .tt-up-when b { font-size: 1.8rem; }
-  .tt-up-route { font-size: 0.94rem; }
-  .tt-up-price { font-size: 1.02rem; }
+  /* На телефоне карточка почти во всю ширину — соседняя выглядывает
+     краем, и что блок листается, видно без подсказки. */
+  .tt-up-card { flex-basis: 84%; }
+  .tt-up-route { font-size: 0.9rem; }
+  .tt-up-price { font-size: 1rem; }
   .tt-foot-cols { grid-template-columns: 1fr; gap: 20px; }
   .tt-foot-bottom { display: grid; gap: 5px; }
   .tt-dep { display: block; }

@@ -765,6 +765,36 @@
    * Батуми), поэтому подписать ими любой заезд честно. Привязки «это
    * фото именно того заезда» тут нет и быть не может.
    */
+  /*
+   * Фотографии подбираются по НАПРАВЛЕНИЮ, а не по номеру карточки. Раньше
+   * было ROUTE_PHOTOS[i % длина] — общий список на всё, — и заезд умры
+   * выходил с видом Батуми, а два заезда одного тура получали разные кадры.
+   * Направления без своих фотографий (умра — их у нас нет, см. TODO) карточку
+   * не теряют: рисуются без фото, стеклянная панель работает поверх заливки.
+   * Сюда же добавлять новые кадры, когда оператор пришлёт.
+   */
+  var DESTINATION_PHOTOS = {
+    // Ключ — значение tours.destination, а НЕ заголовок плитки: в базе
+    // направление называется «Турция», а «Турция и Грузия» лежит в
+    // destinations.title и сюда не приходит. На этом уже попались — все
+    // карточки молча остались без фото.
+    "Турция": [
+      "img/hero-rize-batumi.webp",
+      "img/tour-rize-tea-valley.webp",
+      "img/hero-batumi-sunset.webp",
+      "img/tour-batumi-boulevard.webp",
+      "img/hero-rize-morning.webp",
+    ],
+  };
+
+  // Кадр закреплён за ДАТОЙ, а не за позицией в списке: иначе один и тот же
+  // заезд менял бы фотографию от того, сколько заездов показано выше него.
+  function photoFor(g) {
+    var list = DESTINATION_PHOTOS[g.destination];
+    if (!list || !list.length) return "";
+    return list[dayNum(g.date_start) % list.length];
+  }
+
   // «21» и «авг» раздельно: в расписании крупное число дня — главный якорь
   // для глаза, поэтому дата разбирается на части, а не печатается строкой.
   function dayNum(iso) {
@@ -804,6 +834,7 @@
       if (!g) {
         g = byDate[d.date_start] = {
           date_start: d.date_start, nights: d.nights, tour_code: d.tour_code,
+          destination: d.destination,
           transports: [], min_price: null, seats_free: null,
         };
         order.push(g);
@@ -823,14 +854,12 @@
   }
 
   /*
-   * Строка расписания. Фотографий тут намеренно НЕТ, и возвращать их не надо:
-   * раньше фон брался по НОМЕРУ карточки (ROUTE_PHOTOS[i % длина]), а живых
-   * фотографий у нас только турецко-грузинские — заезд умры выходил с видом
-   * Батуми, а два заезда одного тура получали разные картинки. Фотографий
-   * туров нет вообще (см. TODO), подбирать нечего, поэтому блок держится на
-   * типографике: дата крупным числом, остальное — подписи.
+   * Карточка заезда: фотография направления и поверх неё матовая стеклянная
+   * панель с датой, маршрутом и ценой. Стекло, а не сплошная плашка, потому
+   * что карточки лежат на живом видео — сквозь панель видно и кадр, и ролик,
+   * и блок читается как продолжение первого экрана, а не наклейка на нём.
    */
-  function upcomingRow(g) {
+  function upcomingCard(g) {
     var cities = g.transports.map(function (t) {
       // в подписи только город: «Авиа · Батуми · Авиа · Трабзон» — каша
       return (TRANSPORT[t] || t).replace(/^Авиа · /, "");
@@ -852,23 +881,30 @@
         : g.seats_free + " " + plural(g.seats_free, "место", "места", "мест");
     }
 
+    var photo = photoFor(g);
     return (
-      '<button class="tt-up-row" data-tour="' + esc(g.tour_code) + '" ' +
+      '<button class="tt-up-card' + (photo ? "" : " is-plain") + '" ' +
+        'data-tour="' + esc(g.tour_code) + '"' +
+        (photo ? ' style="--tt-up-photo:url(' + esc(photo) + ')"' : "") + " " +
         'aria-label="' + esc(tr("upcoming.action") + ", " +
           dateSpan(g.date_start, g.nights)) + '">' +
-        '<span class="tt-up-when">' +
-          "<b>" + dayNum(g.date_start) + "</b>" +
-          "<i>" + esc(monthShort(g.date_start)) + "</i>" +
-        "</span>" +
-        '<span class="tt-up-main">' +
+        '<span class="tt-up-glass">' +
+          '<span class="tt-up-head">' +
+            '<span class="tt-up-when">' +
+              "<b>" + dayNum(g.date_start) + "</b>" +
+              "<i>" + esc(monthShort(g.date_start)) + "</i>" +
+            "</span>" +
+            '<span class="tt-up-seats">' + esc(seats) + "</span>" +
+          "</span>" +
           '<span class="tt-up-route">' + esc(cities) + "</span>" +
           '<span class="tt-up-sub">' + esc(sub.join(" · ")) + "</span>" +
+          '<span class="tt-up-foot">' +
+            '<span class="tt-up-price">' +
+              (g.min_price != null ? "<i>от</i>" + money(g.min_price) : "") +
+            "</span>" +
+            '<span class="tt-up-arrow" aria-hidden="true">→</span>' +
+          "</span>" +
         "</span>" +
-        '<span class="tt-up-seats">' + esc(seats) + "</span>" +
-        '<span class="tt-up-price">' +
-          (g.min_price != null ? "<i>от</i>" + money(g.min_price) : "") +
-        "</span>" +
-        '<span class="tt-up-arrow" aria-hidden="true">→</span>' +
       "</button>"
     );
   }
@@ -945,6 +981,7 @@
     // и вешать их надо один раз, а не при каждой отрисовке титульной.
     var heroWakeBound = false;
     var showcaseCleanup = null;
+    var upcomingCleanup = null;
 
     function errorBox(err) {
       root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
@@ -954,6 +991,10 @@
     function loading() {
       if (showcaseCleanup) showcaseCleanup();
       showcaseCleanup = null;
+      // Слайдер заездов вешает слушатель на window — снимаем вместе с
+      // разметкой, иначе каждый заход на титульную добавлял бы ещё один.
+      if (upcomingCleanup) upcomingCleanup();
+      upcomingCleanup = null;
       root.innerHTML = '<div class="tt-empty-state">Загружаем…</div>';
     }
 
@@ -1330,17 +1371,83 @@
     function renderUpcoming(list) {
       var box = root.querySelector("#upcoming-departures");
       if (!box) return;
-      var soon = groupByDate(list || []).slice(0, 4);
+      // Карточек больше четырёх: лишние не обрезаются, а листаются слайдером.
+      var soon = groupByDate(list || []).slice(0, 12);
       if (!soon.length) { box.hidden = true; return; }
       box.hidden = false;
       box.innerHTML =
-        '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
-          esc(tr("upcoming.kicker")) + "</span><h2>" +
-          esc(tr("upcoming.title")) + "</h2></div><p>" +
-          esc(tr("upcoming.text")) + "</p></div>" +
-        '<div class="tt-up-list">' +
-          soon.map(upcomingRow).join("") +
+        '<div class="tt-up-top">' +
+          '<div class="tt-cat-heading"><div><span class="tt-eyebrow">' +
+            esc(tr("upcoming.kicker")) + "</span><h2>" +
+            esc(tr("upcoming.title")) + "</h2></div><p>" +
+            esc(tr("upcoming.text")) + "</p></div>" +
+          '<div class="tt-up-nav">' +
+            '<button type="button" data-up-prev aria-label="Предыдущие заезды">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ' +
+                'aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>' +
+            "</button>" +
+            '<button type="button" data-up-next aria-label="Следующие заезды">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ' +
+                'aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' +
+            "</button>" +
+          "</div>" +
+        "</div>" +
+        '<div class="tt-up-track" data-up-track>' +
+          soon.map(upcomingCard).join("") +
         "</div>";
+      if (upcomingCleanup) upcomingCleanup();
+      upcomingCleanup = initUpcomingSlider(box);
+    }
+
+    /*
+     * Слайдер заездов. Листание — обычной горизонтальной прокруткой с
+     * scroll-snap по оси X: это НЕ тот снап, что убирали со страницы, он
+     * заперт внутри дорожки и вертикальную прокрутку не трогает. Стрелки
+     * двигают ровно на карточку, шаг меряется по факту (ширина + gap), а не
+     * задан числом — иначе на каждом брейкпоинте он бы врал.
+     */
+    function initUpcomingSlider(box) {
+      var track = box.querySelector("[data-up-track]");
+      var prev = box.querySelector("[data-up-prev]");
+      var next = box.querySelector("[data-up-next]");
+      if (!track || !prev || !next) return null;
+
+      var reduced = global.matchMedia &&
+        global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function step() {
+        var card = track.querySelector(".tt-up-card");
+        if (!card) return track.clientWidth;
+        var gap = parseFloat(global.getComputedStyle(track).columnGap) || 0;
+        return card.getBoundingClientRect().width + gap;
+      }
+      // Допуск в 1px: дробная ширина карточки оставляет scrollLeft вроде
+      // 431.99 вместо 432, и «вперёд» гасла бы, не доехав до конца.
+      function sync() {
+        var max = track.scrollWidth - track.clientWidth - 1;
+        prev.disabled = track.scrollLeft <= 1;
+        next.disabled = max <= 0 || track.scrollLeft >= max;
+      }
+      function go(dir) {
+        track.scrollBy({ left: dir * step(), behavior: reduced ? "auto" : "smooth" });
+      }
+      function onPrev() { go(-1); }
+      function onNext() { go(1); }
+
+      prev.addEventListener("click", onPrev);
+      next.addEventListener("click", onNext);
+      track.addEventListener("scroll", sync);
+      global.addEventListener("resize", sync);
+      sync();
+
+      return function () {
+        prev.removeEventListener("click", onPrev);
+        next.removeEventListener("click", onNext);
+        track.removeEventListener("scroll", sync);
+        global.removeEventListener("resize", sync);
+      };
     }
 
     function initSearch() {
@@ -1443,24 +1550,33 @@
           return;
         }
 
+        // Герой и «Ближайшие заезды» лежат в общем холсте с ОДНИМ роликом:
+        // .tt-hero-bg липкий (sticky) и держится на экране, пока холст
+        // прокручивается мимо, поэтому фон второго экрана — буквально то же
+        // видео, а не его имитация вторым файлом. Отсюда и бесшовность:
+        // склеивать нечего, стыка между блоками физически нет.
         root.innerHTML =
-          '<section class="tt-public-intro" id="excursion-tours">' +
-            '<video class="tt-hero-video" autoplay muted loop playsinline ' +
-              'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
-              'aria-hidden="true" tabindex="-1">' +
-              '<source src="img/hero-travel.mp4?v=20260805-6" type="video/mp4" />' +
-            "</video>" +
-            '<div class="tt-hero-content">' +
-              '<div class="tt-public-hero-copy">' +
-                '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
-                "<h1>" + esc(tr("hero.title")) + " <em>" +
-                  esc(tr("hero.accent")) + "</em></h1>" +
-                "<p>" + esc(tr("hero.text")) + "</p>" +
-              "</div>" +
-              searchPanelHtml() +
+          '<div class="tt-hero-canvas">' +
+            '<div class="tt-hero-bg" aria-hidden="true">' +
+              '<video class="tt-hero-video" autoplay muted loop playsinline ' +
+                'preload="metadata" poster="img/hero-travel-poster.jpg?v=20260805-6" ' +
+                'aria-hidden="true" tabindex="-1">' +
+                '<source src="img/hero-travel.mp4?v=20260805-6" type="video/mp4" />' +
+              "</video>" +
             "</div>" +
-          "</section>" +
-          '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
+            '<section class="tt-public-intro" id="excursion-tours">' +
+              '<div class="tt-hero-content">' +
+                '<div class="tt-public-hero-copy">' +
+                  '<span class="tt-eyebrow">' + esc(tr("hero.kicker")) + "</span>" +
+                  "<h1>" + esc(tr("hero.title")) + " <em>" +
+                    esc(tr("hero.accent")) + "</em></h1>" +
+                  "<p>" + esc(tr("hero.text")) + "</p>" +
+                "</div>" +
+                searchPanelHtml() +
+              "</div>" +
+            "</section>" +
+            '<section class="tt-upcoming" id="upcoming-departures" hidden></section>' +
+          "</div>" +
           '<section class="tt-search-results" id="tour-search-results" hidden></section>' +
           catalogue +
           '<section class="tt-about-company" id="about-company" aria-labelledby="about-company-title">' +
