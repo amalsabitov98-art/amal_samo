@@ -1324,8 +1324,18 @@
           (i > 0 ? '<button class="tt-icon-btn" data-remove="' + i + '" aria-label="Убрать">&times;</button>' : "") +
         "</div>" +
         '<div class="tt-pax-grid">' +
-          '<div class="tt-col-2"><label>ФИО латиницей, как в паспорте</label>' +
-            '<input type="text" data-f="full_name" placeholder="IVANOV IVAN" /></div>' +
+          // Три поля вместо одного «ФИО»: агент вводит по паспорту и не
+          // гадает, в каком порядке писать. В базу по-прежнему уходит одна
+          // строка full_name — её собирает collectPassengers, а splitName
+          // разбирает обратно при правке брони.
+          '<div class="tt-col-2 tt-pax-name">' +
+            '<div><label>Фамилия латиницей</label>' +
+              '<input type="text" data-f="last_name" placeholder="IVANOV" autocomplete="off" /></div>' +
+            '<div><label>Имя латиницей</label>' +
+              '<input type="text" data-f="first_name" placeholder="IVAN" autocomplete="off" /></div>' +
+            '<div><label>Отчество <span class="tt-opt">если есть в паспорте</span></label>' +
+              '<input type="text" data-f="middle_name" placeholder="IVANOVICH" autocomplete="off" /></div>' +
+          "</div>" +
           "<div><label>Дата рождения</label><input type=\"date\" data-f=\"birth_date\" /></div>" +
           '<div><label>Размещение</label><select data-f="placement">' +
             placements.map(function (p) {
@@ -1340,12 +1350,17 @@
     );
   }
 
+  // Склейка и разбор ФИО общие с операторским окном правки — живут в
+  // TuronApi, чтобы порядок «фамилия имя отчество» был один на оба кабинета.
   function collectPassengers() {
     return [].map.call(document.querySelectorAll("#bm-passengers .tt-pax"), function (card) {
       var p = {};
       card.querySelectorAll("[data-f]").forEach(function (input) {
         p[input.dataset.f] = input.value.trim();
       });
+      // Сервер и расчёт цены знают только full_name — собираем его здесь,
+      // чтобы ниже по коду ничего не менялось.
+      p.full_name = TuronApi.joinName(p);
       // Тариф из конструктора хранится на самой карточке: полей ввода у него
       // нет, а пережить перерисовку (добавили/убрали пассажира) он должен.
       if (card.dataset.tariff) p.tariff = card.dataset.tariff;
@@ -1361,9 +1376,11 @@
 
     rows.forEach(function (p, i) {
       var box = document.querySelector('[data-pax="' + i + '"] [data-price]');
-      if (!p.full_name || !p.birth_date || !p.passport_number) {
+      // Отчество не требуем: в загранпаспортах его часто просто нет.
+      if (!p.last_name || !p.first_name || !p.birth_date || !p.passport_number) {
         ready = false;
-        box.innerHTML = '<span class="tt-muted-note">заполните ФИО, дату рождения и паспорт</span>';
+        box.innerHTML = '<span class="tt-muted-note">заполните фамилию, имя, ' +
+          "дату рождения и паспорт</span>";
         return;
       }
       var t = TuronApi.priceFor(p, d);
@@ -1429,10 +1446,17 @@
     list.forEach(function (p, i) {
       var card = document.querySelector('[data-pax="' + i + '"]');
       if (!card) return;
-      ["full_name", "birth_date", "passport_number", "passport_expiry", "placement"]
+      // Правка брони приходит одним full_name из базы — раскладываем его по
+      // трём полям. Если строка уже разобрана (перерисовка формы), берём как
+      // есть: повторный splitName склеенного отчества ничего не испортит,
+      // но лишний раз гонять его незачем.
+      var name = p.last_name || p.first_name ? p : TuronApi.splitName(p.full_name);
+      var row = Object.assign({}, p, name);
+      ["last_name", "first_name", "middle_name",
+       "birth_date", "passport_number", "passport_expiry", "placement"]
         .forEach(function (f) {
           var input = card.querySelector('[data-f="' + f + '"]');
-          if (input && p[f]) input.value = p[f];
+          if (input && row[f]) input.value = row[f];
         });
     });
     updateSummary();

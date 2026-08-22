@@ -1784,9 +1784,23 @@ a { color: inherit; }
   gap: 10px;
 }
 .tt-pax-grid .tt-col-2 { grid-column: span 2; }
+/* Фамилия / Имя / Отчество — своя строка на три колонки поверх общей сетки
+   в две. Раскладывать их по общей сетке нельзя: третье поле уехало бы на
+   свою строку и встало рядом с датой рождения, как будто относится к ней. */
+.tt-pax-name {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.tt-opt {
+  font-weight: 400;
+  color: var(--tt-text-subtle);
+  text-transform: none;
+}
 @media (max-width: 560px) {
   .tt-pax-grid { grid-template-columns: 1fr; }
   .tt-pax-grid .tt-col-2 { grid-column: span 1; }
+  .tt-pax-name { grid-template-columns: 1fr; }
 }
 .tt-pax-grid label {
   display: block;
@@ -8719,9 +8733,22 @@ a.tt-contact-row:hover { color: var(--cc); }
         <p class="tt-editor-hint">Опечатка в ФИО, номере или сроке паспорта.
           Тариф, цена и число мест не меняются.</p>
         <div class="tt-editor-grid">
-          <div class="tt-field-full tt-col-2">
-            <label for="pax-name">ФИО латиницей, как в паспорте</label>
-            <input type="text" id="pax-name" autocomplete="off" />
+          <!-- Три поля, как в форме брони: агент вводит по паспорту тремя,
+               и оператор правит теми же тремя, а не одной строкой. В базу
+               по-прежнему уходит одно full_name (TuronApi.joinName). -->
+          <div class="tt-col-2 tt-pax-name">
+            <div class="tt-field-full">
+              <label for="pax-last">Фамилия латиницей</label>
+              <input type="text" id="pax-last" autocomplete="off" />
+            </div>
+            <div class="tt-field-full">
+              <label for="pax-first">Имя латиницей</label>
+              <input type="text" id="pax-first" autocomplete="off" />
+            </div>
+            <div class="tt-field-full">
+              <label for="pax-middle">Отчество <span class="tt-opt">если есть</span></label>
+              <input type="text" id="pax-middle" autocomplete="off" />
+            </div>
           </div>
           <div class="tt-field-full">
             <label for="pax-passport">Номер паспорта</label>
@@ -13555,6 +13582,32 @@ window.TURON_DESTINATIONS = [
     return age;
   }
 
+  /* ------------------------------------------------------------ ФИО
+   * В базе имя одно поле `full_name`, а в формах их три: фамилия, имя,
+   * отчество. Склейка и разбор живут ЗДЕСЬ, а не в app.js, потому что ими
+   * пользуются оба кабинета — агентский (форма брони) и операторский (окно
+   * правки документа). Разъехаться этим двум операциям нельзя: что один
+   * экран разобрал, другой должен собрать обратно ровно так же.
+   *
+   * Разбор — по первым двум пробелам: фамилия, имя, ОСТАЛЬНОЕ в отчество.
+   * Двойные фамилии и составные имена в паспортах встречаются, и хвост
+   * терять нельзя, поэтому остаток именно склеивается, а не отбрасывается.
+   */
+  function joinName(p) {
+    return [p.last_name, p.first_name, p.middle_name]
+      .map(function (s) { return (s || "").trim(); })
+      .filter(Boolean).join(" ");
+  }
+
+  function splitName(full) {
+    var parts = String(full || "").trim().split(/\s+/).filter(Boolean);
+    return {
+      last_name: parts[0] || "",
+      first_name: parts[1] || "",
+      middle_name: parts.slice(2).join(" "),
+    };
+  }
+
   // Те же правила, что в worker/index.js: детский тариф по возрасту на
   // дату выезда, при пересечении диапазонов — самый узкий.
   function priceFor(passenger, departure) {
@@ -14374,6 +14427,8 @@ window.TURON_DESTINATIONS = [
     // чтобы число жило в одном месте, а не в трёх.
     FINAL_DAYS: FINAL_DAYS,
     departureEnd: departureEnd,
+    joinName: joinName,
+    splitName: splitName,
   };
 
   global.TuronApi = Api;
@@ -18841,7 +18896,10 @@ window.TURON_DESTINATIONS = [
       $("pax-sub").textContent = (row.full_name || "") +
         " · бронь " + (row.booking_code || "") +
         " · " + (row.agency_name || "");
-      $("pax-name").value = row.full_name || "";
+      var nm = TuronApi.splitName(row.full_name);
+      $("pax-last").value = nm.last_name;
+      $("pax-first").value = nm.first_name;
+      $("pax-middle").value = nm.middle_name;
       $("pax-passport").value = row.passport_number || "";
       $("pax-expiry").value = row.passport_expiry || "";
       $("pax-birth").value = row.birth_date || "";
@@ -18851,7 +18909,7 @@ window.TURON_DESTINATIONS = [
       $("pax-doc-save").disabled = false;
       $("pax-bd-calc").disabled = false;
       $("pax-modal").hidden = false;
-      $("pax-name").focus();
+      $("pax-last").focus();
     }
 
     function closePaxEditor() {
@@ -18870,13 +18928,18 @@ window.TURON_DESTINATIONS = [
     $("pax-doc-form").addEventListener("submit", function (e) {
       e.preventDefault();
       if (!paxEdit) return;
-      var name = $("pax-name").value.trim();
+      var name = TuronApi.joinName({
+        last_name: $("pax-last").value,
+        first_name: $("pax-first").value,
+        middle_name: $("pax-middle").value,
+      });
       var num = $("pax-passport").value.trim();
       var exp = $("pax-expiry").value.trim();
       // Формат номера намеренно не проверяем: паспорта разных стран, и
-      // шаблон вроде AA1234567 отсёк бы законный документ.
-      if (!name || !num) {
-        paxMsg("pax-doc-msg", "ФИО и номер паспорта обязательны.", "err");
+      // шаблон вроде AA1234567 отсёк бы законный документ. Отчество тоже
+      // не требуем — в загранпаспортах его часто нет.
+      if (!$("pax-last").value.trim() || !$("pax-first").value.trim() || !num) {
+        paxMsg("pax-doc-msg", "Фамилия, имя и номер паспорта обязательны.", "err");
         return;
       }
       $("pax-doc-save").disabled = true;
@@ -20486,8 +20549,18 @@ window.TURON_DESTINATIONS = [
           (i > 0 ? '<button class="tt-icon-btn" data-remove="' + i + '" aria-label="Убрать">&times;</button>' : "") +
         "</div>" +
         '<div class="tt-pax-grid">' +
-          '<div class="tt-col-2"><label>ФИО латиницей, как в паспорте</label>' +
-            '<input type="text" data-f="full_name" placeholder="IVANOV IVAN" /></div>' +
+          // Три поля вместо одного «ФИО»: агент вводит по паспорту и не
+          // гадает, в каком порядке писать. В базу по-прежнему уходит одна
+          // строка full_name — её собирает collectPassengers, а splitName
+          // разбирает обратно при правке брони.
+          '<div class="tt-col-2 tt-pax-name">' +
+            '<div><label>Фамилия латиницей</label>' +
+              '<input type="text" data-f="last_name" placeholder="IVANOV" autocomplete="off" /></div>' +
+            '<div><label>Имя латиницей</label>' +
+              '<input type="text" data-f="first_name" placeholder="IVAN" autocomplete="off" /></div>' +
+            '<div><label>Отчество <span class="tt-opt">если есть в паспорте</span></label>' +
+              '<input type="text" data-f="middle_name" placeholder="IVANOVICH" autocomplete="off" /></div>' +
+          "</div>" +
           "<div><label>Дата рождения</label><input type=\"date\" data-f=\"birth_date\" /></div>" +
           '<div><label>Размещение</label><select data-f="placement">' +
             placements.map(function (p) {
@@ -20502,12 +20575,17 @@ window.TURON_DESTINATIONS = [
     );
   }
 
+  // Склейка и разбор ФИО общие с операторским окном правки — живут в
+  // TuronApi, чтобы порядок «фамилия имя отчество» был один на оба кабинета.
   function collectPassengers() {
     return [].map.call(document.querySelectorAll("#bm-passengers .tt-pax"), function (card) {
       var p = {};
       card.querySelectorAll("[data-f]").forEach(function (input) {
         p[input.dataset.f] = input.value.trim();
       });
+      // Сервер и расчёт цены знают только full_name — собираем его здесь,
+      // чтобы ниже по коду ничего не менялось.
+      p.full_name = TuronApi.joinName(p);
       // Тариф из конструктора хранится на самой карточке: полей ввода у него
       // нет, а пережить перерисовку (добавили/убрали пассажира) он должен.
       if (card.dataset.tariff) p.tariff = card.dataset.tariff;
@@ -20523,9 +20601,11 @@ window.TURON_DESTINATIONS = [
 
     rows.forEach(function (p, i) {
       var box = document.querySelector('[data-pax="' + i + '"] [data-price]');
-      if (!p.full_name || !p.birth_date || !p.passport_number) {
+      // Отчество не требуем: в загранпаспортах его часто просто нет.
+      if (!p.last_name || !p.first_name || !p.birth_date || !p.passport_number) {
         ready = false;
-        box.innerHTML = '<span class="tt-muted-note">заполните ФИО, дату рождения и паспорт</span>';
+        box.innerHTML = '<span class="tt-muted-note">заполните фамилию, имя, ' +
+          "дату рождения и паспорт</span>";
         return;
       }
       var t = TuronApi.priceFor(p, d);
@@ -20591,10 +20671,17 @@ window.TURON_DESTINATIONS = [
     list.forEach(function (p, i) {
       var card = document.querySelector('[data-pax="' + i + '"]');
       if (!card) return;
-      ["full_name", "birth_date", "passport_number", "passport_expiry", "placement"]
+      // Правка брони приходит одним full_name из базы — раскладываем его по
+      // трём полям. Если строка уже разобрана (перерисовка формы), берём как
+      // есть: повторный splitName склеенного отчества ничего не испортит,
+      // но лишний раз гонять его незачем.
+      var name = p.last_name || p.first_name ? p : TuronApi.splitName(p.full_name);
+      var row = Object.assign({}, p, name);
+      ["last_name", "first_name", "middle_name",
+       "birth_date", "passport_number", "passport_expiry", "placement"]
         .forEach(function (f) {
           var input = card.querySelector('[data-f="' + f + '"]');
-          if (input && p[f]) input.value = p[f];
+          if (input && row[f]) input.value = row[f];
         });
     });
     updateSummary();

@@ -1763,9 +1763,23 @@ a { color: inherit; }
   gap: 10px;
 }
 .tt-pax-grid .tt-col-2 { grid-column: span 2; }
+/* Фамилия / Имя / Отчество — своя строка на три колонки поверх общей сетки
+   в две. Раскладывать их по общей сетке нельзя: третье поле уехало бы на
+   свою строку и встало рядом с датой рождения, как будто относится к ней. */
+.tt-pax-name {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.tt-opt {
+  font-weight: 400;
+  color: var(--tt-text-subtle);
+  text-transform: none;
+}
 @media (max-width: 560px) {
   .tt-pax-grid { grid-template-columns: 1fr; }
   .tt-pax-grid .tt-col-2 { grid-column: span 1; }
+  .tt-pax-name { grid-template-columns: 1fr; }
 }
 .tt-pax-grid label {
   display: block;

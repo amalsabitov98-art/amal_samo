@@ -142,6 +142,32 @@
     return age;
   }
 
+  /* ------------------------------------------------------------ ФИО
+   * В базе имя одно поле `full_name`, а в формах их три: фамилия, имя,
+   * отчество. Склейка и разбор живут ЗДЕСЬ, а не в app.js, потому что ими
+   * пользуются оба кабинета — агентский (форма брони) и операторский (окно
+   * правки документа). Разъехаться этим двум операциям нельзя: что один
+   * экран разобрал, другой должен собрать обратно ровно так же.
+   *
+   * Разбор — по первым двум пробелам: фамилия, имя, ОСТАЛЬНОЕ в отчество.
+   * Двойные фамилии и составные имена в паспортах встречаются, и хвост
+   * терять нельзя, поэтому остаток именно склеивается, а не отбрасывается.
+   */
+  function joinName(p) {
+    return [p.last_name, p.first_name, p.middle_name]
+      .map(function (s) { return (s || "").trim(); })
+      .filter(Boolean).join(" ");
+  }
+
+  function splitName(full) {
+    var parts = String(full || "").trim().split(/\s+/).filter(Boolean);
+    return {
+      last_name: parts[0] || "",
+      first_name: parts[1] || "",
+      middle_name: parts.slice(2).join(" "),
+    };
+  }
+
   // Те же правила, что в worker/index.js: детский тариф по возрасту на
   // дату выезда, при пересечении диапазонов — самый узкий.
   function priceFor(passenger, departure) {
@@ -961,6 +987,8 @@
     // чтобы число жило в одном месте, а не в трёх.
     FINAL_DAYS: FINAL_DAYS,
     departureEnd: departureEnd,
+    joinName: joinName,
+    splitName: splitName,
   };
 
   global.TuronApi = Api;

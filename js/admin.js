@@ -925,7 +925,10 @@
       $("pax-sub").textContent = (row.full_name || "") +
         " · бронь " + (row.booking_code || "") +
         " · " + (row.agency_name || "");
-      $("pax-name").value = row.full_name || "";
+      var nm = TuronApi.splitName(row.full_name);
+      $("pax-last").value = nm.last_name;
+      $("pax-first").value = nm.first_name;
+      $("pax-middle").value = nm.middle_name;
       $("pax-passport").value = row.passport_number || "";
       $("pax-expiry").value = row.passport_expiry || "";
       $("pax-birth").value = row.birth_date || "";
@@ -935,7 +938,7 @@
       $("pax-doc-save").disabled = false;
       $("pax-bd-calc").disabled = false;
       $("pax-modal").hidden = false;
-      $("pax-name").focus();
+      $("pax-last").focus();
     }
 
     function closePaxEditor() {
@@ -954,13 +957,18 @@
     $("pax-doc-form").addEventListener("submit", function (e) {
       e.preventDefault();
       if (!paxEdit) return;
-      var name = $("pax-name").value.trim();
+      var name = TuronApi.joinName({
+        last_name: $("pax-last").value,
+        first_name: $("pax-first").value,
+        middle_name: $("pax-middle").value,
+      });
       var num = $("pax-passport").value.trim();
       var exp = $("pax-expiry").value.trim();
       // Формат номера намеренно не проверяем: паспорта разных стран, и
-      // шаблон вроде AA1234567 отсёк бы законный документ.
-      if (!name || !num) {
-        paxMsg("pax-doc-msg", "ФИО и номер паспорта обязательны.", "err");
+      // шаблон вроде AA1234567 отсёк бы законный документ. Отчество тоже
+      // не требуем — в загранпаспортах его часто нет.
+      if (!$("pax-last").value.trim() || !$("pax-first").value.trim() || !num) {
+        paxMsg("pax-doc-msg", "Фамилия, имя и номер паспорта обязательны.", "err");
         return;
       }
       $("pax-doc-save").disabled = true;

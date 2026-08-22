@@ -786,9 +786,47 @@ console.log("\nКабинет агентства");
   check("submit заблокирован, пока не заполнены паспорта",
         await page.locator("#bm-submit").isDisabled());
 
+  /* ФИО тремя полями. В базе поле одно, поэтому проверяем и склейку, и то,
+   * что отчество НЕ обязательно (в загранпаспортах его часто нет), и что
+   * двойная фамилия при разборе обратно не теряет хвост. */
+  const nameCard = page.locator("#bm-passengers .tt-pax").first();
+  check("вместо одного «ФИО» три поля",
+        (await nameCard.locator('[data-f="last_name"]').count()) === 1 &&
+        (await nameCard.locator('[data-f="first_name"]').count()) === 1 &&
+        (await nameCard.locator('[data-f="middle_name"]').count()) === 1 &&
+        (await nameCard.locator('[data-f="full_name"]').count()) === 0);
+  // Заполняем карточку БЕЗ отчества: расчёт обязан пойти.
+  await nameCard.locator('[data-f="last_name"]').fill("PETROV");
+  await nameCard.locator('[data-f="first_name"]').fill("PETR");
+  await nameCard.locator('[data-f="birth_date"]').fill("1990-01-01");
+  await nameCard.locator('[data-f="passport_number"]').fill("PP1234567");
+  await nameCard.locator('[data-f="passport_expiry"]').fill("2032-01-01");
+  await page.waitForTimeout(400);
+  check("без отчества расчёт всё равно идёт",
+        /\$/.test(await nameCard.locator("[data-price]").innerText()),
+        await nameCard.locator("[data-price]").innerText());
+  // А вот без имени — нет: это не «отчество не указали», это неполные данные.
+  await nameCard.locator('[data-f="first_name"]').fill("");
+  await page.waitForTimeout(400);
+  check("одной фамилии мало — форма ждёт имя",
+        (await nameCard.locator("[data-price]").innerText()).includes("фамилию, имя"),
+        await nameCard.locator("[data-price]").innerText());
+  await nameCard.locator('[data-f="first_name"]').fill("PETR");
+  await page.waitForTimeout(300);
+  const joined = await page.evaluate(() => window.TuronApi.joinName({
+    last_name: "PETROV", first_name: "PETR", middle_name: "",
+  }));
+  check("склейка не оставляет лишний пробел", joined === "PETROV PETR", `«${joined}»`);
+  const split = await page.evaluate(() =>
+    window.TuronApi.splitName("VAN DER BERG JAN PIETER"));
+  check("хвост длинного имени не теряется",
+        split.last_name === "VAN" && split.first_name === "DER" &&
+        split.middle_name === "BERG JAN PIETER", JSON.stringify(split));
+
   for (let i = 0; i < paxCount; i++) {
     const c = page.locator("#bm-passengers .tt-pax").nth(i);
-    await c.locator('[data-f="full_name"]').fill("TEST PASSENGER" + i);
+    await c.locator('[data-f="last_name"]').fill("TEST" + i);
+    await c.locator('[data-f="first_name"]').fill("PASSENGER");
     await c.locator('[data-f="birth_date"]').fill("1990-01-0" + (i + 1));
     await c.locator('[data-f="passport_number"]').fill("AA10000" + i);
     await c.locator('[data-f="passport_expiry"]').fill("2032-01-01");
@@ -892,7 +930,8 @@ console.log("\nКонструктор → форма брони");
 
   const fill = async (i, bd) => {
     const c = pax.nth(i);
-    await c.locator('[data-f="full_name"]').fill("TEST PAX" + i);
+    await c.locator('[data-f="last_name"]').fill("TEST" + i);
+    await c.locator('[data-f="first_name"]').fill("PAX");
     await c.locator('[data-f="birth_date"]').fill(bd);
     await c.locator('[data-f="passport_number"]').fill("BB20000" + i);
     await c.locator('[data-f="passport_expiry"]').fill("2033-01-01");
@@ -1282,8 +1321,15 @@ console.log("\nОкно правки туриста");
   await row.locator("[data-fix-pax]").click();
   await page.waitForTimeout(300);
   check("окно правки открылось", await page.locator("#pax-modal").isVisible());
-  check("поля подставлены из ведомости",
-        (await page.inputValue("#pax-name")) === "MODAL TEST" &&
+  // «MODAL TEST» из базы должно разложиться по трём полям, как его ввёл бы
+  // агент: фамилия, имя, отчество.
+  check("ФИО разложено на три поля",
+        (await page.inputValue("#pax-last")) === "MODAL" &&
+        (await page.inputValue("#pax-first")) === "TEST" &&
+        (await page.inputValue("#pax-middle")) === "",
+        [await page.inputValue("#pax-last"), await page.inputValue("#pax-first"),
+         await page.inputValue("#pax-middle")].join(" | "));
+  check("паспорт подставлен из ведомости",
         (await page.inputValue("#pax-passport")) === "MD1234567" &&
         (await page.inputValue("#pax-expiry")) === "2031-06-06");
   check("в подзаголовке видно, кого правим",
