@@ -518,10 +518,41 @@ function tgEscape(s) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/*
+ * Отправка в Telegram одному или НЕСКОЛЬКИМ чатам. Менеджеров у оператора
+ * двое, и запятая в TELEGRAM_CHAT_ID раньше молча ломала отправку: Telegram
+ * не понимает «110907260,1180697546» как chat_id и отвечал ошибкой, а мы её
+ * глушим — уведомления просто не приходили, и понять почему было неоткуда.
+ * Формат теперь тот же, что у CONTACT_TELEGRAM_CHAT_ID и ALLOWED_ORIGIN.
+ *
+ * Ошибки глушим намеренно: бронь уже сохранена, и падать из-за Telegram
+ * ей незачем. Возвращаем true, если ушло хотя бы одному.
+ */
+async function tgSend(token, raw, text) {
+  if (!token || !raw) return false;
+  const chatIds = String(raw).split(",").map((s) => s.trim()).filter(Boolean);
+  if (!chatIds.length) return false;
+
+  const results = await Promise.all(chatIds.map(async (chatId) => {
+    try {
+      const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId, text, parse_mode: "HTML",
+          disable_web_page_preview: true,
+        }),
+      });
+      return res.ok;
+    } catch (_) {
+      return false;   // сеть/Telegram недоступны
+    }
+  }));
+  return results.some(Boolean);
+}
+
 async function notifyTelegram(env, b) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
 
   const dir = b.departure.transport === "TZX" ? "Трабзон"
             : b.departure.transport === "BUS" ? "Батуми" : b.departure.transport;
@@ -535,18 +566,7 @@ async function notifyTelegram(env, b) {
     "Туристов: " + b.passengers.length + "\n" +
     "Сумма: $" + b.total + "\n" + names;
 
-  try {
-    await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId, text, parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    });
-  } catch (_) {
-    // сеть/Telegram недоступны — молча, бронь это не затрагивает
-  }
+  await tgSend(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, text);
 }
 
 /*
@@ -566,31 +586,13 @@ async function notifyTelegram(env, b) {
  * убрать. delivered в ответе — true, если ушло хотя бы одному.
  */
 async function notifyContactRequest(env, body) {
-  const token = env.CONTACT_TELEGRAM_BOT_TOKEN;
-  const raw = env.CONTACT_TELEGRAM_CHAT_ID;
-  if (!token || !raw) return false;
-  const chatIds = String(raw).split(",").map((s) => s.trim()).filter(Boolean);
-  if (!chatIds.length) return false;
-
   const text =
     "📩 <b>Заявка с сайта</b>\n" +
     "Имя: <b>" + tgEscape(body.name) + "</b>\n" +
     "Контакт: " + tgEscape(body.contact) + "\n\n" +
     tgEscape(body.message);
 
-  const results = await Promise.all(chatIds.map(async (chatId) => {
-    try {
-      const res = await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-      });
-      return res.ok;
-    } catch (_) {
-      return false;
-    }
-  }));
-  return results.some(Boolean);
+  return tgSend(env.CONTACT_TELEGRAM_BOT_TOKEN, env.CONTACT_TELEGRAM_CHAT_ID, text);
 }
 
 // Простое ограничение частоты — переиспользует таблицу login_attempts
@@ -940,9 +942,7 @@ async function requestCancel(request, env, agency, bookingId, ctx) {
 }
 
 async function notifyCancelRequest(env, r) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const text =
     "⚠️ <b>Запрос на отмену</b>\n" +
     "Агентство: <b>" + tgEscape(r.agency_name) + "</b>\n" +
@@ -950,18 +950,7 @@ async function notifyCancelRequest(env, r) {
     "Заезд: " + tgEscape(r.date_start) + " (" + tgEscape(r.departure_code) + ")\n" +
     "Сумма: $" + r.total +
     (r.reason ? "\nПричина: " + tgEscape(r.reason) : "");
-  try {
-    await fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId, text, parse_mode: "HTML",
-        disable_web_page_preview: true,
-      }),
-    });
-  } catch (_) {
-    // Telegram недоступен — заявка всё равно записана в журнал брони
-  }
+  await tgSend(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, text);
 }
 
 /*
