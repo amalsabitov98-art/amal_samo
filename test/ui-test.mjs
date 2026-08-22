@@ -856,6 +856,84 @@ console.log("\nКабинет агентства");
   await page.close();
 }
 
+/* --------------------------------- конструктор → форма брони: кто есть кто
+ * Симптом был «выбрал взрослого и младенца, нажал Бронирование — не
+ * подхватились»: строки-то создавались, но детская уходила БЕЗ размещения и
+ * без кода тарифа. Пустое размещение разворачивалось в первый пункт списка
+ * (DBL), и агент видел «взрослый SNG + младенец DBL» — состав, которого он
+ * не заказывал. Тесты держат три вещи: размещение детской строки, подпись
+ * тарифа и предупреждение при расхождении с датой рождения. */
+console.log("\nКонструктор → форма брони");
+{
+  const { page, errors } = await session("umida");
+  await page.locator('.tt-tab[data-tab="builder"]').first().click({ force: true });
+  await page.waitForTimeout(400);
+  await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
+  await page.waitForTimeout(700);
+
+  await page.locator('#builder-travellers button[data-bstep="1"][data-tariff="ADULT"]').click();
+  await page.locator('#builder-travellers button[data-bstep="1"][data-tariff="INF"]').click();
+  await page.waitForTimeout(300);
+  const builderTotal = await page.locator(".tt-mj-total-grand strong").innerText();
+
+  await page.click("#builder-book");
+  await page.waitForTimeout(600);
+  const pax = page.locator("#bm-passengers .tt-pax");
+  check("взрослый и младенец дали две строки", (await pax.count()) === 2);
+  const adultPl = await pax.nth(0).locator('[data-f="placement"]').inputValue();
+  const babyPl = await pax.nth(1).locator('[data-f="placement"]').inputValue();
+  check("взрослому подставлено одноместное размещение", adultPl === "SNG", adultPl);
+  check("младенец в номере взрослого, а не в первом попавшемся",
+        babyPl === adultPl, babyPl + " при " + adultPl);
+  check("код тарифа доехал до карточки",
+        (await pax.nth(1).getAttribute("data-tariff")) === "INF");
+  check("строка подписана тарифом из конструктора",
+        (await pax.nth(1).locator(".tt-pax-tag").innerText()).includes("inf"));
+
+  const fill = async (i, bd) => {
+    const c = pax.nth(i);
+    await c.locator('[data-f="full_name"]').fill("TEST PAX" + i);
+    await c.locator('[data-f="birth_date"]').fill(bd);
+    await c.locator('[data-f="passport_number"]').fill("BB20000" + i);
+    await c.locator('[data-f="passport_expiry"]').fill("2033-01-01");
+  };
+  const lastYear = new Date();
+  lastYear.setFullYear(lastYear.getFullYear() - 1);
+  await fill(0, "1990-05-01");
+  await fill(1, lastYear.toISOString().slice(0, 10));
+  await page.waitForTimeout(400);
+
+  check("младенец посчитан без места",
+        (await pax.nth(1).locator("[data-price]").innerText()).includes("без места"));
+  const modalTotal = await page.locator("#bm-summary .tt-sum-total strong").innerText();
+  check("итог формы совпал с итогом конструктора", modalTotal === builderTotal,
+        builderTotal + " → " + modalTotal);
+  check("расхождения нет — предупреждения тоже",
+        (await pax.nth(1).locator(".tt-price-warn").count()) === 0);
+
+  // Взрослая дата рождения в детской строке: цена молча взлетает с $100 до
+  // взрослого тарифа, и агент должен увидеть это ДО отправки брони.
+  await pax.nth(1).locator('[data-f="birth_date"]').fill("1992-05-01");
+  await page.waitForTimeout(400);
+  check("расхождение с датой рождения показано",
+        (await pax.nth(1).locator(".tt-price-warn").innerText()).includes("в расчёте был"));
+
+  // Тариф живёт на карточке, а не в полях ввода — перерисовку он пережить обязан.
+  await page.click("#bm-add");
+  await page.waitForTimeout(300);
+  check("после «Добавить» подпись тарифа на месте",
+        (await pax.nth(1).locator(".tt-pax-tag").count()) === 1 &&
+        (await pax.nth(2).locator(".tt-pax-tag").count()) === 0);
+  await page.locator('[data-remove="2"]').click();
+  await page.waitForTimeout(300);
+  check("после «Убрать» подпись тарифа на месте",
+        (await pax.count()) === 2 &&
+        (await pax.nth(1).locator(".tt-pax-tag").count()) === 1);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 // -------------------------------------------------------------- оператор
 console.log("\nКабинет оператора");
 {

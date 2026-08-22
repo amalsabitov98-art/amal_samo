@@ -1288,10 +1288,30 @@
   });
 
   // --------------------------------------------------------- бронирование
-  function passengerRowHtml(i, placements) {
+  // Подпись тарифа, выбранного в конструкторе или калькуляторе. Форма должна
+  // называть того же туриста, что агент только что посчитал клиенту, иначе
+  // строка «Пассажир 2» с размещением по умолчанию читается как чужая.
+  function tariffHint(d, code) {
+    if (!code) return null;
+    if (code === "ADULT") return { title: "Взрослый", note: "" };
+    var t = builderTariffs(d).filter(function (r) { return r.code === code; })[0];
+    if (t) return { title: t.title, note: t.note };
+    var pl = (d.prices || []).filter(function (p) {
+      return p.kind === "placement" && p.code === code;
+    })[0];
+    return pl ? { title: pl.label, note: "" } : null;
+  }
+
+  function passengerRowHtml(i, placements, tariff) {
+    var hint = tariffHint(state.current, tariff);
     return (
-      '<div class="tt-pax" data-pax="' + i + '">' +
+      '<div class="tt-pax" data-pax="' + i + '"' +
+        (tariff ? ' data-tariff="' + esc(tariff) + '"' : "") + ">" +
         '<div class="tt-pax-head"><strong>Пассажир ' + (i + 1) + "</strong>" +
+          (hint
+            ? '<span class="tt-pax-tag">' + esc(hint.title) +
+              (hint.note ? " · " + esc(hint.note) : "") + "</span>"
+            : "") +
           (i > 0 ? '<button class="tt-icon-btn" data-remove="' + i + '" aria-label="Убрать">&times;</button>' : "") +
         "</div>" +
         '<div class="tt-pax-grid">' +
@@ -1317,6 +1337,9 @@
       card.querySelectorAll("[data-f]").forEach(function (input) {
         p[input.dataset.f] = input.value.trim();
       });
+      // Тариф из конструктора хранится на самой карточке: полей ввода у него
+      // нет, а пережить перерисовку (добавили/убрали пассажира) он должен.
+      if (card.dataset.tariff) p.tariff = card.dataset.tariff;
       return p;
     });
   }
@@ -1353,11 +1376,24 @@
       });
       var needsCheck = childByAge && gotAdultTariff;
 
+      // Тариф из конструктора против тарифа по дате рождения. Молча брать
+      // второй нельзя: агент назвал клиенту сумму по первому, и расхождение
+      // должно быть видно ДО отправки брони, а не всплыть в счёте.
+      var mismatch = "";
+      if (p.tariff === "ADULT" && !gotAdultTariff) {
+        mismatch = "в расчёте был взрослый, а по дате рождения выходит «" + t.label + "»";
+      } else if (p.tariff && p.tariff !== "ADULT" && p.tariff !== t.code) {
+        var chose = tariffHint(d, p.tariff);
+        mismatch = "в расчёте был «" + (chose ? chose.title : p.tariff) +
+          "», а по дате рождения выходит «" + t.label + "»";
+      }
+
       var passport = TuronApi.passportIssue(p.passport_expiry, d.date_start);
 
       box.innerHTML = '<span class="tt-pax-tariff">' + age + " лет · " + esc(t.label) + "</span>" +
         "<strong>" + money(t.price) + "</strong>" +
         (t.occupies_seat ? "" : '<span class="tt-muted-note"> · без места</span>') +
+        (mismatch ? '<span class="tt-price-warn"> · ' + esc(mismatch) + "</span>" : "") +
         (needsCheck
           ? '<span class="tt-price-warn"> · детский тариф на этот заезд не задан, ' +
             "посчитано по взрослому — менеджер уточнит</span>"
@@ -1397,7 +1433,12 @@
     var placements = state.current.prices.filter(function (p) { return p.kind === "placement"; });
     var saved = collectPassengers();
     $("bm-passengers").innerHTML = state.passengers
-      .map(function (_, i) { return passengerRowHtml(i, placements); }).join("");
+      .map(function (row, i) {
+        // Тариф берём из DOM, если строка уже нарисована, иначе из состава,
+        // которым окно открыли: после «Убрать» разметка стёрта и жив только он.
+        var src = saved[i] || row || {};
+        return passengerRowHtml(i, placements, src.tariff || (row && row.tariff));
+      }).join("");
     saved.forEach(function (p, i) {
       var card = document.querySelector('[data-pax="' + i + '"]');
       if (!card) return;
@@ -2616,13 +2657,18 @@
       // 2 → двухместный, 3+ → трёхместный). Дети — без размещения, их тариф
       // определит дата рождения. Сервер пересчитает цену по факту.
       var adultN = state.builder.counts.ADULT || 0;
-      if (adultN > 0) {
-        var pl = adultPlacement(d, adultN);
-        for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
-      }
+      var pl = adultN > 0 ? adultPlacement(d, adultN) : null;
+      for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code, tariff: "ADULT" });
       builderTariffs(d).forEach(function (r) {
         var n = state.builder.counts[r.code] || 0;
-        for (var i = 0; i < n; i++) rows.push({});
+        // Ребёнок живёт в номере со взрослыми — подставляем ИХ размещение, а не
+        // оставляем пустое: пустое разворачивалось в первый пункт списка (DBL),
+        // и агент видел «взрослый SNG + младенец DBL» — состав выглядел
+        // неподхваченным. На цену это не влияет: детский тариф в priceFor
+        // берётся раньше размещения.
+        for (var i = 0; i < n; i++) {
+          rows.push(pl ? { placement: pl.code, tariff: r.code } : { tariff: r.code });
+        }
       });
     }
     openBooking(d.code, null, rows.length ? rows : null);

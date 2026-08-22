@@ -2270,25 +2270,32 @@
       })[0];
       if (!dep) return null;
 
-      var rows = [];
+      var rows = [], pl = null;
       if (usesOccupancy(dep)) {
         // Карадениз: взрослые в одном размещении по их числу (1 → одноместный,
         // 2 → двухместный, 3+ → трёхместный). Раскладку по номерам агент потом
         // поправит в форме брони — сервер пересчитает цену по факту.
         var adultN = calc.counts.ADULT || 0;
         if (adultN > 0) {
-          var pl = adultPlacement(dep, adultN);
-          for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code });
+          pl = adultPlacement(dep, adultN);
+          for (var a = 0; a < adultN; a++) rows.push({ placement: pl.code, tariff: "ADULT" });
         }
       } else {
         // Умра: по строке на каждого паломника в выбранном типе номера.
         placementsOf(dep).forEach(function (p) {
-          for (var j = 0; j < (calc.counts[p.code] || 0); j++) rows.push({ placement: p.code });
+          for (var j = 0; j < (calc.counts[p.code] || 0); j++) {
+            rows.push({ placement: p.code, tariff: p.code });
+          }
         });
       }
+      // Детская строка несёт КОД тарифа и размещение взрослых: без кода форма
+      // не знает, кто перед ней, и рисует размещение по умолчанию — состав
+      // выглядел неподхваченным. Цену по-прежнему решает дата рождения.
       dep.prices.filter(function (p) { return p.kind === "child"; })
         .forEach(function (p) {
-          for (var i = 0; i < (calc.counts[p.code] || 0); i++) rows.push({});
+          for (var i = 0; i < (calc.counts[p.code] || 0); i++) {
+            rows.push(pl ? { placement: pl.code, tariff: p.code } : { tariff: p.code });
+          }
         });
       return rows.length ? rows : null;
     }

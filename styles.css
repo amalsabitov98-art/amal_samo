@@ -1606,6 +1606,24 @@ a { color: inherit; }
   margin-bottom: 10px;
   font-size: 0.92rem;
 }
+/* Тариф, выбранный в конструкторе. margin-right:auto прижимает подпись к
+   имени, а «×» оставляет у правого края: без него space-between растащил бы
+   три элемента по всей ширине и подпись повисла бы посередине. */
+.tt-pax-tag {
+  margin-right: auto;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--tt-border);
+  background: var(--tt-surface-2);
+  color: var(--tt-text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
 .tt-pax-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
