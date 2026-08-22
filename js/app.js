@@ -1645,7 +1645,7 @@
      */
     var days = TuronApi.FINAL_DAYS;
     var contact = "";
-    if (global.TuronProvisional && TuronProvisional.OPERATOR) {
+    if (window.TuronProvisional && window.TuronProvisional.OPERATOR) {
       contact = (TuronProvisional.OPERATOR.managers || [])
         .map(function (m) { return m.name + " " + m.phone; }).join("\n");
     }
