@@ -13,6 +13,8 @@
   var API_BASE = (global.TURON_CONFIG && global.TURON_CONFIG.apiBaseUrl) || "";
   var TOKEN_KEY = "turon_token";
   var DEMO_KEY = "turon_demo_state";
+  var activityFallback = null;
+  var activityFallbackAt = 0;
 
   function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
   function setToken(t) { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
@@ -781,7 +783,52 @@
         });
         return Promise.resolve(list.slice(0, Math.min(Number(limit) || 50, 100)));
       }
-      return request("/api/admin/activity?limit=" + encodeURIComponent(limit || 50));
+      var size = Math.min(Number(limit) || 50, 100);
+      return request("/api/admin/activity?limit=" + encodeURIComponent(size)).catch(function (err) {
+        if (!err || err.status !== 404) throw err;
+
+        /* Совместимость со старым воркером во время поэтапного деплоя.
+         * Общего маршрута там ещё нет, но журнал каждой брони уже есть.
+         * Берём последние 50 броней и собираем их истории параллельно. Кэш
+         * короткий: колокольчик опрашивает раз в 30 секунд и должен увидеть
+         * новую заявку без обновления страницы. */
+        if (activityFallback && Date.now() - activityFallbackAt < 15000) {
+          return activityFallback.then(function (list) { return list.slice(0, size); });
+        }
+        activityFallbackAt = Date.now();
+        activityFallback = request("/api/admin/bookings?limit=50").then(function (res) {
+          return Promise.all((res.items || []).map(function (b) {
+            return request("/api/admin/bookings/" + b.id + "/history")
+              .catch(function () { return []; })
+              .then(function (events) {
+                return events.filter(function (e) { return e.actor_role === "agency"; })
+                  .map(function (e, i) {
+                    return Object.assign({}, e, {
+                      id: String(b.id) + "-" + String(i) + "-" + e.created_at,
+                      booking_id: b.id,
+                      booking_code: b.code,
+                      booking_status: b.status,
+                      total_price: b.total_price,
+                      agency_name: b.agency_name,
+                      departure_code: b.departure_code,
+                      date_start: b.date_start,
+                      passengers_count: b.passengers_count,
+                    });
+                  });
+              });
+          }));
+        }).then(function (groups) {
+          var list = [].concat.apply([], groups);
+          list.sort(function (a, b) {
+            var ap = a.action === "cancel_requested" && a.booking_status === "confirmed";
+            var bp = b.action === "cancel_requested" && b.booking_status === "confirmed";
+            if (ap !== bp) return ap ? -1 : 1;
+            return String(b.created_at).localeCompare(String(a.created_at));
+          });
+          return list;
+        });
+        return activityFallback.then(function (list) { return list.slice(0, size); });
+      });
     },
 
     manifest: function (departureCode) {

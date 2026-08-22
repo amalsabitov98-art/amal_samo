@@ -1823,14 +1823,15 @@
   function loadOperatorNotices() {
     return Promise.all([
       TuronApi.adminBookings({ status: "confirmed", limit: 200 }),
-      TuronApi.adminActivity(20).catch(function () { return []; }),
+      TuronApi.adminActivity(50).catch(function () { return []; }),
     ]).then(function (res) {
         var today = new Date().toISOString().slice(0, 10);
         var soon = new Date();
         soon.setDate(soon.getDate() + 7);
         var soonIso = soon.toISOString().slice(0, 10);
         var activity = res[1] || [];
-        var out = activity.map(function (ev) {
+        if (window.TuronAdmin) TuronAdmin.setActivity(activity);
+        var out = activity.slice(0, 20).map(function (ev) {
           var pendingCancel = ev.action === "cancel_requested" &&
             ev.booking_status === "confirmed";
           return {

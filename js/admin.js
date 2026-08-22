@@ -626,8 +626,27 @@
     filters.limit = state.pageSize;
     filters.offset = state.page * state.pageSize;
     return TuronApi.adminBookings(filters).then(function (res) {
+      var pending = {};
+      state.activity.forEach(function (ev) {
+        if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+          pending[ev.booking_id] = ev.created_at;
+        }
+      });
+      var items = res.items || [];
+      var serverHasCancelField = items.some(function (b) {
+        return Object.prototype.hasOwnProperty.call(b, "cancel_requested_at");
+      });
+      items.forEach(function (b) {
+        if (!b.cancel_requested_at && pending[b.id]) b.cancel_requested_at = pending[b.id];
+      });
+      // Старый воркер ещё не понимает status=cancel_requested и отдаёт все
+      // брони. Лента действий позволяет отфильтровать их на клиенте.
+      if (filters.status === "cancel_requested" && !serverHasCancelField) {
+        items = items.filter(function (b) { return !!pending[b.id]; });
+        res.total = items.length;
+      }
       state.total = res.total;
-      renderAdminBookings(res.items);
+      renderAdminBookings(items);
       $("adm-bookings-count").textContent = res.total
         ? "Показано " + Math.min(filters.offset + res.items.length, res.total) +
           " из " + res.total
@@ -985,6 +1004,10 @@
   var Admin = {
     isOperator: function (agency) { return agency && agency.role === "operator"; },
     openBooking: openBooking,
+    setActivity: function (activity) {
+      state.activity = activity || [];
+      if ($("ov-activity") && state.confirmedAll.length) renderOverview();
+    },
 
     start: function () {
       document.body.classList.add("is-operator");
