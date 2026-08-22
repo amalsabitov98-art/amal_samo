@@ -100,10 +100,15 @@
 
   function demoState() {
     var raw = localStorage.getItem(DEMO_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      var saved = JSON.parse(raw);
+      if (!Array.isArray(saved.events)) saved.events = [];
+      return saved;
+    }
     var fresh = {
       departures: JSON.parse(JSON.stringify(global.TURON_SEED || [])),
       bookings: [],
+      events: [],
       agency: null,
     };
     localStorage.setItem(DEMO_KEY, JSON.stringify(fresh));
@@ -111,6 +116,21 @@
   }
 
   function saveDemo(s) { localStorage.setItem(DEMO_KEY, JSON.stringify(s)); }
+
+  function demoLogEvent(s, booking, action, details) {
+    var actor = s.agency || {};
+    var events = s.events || (s.events = []);
+    var max = events.reduce(function (n, e) { return Math.max(n, Number(e.id) || 0); }, 0);
+    events.push({
+      id: max + 1,
+      booking_id: booking.id,
+      actor_name: actor.name || "—",
+      actor_role: actor.role || "agency",
+      action: action,
+      details: details || null,
+      created_at: new Date().toISOString(),
+    });
+  }
 
   function ageOn(birthDate, onDate) {
     var b = new Date(birthDate), o = new Date(onDate);
@@ -423,7 +443,10 @@
       created_at: new Date().toISOString(),
       passengers: priced,
     };
-    s.bookings.push(booking); saveDemo(s);
+    s.bookings.push(booking);
+    demoLogEvent(s, booking, "created", priced.length + " чел.: " +
+      priced.map(function (p) { return p.full_name; }).join(", ") + "; " + total + " USD");
+    saveDemo(s);
     return Promise.resolve({
       booking_code: booking.code, departure_code: d.code,
       seats_taken: seats, total_price: total,
@@ -577,6 +600,8 @@
         b.seats_used = seats;
         b.total_price = total;
         b.agency_commission = (d.agency_commission || 0) * seats;
+        demoLogEvent(s, b, "edited", "состав: " +
+          priced.map(function (p) { return p.full_name; }).join(", ") + "; " + total + " USD");
         saveDemo(s);
         return Promise.resolve({
           booking_code: b.code, passengers_count: priced.length,
@@ -608,6 +633,12 @@
         var s = demoState();
         var b = s.bookings.filter(function (x) { return x.id === id; })[0];
         if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
+        if (b.cancel_requested_at) {
+          return Promise.resolve({ booking_code: b.code, requested: true, already_requested: true });
+        }
+        b.cancel_requested_at = new Date().toISOString();
+        demoLogEvent(s, b, "cancel_requested", reason || "агентство просит отменить бронь");
+        saveDemo(s);
         return Promise.resolve({ booking_code: b.code, requested: true });
       }
       return request("/api/bookings/" + id + "/cancel-request", {
@@ -686,7 +717,9 @@
         var list = s.bookings.filter(function (b) {
           if (filters.departure && b.departure_code !== filters.departure) return false;
           if (filters.agencyId && b.agency_id !== Number(filters.agencyId)) return false;
-          if (filters.status && b.status !== filters.status) return false;
+          if (filters.status === "cancel_requested") {
+            if (!(b.status === "confirmed" && b.cancel_requested_at)) return false;
+          } else if (filters.status && b.status !== filters.status) return false;
           if (filters.debtOnly && !(b.status === "confirmed" && b.total_price > b.paid)) return false;
           if (q) {
             var inCode = b.code.toLowerCase().indexOf(q) !== -1;
@@ -718,6 +751,37 @@
       if (filters.limit) qs.push("limit=" + filters.limit);
       if (filters.offset) qs.push("offset=" + filters.offset);
       return request("/api/admin/bookings" + (qs.length ? "?" + qs.join("&") : ""));
+    },
+
+    adminActivity: function (limit) {
+      if (!API_BASE) {
+        var s = demoState();
+        var byId = {};
+        var agencies = {};
+        s.bookings.forEach(function (b) { byId[b.id] = b; });
+        DEMO_AGENCIES.forEach(function (a) { agencies[a.id] = a.name; });
+        var list = (s.events || []).filter(function (e) {
+          return e.actor_role === "agency" && byId[e.booking_id];
+        }).map(function (e) {
+          var b = byId[e.booking_id];
+          return Object.assign({}, e, {
+            booking_code: b.code,
+            booking_status: b.status,
+            total_price: b.total_price,
+            agency_name: agencies[b.agency_id] || e.actor_name || "—",
+            departure_code: b.departure_code,
+            date_start: b.date_start,
+            passengers_count: b.passengers_count,
+          });
+        }).sort(function (a, b) {
+          var ap = a.action === "cancel_requested" && a.booking_status === "confirmed";
+          var bp = b.action === "cancel_requested" && b.booking_status === "confirmed";
+          if (ap !== bp) return ap ? -1 : 1;
+          return b.id - a.id;
+        });
+        return Promise.resolve(list.slice(0, Math.min(Number(limit) || 50, 100)));
+      }
+      return request("/api/admin/activity?limit=" + encodeURIComponent(limit || 50));
     },
 
     manifest: function (departureCode) {

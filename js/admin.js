@@ -17,7 +17,7 @@
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
     // неполной, и это явно подписывается на экране, а не замалчивается.
-    confirmedAll: [], confirmedTotal: 0,
+    confirmedAll: [], confirmedTotal: 0, activity: [],
   };
   var AGGREGATE_LIMIT = 200;
 
@@ -413,10 +413,16 @@
   // Единый срез подтверждённых броней для дашборда и статистики агентств —
   // второй запрос не нужен, оба экрана считают из одного и того же массива.
   function loadOverviewData() {
-    return TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT })
-      .then(function (res) {
-        state.confirmedAll = res.items;
-        state.confirmedTotal = res.total;
+    return Promise.all([
+      TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT }),
+      // Во время поэтапного деплоя старый воркер может ещё не знать новый
+      // маршрут. Сводку броней не роняем целиком — лента появится после
+      // обновления API при следующей перезагрузке.
+      TuronApi.adminActivity(50).catch(function () { return []; }),
+    ]).then(function (res) {
+        state.confirmedAll = res[0].items;
+        state.confirmedTotal = res[0].total;
+        state.activity = res[1] || [];
         renderOverview();
       })
       .catch(function (err) {
@@ -438,6 +444,16 @@
     $("ab-debt").checked = true;
     loadAdminBookings(true);
     jumpToTab("admin-bookings");
+  }
+
+  function openBooking(code) {
+    $("ab-query").value = code || "";
+    $("ab-agency").value = "";
+    $("ab-departure").value = "";
+    $("ab-status").value = "";
+    $("ab-debt").checked = false;
+    jumpToTab("admin-bookings");
+    loadAdminBookings(true);
   }
 
   function renderOverview() {
@@ -476,6 +492,12 @@
     var debtors = Object.keys(debtByAgency).map(function (k) { return debtByAgency[k]; })
       .sort(function (a, b) { return b.debt - a.debt; });
     var totalDebt = debtors.reduce(function (s, a) { return s + a.debt; }, 0);
+    var pendingCancel = {};
+    state.activity.forEach(function (ev) {
+      if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+        pendingCancel[ev.booking_id] = true;
+      }
+    });
 
     $("ov-stats").innerHTML =
       '<div class="tt-earnings">' +
@@ -485,6 +507,9 @@
           money(totalDebt) + "</strong></div>" +
         '<div><span>Просроченных этапов</span><strong' +
           (overdueSteps > 0 ? ' class="tt-owed-value"' : "") + ">" + overdueSteps + "</strong></div>" +
+        '<div><span>Заявок на отмену</span><strong' +
+          (Object.keys(pendingCancel).length ? ' class="tt-cancel-value"' : "") + ">" +
+          Object.keys(pendingCancel).length + "</strong></div>" +
       "</div>" +
       (truncated
         ? '<div class="tt-muted-note">Сводка по последним ' + bookings.length + " из " +
@@ -508,19 +533,22 @@
         "</div>"
       : '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
 
-    var recentSorted = recent24h.slice().sort(function (a, b) {
-      return b.created_at < a.created_at ? -1 : 1;
-    });
-    $("ov-recent").innerHTML = recentSorted.length
+    $("ov-activity").innerHTML = state.activity.length
       ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +
-          "<th>Время</th><th>Бронь</th><th>Агентство</th><th>Заезд</th><th>Сумма</th>" +
+          "<th>Время</th><th>Действие</th><th>Агентство</th><th>Бронь</th><th>Подробности</th>" +
           "</tr></thead><tbody>" +
-          recentSorted.map(function (b) {
-            return "<tr><td>" + formatDateTime(b.created_at) + "</td><td>" + esc(b.code) +
-              "</td><td>" + esc(b.agency_name) + "</td><td>" + formatDate(b.date_start) +
-              "</td><td>" + money(b.total_price) + "</td></tr>";
+          state.activity.map(function (ev) {
+            var cancel = ev.action === "cancel_requested" && ev.booking_status === "confirmed";
+            return '<tr class="tt-row-link tt-activity-row' + (cancel ? " is-cancel-request" : "") +
+              '" data-activity-booking="' + esc(ev.booking_code) + '">' +
+              "<td>" + formatDateTime(ev.created_at) + "</td>" +
+              "<td><strong>" + esc(ACTION_LABELS[ev.action] || ev.action) + "</strong>" +
+                (cancel ? '<span class="tt-badge tt-badge-cancel">Требует решения</span>' : "") +
+              "</td><td>" + esc(ev.agency_name || ev.actor_name) + "</td>" +
+              "<td>" + esc(ev.booking_code) + "</td>" +
+              '<td class="tt-muted-note">' + esc(ev.details || "—") + "</td></tr>";
           }).join("") + "</tbody></table></div>"
-      : '<div class="tt-empty-state">За последние сутки новых броней нет.</div>';
+      : '<div class="tt-empty-state">Действий агентств пока нет.</div>';
   }
 
   // ---------------------------------------------------------------- брони
@@ -546,6 +574,8 @@
         '<article class="tt-booking' + (cancelled ? " is-cancelled" : "") + '">' +
           "<div>" +
             "<strong>" + esc(b.code) + "</strong>" +
+            (b.cancel_requested_at && !cancelled
+              ? ' <span class="tt-badge tt-badge-cancel">Запрошена отмена</span>' : "") +
             '<div class="tt-muted-note">' + esc(b.agency_name) + " · " +
               formatDate(b.date_start) + " · " + b.passengers_count + " чел." +
               (cancelled ? " · отменена" : "") + "</div>" +
@@ -566,7 +596,8 @@
             (cancelled ? "" :
               '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
                 '" data-code="' + esc(b.code) + '" data-total="' + b.total_price +
-                '" data-date="' + esc(b.date_start) + '">Отменить</button>') +
+                '" data-date="' + esc(b.date_start) + '">' +
+                (b.cancel_requested_at ? "Обработать отмену" : "Отменить") + "</button>") +
           "</div>" +
           '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
@@ -705,6 +736,10 @@
     $("ov-debtors").addEventListener("click", function (e) {
       var row = e.target.closest("[data-jump-agency]");
       if (row) jumpToAgencyDebt(row.dataset.jumpAgency);
+    });
+    $("ov-activity").addEventListener("click", function (e) {
+      var row = e.target.closest("[data-activity-booking]");
+      if (row) openBooking(row.dataset.activityBooking);
     });
 
     ["ab-agency", "ab-departure", "ab-status", "ab-debt"].forEach(function (id) {
@@ -949,6 +984,7 @@
 
   var Admin = {
     isOperator: function (agency) { return agency && agency.role === "operator"; },
+    openBooking: openBooking,
 
     start: function () {
       document.body.classList.add("is-operator");

@@ -1686,6 +1686,23 @@ a { color: inherit; }
 /* ------------------------------------------------ комиссии и заработок */
 .tt-earn strong, .tt-earn-value { color: var(--tt-success); }
 .tt-owed-value { color: var(--tt-warn-text); }
+.tt-cancel-value { color: var(--tt-danger); }
+
+.tt-badge-cancel {
+  border-color: rgba(201, 81, 69, 0.32);
+  background: rgba(201, 81, 69, 0.12);
+  color: var(--tt-danger);
+  margin-left: 6px;
+}
+
+.tt-activity-panel { margin-bottom: 20px; }
+.tt-activity-row td:nth-child(2) strong { display: inline-block; margin-right: 4px; }
+.tt-activity-row.is-cancel-request td {
+  background: rgba(201, 81, 69, 0.07);
+}
+.tt-activity-row.is-cancel-request td:first-child {
+  box-shadow: inset 3px 0 0 var(--tt-danger);
+}
 
 /* Шапка списка пассажиров: какой заезд открыт. Раньше при клике по карточке
    на экране не менялось ничего заметного (сетка заездов выше, список ниже
@@ -6589,8 +6606,8 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 
 /* ------------------- колокольчик: панель уведомлений ------------------- */
-/* Считается из уже загруженных броней (js/app.js → collectNotices):
-   просроченные платежи, ближайшие выезды, проблемы с паспортами. */
+/* Для агентства считается из его броней, для оператора дополняется общей
+   лентой действий агентств и открытыми запросами отмены. */
 .tt-notice-wrap { position: relative; }
 .tt-notice-panel {
   position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
@@ -6615,6 +6632,8 @@ a.tt-contact-row:hover { color: var(--cc); }
   display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start;
   padding: 10px; border-radius: 10px; font-size: 0.82rem; line-height: 1.4;
 }
+.tt-notice-list li[data-booking-code] { cursor: pointer; }
+.tt-notice-list li[data-booking-code]:hover { background: var(--tt-accent-soft); }
 .tt-notice-list li + li { border-top: 1px solid var(--tt-border); border-radius: 0; }
 .tt-notice-list b {
   display: grid; place-items: center; width: 22px; height: 22px;
@@ -6623,6 +6642,9 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-notice-list .is-late b { background: var(--tt-danger); }
 .tt-notice-list .is-soon b { background: var(--tt-accent); }
 .tt-notice-list .is-pass b { background: var(--tt-warn-border); color: var(--tt-warn-text); }
+.tt-notice-list .is-activity b { background: var(--tt-forest); }
+.tt-notice-list .is-cancel { background: rgba(201, 81, 69, 0.08); }
+.tt-notice-list .is-cancel b { background: var(--tt-danger); }
 .tt-notice-empty { margin: 0; padding: 16px; color: var(--tt-text-muted); font-size: 0.82rem; }
 .tt-notice-go {
   width: 100%; padding: 11px; border: 0; border-top: 1px solid var(--tt-border);
