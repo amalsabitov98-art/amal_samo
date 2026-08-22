@@ -1893,14 +1893,22 @@
             text: "Просрочен платёж по брони " + b.code + " — " + money(lateSum) });
         }
 
-        // 2. выезд на этой неделе
+        // 2. оплата закрыта — открылись ваучер и билет. Оператор проводит
+        // оплату у себя, и без этой строки агентство узнавало бы об этом,
+        // только случайно заглянув в «Документы».
+        if (docsUnlocked(b)) {
+          out.push({ kind: "docs", code: b.code,
+            text: "Бронь " + b.code + " оплачена полностью — ваучер и авиабилет готовы" });
+        }
+
+        // 3. выезд на этой неделе
         if (b.date_start >= today && b.date_start <= soonIso) {
           out.push({ kind: "soon", code: b.code,
             text: "Выезд " + formatDate(b.date_start) + " · бронь " + b.code +
                   (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
         }
 
-        // 3. паспорта: истекающие и незаполненные
+        // 4. паспорта: истекающие и незаполненные
         (b.passengers || []).forEach(function (p) {
           if (!p.passport_number || !p.passport_expiry) {
             out.push({ kind: "pass", code: b.code,
@@ -1916,8 +1924,9 @@
         });
       });
 
-    // сначала просрочки, затем ближайшие выезды, затем паспорта
-    var order = { late: 0, soon: 1, pass: 2 };
+    // Сначала то, что требует денег или действия, потом хорошая новость о
+    // готовых документах, потом выезды и паспорта.
+    var order = { late: 0, docs: 1, soon: 2, pass: 3 };
     return out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
   }
 
@@ -1936,12 +1945,15 @@
         : "Уведомлений нет");
     }
 
-    var icons = { cancel: "×", activity: "↗", late: "!", soon: "✈", pass: "▣" };
+    var icons = { cancel: "×", activity: "↗", late: "!", docs: "✓", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
       ? '<div class="tt-notice-head">Уведомления<span>' + list.length + "</span></div>" +
         '<ul class="tt-notice-list">' + list.map(function (n) {
           return '<li class="is-' + n.kind + '"' +
             (n.bookingCode ? ' data-booking-code="' + esc(n.bookingCode) + '"' : "") +
+            // «Документы готовы» — единственное уведомление, из которого есть
+            // куда пойти прямо сейчас: за бланками.
+            (n.kind === "docs" ? ' data-goto="documents"' : "") +
             '><b>' + icons[n.kind] + "</b>" +
             esc(n.text) + "</li>";
         }).join("") + "</ul>" +
@@ -2006,25 +2018,55 @@
   }
 
   /* --------------------------------------------------------- документы
-   * Ваучер собирается на клиенте из данных брони и открывается в новом
+   * Бланки собираются на клиенте из данных брони и открываются в новом
    * окне на печать. Отдельного хранилища документов нет.
+   *
+   * Порядок выдачи повторяет реальную сделку: сразу после брони агентство
+   * получает СЧЁТ — по нему платит клиент. Ваучер и маршрут-квитанция
+   * подтверждают уже оплаченную услугу, поэтому открываются только когда
+   * оператор провёл оплату целиком. Выдать ваучер по неоплаченной брони —
+   * значит отдать клиенту документ на услугу, за которую оператор денег
+   * не получил.
+   *
+   * Порог — ПОЛНАЯ оплата, а не первый взнос: по 30% предоплаты билет ещё
+   * не выписан, и подтверждать перелёт нечем.
    */
+  function docsUnlocked(b) {
+    return b.status !== "cancelled" && (b.balance || 0) <= 0.01;
+  }
+
   function renderDocuments() {
     var active = state.bookings.filter(function (b) { return b.status !== "cancelled"; });
     $("documents-list").innerHTML = active.length
       ? active.map(function (b) {
-          return '<article class="tt-row-card">' +
+          var open = docsUnlocked(b);
+          return '<article class="tt-row-card' + (open ? " is-docs-open" : "") + '"' +
+            ' data-doc-card="' + esc(b.code) + '">' +
             "<div><strong>Бронь " + esc(b.code) + "</strong>" +
               '<div class="tt-muted-note">' + formatDate(b.date_start) + " · " +
-              b.passengers_count + " чел. · " + money(b.total_price) + "</div></div>" +
+              b.passengers_count + " чел. · " + money(b.total_price) + "</div>" +
+              (open
+                ? '<div class="tt-doc-state is-ready">Оплачено полностью — ' +
+                  "ваучер и авиабилет доступны</div>"
+                : '<div class="tt-doc-state">Остаток ' + money(b.balance || 0) +
+                  " · ваучер и авиабилет откроются после полной оплаты</div>") +
+            "</div>" +
             '<div class="tt-row-actions">' +
+              '<button class="tt-btn secondary tt-btn-sm" data-invoice="' +
+                esc(b.code) + '">Счёт на оплату</button>' +
+              // Кнопки не прячем, а гасим: агент должен видеть, ЧТО он
+              // получит после оплаты, иначе раздел выглядит поломанным.
               '<button class="tt-btn secondary tt-btn-sm" data-voucher="' +
-                esc(b.code) + '">Ваучер</button>' +
+                esc(b.code) + '"' + (open ? "" : " disabled") +
+                ' title="' + (open ? "Ваучер" : "Доступен после полной оплаты") +
+                '">Ваучер</button>' +
               '<button class="tt-btn secondary tt-btn-sm" data-ticket="' +
-                esc(b.code) + '">Авиабилет</button>' +
+                esc(b.code) + '"' + (open ? "" : " disabled") +
+                ' title="' + (open ? "Авиабилет" : "Доступен после полной оплаты") +
+                '">Авиабилет</button>' +
             "</div>" +
           "</article>";
-        }).join("") + TuronProvisional.noteHtml("бланки ваучера и билета")
+        }).join("") + TuronProvisional.noteHtml("бланки счёта, ваучера и билета")
       : '<div class="tt-empty-state">Документы появятся после первой брони.</div>';
   }
 
@@ -2152,6 +2194,46 @@
     );
   }
 
+  /* Счёт на оплату. Единственный документ, доступный СРАЗУ после брони:
+   * ваучер и билет — подтверждение уже оказанной услуги, а до денег
+   * подтверждать нечего. Бланк намеренно в той же палитре, что ваучер, —
+   * агентство пересылает его клиенту, и три документа одной сделки должны
+   * выглядеть одной серией. */
+  function invoiceCss() {
+    return (
+      ".inv-meta{display:flex;justify-content:space-between;gap:16px;margin:0 0 16px;" +
+        "padding-bottom:12px;border-bottom:1.4px solid " + V.forest + "}" +
+      ".inv-meta .lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:" + V.muted + "}" +
+      ".inv-meta .val{font-size:13px;font-weight:600;color:" + V.forestDeep + ";margin-top:2px}" +
+      "table.inv{width:100%;border-collapse:collapse;margin:0 0 6px}" +
+      "table.inv th{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;" +
+        "color:" + V.muted + ";text-align:left;padding:0 10px 6px;border-bottom:1.4px solid " + V.forest + "}" +
+      "table.inv th.num,table.inv td.num{text-align:right}" +
+      "table.inv td{padding:8px 10px;border-bottom:1px solid " + V.line + ";font-size:13px}" +
+      "table.inv td strong{color:" + V.forestDeep + ";text-transform:uppercase}" +
+      "table.inv tr.total td{border-bottom:0;border-top:1.4px solid " + V.forest + ";" +
+        "font-size:15px;font-weight:700;color:" + V.forestDeep + ";padding-top:11px}" +
+      ".inv-pay{border:1.4px solid " + V.forest + ";border-radius:9px;overflow:hidden;margin:0 0 14px}" +
+      ".inv-pay-head{padding:7px 14px;background:" + V.ivory + ";border-bottom:1.4px solid " + V.forest + ";" +
+        "font-size:11px;font-weight:700;color:" + V.forestDeep + "}" +
+      ".inv-step{display:flex;justify-content:space-between;gap:14px;padding:9px 14px;" +
+        "border-bottom:1px solid " + V.line + ";font-size:12.5px}" +
+      ".inv-step:last-child{border-bottom:0}" +
+      ".inv-step .due{color:" + V.muted + ";font-size:11.5px}" +
+      ".inv-step.is-done .amt{color:" + V.forestSoft + "}" +
+      ".inv-step.is-late .amt{color:#a8321f}" +
+      ".inv-state{display:flex;gap:10px;margin:0 0 14px}" +
+      // Только ПРЯМЫЕ потомки: .lbl и .val внутри — тоже div, и рамка
+      // с отступами доставалась им, из-за чего в каждой плашке было три
+      // вложенных прямоугольника.
+      ".inv-state > div{flex:1;border:1px solid " + V.line + ";border-radius:9px;padding:9px 12px;" +
+        "background:" + V.paper + "}" +
+      ".inv-state .lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:" + V.muted + "}" +
+      ".inv-state .val{font-size:16px;font-weight:700;color:" + V.forestDeep + ";margin-top:2px}" +
+      ".inv-note{font-size:11px;line-height:1.5;color:" + V.muted + ";margin:0 0 16px}"
+    );
+  }
+
   /* Окно бланка открывается пустым (about:blank), относительный путь в нём
    * не разрешается — собираем абсолютный от адреса кабинета. */
   function brandLogoUrl() {
@@ -2212,6 +2294,12 @@
   function openVoucher(code) {
     var b = state.bookings.filter(function (x) { return x.code === code; })[0];
     if (!b) return;
+    // Кнопка при неоплаченной брони и так disabled, но проверка нужна и
+    // здесь: список мог устареть между отрисовкой и кликом.
+    if (!docsUnlocked(b)) {
+      flash("Ваучер выдаётся после полной оплаты брони. Остаток " + money(b.balance || 0) + ".");
+      return;
+    }
     var op = TuronProvisional.OPERATOR;
     // у брони нет длительности — берём её у заезда, иначе в ваучере
     // окажется только дата вылета без даты возврата
@@ -2368,6 +2456,11 @@
   function openTicket(code) {
     var b = state.bookings.filter(function (x) { return x.code === code; })[0];
     if (!b) return;
+    if (!docsUnlocked(b)) {
+      flash("Авиабилет выдаётся после полной оплаты брони. Остаток " +
+        money(b.balance || 0) + ".");
+      return;
+    }
     var op = TuronProvisional.OPERATOR;
     var dep = state.departures.filter(function (x) {
       return x.code === b.departure_code;
@@ -2442,7 +2535,114 @@
     win.document.close();
   }
 
+  /* ------------------------------------------------------------- счёт
+   * Счёт на оплату — то, что агентству нужно СРАЗУ после брони: по нему
+   * платит клиент. Ваучер и авиабилет подтверждают уже оплаченную услугу,
+   * поэтому до полной оплаты их выдавать нельзя (см. docsUnlocked).
+   *
+   * Суммы берутся из самой брони и из paymentPolicy — той же, что считает
+   * график в разделе «Платежи» и в окне брони. Отдельной арифметики здесь
+   * нет намеренно: разойдись счёт с кабинетом — спорить будет не о чем.
+   */
+  function openInvoice(code) {
+    var b = state.bookings.filter(function (x) { return x.code === code; })[0];
+    if (!b) return;
+    var op = TuronProvisional.OPERATOR;
+    var dep = state.departures.filter(function (x) {
+      return x.code === b.departure_code;
+    })[0];
+    var nights = dep ? dep.nights : null;
+    var back = TuronApi.departureEnd(b.date_start, nights);
+    var logo = brandLogoUrl();
+
+    var win = window.open("", "_blank");
+    if (!win) { flash("Разрешите всплывающие окна, чтобы открыть счёт."); return; }
+
+    var rows = (b.passengers || []).map(function (p) {
+      return "<tr><td><strong>" + esc(p.full_name || "—") + "</strong></td>" +
+        "<td>" + esc(p.placement || "—") + "</td>" +
+        "<td>" + esc(p.tariff || p.price_code || "—") + "</td>" +
+        '<td class="num">' + esc(money(p.price)) + "</td></tr>";
+    }).join("");
+
+    var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
+    var today = new Date().toISOString().slice(0, 10);
+    var steps = pol.steps.map(function (s) {
+      var need = Math.round(b.total_price * s.share * 100) / 100;
+      var due = s.due.toISOString().slice(0, 10);
+      // Этап закрыт, если внесено не меньше нарастающего итога по нему.
+      var done = b.paid >= need - 0.01;
+      var late = !done && due < today;
+      return '<div class="inv-step' + (done ? " is-done" : late ? " is-late" : "") + '">' +
+        "<span>" + Math.round(s.share * 100) + "% · " + esc(s.label) +
+          '<br><span class="due">до ' + esc(vDate(due)) + "</span></span>" +
+        '<span class="amt">' + esc(money(need)) +
+          (done ? " · внесено" : late ? " · просрочено" : "") + "</span></div>";
+    }).join("");
+
+    win.document.write(
+      '<!doctype html><html lang="ru"><head><meta charset="utf-8">' +
+      "<title>Счёт " + esc(b.code) + "</title>" +
+      "<style>" + voucherCss() + invoiceCss() + "</style></head><body>" +
+      '<div class="sheet">' +
+        '<div class="vh">' +
+          '<div class="vh-brand"><img src="' + esc(logo) + '" alt="' + esc(op.name) + '"></div>' +
+          '<div class="vh-order"><span>Счёт на оплату:</span>' +
+            "<strong>" + esc(b.code) + "</strong></div>" +
+        "</div>" +
+
+        '<div class="inv-meta">' +
+          '<div><div class="lbl">Плательщик:</div><div class="val">' +
+            esc(b.agency_name || (session && session.name) || "—") + "</div></div>" +
+          '<div><div class="lbl">Дата брони:</div><div class="val">' +
+            esc(vDate((b.created_at || "").slice(0, 10))) + "</div></div>" +
+          '<div><div class="lbl">Заезд:</div><div class="val">' +
+            esc(vDate(b.date_start)) + (back ? " – " + esc(vDate(back)) : "") + "</div></div>" +
+        "</div>" +
+
+        "<h2>Состав и стоимость:</h2>" +
+        '<table class="inv"><thead><tr><th>Пассажир</th><th>Размещение</th>' +
+          '<th>Тариф</th><th class="num">Стоимость</th></tr></thead><tbody>' +
+          rows +
+          '<tr class="total"><td colspan="3">Итого к оплате</td>' +
+            '<td class="num">' + esc(money(b.total_price)) + "</td></tr>" +
+        "</tbody></table>" +
+
+        '<div class="inv-state">' +
+          '<div><div class="lbl">Оплачено</div><div class="val">' +
+            esc(money(b.paid || 0)) + "</div></div>" +
+          '<div><div class="lbl">Остаток</div><div class="val">' +
+            esc(money(b.balance || 0)) + "</div></div>" +
+        "</div>" +
+
+        '<div class="inv-pay"><div class="inv-pay-head">Порядок оплаты</div>' +
+          steps + "</div>" +
+
+        '<p class="inv-note">Ваучер и маршрут-квитанция авиабилета выдаются после ' +
+          "полной оплаты брони — до этого момента в разделе «Документы» доступен " +
+          "только этот счёт. Оплату подтверждает туроператор.</p>" +
+
+        '<div class="req">' +
+          '<div class="card"><div class="lbl">Получатель:</div>' +
+            '<div class="val">' + esc(op.name) + "</div></div>" +
+          '<div class="card"><div class="lbl">Телефон:</div>' +
+            '<div class="val">' + esc(op.phone) + "</div></div>" +
+          '<div class="card"><div class="lbl">Эл. почта:</div>' +
+            '<div class="val">' + esc(op.email) + "</div></div>" +
+          '<div class="card req-sm"><div class="lbl">Адрес:</div>' +
+            '<div class="val">' + esc(op.address) + "</div></div>" +
+        "</div>" +
+      "</div>" +
+      '<div class="actions no-print">' +
+        '<button onclick="window.print()">Печать / PDF</button>' +
+      "</div></body></html>"
+    );
+    win.document.close();
+  }
+
   $("documents-list").addEventListener("click", function (e) {
+    var i = e.target.closest("[data-invoice]");
+    if (i) { openInvoice(i.dataset.invoice); return; }
     var v = e.target.closest("[data-voucher]");
     if (v) { openVoucher(v.dataset.voucher); return; }
     var t = e.target.closest("[data-ticket]");

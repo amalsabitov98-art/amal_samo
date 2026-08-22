@@ -6437,6 +6437,17 @@ a.tt-contact-row:hover { color: var(--cc); }
   box-shadow: var(--tt-shadow);
 }
 .tt-row-card.is-cancelled { opacity: 0.55; }
+/* Строка состояния в «Документах»: до полной оплаты объясняет, почему
+   ваучер и билет погашены, после — что они открылись. Кнопки не прячем,
+   а гасим: спрятанные читались бы как поломка раздела. */
+.tt-doc-state {
+  margin-top: 5px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--tt-text-muted);
+}
+.tt-doc-state.is-ready { color: var(--tt-success); font-weight: 600; }
+.tt-row-actions .tt-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 .tt-row-card span {
   display: block;
   font-size: 0.72rem;
@@ -6452,6 +6463,26 @@ a.tt-contact-row:hover { color: var(--cc); }
   font-size: 0.78rem;
 }
 .tt-row-actions { display: flex; justify-content: flex-end; }
+
+/* «Документы» — единственная строка-карточка с ТРЕМЯ кнопками. Базовая
+   сетка .tt-row-card рассчитана на четыре колонки одинаковой доли, и три
+   кнопки в последней ужимались до переноса по слогам («Счёт на оплату»
+   вылезал за рамку). Здесь колонки две: сведения тянутся, кнопки занимают
+   ровно столько, сколько им нужно, и переносятся строкой на узком экране. */
+#documents-list .tt-row-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+#documents-list .tt-row-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+#documents-list .tt-row-actions .tt-btn { white-space: nowrap; }
+@media (max-width: 620px) {
+  #documents-list .tt-row-card { grid-template-columns: minmax(0, 1fr); }
+  #documents-list .tt-row-actions { justify-content: flex-start; }
+}
 
 .tt-pay-card {
   padding: 16px 18px;
@@ -6896,6 +6927,11 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-notice-list .is-late b { background: var(--tt-danger); }
 .tt-notice-list .is-soon b { background: var(--tt-accent); }
 .tt-notice-list .is-pass b { background: var(--tt-warn-border); color: var(--tt-warn-text); }
+/* «Документы готовы» — единственная хорошая новость в списке, поэтому
+   зелёная, а не тревожного цвета. Ведёт в «Документы», отсюда и курсор. */
+.tt-notice-list .is-docs b { background: var(--tt-success, #16805f); }
+.tt-notice-list li[data-goto] { cursor: pointer; }
+.tt-notice-list li[data-goto]:hover { background: var(--tt-success-soft); }
 .tt-notice-list .is-activity b { background: var(--tt-forest); }
 .tt-notice-list .is-cancel { background: rgba(201, 81, 69, 0.08); }
 .tt-notice-list .is-cancel b { background: var(--tt-danger); }

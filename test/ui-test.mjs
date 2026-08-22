@@ -1581,6 +1581,122 @@ console.log("\nПравка документа и отмена");
  * Первый блок гоняет НАСТОЯЩИЙ js/api.js (не превью — в нём apiBaseUrl
  * затёрт под демо, и сетевой код не работал бы вовсе) на пустой странице
  * с подменённым fetch. */
+/* ------------------------------------------- документы: счёт → оплата → бланки
+ * Порядок выдачи повторяет сделку: счёт сразу, ваучер и авиабилет — только
+ * после ПОЛНОЙ оплаты. Выдать ваучер по неоплаченной брони значит отдать
+ * клиенту документ на услугу, за которую оператор денег не получил.
+ * Проверяем обе стороны замка: что он держит и что открывается. */
+console.log("\nДокументы: счёт, оплата, бланки");
+{
+  const { page, errors } = await session("umida");
+
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const r = await window.TuronApi.createBooking({
+      departure_code: d.code,
+      passengers: [{
+        full_name: "INVOICE TEST", birth_date: "1985-07-07",
+        passport_number: "IV7654321", passport_expiry: "2033-07-07",
+        placement: "DBL",
+      }],
+    });
+    const mine = (await window.TuronApi.bookings())
+      .filter((b) => b.code === r.booking_code)[0];
+    return { code: r.booking_code, total: mine.total_price };
+  });
+
+  const openDocs = async () => {
+    await page.evaluate(() => { window.location.hash = "#/app/documents"; });
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(900);
+  };
+  await openDocs();
+
+  const card = page.locator(`#documents-list [data-doc-card="${made.code}"]`);
+  check("бронь появилась в «Документах»", (await card.count()) === 1);
+  check("счёт доступен сразу после брони",
+        !(await card.locator("[data-invoice]").isDisabled()));
+  check("ваучер закрыт до оплаты",
+        await card.locator("[data-voucher]").isDisabled());
+  check("авиабилет закрыт до оплаты",
+        await card.locator("[data-ticket]").isDisabled());
+  check("сказано, почему бланки закрыты",
+        (await card.locator(".tt-doc-state").innerText()).includes("после полной оплаты"),
+        await card.locator(".tt-doc-state").innerText());
+
+  // Сам счёт: суммы в нём должны совпадать с бронью, иначе спорить не о чем.
+  const [invoice] = await Promise.all([
+    page.context().waitForEvent("page"),
+    card.locator("[data-invoice]").click(),
+  ]);
+  await invoice.waitForLoadState("domcontentloaded");
+  await invoice.waitForTimeout(400);
+  const invText = (await invoice.locator("body").innerText()).replace(/\s+/g, " ");
+  check("в счёте номер брони", invText.includes(made.code), invText.slice(0, 120));
+  check("в счёте пассажир и итог",
+        invText.includes("INVOICE TEST") && invText.includes("Итого к оплате"));
+  check("в счёте есть порядок оплаты", invText.includes("Порядок оплаты"));
+  check("счёт предупреждает, когда выдадут бланки",
+        invText.includes("после полной оплаты"));
+  await invoice.close();
+
+  // Частичная оплата замок НЕ снимает: по 30% предоплаты билет не выписан.
+  await page.evaluate(async (ctx) => {
+    await window.TuronApi.login("operator", "turon2026");
+    await window.TuronApi.addPayment(ctx.code, Math.round(ctx.total * 0.3));
+    await window.TuronApi.login("umida", "turon2026");
+  }, made);
+  await openDocs();
+  check("частичная оплата бланки не открывает",
+        await card.locator("[data-voucher]").isDisabled());
+
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  check("пока не оплачено — уведомления о бланках нет",
+        (await page.locator("#notice-panel .is-docs").count()) === 0);
+
+  // Полная оплата.
+  await page.evaluate(async (ctx) => {
+    await window.TuronApi.login("operator", "turon2026");
+    const list = await window.TuronApi.adminBookings({});
+    const b = (list.items || list).filter((x) => x.code === ctx.code)[0];
+    await window.TuronApi.addPayment(ctx.code, b.balance);
+    await window.TuronApi.login("umida", "turon2026");
+  }, made);
+  await openDocs();
+
+  check("после полной оплаты ваучер открыт",
+        !(await card.locator("[data-voucher]").isDisabled()));
+  check("после полной оплаты авиабилет открыт",
+        !(await card.locator("[data-ticket]").isDisabled()));
+  check("состояние брони переписано на «оплачено»",
+        (await card.locator(".tt-doc-state").innerText()).includes("Оплачено полностью"));
+
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  const docsNotice = page.locator("#notice-panel .is-docs").first();
+  check("готовность бланков попадает в колокольчик", (await docsNotice.count()) === 1,
+        await page.locator("#notice-panel").innerText());
+  await docsNotice.click();
+  await page.waitForTimeout(600);
+  check("уведомление ведёт в «Документы»",
+        await page.locator("#panel-documents").isVisible());
+
+  const [voucher] = await Promise.all([
+    page.context().waitForEvent("page"),
+    page.locator(`[data-doc-card="${made.code}"] [data-voucher]`).click(),
+  ]);
+  await voucher.waitForLoadState("domcontentloaded");
+  await voucher.waitForTimeout(400);
+  check("ваучер открывается и подписан бронью",
+        (await voucher.locator("body").innerText()).includes(made.code));
+  await voucher.close();
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");
