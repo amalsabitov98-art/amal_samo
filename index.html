@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260822-1" />
+<link rel="stylesheet" href="styles.css?v=20260822-2" />
 </head>
 <body>
 
@@ -573,6 +573,67 @@
   </div>
 </div>
 
+<!-- Правка данных туриста (только оператор, из «Списков пассажиров»).
+     Две формы в одном окне, и это НЕ придирка к вёрстке: документ правится
+     сразу, а дата рождения — в два шага с расчётом, потому что меняет тариф,
+     цену, число мест и сумму брони. Одной кнопкой «Сохранить» их объединять
+     нельзя: оператор подписался бы под сменой суммы вслепую. -->
+<div id="pax-modal" class="tt-modal" hidden>
+  <div class="tt-editor-card">
+    <div class="tt-editor-head">
+      <div>
+        <h2>Правка данных туриста</h2>
+        <div class="tt-muted-note" id="pax-sub"></div>
+      </div>
+      <button class="tt-icon-btn" id="pax-close" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="tt-editor-body">
+      <form id="pax-doc-form" class="tt-editor-block">
+        <h3>Документ</h3>
+        <p class="tt-editor-hint">Опечатка в ФИО, номере или сроке паспорта.
+          Тариф, цена и число мест не меняются.</p>
+        <div class="tt-editor-grid">
+          <div class="tt-field-full tt-col-2">
+            <label for="pax-name">ФИО латиницей, как в паспорте</label>
+            <input type="text" id="pax-name" autocomplete="off" />
+          </div>
+          <div class="tt-field-full">
+            <label for="pax-passport">Номер паспорта</label>
+            <input type="text" id="pax-passport" autocomplete="off" />
+          </div>
+          <div class="tt-field-full">
+            <label for="pax-expiry">Действителен до</label>
+            <input type="date" id="pax-expiry" />
+          </div>
+        </div>
+        <div class="tt-editor-actions">
+          <span class="tt-editor-msg" id="pax-doc-msg"></span>
+          <button class="tt-btn" id="pax-doc-save" type="submit">Сохранить документ</button>
+        </div>
+      </form>
+
+      <form id="pax-bd-form" class="tt-editor-block is-warn">
+        <h3>Дата рождения</h3>
+        <p class="tt-editor-hint">По ней считается тариф: детский или взрослый по
+          возрасту на дату выезда, а до 2 лет ещё и место не занимается. Поэтому
+          сначала расчёт, потом применение.</p>
+        <div class="tt-editor-grid">
+          <div class="tt-field-full">
+            <label for="pax-birth">Дата рождения</label>
+            <input type="date" id="pax-birth" />
+          </div>
+        </div>
+        <div id="pax-bd-preview" class="tt-editor-preview" hidden></div>
+        <div class="tt-editor-actions">
+          <span class="tt-editor-msg" id="pax-bd-msg"></span>
+          <button class="tt-btn secondary" id="pax-bd-calc" type="submit">Рассчитать</button>
+          <button class="tt-btn" id="pax-bd-apply" type="button" hidden>Применить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
 /* Защита от кликджекинга. GitHub Pages не позволяет отдать заголовок
    X-Frame-Options, поэтому проверяем сами: если кабинет открыли внутри
@@ -582,11 +643,11 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
-<script src="js/api.js?v=20260821-3"></script>
+<script src="js/api.js?v=20260822-1"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260822-1"></script>
-<script src="js/admin.js?v=20260821-2"></script>
+<script src="js/admin.js?v=20260822-1"></script>
 <script src="js/app.js?v=20260822-1"></script>
 </body>
 </html>

@@ -1184,6 +1184,148 @@ console.log("\nМобильная вёрстка");
  *   2) опечатку в паспорте исправляет оператор, и это НЕ пересчёт брони;
  *   3) отменяет тоже оператор, агентство только шлёт заявку.
  */
+/* ------------------------------------ окно правки туриста (глазами оператора)
+ * Раньше правка шла тремя подряд prompt() браузера. Проверяем не «вызвался ли
+ * запрос», а сам экран: поля подставлены, документ сохраняется без пересчёта,
+ * дата рождения — только после расчёта, и расчёт не переживает смену даты. */
+console.log("\nОкно правки туриста");
+{
+  const { page, errors } = await session("umida");
+
+  // Своя бронь, чтобы не зависеть от порядка предыдущих блоков.
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const babyBirth = new Date(new Date(d.date_start).getTime() - 200 * 86400000)
+      .toISOString().slice(0, 10);
+    const r = await window.TuronApi.createBooking({
+      departure_code: d.code,
+      passengers: [{
+        full_name: "MODAL TEST", birth_date: babyBirth,
+        passport_number: "MD1234567", passport_expiry: "2031-06-06",
+        placement: "DBL",
+      }],
+    });
+    return { code: r.booking_code, dep: d.code, start: d.date_start };
+  });
+  check("бронь для окна правки создана", !!made.code);
+
+  await page.evaluate(async () => {
+    await window.TuronApi.logout().catch(() => {});
+  });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+  if (await page.locator("#public-login-btn").count()) {
+    try { await page.locator("#public-login-btn").click({ timeout: 1200 }); } catch {}
+  }
+  await page.fill("#l-login", "operator");
+  await page.fill("#l-password", "turon2026");
+  await page.click("#login-btn");
+  await page.waitForTimeout(900);
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(500);
+  await page.locator(`#adm-departure-cards [data-departure="${made.dep}"]`).click();
+  await page.waitForTimeout(1200);
+
+  const row = page.locator("#adm-manifest tbody tr").filter({ hasText: "MODAL TEST" });
+  check("турист виден в ведомости", (await row.count()) === 1);
+  check("в строке одна кнопка правки, а не две",
+        (await row.locator("[data-fix-pax]").count()) === 1 &&
+        (await page.locator("#adm-manifest [data-fix-doc]").count()) === 0);
+
+  await row.locator("[data-fix-pax]").click();
+  await page.waitForTimeout(300);
+  check("окно правки открылось", await page.locator("#pax-modal").isVisible());
+  check("поля подставлены из ведомости",
+        (await page.inputValue("#pax-name")) === "MODAL TEST" &&
+        (await page.inputValue("#pax-passport")) === "MD1234567" &&
+        (await page.inputValue("#pax-expiry")) === "2031-06-06");
+  check("в подзаголовке видно, кого правим",
+        (await page.locator("#pax-sub").innerText()).includes(made.code));
+
+  // Пустой номер паспорта не должен уходить на сервер.
+  await page.fill("#pax-passport", "");
+  await page.click("#pax-doc-save");
+  await page.waitForTimeout(300);
+  check("пустой номер паспорта отклонён на месте",
+        (await page.locator("#pax-doc-msg").innerText()).includes("обязательны"));
+
+  // Правка без изменений — сервер отвечает «не изменилось», и окно это говорит.
+  await page.fill("#pax-passport", "MD1234567");
+  await page.click("#pax-doc-save");
+  await page.waitForTimeout(600);
+  check("пустая правка не выдаётся за сохранение",
+        (await page.locator("#pax-doc-msg").innerText()).includes("не изменились"));
+
+  const before = await page.evaluate((dep) => window.TuronApi.manifest(dep)
+    .then((m) => ({ revenue: m.summary.revenue, seats: m.summary.seats_used })), made.dep);
+
+  await page.fill("#pax-passport", "MD7654321");
+  await page.click("#pax-doc-save");
+  await page.waitForTimeout(800);
+  check("номер паспорта сохранён из окна",
+        (await page.locator("#pax-doc-msg").innerText()).includes("историю брони"));
+  check("окно осталось открытым — можно править дальше",
+        await page.locator("#pax-modal").isVisible());
+  const afterDoc = await page.evaluate((dep) => window.TuronApi.manifest(dep)
+    .then((m) => ({
+      revenue: m.summary.revenue, seats: m.summary.seats_used,
+      num: (m.passengers.filter((p) => p.full_name === "MODAL TEST")[0] || {}).passport_number,
+    })), made.dep);
+  check("новый номер доехал до ведомости", afterDoc.num === "MD7654321", afterDoc.num);
+  check("правка документа не сдвинула сумму и места",
+        afterDoc.revenue === before.revenue && afterDoc.seats === before.seats,
+        JSON.stringify({ before, afterDoc }));
+
+  // Дата рождения: младенца записываем шестилетним — тариф и место меняются.
+  const realBirth = new Date(new Date(made.start).getTime() - 6 * 365 * 86400000)
+    .toISOString().slice(0, 10);
+  check("«Применить» спрятано, пока нет расчёта",
+        await page.locator("#pax-bd-apply").isHidden());
+  await page.fill("#pax-birth", realBirth);
+  await page.click("#pax-bd-calc");
+  await page.waitForTimeout(700);
+  const pv = await page.locator("#pax-bd-preview").innerText();
+  check("расчёт показан до применения",
+        (await page.locator("#pax-bd-preview").isVisible()) && pv.includes("Тариф"), pv);
+  check("расчёт называет и мест, и сумму брони",
+        pv.includes("Мест") && pv.includes("Сумма брони"), pv);
+  check("после расчёта появилась кнопка «Применить»",
+        (await page.locator("#pax-bd-apply").isVisible()) &&
+        (await page.locator("#pax-bd-calc").isHidden()));
+  check("предложено оставить прежнюю цену",
+        (await page.locator("#pax-keep-price").count()) === 1);
+
+  const midway = await page.evaluate((dep) => window.TuronApi.manifest(dep)
+    .then((m) => m.summary.seats_used), made.dep);
+  check("расчёт ничего не записал", midway === before.seats, midway + " ≠ " + before.seats);
+
+  /* Мина: поправили дату ПОСЛЕ расчёта — применилось бы не то, что оператор
+   * видел на экране. Расчёт обязан обнулиться вместе с кнопкой. */
+  await page.fill("#pax-birth", "2000-01-01");
+  await page.waitForTimeout(300);
+  check("смена даты сбрасывает устаревший расчёт",
+        (await page.locator("#pax-bd-preview").isHidden()) &&
+        (await page.locator("#pax-bd-apply").isHidden()) &&
+        (await page.locator("#pax-bd-calc").isVisible()));
+
+  await page.fill("#pax-birth", realBirth);
+  await page.click("#pax-bd-calc");
+  await page.waitForTimeout(700);
+  await page.click("#pax-bd-apply");
+  await page.waitForTimeout(900);
+  check("после применения окно закрылось", await page.locator("#pax-modal").isHidden());
+  const afterBd = await page.evaluate((dep) => window.TuronApi.manifest(dep)
+    .then((m) => ({ seats: m.summary.seats_used, revenue: m.summary.revenue })), made.dep);
+  check("место занято после смены даты рождения",
+        afterBd.seats === before.seats + 1, JSON.stringify({ before, afterBd }));
+  check("сумма брони пересчитана", afterBd.revenue > before.revenue,
+        JSON.stringify({ before, afterBd }));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nПравка документа и отмена");
 {
   const { page, errors } = await session("umida");

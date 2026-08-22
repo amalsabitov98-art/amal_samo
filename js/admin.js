@@ -369,12 +369,10 @@
       return "<tr>" + MANIFEST_COLUMNS.map(function (c) {
         return "<td>" + esc(c[1](p)) + "</td>";
       }).join("") +
-        '<td><button class="tt-btn secondary tt-btn-sm" data-fix-doc="' +
-          p.passenger_id + '">Документ</button>' +
-        // Дата рождения — отдельной кнопкой: она меняет тариф, цену и места,
-        // и путать её с починкой опечатки в паспорте нельзя.
-        '<button class="tt-btn secondary tt-btn-sm" data-fix-bd="' +
-          p.passenger_id + '">Дата рожд.</button></td>' +
+        // Одна кнопка на обе правки: окно разделено внутри, и документ от
+        // даты рождения там отделён и рамкой, и порядком действий.
+        '<td><button class="tt-btn secondary tt-btn-sm" data-fix-pax="' +
+          p.passenger_id + '">Изменить</button></td>' +
       "</tr>";
     }).join("");
 
@@ -725,109 +723,190 @@
     });
 
     /*
-     * Исправление данных документа. Правятся ТОЛЬКО ФИО, номер и срок —
-     * размещение, дата рождения и цена не трогаются, поэтому сумма брони
-     * и число мест измениться не могут. Для смены состава есть отдельная
-     * операция; путать их нельзя (см. updatePassengerDocument в воркере).
+     * Правка данных туриста. Одно окно, две формы, и разделены они не для
+     * красоты: документ (ФИО, номер, срок) не трогает ни размещение, ни дату
+     * рождения, ни цену — сумма брони и число мест измениться не могут в
+     * принципе. Дата рождения наоборот определяет тариф, а значит цену
+     * пассажира, число занятых мест и сумму брони, поэтому идёт в два шага:
+     * сначала сервер СЧИТАЕТ и возвращает, что изменится, и только потом
+     * применяем. Иначе оператор подписывался бы под сменой суммы вслепую.
      */
-    /*
-     * Дата рождения. Спрашиваем сервер, ЧТО изменится, показываем оператору
-     * тариф/цену/места и только потом применяем — иначе он подписывался бы
-     * вслепую под сменой суммы брони. Если тариф уехал, отдельно спрашиваем,
-     * пересчитывать ли цену: ошибку внёс агент, и оператор может решить
-     * деньги не двигать.
-     */
-    $("adm-manifest").addEventListener("click", function (e) {
-      var bd = e.target.closest("[data-fix-bd]");
-      if (bd) {
-        var bid = Number(bd.dataset.fixBd);
-        var row = ((state.current && state.current.passengers) || [])
-          .filter(function (p) { return p.passenger_id === bid; })[0];
-        if (!row) return;
+    var paxEdit = null;   // { id, row, previewDate, preview }
 
-        var date = prompt("Дата рождения (ГГГГ-ММ-ДД):", row.birth_date || "");
-        if (date === null) return;
-        date = String(date).trim();
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-          alert("Дата — в формате ГГГГ-ММ-ДД, например 1990-05-17.");
-          return;
-        }
-        if (date === row.birth_date) { alert("Дата не изменилась."); return; }
+    function paxMsg(id, text, kind) {
+      var el = $(id);
+      el.textContent = text || "";
+      el.className = "tt-editor-msg" + (kind ? " is-" + kind : "");
+    }
 
-        bd.disabled = true;
-        TuronApi.adminUpdateBirthdate(bid, date).then(function (pv) {
-          var sameTariff = pv.tariff.from === pv.tariff.to;
-          var text = row.full_name + "\n" +
-            "Дата: " + pv.birth_date.from + " → " + pv.birth_date.to + "\n" +
-            (sameTariff
-              ? "Тариф не меняется (" + pv.tariff.to + ").\n"
-              : "Тариф: " + pv.tariff.from + " → " + pv.tariff.to + "\n") +
-            (pv.seats_delta !== 0
-              ? "Мест: " + (pv.seats_delta > 0 ? "+" : "") + pv.seats_delta + "\n" : "") +
-            (pv.price.from !== pv.price.to
-              ? "Цена: " + money(pv.price.from) + " → " + money(pv.price.to) +
-                ", сумма брони " + money(pv.total_price.from) + " → " +
-                money(pv.total_price.to) + "\n"
-              : "");
+    // Расчёт устаревает, как только оператор трогает дату: применять можно
+    // только то, что он реально видел на экране.
+    function dropBirthPreview() {
+      paxEdit && (paxEdit.preview = null, paxEdit.previewDate = null);
+      $("pax-bd-preview").hidden = true;
+      $("pax-bd-preview").innerHTML = "";
+      $("pax-bd-apply").hidden = true;
+      $("pax-bd-calc").hidden = false;
+    }
 
-          var keep = false;
-          if (!sameTariff && pv.price.from !== pv.price.to) {
-            keep = !confirm(text + "\nПересчитать цену по новому тарифу?\n" +
-              "OK — пересчитать, Отмена — оставить прежнюю " + money(pv.price.from) + ".");
-          }
-          if (!confirm(text + (keep ? "\nЦена останется прежней.\n" : "") +
-                       "\nПрименить?")) {
-            bd.disabled = false;
-            return null;
-          }
-          return TuronApi.adminUpdateBirthdate(bid, date,
-            { confirm: true, keepPrice: keep });
-        }).then(function (res) {
-          if (!res) return;
-          loadManifest();
-          alert("Дата рождения исправлена. Правка записана в историю брони.");
-        }).catch(function (err) {
-          alert(err.message);
-          bd.disabled = false;
-        });
-        return;
-      }
-
-      var fix = e.target.closest("[data-fix-doc]");
-      if (!fix) return;
-      var id = Number(fix.dataset.fixDoc);
-      var pax = ((state.current && state.current.passengers) || [])
+    function openPaxEditor(id) {
+      var row = ((state.current && state.current.passengers) || [])
         .filter(function (p) { return p.passenger_id === id; })[0];
-      if (!pax) return;
+      if (!row) return;
+      paxEdit = { id: id, row: row, previewDate: null, preview: null };
 
-      var name = prompt("ФИО как в паспорте:", pax.full_name || "");
-      if (name === null) return;
-      var num = prompt("Номер паспорта:", pax.passport_number || "");
-      if (num === null) return;
-      var exp = prompt("Срок действия (ГГГГ-ММ-ДД, можно пусто):",
-        pax.passport_expiry || "");
-      if (exp === null) return;
+      $("pax-sub").textContent = (row.full_name || "") +
+        " · бронь " + (row.booking_code || "") +
+        " · " + (row.agency_name || "");
+      $("pax-name").value = row.full_name || "";
+      $("pax-passport").value = row.passport_number || "";
+      $("pax-expiry").value = row.passport_expiry || "";
+      $("pax-birth").value = row.birth_date || "";
+      paxMsg("pax-doc-msg", "");
+      paxMsg("pax-bd-msg", "");
+      dropBirthPreview();
+      $("pax-doc-save").disabled = false;
+      $("pax-bd-calc").disabled = false;
+      $("pax-modal").hidden = false;
+      $("pax-name").focus();
+    }
 
-      name = String(name).trim();
-      num = String(num).trim();
-      exp = String(exp).trim();
-      if (!name || !num) { alert("ФИО и номер паспорта обязательны."); return; }
-      if (exp && !/^\d{4}-\d{2}-\d{2}$/.test(exp)) {
-        alert("Срок действия — в формате ГГГГ-ММ-ДД, например 2030-05-17.");
+    function closePaxEditor() {
+      $("pax-modal").hidden = true;
+      paxEdit = null;
+    }
+
+    $("pax-close").addEventListener("click", closePaxEditor);
+    $("pax-modal").addEventListener("click", function (e) {
+      if (e.target === $("pax-modal")) closePaxEditor();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !$("pax-modal").hidden) closePaxEditor();
+    });
+
+    $("pax-doc-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!paxEdit) return;
+      var name = $("pax-name").value.trim();
+      var num = $("pax-passport").value.trim();
+      var exp = $("pax-expiry").value.trim();
+      // Формат номера намеренно не проверяем: паспорта разных стран, и
+      // шаблон вроде AA1234567 отсёк бы законный документ.
+      if (!name || !num) {
+        paxMsg("pax-doc-msg", "ФИО и номер паспорта обязательны.", "err");
         return;
       }
-
-      fix.disabled = true;
-      TuronApi.adminUpdateDocument(id, {
+      $("pax-doc-save").disabled = true;
+      paxMsg("pax-doc-msg", "Сохраняем…");
+      TuronApi.adminUpdateDocument(paxEdit.id, {
         full_name: name, passport_number: num, passport_expiry: exp,
       }).then(function (res) {
-        if (res.changed === false) { alert("Данные не изменились."); fix.disabled = false; return; }
+        $("pax-doc-save").disabled = false;
+        if (res.changed === false) {
+          paxMsg("pax-doc-msg", "Данные не изменились.");
+          return;
+        }
+        paxMsg("pax-doc-msg", "Сохранено, правка записана в историю брони.", "ok");
+        // Ведомость перечитываем, но окно не закрываем: оператор мог прийти
+        // чинить и дату рождения тоже.
         loadManifest();
-        alert("Документ исправлен. Правка записана в историю брони.");
       }).catch(function (err) {
-        alert(err.message);
-        fix.disabled = false;
+        $("pax-doc-save").disabled = false;
+        paxMsg("pax-doc-msg", err.message, "err");
       });
+    });
+
+    $("pax-birth").addEventListener("input", function () {
+      paxMsg("pax-bd-msg", "");
+      dropBirthPreview();
+    });
+
+    $("pax-bd-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!paxEdit) return;
+      var date = $("pax-birth").value.trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        paxMsg("pax-bd-msg", "Укажите дату рождения.", "err");
+        return;
+      }
+      if (date === paxEdit.row.birth_date) {
+        paxMsg("pax-bd-msg", "Дата не изменилась.");
+        return;
+      }
+      $("pax-bd-calc").disabled = true;
+      paxMsg("pax-bd-msg", "Считаем…");
+      TuronApi.adminUpdateBirthdate(paxEdit.id, date).then(function (pv) {
+        $("pax-bd-calc").disabled = false;
+        paxEdit.previewDate = date;
+        paxEdit.preview = pv;
+        paxMsg("pax-bd-msg", "Проверьте расчёт и примените.");
+        renderBirthPreview(pv);
+      }).catch(function (err) {
+        $("pax-bd-calc").disabled = false;
+        paxMsg("pax-bd-msg", err.message, "err");
+      });
+    });
+
+    function line(label, value) {
+      return '<div class="tt-sum-line"><span>' + esc(label) + "</span><strong>" +
+        esc(value) + "</strong></div>";
+    }
+
+    function renderBirthPreview(pv) {
+      var sameTariff = pv.tariff.from === pv.tariff.to;
+      var priceMoves = pv.price.from !== pv.price.to;
+      var html =
+        line("Дата рождения", pv.birth_date.from + " → " + pv.birth_date.to) +
+        (sameTariff
+          ? line("Тариф", "не меняется (" + pv.tariff.to + ")")
+          : line("Тариф", pv.tariff.from + " → " + pv.tariff.to)) +
+        (pv.seats_delta !== 0
+          ? line("Мест", (pv.seats_delta > 0 ? "+" : "") + pv.seats_delta)
+          : "") +
+        (priceMoves
+          ? line("Цена пассажира", money(pv.price.from) + " → " + money(pv.price.to)) +
+            line("Сумма брони", money(pv.total_price.from) + " → " + money(pv.total_price.to))
+          : line("Цена пассажира", "не меняется (" + money(pv.price.to) + ")"));
+
+      // Чекбокс только когда есть что оставлять: тариф уехал и цена вместе с
+      // ним. Решает оператор — ошибку внёс агент, и двигать деньги
+      // необязательно.
+      if (!sameTariff && priceMoves) {
+        html += '<label class="tt-editor-keep"><input type="checkbox" id="pax-keep-price" />' +
+          "<span>Оставить прежнюю цену " + esc(money(pv.price.from)) +
+          " — тариф исправить, деньги не двигать</span></label>";
+      }
+      $("pax-bd-preview").innerHTML = html;
+      $("pax-bd-preview").hidden = false;
+      $("pax-bd-apply").hidden = false;
+      $("pax-bd-calc").hidden = true;
+    }
+
+    $("pax-bd-apply").addEventListener("click", function () {
+      if (!paxEdit || !paxEdit.preview) return;
+      // Дата берётся ИЗ РАСЧЁТА, а не из поля: поле могли поправить после
+      // расчёта, и тогда применилось бы не то, что оператор видел.
+      var date = paxEdit.previewDate;
+      var keepBox = $("pax-keep-price");
+      var keep = !!(keepBox && keepBox.checked);
+      $("pax-bd-apply").disabled = true;
+      paxMsg("pax-bd-msg", "Применяем…");
+      TuronApi.adminUpdateBirthdate(paxEdit.id, date, { confirm: true, keepPrice: keep })
+        .then(function () {
+          $("pax-bd-apply").disabled = false;
+          paxMsg("pax-bd-msg", "Дата исправлена, правка записана в историю брони.", "ok");
+          dropBirthPreview();
+          loadManifest();
+          closePaxEditor();
+        }).catch(function (err) {
+          $("pax-bd-apply").disabled = false;
+          paxMsg("pax-bd-msg", err.message, "err");
+        });
+    });
+
+    $("adm-manifest").addEventListener("click", function (e) {
+      var fix = e.target.closest("[data-fix-pax]");
+      if (fix) openPaxEditor(Number(fix.dataset.fixPax));
     });
 
     $("adm-bookings").addEventListener("click", function (e) {

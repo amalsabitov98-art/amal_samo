@@ -644,6 +644,12 @@
           });
         });
         if (!found) return Promise.reject(new Error("Пассажир не найден"));
+        // Та же развилка, что в воркере: не изменилось — не пишем и говорим
+        // об этом. Без неё демо показывало бы «сохранено» на пустой правке.
+        var same = found.full_name === data.full_name &&
+          found.passport_number === data.passport_number &&
+          (found.passport_expiry || "") === (data.passport_expiry || "");
+        if (same) return Promise.resolve({ changed: false, passenger_id: passengerId });
         found.full_name = data.full_name;
         found.passport_number = data.passport_number;
         found.passport_expiry = data.passport_expiry || null;
