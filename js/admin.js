@@ -43,6 +43,7 @@
     payment: "оплата",
     refund: "возврат",
     passport: "исправлен документ",
+    birthdate: "исправлена дата рождения",
     cancel_requested: "запрошена отмена",
   };
 
@@ -369,7 +370,11 @@
         return "<td>" + esc(c[1](p)) + "</td>";
       }).join("") +
         '<td><button class="tt-btn secondary tt-btn-sm" data-fix-doc="' +
-          p.passenger_id + '">Исправить</button></td>' +
+          p.passenger_id + '">Документ</button>' +
+        // Дата рождения — отдельной кнопкой: она меняет тариф, цену и места,
+        // и путать её с починкой опечатки в паспорте нельзя.
+        '<button class="tt-btn secondary tt-btn-sm" data-fix-bd="' +
+          p.passenger_id + '">Дата рожд.</button></td>' +
       "</tr>";
     }).join("");
 
@@ -725,7 +730,69 @@
      * и число мест измениться не могут. Для смены состава есть отдельная
      * операция; путать их нельзя (см. updatePassengerDocument в воркере).
      */
+    /*
+     * Дата рождения. Спрашиваем сервер, ЧТО изменится, показываем оператору
+     * тариф/цену/места и только потом применяем — иначе он подписывался бы
+     * вслепую под сменой суммы брони. Если тариф уехал, отдельно спрашиваем,
+     * пересчитывать ли цену: ошибку внёс агент, и оператор может решить
+     * деньги не двигать.
+     */
     $("adm-manifest").addEventListener("click", function (e) {
+      var bd = e.target.closest("[data-fix-bd]");
+      if (bd) {
+        var bid = Number(bd.dataset.fixBd);
+        var row = ((state.current && state.current.passengers) || [])
+          .filter(function (p) { return p.passenger_id === bid; })[0];
+        if (!row) return;
+
+        var date = prompt("Дата рождения (ГГГГ-ММ-ДД):", row.birth_date || "");
+        if (date === null) return;
+        date = String(date).trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          alert("Дата — в формате ГГГГ-ММ-ДД, например 1990-05-17.");
+          return;
+        }
+        if (date === row.birth_date) { alert("Дата не изменилась."); return; }
+
+        bd.disabled = true;
+        TuronApi.adminUpdateBirthdate(bid, date).then(function (pv) {
+          var sameTariff = pv.tariff.from === pv.tariff.to;
+          var text = row.full_name + "\n" +
+            "Дата: " + pv.birth_date.from + " → " + pv.birth_date.to + "\n" +
+            (sameTariff
+              ? "Тариф не меняется (" + pv.tariff.to + ").\n"
+              : "Тариф: " + pv.tariff.from + " → " + pv.tariff.to + "\n") +
+            (pv.seats_delta !== 0
+              ? "Мест: " + (pv.seats_delta > 0 ? "+" : "") + pv.seats_delta + "\n" : "") +
+            (pv.price.from !== pv.price.to
+              ? "Цена: " + money(pv.price.from) + " → " + money(pv.price.to) +
+                ", сумма брони " + money(pv.total_price.from) + " → " +
+                money(pv.total_price.to) + "\n"
+              : "");
+
+          var keep = false;
+          if (!sameTariff && pv.price.from !== pv.price.to) {
+            keep = !confirm(text + "\nПересчитать цену по новому тарифу?\n" +
+              "OK — пересчитать, Отмена — оставить прежнюю " + money(pv.price.from) + ".");
+          }
+          if (!confirm(text + (keep ? "\nЦена останется прежней.\n" : "") +
+                       "\nПрименить?")) {
+            bd.disabled = false;
+            return null;
+          }
+          return TuronApi.adminUpdateBirthdate(bid, date,
+            { confirm: true, keepPrice: keep });
+        }).then(function (res) {
+          if (!res) return;
+          loadManifest();
+          alert("Дата рождения исправлена. Правка записана в историю брони.");
+        }).catch(function (err) {
+          alert(err.message);
+          bd.disabled = false;
+        });
+        return;
+      }
+
       var fix = e.target.closest("[data-fix-doc]");
       if (!fix) return;
       var id = Number(fix.dataset.fixDoc);

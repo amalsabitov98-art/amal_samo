@@ -209,6 +209,72 @@ r = await call('/api/admin/passengers/' + paxRow.passenger_id + '/document', {
   body:{ full_name:'ХАКЕР Х', passport_number:'ZZ0000000' } });
 check('агентству правка документа закрыта', r.status === 403, JSON.stringify(r.data));
 
+console.log('\n--- исправление даты рождения ---');
+// Дата рождения — НЕ опечатка в документе: от неё зависит тариф, а у
+// младенца до 2 лет ещё и occupies_seat = 0. Поэтому правка идёт через
+// предпросмотр, и он не должен ничего записывать.
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+const baby = r.data.passengers.find(p => p.price_code === 'INF');
+const seatsBeforeBd = r.data.summary.seats_used;
+const revenueBeforeBd = r.data.summary.revenue;
+const bdDepartureDate = r.data.departure.date_start;
+check('в брони есть младенец без места', !!baby && baby.occupies_seat === 0,
+      JSON.stringify(baby || {}).slice(0, 120));
+
+// Возраст считается на дату ВЫЕЗДА, поэтому отсчитываем от неё, а не от
+// зашитой даты: сдвинется заезд в ведомости — тест не начнёт врать.
+// «Младенцу» на самом деле 6 лет: тариф и место должны смениться.
+const realBirth = new Date(new Date(bdDepartureDate).getTime() - 6 * 365 * 86400000)
+  .toISOString().slice(0, 10);
+
+// Без младенца дальше идти нельзя — блок обращается к его passenger_id.
+if (!baby) {
+  console.log('  ! младенец не найден — блок правки даты пропущен');
+} else {
+r = await call('/api/admin/passengers/' + baby.passenger_id + '/birthdate', {
+  method:'POST', token: op, body:{ birth_date: realBirth } });
+check('предпросмотр отдан', r.status === 200 && r.data.preview === true, JSON.stringify(r.data));
+check('предпросмотр видит смену тарифа', r.data.tariff.from !== r.data.tariff.to,
+      JSON.stringify(r.data.tariff));
+check('предпросмотр видит +1 место', r.data.seats_delta === 1, String(r.data.seats_delta));
+
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+check('предпросмотр НИЧЕГО не записал',
+      r.data.summary.seats_used === seatsBeforeBd &&
+      r.data.summary.revenue === revenueBeforeBd,
+      JSON.stringify(r.data.summary));
+
+r = await call('/api/admin/passengers/' + baby.passenger_id + '/birthdate', {
+  method:'POST', token: op, body:{ birth_date: realBirth, confirm: true } });
+check('правка применена', r.status === 200 && r.data.changed === true, JSON.stringify(r.data));
+
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+check('место занято после правки', r.data.summary.seats_used === seatsBeforeBd + 1,
+      r.data.summary.seats_used + ' было ' + seatsBeforeBd);
+check('сумма пересчитана', r.data.summary.revenue > revenueBeforeBd,
+      r.data.summary.revenue + ' было ' + revenueBeforeBd);
+
+// keep_price: оператор решил не двигать деньги из-за ошибки агента.
+const grown = r.data.passengers.find(p => p.passenger_id === baby.passenger_id);
+r = await call('/api/admin/passengers/' + baby.passenger_id + '/birthdate', {
+  method:'POST', token: op,
+  body:{ birth_date:'1996-04-04', confirm: true, keep_price: true } });
+check('keep_price принят', r.status === 200 && r.data.changed === true, JSON.stringify(r.data));
+r = await call('/api/admin/manifest?departure=TZX2808', { token: op });
+const keptRow = r.data.passengers.find(p => p.passenger_id === baby.passenger_id);
+check('цена осталась прежней', keptRow.price === grown.price,
+      keptRow.price + ' было ' + grown.price);
+check('дата всё равно исправлена', keptRow.birth_date === '1996-04-04', keptRow.birth_date);
+
+r = await call('/api/admin/passengers/' + baby.passenger_id + '/birthdate', {
+  method:'POST', token: op, body:{ birth_date:'не дата', confirm: true } });
+check('кривая дата отклонена', r.status === 400, JSON.stringify(r.data));
+
+r = await call('/api/admin/passengers/' + baby.passenger_id + '/birthdate', {
+  method:'POST', token: umida, body:{ birth_date:'2000-01-01', confirm: true } });
+check('агентству правка даты закрыта', r.status === 403, JSON.stringify(r.data));
+}
+
 console.log('\n--- отмена ---');
 r = await call('/api/bookings', { token: umida });
 const id = r.data[0].id;

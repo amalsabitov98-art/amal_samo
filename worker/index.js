@@ -24,6 +24,8 @@
  *   POST /api/admin/payments     провести оплату по брони
  *   POST /api/admin/bookings/:id/cancel          отменить бронь
  *   POST /api/admin/passengers/:id/document      исправить ФИО/паспорт
+ *   POST /api/admin/passengers/:id/birthdate     исправить дату рождения
+ *                                                (с пересчётом, в два шага)
  *   GET  /api/admin/bookings/:id/history   история изменений брони
  *   GET  /api/admin/agencies     список агентств
  *   POST /api/admin/agencies     завести агентство
@@ -961,6 +963,113 @@ async function notifyCancelRequest(env, r) {
  * выписан билет). В журнал пишем «было → стало», иначе спор «я так не писал»
  * не разрешить.
  */
+/*
+ * Исправление ДАТЫ РОЖДЕНИЯ. Отдельно от документа, потому что это по своей
+ * природе пересчёт: от даты зависит тариф (детский/взрослый по возрасту на
+ * дату ВЫЕЗДА), а у младенца до 2 лет ещё и occupies_seat = 0 — то есть
+ * меняются цена, число занятых мест и комиссия агентства.
+ *
+ * Работает в два шага, чтобы оператор не подписывался вслепую:
+ *   без confirm — только СЧИТАЕТ и возвращает, что изменится (ничего не пишет);
+ *   с confirm   — применяет. keep_price оставляет прежнюю цену пассажира,
+ *                 когда оператор не хочет двигать деньги из-за ошибки агента.
+ *
+ * Логика тарифа не дублируется в интерфейсе: предпросмотр считает тот же
+ * priceFor, что и запись, — показанное и сделанное разойтись не могут.
+ */
+async function updatePassengerBirthdate(request, env, actor, passengerId) {
+  const body = await request.json().catch(() => ({}));
+  const birth = String(body.birth_date || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
+    return fail("Дата рождения нужна в формате ГГГГ-ММ-ДД");
+  }
+
+  const pax = await env.DB.prepare(
+    `SELECT p.*, b.code AS booking_code, b.status, b.departure_id, b.total_price,
+            d.code AS departure_code, d.date_start
+       FROM passengers p
+       JOIN bookings b ON b.id = p.booking_id
+       JOIN departures d ON d.id = b.departure_id
+      WHERE p.id = ?`
+  ).bind(passengerId).first();
+  if (!pax) return fail("Пассажир не найден", 404);
+  if (pax.status !== "confirmed") return fail("Бронь отменена — правка не имеет смысла", 409);
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (pax.date_start <= today) return fail("Заезд уже начался — состав не меняется");
+
+  const departure = (await listDepartures(env, true)).find((d) => d.code === pax.departure_code);
+  if (!departure) return fail("Заезд не найден", 404);
+
+  const tariff = priceFor({ birth_date: birth, placement: pax.placement }, departure);
+  if (!tariff) return fail(`Нет цены на размещение ${pax.placement} для этого заезда`);
+
+  const keepPrice = body.keep_price === true;
+  const newPrice = keepPrice ? pax.price : tariff.price;
+  const seatDelta = tariff.occupies_seat - pax.occupies_seat;
+  const newTotal = pax.total_price - pax.price + newPrice;
+
+  const preview = {
+    passenger_id: pax.id,
+    booking_code: pax.booking_code,
+    full_name: pax.full_name,
+    birth_date: { from: pax.birth_date, to: birth },
+    tariff: { from: pax.price_code, to: tariff.code, label: tariff.label },
+    price: { from: pax.price, to: newPrice },
+    seats_delta: seatDelta,
+    total_price: { from: pax.total_price, to: newTotal },
+  };
+  // Без подтверждения НИЧЕГО не пишем — это предпросмотр последствий.
+  if (body.confirm !== true) return json({ preview: true, ...preview });
+
+  // Места двигаем тем же способом, что и правка состава: сначала занимаем
+  // (с проверкой, что заезд открыт), и только потом пишем пассажира.
+  if (seatDelta > 0) {
+    const claim = await env.DB.prepare(
+      `UPDATE departures SET seats_taken = seats_taken + ?
+        WHERE id = ? AND is_open = 1`
+    ).bind(seatDelta, pax.departure_id).run();
+    if (!claim.meta.changes) return fail("Заезд закрыт для продажи. Уточните у оператора.", 409);
+  } else if (seatDelta < 0) {
+    await env.DB.prepare("UPDATE departures SET seats_taken = seats_taken + ? WHERE id = ?")
+      .bind(seatDelta, pax.departure_id).run();
+  }
+
+  const seatsRow = await env.DB.prepare(
+    "SELECT COALESCE(SUM(occupies_seat), 0) AS n FROM passengers WHERE booking_id = ?"
+  ).bind(pax.booking_id).first();
+  const newSeats = seatsRow.n + seatDelta;
+  const commission = (departure.agency_commission || 0) * newSeats;
+
+  const details =
+    `дата рождения: ${pax.birth_date} → ${birth}` +
+    (tariff.code !== pax.price_code ? `; тариф: ${pax.price_code} → ${tariff.code}` : "") +
+    (newPrice !== pax.price ? `; цена: ${pax.price} → ${newPrice}` : "") +
+    (keepPrice && tariff.price !== pax.price ? " (цена оставлена прежней)" : "") +
+    (seatDelta !== 0 ? `; мест: ${seatDelta > 0 ? "+" : ""}${seatDelta}` : "");
+
+  try {
+    await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE passengers SET birth_date = ?, price_code = ?, price = ?, occupies_seat = ?
+          WHERE id = ?`
+      ).bind(birth, tariff.code, newPrice, tariff.occupies_seat, pax.id),
+      env.DB.prepare("UPDATE bookings SET total_price = ?, agency_commission = ? WHERE id = ?")
+        .bind(newTotal, commission, pax.booking_id),
+      logEvent(env, pax.booking_id, actor, "birthdate", details),
+    ]);
+  } catch (err) {
+    // запись не прошла — возвращаем места, иначе счётчик заезда «уедет»
+    if (seatDelta !== 0) {
+      await env.DB.prepare("UPDATE departures SET seats_taken = seats_taken - ? WHERE id = ?")
+        .bind(seatDelta, pax.departure_id).run();
+    }
+    throw err;
+  }
+
+  return json({ preview: false, changed: true, ...preview, agency_commission: commission });
+}
+
 async function updatePassengerDocument(request, env, actor, passengerId) {
   const body = await request.json().catch(() => ({}));
   const name = (body.full_name || "").trim();
@@ -1384,6 +1493,13 @@ async function route(request, env, ctx) {
         const doc = path.match(/^\/api\/admin\/passengers\/(\d+)\/document$/);
         if (doc && request.method === "POST") {
           return await updatePassengerDocument(request, env, agency, Number(doc[1]));
+        }
+
+        // Дата рождения — отдельно от документа: она двигает тариф, цену и
+        // места, поэтому идёт через предпросмотр (см. updatePassengerBirthdate).
+        const bd = path.match(/^\/api\/admin\/passengers\/(\d+)\/birthdate$/);
+        if (bd && request.method === "POST") {
+          return await updatePassengerBirthdate(request, env, agency, Number(bd[1]));
         }
 
         const adminCancel = path.match(/^\/api\/admin\/bookings\/(\d+)\/cancel$/);

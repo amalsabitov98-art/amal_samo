@@ -317,6 +317,59 @@
     return max + 1;
   }
 
+  /*
+   * Демо-двойник операторской правки даты рождения. Повторяет порядок
+   * воркера: считает новый тариф той же priceFor, без confirm только
+   * возвращает предпросмотр, с confirm — двигает цену, места и комиссию.
+   */
+  function demoBirthdate(passengerId, body) {
+    var s = demoState();
+    var booking = null, pax = null;
+    s.bookings.forEach(function (b) {
+      (b.passengers || []).forEach(function (p) {
+        if (p.id === passengerId) { booking = b; pax = p; }
+      });
+    });
+    if (!pax) return Promise.reject(new Error("Пассажир не найден"));
+    if (booking.status !== "confirmed") {
+      return Promise.reject(new Error("Бронь отменена — правка не имеет смысла"));
+    }
+    var d = s.departures.filter(function (x) { return x.code === booking.departure_code; })[0];
+    if (!d) return Promise.reject(new Error("Заезд не найден"));
+
+    var tariff = priceFor({ birth_date: body.birth_date, placement: pax.placement }, d);
+    if (!tariff) {
+      return Promise.reject(new Error("Нет цены на размещение " + pax.placement));
+    }
+    var newPrice = body.keep_price ? pax.price : tariff.price;
+    var seatDelta = tariff.occupies_seat - pax.occupies_seat;
+    var newTotal = booking.total_price - pax.price + newPrice;
+
+    var out = {
+      passenger_id: pax.id,
+      booking_code: booking.code,
+      full_name: pax.full_name,
+      birth_date: { from: pax.birth_date, to: body.birth_date },
+      tariff: { from: pax.price_code, to: tariff.code, label: tariff.label },
+      price: { from: pax.price, to: newPrice },
+      seats_delta: seatDelta,
+      total_price: { from: booking.total_price, to: newTotal },
+    };
+    if (!body.confirm) return Promise.resolve(Object.assign({ preview: true }, out));
+
+    pax.birth_date = body.birth_date;
+    pax.price_code = tariff.code;
+    pax.tariff = tariff.label;
+    pax.price = newPrice;
+    pax.occupies_seat = tariff.occupies_seat;
+    booking.total_price = newTotal;
+    booking.seats_used += seatDelta;
+    booking.agency_commission = (d.agency_commission || 0) * booking.seats_used;
+    d.seats_taken += seatDelta;
+    saveDemo(s);
+    return Promise.resolve(Object.assign({ preview: false, changed: true }, out));
+  }
+
   function demoCreateBooking(payload) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
@@ -599,6 +652,25 @@
       }
       return request("/api/admin/passengers/" + passengerId + "/document", {
         method: "POST", body: data,
+      });
+    },
+
+    /*
+     * Исправление даты рождения. В отличие от документа ВСЕГДА пересчитывает
+     * тариф, а с ним цену и число мест (младенец до 2 лет места не занимает).
+     * Поэтому два шага: без confirm сервер только считает и возвращает, что
+     * изменится; с confirm — применяет. keep_price оставляет прежнюю цену.
+     */
+    adminUpdateBirthdate: function (passengerId, birthDate, opts) {
+      opts = opts || {};
+      var body = {
+        birth_date: birthDate,
+        confirm: opts.confirm === true,
+        keep_price: opts.keepPrice === true,
+      };
+      if (!API_BASE) return demoBirthdate(passengerId, body);
+      return request("/api/admin/passengers/" + passengerId + "/birthdate", {
+        method: "POST", body: body,
       });
     },
 

@@ -1192,6 +1192,86 @@ console.log("\nПравка документа и отмена");
   // В демо валидация висит на интерфейсе, на сервере — в updatePassengerDocument.
   check("пустые ФИО/паспорт не улетают молча", typeof empty === "string", empty);
 
+  /* Дата рождения — не опечатка в документе, а пересчёт: от неё зависит
+   * тариф, а у младенца до 2 лет ещё и occupies_seat = 0. Проверяем самый
+   * показательный случай: младенца записали на год раньше, и он оказывается
+   * ребёнком с местом. Предпросмотр при этом НИЧЕГО писать не должен. */
+  const bd = await page.evaluate(async () => {
+    await window.TuronApi.login("umida", "turon2026");
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const babyBirth = new Date(new Date(d.date_start).getTime() - 300 * 86400000)
+      .toISOString().slice(0, 10);
+    const r = await window.TuronApi.createBooking({
+      departure_code: d.code,
+      passengers: [{
+        full_name: "МАЛЫШ ТЕСТ", birth_date: babyBirth, passport_number: "BB1",
+        passport_expiry: "2031-01-01", placement: "DBL",
+      }],
+    });
+    const mine = (await window.TuronApi.bookings())
+      .filter((x) => x.code === r.booking_code)[0];
+    const baby = mine.passengers[0];
+
+    await window.TuronApi.login("operator", "turon2026");
+    const before = await window.TuronApi.manifest(d.code);
+    const realBirth = new Date(new Date(d.date_start).getTime() - 6 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+
+    const pv = await window.TuronApi.adminUpdateBirthdate(baby.id, realBirth);
+    const afterPreview = await window.TuronApi.manifest(d.code);
+
+    await window.TuronApi.adminUpdateBirthdate(baby.id, realBirth, { confirm: true });
+    const afterApply = await window.TuronApi.manifest(d.code);
+
+    return {
+      wasInfant: baby.occupies_seat === 0,
+      pvIsPreview: pv.preview === true,
+      pvTariffChanged: pv.tariff.from !== pv.tariff.to,
+      pvSeats: pv.seats_delta,
+      previewWroteNothing:
+        afterPreview.summary.seats_used === before.summary.seats_used &&
+        afterPreview.summary.revenue === before.summary.revenue,
+      seatsGrew: afterApply.summary.seats_used === before.summary.seats_used + 1,
+      revenueGrew: afterApply.summary.revenue > before.summary.revenue,
+      code: r.booking_code, dep: d.code, paxId: baby.id,
+    };
+  });
+  check("младенец заведён без места", bd.wasInfant, JSON.stringify(bd));
+  check("предпросмотр НИЧЕГО не записывает", bd.previewWroteNothing, JSON.stringify(bd));
+  check("предпросмотр показывает смену тарифа и мест",
+        bd.pvIsPreview && bd.pvTariffChanged && bd.pvSeats === 1, JSON.stringify(bd));
+  check("после правки место занято", bd.seatsGrew, JSON.stringify(bd));
+  check("после правки сумма пересчитана", bd.revenueGrew, JSON.stringify(bd));
+
+  // keep_price — оператор решил не двигать деньги из-за ошибки агента.
+  const kept = await page.evaluate(async (ctx) => {
+    const back = new Date(new Date(ctx.dep0).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const before = await window.TuronApi.manifest(ctx.dep);
+    const p0 = before.passengers.filter((p) => p.passenger_id === ctx.paxId)[0];
+    await window.TuronApi.adminUpdateBirthdate(ctx.paxId, back,
+      { confirm: true, keepPrice: true });
+    const after = await window.TuronApi.manifest(ctx.dep);
+    const p1 = after.passengers.filter((p) => p.passenger_id === ctx.paxId)[0];
+    return { priceBefore: p0.price, priceAfter: p1.price, birth: p1.birth_date };
+  }, { dep: bd.dep, paxId: bd.paxId, dep0: (await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    return deps[0].date_start;
+  })) });
+  check("keep_price оставляет прежнюю цену",
+        kept.priceBefore === kept.priceAfter, JSON.stringify(kept));
+  check("но дата рождения всё равно исправлена",
+        !!kept.birth && kept.birth !== "", JSON.stringify(kept));
+
+  const badDate = await page.evaluate(async (paxId) => {
+    try {
+      await window.TuronApi.adminUpdateBirthdate(paxId, "не дата", { confirm: true });
+      return "прошло";
+    } catch (e) { return "отклонено"; }
+  }, bd.paxId);
+  check("кривая дата не проходит", typeof badDate === "string", badDate);
+
   // Отмена оператором: места возвращаются, статус меняется.
   const cancelled = await page.evaluate(async (id) => {
     const r = await window.TuronApi.adminCancelBooking(id);
