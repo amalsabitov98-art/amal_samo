@@ -285,7 +285,7 @@
 
     if (isOperator) {
       TuronAdmin.start();
-      loadOperatorNotices();   // колокольчик — просрочки по всем агентствам
+      startOperatorNoticePolling();
       return;
     }
 
@@ -441,6 +441,8 @@
       lastAppRoute = null;
       state.bookings = [];
       operatorNotices = null;
+      if (operatorNoticeTimer) window.clearInterval(operatorNoticeTimer);
+      operatorNoticeTimer = null;
       syncPublicAccount();
       navigate("#/", true);
     });
@@ -475,11 +477,18 @@
   $("notice-btn").addEventListener("click", function (e) {
     e.stopPropagation();
     var willOpen = $("notice-panel").hidden;
-    if (willOpen) renderNotices();
+    if (willOpen && session && TuronAdmin.isOperator(session)) loadOperatorNotices();
+    else if (willOpen) renderNotices();
     setNotices(willOpen);
   });
   $("notice-panel").addEventListener("click", function (e) {
     e.stopPropagation();
+    var booking = e.target.closest("[data-booking-code]");
+    if (booking && window.TuronAdmin) {
+      setNotices(false);
+      TuronAdmin.openBooking(booking.dataset.bookingCode);
+      return;
+    }
     var go = e.target.closest("[data-goto]");
     if (!go) return;
     setNotices(false);
@@ -1578,7 +1587,9 @@
             '<div class="tt-muted-note">' + formatDate(b.date_start) + " · " +
               (TRANSPORT[b.transport] || b.transport) + " · " + b.passengers_count + " чел.</div>" +
           "</div>" +
-          (cancelled ? '<span class="tt-badge tt-badge-off">Отменена</span>' : "") +
+          (cancelled ? '<span class="tt-badge tt-badge-off">Отменена</span>' :
+            (b.cancel_requested_at
+              ? '<span class="tt-badge tt-badge-cancel">Отмена запрошена</span>' : "")) +
         "</div>" +
         '<div class="tt-booking-money">' +
           '<div class="tt-sum-line"><span>Стоимость</span><strong>' + money(b.total_price) + "</strong></div>" +
@@ -1592,10 +1603,12 @@
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
-          (cancelled ? "" :
+          (cancelled || b.cancel_requested_at ? "" :
             // «Запросить», а не «Отменить»: саму отмену проводит оператор.
             '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
               '">Запросить отмену</button>') +
+          (!cancelled && b.cancel_requested_at
+            ? '<span class="tt-muted-note">Ожидает решения оператора</span>' : "") +
         "</div>" +
       "</article>"
     );
@@ -1645,7 +1658,7 @@
      */
     var days = TuronApi.FINAL_DAYS;
     var contact = "";
-    if (global.TuronProvisional && TuronProvisional.OPERATOR) {
+    if (window.TuronProvisional && window.TuronProvisional.OPERATOR) {
       contact = (TuronProvisional.OPERATOR.managers || [])
         .map(function (m) { return m.name + " " + m.phone; }).join("\n");
     }
@@ -1667,7 +1680,7 @@
     TuronApi.requestCancel(id).then(function (res) {
       flash("Заявка по брони " + res.booking_code +
         " отправлена — оператор свяжется с вами.");
-      btn.disabled = false;
+      loadBookings();
     }).catch(function (err) {
       alert(err.message);
       btn.disabled = false;
@@ -1771,24 +1784,63 @@
    */
   /* ------------------------------------------------------- уведомления
    * Колокольчик раньше был просто иконкой. Теперь собирает то, что
-   * агенту важно не пропустить, из уже загруженных броней:
-   * просроченные платежи, ближайшие выезды и проблемы с паспортами.
-   * Отдельного запроса нет — считаем по state.bookings.
+   * агенту важно не пропустить, из уже загруженных броней. Для оператора
+   * дополнительно читается общая лента действий агентств: новые брони,
+   * изменения состава и запросы отмены.
    */
-  // Уведомления оператора считаются по ВСЕМ броням (/api/admin/bookings),
-  // а не по личным — у оператора своих броней нет. Пока не загружены —
-  // null, тогда работает агентский режим ниже.
+  // Уведомления оператора считаются по всем броням и /api/admin/activity,
+  // а не по личным — у оператора своих броней нет. Пока не загружены — null,
+  // тогда работает агентский режим ниже.
   var operatorNotices = null;
+  var operatorNoticeTimer = null;
+
+  function startOperatorNoticePolling() {
+    if (operatorNoticeTimer) window.clearInterval(operatorNoticeTimer);
+    loadOperatorNotices();
+    // Заявка на отмену не должна ждать обновления страницы. Раз в 30 секунд
+    // перечитываем входящие действия агентств и актуальные риски по броням.
+    operatorNoticeTimer = window.setInterval(loadOperatorNotices, 30000);
+  }
+
+  function operatorActivityText(ev) {
+    var agency = ev.agency_name || ev.actor_name || "Агентство";
+    var code = ev.booking_code || "—";
+    if (ev.action === "created") {
+      return agency + " создало бронь " + code + (ev.details ? " · " + ev.details : "");
+    }
+    if (ev.action === "edited") {
+      return agency + " изменило состав брони " + code +
+        (ev.details ? " · " + ev.details : "");
+    }
+    if (ev.action === "cancel_requested") {
+      return agency + " запросило отмену брони " + code +
+        (ev.details && ev.details !== "агентство просит отменить бронь"
+          ? " · " + ev.details : "");
+    }
+    return agency + " · " + code + " · " + (ev.details || ev.action);
+  }
 
   function loadOperatorNotices() {
-    return TuronApi.adminBookings({ debtOnly: true, limit: 200 })
-      .then(function (res) {
+    return Promise.all([
+      TuronApi.adminBookings({ status: "confirmed", limit: 200 }),
+      TuronApi.adminActivity(50).catch(function () { return []; }),
+    ]).then(function (res) {
         var today = new Date().toISOString().slice(0, 10);
         var soon = new Date();
         soon.setDate(soon.getDate() + 7);
         var soonIso = soon.toISOString().slice(0, 10);
-        var out = [];
-        (res.items || []).forEach(function (b) {
+        var activity = res[1] || [];
+        if (window.TuronAdmin) TuronAdmin.setActivity(activity);
+        var out = activity.slice(0, 20).map(function (ev) {
+          var pendingCancel = ev.action === "cancel_requested" &&
+            ev.booking_status === "confirmed";
+          return {
+            kind: pendingCancel ? "cancel" : "activity",
+            bookingCode: ev.booking_code,
+            text: operatorActivityText(ev),
+          };
+        });
+        (res[0].items || []).forEach(function (b) {
           if (b.status === "cancelled") return;
           var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
           var lateSum = 0;
@@ -1798,16 +1850,19 @@
             if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
           });
           if (lateSum > 0) {
-            out.push({ kind: "late", text: "Просрочен платёж: " +
+            out.push({ kind: "late", bookingCode: b.code, text: "Просрочен платёж: " +
               (b.agency_name || "агентство") + " · " + b.code + " — " + money(lateSum) });
           }
           if (b.date_start >= today && b.date_start <= soonIso) {
-            out.push({ kind: "soon", text: "Выезд " + formatDate(b.date_start) + " · " +
+            out.push({ kind: "soon", bookingCode: b.code,
+              text: "Выезд " + formatDate(b.date_start) + " · " +
               (b.agency_name || "") + " · " + b.code +
               (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
           }
         });
-        var order = { late: 0, soon: 1 };
+        // Необработанные отмены всегда наверху, затем остальные свежие
+        // действия агентств и уже после них расчётные предупреждения.
+        var order = { cancel: 0, activity: 1, late: 2, soon: 3 };
         out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
         operatorNotices = out;
         renderNotices();
@@ -1877,23 +1932,24 @@
     if (button) {
       button.classList.toggle("has-notices", list.length > 0);
       button.setAttribute("aria-label", list.length
-        ? "Уведомления: " + list.length + " новых"
+        ? "Уведомления: " + list.length
         : "Уведомлений нет");
     }
 
-    var icons = { late: "!", soon: "✈", pass: "▣" };
+    var icons = { cancel: "×", activity: "↗", late: "!", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
       ? '<div class="tt-notice-head">Уведомления<span>' + list.length + "</span></div>" +
         '<ul class="tt-notice-list">' + list.map(function (n) {
-          return '<li class="is-' + n.kind + '"><b>' + icons[n.kind] + "</b>" +
+          return '<li class="is-' + n.kind + '"' +
+            (n.bookingCode ? ' data-booking-code="' + esc(n.bookingCode) + '"' : "") +
+            '><b>' + icons[n.kind] + "</b>" +
             esc(n.text) + "</li>";
         }).join("") + "</ul>" +
         (operatorNotices
-          ? '<button type="button" class="tt-notice-go" data-goto="admin-bookings">Открыть все брони</button>'
+          ? '<button type="button" class="tt-notice-go" data-goto="overview">Открыть ленту действий</button>'
           : '<button type="button" class="tt-notice-go" data-goto="payments">Перейти к платежам</button>')
       : '<div class="tt-notice-head">Уведомления</div>' +
-        '<p class="tt-notice-empty">Всё в порядке: просрочек нет, ' +
-        "ближайших выездов на этой неделе тоже.</p>";
+        '<p class="tt-notice-empty">Новых действий и предупреждений нет.</p>';
   }
 
   function renderPayments() {

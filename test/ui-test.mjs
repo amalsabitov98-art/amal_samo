@@ -960,8 +960,27 @@ console.log("\nОператор — обзор, карточки заездов,
 
   const statsText = await page.locator("#ov-stats").innerText();
   check("сводные цифры на «Обзоре» посчитаны", /\d/.test(statsText), statsText);
+  const activityText = await page.locator("#ov-activity").innerText();
+  check("на «Обзоре» видна лента действий агентств",
+        /создана|изменён состав|запрошена отмена/.test(activityText), activityText);
+  check("запрос отмены выделен как требующий решения",
+        (await page.locator("#ov-activity .is-cancel-request").count()) > 0);
   check("блок «Кто должен» отрисован", await page.locator("#ov-debtors").isVisible());
   check("блок «Ближайшие заезды» отрисован", await page.locator("#ov-departures").isVisible());
+
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  const cancelNotice = page.locator("#notice-panel .is-cancel").first();
+  check("запрос отмены сразу попадает в колокольчик", (await cancelNotice.count()) === 1,
+        await page.locator("#notice-panel").innerText());
+  if (await cancelNotice.count()) {
+    const code = await cancelNotice.getAttribute("data-booking-code");
+    await cancelNotice.click();
+    await page.waitForTimeout(500);
+    check("уведомление ведёт к нужной брони",
+          await page.locator("#panel-admin-bookings").isVisible() &&
+          (await page.inputValue("#ab-query")) === code, code);
+  }
 
   await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
   await page.waitForTimeout(500);
@@ -1363,9 +1382,28 @@ console.log("\nПравка документа и отмена");
   check("у агентства кнопка «Запросить отмену», а не «Отменить»",
         listText.includes("Запросить отмену") && !/(^|\s)Отменить(\s|$)/.test(listText));
 
+  // Проверяем именно пользовательский путь: клик должен открыть системное
+  // подтверждение и после согласия отправить заявку через TuronApi.
+  let cancelDialog = "";
+  page.once("dialog", async (dialog) => {
+    cancelDialog = dialog.message();
+    await dialog.accept();
+  });
+  await page.locator('#bookings-list [data-cancel="' + made.id + '"]').click();
+  await page.waitForTimeout(200);
+  check("кнопка показывает условия отмены",
+        cancelDialog.includes("Отправить оператору заявку на отмену брони " + made.code),
+        cancelDialog);
+  check("после клика показано подтверждение отправки",
+        (await page.locator(".tt-flash").last().innerText()).includes(made.code));
+  await page.waitForTimeout(300);
+  const requestedRow = page.locator('#bookings-list .tt-booking', { hasText: made.code });
+  check("агентство видит статус отправленной заявки",
+        (await requestedRow.getByText("Отмена запрошена").count()) === 1 &&
+        (await requestedRow.locator("[data-cancel]").count()) === 0);
+
   // Заявка НИЧЕГО не отменяет: бронь остаётся в силе до решения оператора.
   const afterRequest = await page.evaluate(async (id) => {
-    await window.TuronApi.requestCancel(id, "клиент передумал");
     const list = await window.TuronApi.bookings();
     return (list.filter((b) => b.id === id)[0] || {}).status;
   }, made.id);

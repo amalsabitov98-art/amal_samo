@@ -20,6 +20,7 @@
  *
  * Только для роли operator (сотрудник туроператора):
  *   GET  /api/admin/bookings     брони всех агентств
+ *   GET  /api/admin/activity     входящие действия агентств по всем броням
  *   GET  /api/admin/manifest     список пассажиров заезда (замена ведомости)
  *   POST /api/admin/payments     провести оплату по брони
  *   POST /api/admin/bookings/:id/cancel          отменить бронь
@@ -702,7 +703,7 @@ async function createBooking(request, env, agency, ctx) {
     );
     await env.DB.batch(inserts.concat([
       logEvent(env, booking.id, agency, "created",
-               `${priced.length} чел., ${total} USD`),
+               `${priced.length} чел.: ${priced.map((p) => p.full_name.trim()).join(", ")}; ${total} USD`),
     ]));
 
     // Уведомление в Telegram оператору — фоном, чтобы ответ клиенту не ждал
@@ -806,7 +807,7 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
       env.DB.prepare("UPDATE bookings SET total_price = ?, agency_commission = ? WHERE id = ?")
         .bind(total, commission, bookingId),
       logEvent(env, bookingId, agency, "edited",
-               `стало ${priced.length} чел., ${total} USD`),
+               `состав: ${priced.map((p) => p.full_name.trim()).join(", ")}; ${total} USD`),
     ];
     await env.DB.batch(statements);
   } catch (err) {
@@ -840,6 +841,8 @@ async function listBookings(env, agency) {
             b.created_at, b.note,
             d.code AS departure_code, d.date_start, d.transport,
             (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
+            (SELECT MAX(ce.created_at) FROM booking_events ce
+              WHERE ce.booking_id = b.id AND ce.action = 'cancel_requested') AS cancel_requested_at,
             COALESCE((SELECT SUM(amount) FROM payments pay WHERE pay.booking_id = b.id), 0) AS paid
        FROM bookings b JOIN departures d ON d.id = b.departure_id
       WHERE b.agency_id = ?
@@ -904,6 +907,16 @@ async function requestCancel(request, env, agency, bookingId, ctx) {
       WHERE b.id = ? AND b.agency_id = ? AND b.status = 'confirmed'`
   ).bind(bookingId, agency.id).first();
   if (!booking) return fail("Бронь не найдена или уже отменена", 404);
+
+  // Повторный клик не создаёт ещё одну заявку и ещё одно Telegram-сообщение.
+  // Пока бронь confirmed, существующий cancel_requested и есть открытая
+  // заявка. После решения оператора бронь станет cancelled и сюда не попадёт.
+  const existing = await env.DB.prepare(
+    "SELECT id FROM booking_events WHERE booking_id = ? AND action = 'cancel_requested' LIMIT 1"
+  ).bind(booking.id).first();
+  if (existing) {
+    return json({ booking_code: booking.code, requested: true, already_requested: true });
+  }
 
   // Причина необязательна — агент может просто нажать кнопку. Пустое или
   // битое тело запроса не должно ронять заявку, поэтому читаем мягко.
@@ -1185,6 +1198,10 @@ async function adminBookings(env, params) {
   if (params.status === "confirmed" || params.status === "cancelled") {
     conditions.push("b.status = ?");
     values.push(params.status);
+  } else if (params.status === "cancel_requested") {
+    conditions.push(`b.status = 'confirmed' AND EXISTS (
+      SELECT 1 FROM booking_events ce
+       WHERE ce.booking_id = b.id AND ce.action = 'cancel_requested')`);
   }
   if (params.debtOnly) {
     conditions.push(`b.status = 'confirmed' AND b.total_price >
@@ -1217,6 +1234,8 @@ async function adminBookings(env, params) {
             a.name AS agency_name,
             d.code AS departure_code, d.date_start, d.transport,
             (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
+            (SELECT MAX(ce.created_at) FROM booking_events ce
+              WHERE ce.booking_id = b.id AND ce.action = 'cancel_requested') AS cancel_requested_at,
             COALESCE((SELECT SUM(amount) FROM payments pay
                        WHERE pay.booking_id = b.id), 0) AS paid
        FROM bookings b
@@ -1235,6 +1254,36 @@ async function adminBookings(env, params) {
       ...b, balance: Math.round((b.total_price - b.paid) * 100) / 100,
     })),
   };
+}
+
+/*
+ * Единая лента действий агентств для операторского «Обзора» и колокольчика.
+ * Журнал по одной брони уже был, но оператору приходилось сначала знать,
+ * какую бронь открыть. Здесь те же события собраны поперёк всех броней.
+ * Действия оператора намеренно не попадают в эту ленту: это входящая очередь
+ * от агентств, а не полный системный аудит.
+ */
+async function adminActivity(env, limit) {
+  const size = Math.min(Math.max(Number(limit) || 50, 1), 100);
+  const rows = await env.DB.prepare(
+    `SELECT e.id, e.booking_id, e.actor_name, e.action, e.details, e.created_at,
+            b.code AS booking_code, b.status AS booking_status, b.total_price,
+            owner.name AS agency_name,
+            d.code AS departure_code, d.date_start,
+            (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count
+       FROM booking_events e
+       JOIN agencies actor ON actor.id = e.actor_id AND actor.role = 'agency'
+       JOIN bookings b ON b.id = e.booking_id
+       JOIN agencies owner ON owner.id = b.agency_id
+       JOIN departures d ON d.id = b.departure_id
+      ORDER BY CASE
+                 WHEN e.action = 'cancel_requested' AND b.status = 'confirmed' THEN 0
+                 ELSE 1
+               END,
+               e.created_at DESC, e.id DESC
+      LIMIT ?`
+  ).bind(size).all();
+  return rows.results;
 }
 
 async function addPayment(request, env, actor) {
@@ -1444,6 +1493,9 @@ async function route(request, env, ctx) {
             limit: q.get("limit"),
             offset: q.get("offset"),
           }));
+        }
+        if (path === "/api/admin/activity" && request.method === "GET") {
+          return json(await adminActivity(env, url.searchParams.get("limit")));
         }
         if (path === "/api/admin/manifest" && request.method === "GET") {
           const data = await manifest(env, url.searchParams.get("departure"));

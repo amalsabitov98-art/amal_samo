@@ -292,9 +292,42 @@ check('заявка на отмену принята', r.status === 200 && r.dat
 r = await call('/api/bookings', { token: umida });
 check('заявка не отменяет бронь сама',
       r.data.find(b => b.id === id).status === 'confirmed');
+check('агентство видит, что заявка уже отправлена',
+      !!r.data.find(b => b.id === id).cancel_requested_at,
+      JSON.stringify(r.data.find(b => b.id === id)));
+r = await call('/api/bookings/' + id + '/cancel-request', {
+  method:'POST', token: umida, body:{ reason:'повторный клик' } });
+check('повторный клик не создаёт вторую заявку',
+      r.status === 200 && r.data.already_requested === true, JSON.stringify(r.data));
+
+r = await call('/api/admin/bookings?status=cancel_requested', { token: op });
+check('заявка видна отдельным фильтром оператору',
+      r.status === 200 && r.data.items.some(b => b.id === id && b.cancel_requested_at),
+      JSON.stringify(r.data));
+
+r = await call('/api/admin/activity?limit=50', { token: op });
+const activity = r.data;
+check('оператор видит общую ленту действий агентств',
+      r.status === 200 && Array.isArray(activity) && activity.length > 0,
+      JSON.stringify(activity).slice(0, 180));
+check('в общей ленте есть создание, правка и запрос отмены',
+      ['created', 'edited', 'cancel_requested'].every(action =>
+        activity.some(e => e.action === action)),
+      JSON.stringify(activity.map(e => e.action)));
+check('в ленте видно, каких туристов внесло агентство',
+      activity.some(e => e.action === 'created' && e.details.includes('ADULT ONE')),
+      JSON.stringify(activity.find(e => e.action === 'created')));
+check('операторские платежи не смешаны с входящими действиями агентств',
+      !activity.some(e => e.action === 'payment'),
+      JSON.stringify(activity.map(e => e.action)));
+r = await call('/api/admin/activity', { token: umida });
+check('агентству общая лента закрыта', r.status === 403, JSON.stringify(r.data));
 
 r = await call('/api/admin/bookings/' + id + '/cancel', { method:'POST', token: op });
 check('оператор отменил бронь', r.status === 200 && r.data.released_seats === 2, JSON.stringify(r.data));
+r = await call('/api/admin/bookings?status=cancel_requested', { token: op });
+check('обработанная отмена ушла из входящей очереди',
+      !r.data.items.some(b => b.id === id), JSON.stringify(r.data.items));
 r = await call('/api/departures', { token: umida });
 check('места вернулись', r.data.find(d=>d.code==='TZX2808').seats_free === freeBefore);
 r = await call('/api/admin/bookings/' + id + '/cancel', { method:'POST', token: op });
@@ -316,6 +349,9 @@ check('в правке видно было → стало',
       (log.find(e => e.action === 'passport') || {}).details?.includes('→'),
       JSON.stringify((log.find(e => e.action === 'passport') || {}).details));
 check('заявка на отмену записана', log.some(e => e.action === 'cancel_requested'),
+      JSON.stringify(log.map(e=>e.action)));
+check('запрос отмены в журнале только один',
+      log.filter(e => e.action === 'cancel_requested').length === 1,
       JSON.stringify(log.map(e=>e.action)));
 check('причина отмены сохранена',
       (log.find(e => e.action === 'cancel_requested') || {}).details === 'клиент передумал',

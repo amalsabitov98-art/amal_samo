@@ -17,7 +17,7 @@
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
     // неполной, и это явно подписывается на экране, а не замалчивается.
-    confirmedAll: [], confirmedTotal: 0,
+    confirmedAll: [], confirmedTotal: 0, activity: [],
   };
   var AGGREGATE_LIMIT = 200;
 
@@ -77,6 +77,32 @@
   function formatDate(iso) {
     if (!iso) return "";
     return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+
+  // date_start — календарная дата без времени. Разбираем её как UTC,
+  // чтобы в часовом поясе оператора она не перепрыгнула на соседний день.
+  function calendarDate(iso) {
+    if (!iso) return null;
+    var d = new Date(iso + "T00:00:00Z");
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDepartureDay(iso) {
+    var d = calendarDate(iso);
+    if (!d) return iso || "";
+    var text = d.toLocaleDateString("ru-RU", {
+      weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+    });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function plural(n, one, few, many) {
+    var mod100 = Math.abs(n) % 100;
+    var mod10 = mod100 % 10;
+    if (mod100 > 10 && mod100 < 20) return many;
+    if (mod10 === 1) return one;
+    if (mod10 > 1 && mod10 < 5) return few;
+    return many;
   }
 
   // ------------------------------------------------------------- выгрузка
@@ -411,10 +437,16 @@
   // Единый срез подтверждённых броней для дашборда и статистики агентств —
   // второй запрос не нужен, оба экрана считают из одного и того же массива.
   function loadOverviewData() {
-    return TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT })
-      .then(function (res) {
-        state.confirmedAll = res.items;
-        state.confirmedTotal = res.total;
+    return Promise.all([
+      TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT }),
+      // Во время поэтапного деплоя старый воркер может ещё не знать новый
+      // маршрут. Сводку броней не роняем целиком — лента появится после
+      // обновления API при следующей перезагрузке.
+      TuronApi.adminActivity(50).catch(function () { return []; }),
+    ]).then(function (res) {
+        state.confirmedAll = res[0].items;
+        state.confirmedTotal = res[0].total;
+        state.activity = res[1] || [];
         renderOverview();
       })
       .catch(function (err) {
@@ -436,6 +468,105 @@
     $("ab-debt").checked = true;
     loadAdminBookings(true);
     jumpToTab("admin-bookings");
+  }
+
+  function openBooking(code) {
+    $("ab-query").value = code || "";
+    $("ab-agency").value = "";
+    $("ab-departure").value = "";
+    $("ab-status").value = "";
+    $("ab-debt").checked = false;
+    jumpToTab("admin-bookings");
+    loadAdminBookings(true);
+  }
+
+  function departureUrgency(date, today) {
+    var start = calendarDate(date);
+    var base = calendarDate(today);
+    var days = start && base ? Math.round((start - base) / 86400000) : 0;
+    if (days === 0) return { label: "Сегодня", className: "is-today" };
+    if (days === 1) return { label: "Завтра", className: "is-tomorrow" };
+    return { label: "Через " + days + " " + plural(days, "день", "дня", "дней"), className: "is-soon" };
+  }
+
+  function renderUpcomingDepartures(departures, bookings, pendingCancel, today, truncated) {
+    if (!departures.length) {
+      return '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    }
+
+    var byDeparture = {};
+    bookings.forEach(function (b) {
+      var key = b.departure_code || "";
+      if (!byDeparture[key]) byDeparture[key] = [];
+      byDeparture[key].push(b);
+    });
+
+    var byDay = {};
+    departures.forEach(function (d) {
+      if (!byDay[d.date_start]) byDay[d.date_start] = [];
+      byDay[d.date_start].push(d);
+    });
+
+    var groups = Object.keys(byDay).sort().map(function (date) {
+      var urgency = departureUrgency(date, today);
+      var rows = byDay[date].map(function (d) {
+        var list = byDeparture[d.code] || [];
+        var pax = list.reduce(function (sum, b) { return sum + (Number(b.passengers_count) || 0); }, 0);
+        var sold = list.reduce(function (sum, b) { return sum + (Number(b.total_price) || 0); }, 0);
+        var paid = list.reduce(function (sum, b) { return sum + (Number(b.paid) || 0); }, 0);
+        var debt = list.reduce(function (sum, b) { return sum + Math.max(0, Number(b.balance) || 0); }, 0);
+        var agencies = {};
+        var cancels = 0;
+        list.forEach(function (b) {
+          agencies[b.agency_name || "—"] = true;
+          if (b.cancel_requested_at || pendingCancel[b.id]) cancels++;
+        });
+        var agencyCount = Object.keys(agencies).length;
+        var paidShare = sold > 0 ? Math.max(0, Math.min(100, Math.round(paid / sold * 100))) : 0;
+        var title = d.tour_name || d.tour_code || d.code;
+        var route = [d.code, TRANSPORT[d.transport] || d.transport, d.destination]
+          .filter(Boolean).join(" · ");
+        var stateClass = cancels ? " has-cancel" : (debt > 0 ? " has-debt" : " is-ready");
+
+        return '<button type="button" class="tt-ops-departure ' + stateClass +
+          '" data-departure="' + esc(d.code) + '">' +
+          '<span class="tt-ops-departure-main"><strong>' + esc(title) + '</strong>' +
+            '<small>' + esc(route) + '</small></span>' +
+          '<span class="tt-ops-counts" aria-label="Загрузка заезда">' +
+            '<span><b>' + list.length + '</b><small>Брони</small></span>' +
+            '<span><b>' + pax + '</b><small>Туристы</small></span>' +
+            '<span><b>' + agencyCount + '</b><small>Агентства</small></span>' +
+          '</span>' +
+          '<span class="tt-ops-finance">' +
+            '<span><small>Продано</small><b>' + money(sold) + '</b></span>' +
+            '<span><small>Оплачено</small><b>' + money(paid) + '</b></span>' +
+            '<span class="tt-ops-debt"><small>Долг</small><b>' + money(debt) + '</b></span>' +
+            '<i class="tt-ops-progress" title="Оплачено ' + paidShare + '%"><em style="width:' + paidShare + '%"></em></i>' +
+          '</span>' +
+          '<span class="tt-ops-flags">' +
+            (cancels
+              ? '<span class="tt-badge tt-badge-cancel">' + cancels + ' ' +
+                  plural(cancels, "отмена", "отмены", "отмен") + '</span>'
+              : (debt > 0
+                ? '<span class="tt-badge tt-badge-info">Есть долг</span>'
+                : '<span class="tt-badge">Оплачено</span>')) +
+            '<span class="tt-ops-open" aria-hidden="true">→</span>' +
+          '</span>' +
+        '</button>';
+      }).join("");
+
+      return '<section class="tt-ops-day ' + urgency.className + '">' +
+        '<header class="tt-ops-day-head"><div><strong>' + urgency.label + '</strong>' +
+          '<span>' + esc(formatDepartureDay(date)) + '</span></div>' +
+          '<small>' + byDay[date].length + ' ' +
+            plural(byDay[date].length, "заезд", "заезда", "заездов") + '</small></header>' +
+        '<div class="tt-ops-departure-list">' + rows + '</div></section>';
+    }).join("");
+
+    return (truncated
+      ? '<div class="tt-ops-data-warning">Финансовая сводка показана по последним ' +
+          bookings.length + ' из ' + state.confirmedTotal + ' броней.</div>'
+      : "") + '<div class="tt-ops-days">' + groups + '</div>';
   }
 
   function renderOverview() {
@@ -474,6 +605,12 @@
     var debtors = Object.keys(debtByAgency).map(function (k) { return debtByAgency[k]; })
       .sort(function (a, b) { return b.debt - a.debt; });
     var totalDebt = debtors.reduce(function (s, a) { return s + a.debt; }, 0);
+    var pendingCancel = {};
+    state.activity.forEach(function (ev) {
+      if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+        pendingCancel[ev.booking_id] = true;
+      }
+    });
 
     $("ov-stats").innerHTML =
       '<div class="tt-earnings">' +
@@ -483,6 +620,9 @@
           money(totalDebt) + "</strong></div>" +
         '<div><span>Просроченных этапов</span><strong' +
           (overdueSteps > 0 ? ' class="tt-owed-value"' : "") + ">" + overdueSteps + "</strong></div>" +
+        '<div><span>Заявок на отмену</span><strong' +
+          (Object.keys(pendingCancel).length ? ' class="tt-cancel-value"' : "") + ">" +
+          Object.keys(pendingCancel).length + "</strong></div>" +
       "</div>" +
       (truncated
         ? '<div class="tt-muted-note">Сводка по последним ' + bookings.length + " из " +
@@ -500,25 +640,26 @@
           }).join("") + "</tbody></table></div>"
       : '<div class="tt-empty-state">Долгов нет.</div>';
 
-    $("ov-departures").innerHTML = weekDeps.length
-      ? '<div class="tt-op-dep-grid">' +
-          weekDeps.slice(0, 6).map(function (d) { return opDepCardHtml(d, false); }).join("") +
-        "</div>"
-      : '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    $("ov-departures").innerHTML = renderUpcomingDepartures(
+      weekDeps, bookings, pendingCancel, today, truncated
+    );
 
-    var recentSorted = recent24h.slice().sort(function (a, b) {
-      return b.created_at < a.created_at ? -1 : 1;
-    });
-    $("ov-recent").innerHTML = recentSorted.length
+    $("ov-activity").innerHTML = state.activity.length
       ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +
-          "<th>Время</th><th>Бронь</th><th>Агентство</th><th>Заезд</th><th>Сумма</th>" +
+          "<th>Время</th><th>Действие</th><th>Агентство</th><th>Бронь</th><th>Подробности</th>" +
           "</tr></thead><tbody>" +
-          recentSorted.map(function (b) {
-            return "<tr><td>" + formatDateTime(b.created_at) + "</td><td>" + esc(b.code) +
-              "</td><td>" + esc(b.agency_name) + "</td><td>" + formatDate(b.date_start) +
-              "</td><td>" + money(b.total_price) + "</td></tr>";
+          state.activity.map(function (ev) {
+            var cancel = ev.action === "cancel_requested" && ev.booking_status === "confirmed";
+            return '<tr class="tt-row-link tt-activity-row' + (cancel ? " is-cancel-request" : "") +
+              '" data-activity-booking="' + esc(ev.booking_code) + '">' +
+              "<td>" + formatDateTime(ev.created_at) + "</td>" +
+              "<td><strong>" + esc(ACTION_LABELS[ev.action] || ev.action) + "</strong>" +
+                (cancel ? '<span class="tt-badge tt-badge-cancel">Требует решения</span>' : "") +
+              "</td><td>" + esc(ev.agency_name || ev.actor_name) + "</td>" +
+              "<td>" + esc(ev.booking_code) + "</td>" +
+              '<td class="tt-muted-note">' + esc(ev.details || "—") + "</td></tr>";
           }).join("") + "</tbody></table></div>"
-      : '<div class="tt-empty-state">За последние сутки новых броней нет.</div>';
+      : '<div class="tt-empty-state">Действий агентств пока нет.</div>';
   }
 
   // ---------------------------------------------------------------- брони
@@ -544,6 +685,8 @@
         '<article class="tt-booking' + (cancelled ? " is-cancelled" : "") + '">' +
           "<div>" +
             "<strong>" + esc(b.code) + "</strong>" +
+            (b.cancel_requested_at && !cancelled
+              ? ' <span class="tt-badge tt-badge-cancel">Запрошена отмена</span>' : "") +
             '<div class="tt-muted-note">' + esc(b.agency_name) + " · " +
               formatDate(b.date_start) + " · " + b.passengers_count + " чел." +
               (cancelled ? " · отменена" : "") + "</div>" +
@@ -564,7 +707,8 @@
             (cancelled ? "" :
               '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
                 '" data-code="' + esc(b.code) + '" data-total="' + b.total_price +
-                '" data-date="' + esc(b.date_start) + '">Отменить</button>') +
+                '" data-date="' + esc(b.date_start) + '">' +
+                (b.cancel_requested_at ? "Обработать отмену" : "Отменить") + "</button>") +
           "</div>" +
           '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
@@ -593,8 +737,27 @@
     filters.limit = state.pageSize;
     filters.offset = state.page * state.pageSize;
     return TuronApi.adminBookings(filters).then(function (res) {
+      var pending = {};
+      state.activity.forEach(function (ev) {
+        if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+          pending[ev.booking_id] = ev.created_at;
+        }
+      });
+      var items = res.items || [];
+      var serverHasCancelField = items.some(function (b) {
+        return Object.prototype.hasOwnProperty.call(b, "cancel_requested_at");
+      });
+      items.forEach(function (b) {
+        if (!b.cancel_requested_at && pending[b.id]) b.cancel_requested_at = pending[b.id];
+      });
+      // Старый воркер ещё не понимает status=cancel_requested и отдаёт все
+      // брони. Лента действий позволяет отфильтровать их на клиенте.
+      if (filters.status === "cancel_requested" && !serverHasCancelField) {
+        items = items.filter(function (b) { return !!pending[b.id]; });
+        res.total = items.length;
+      }
       state.total = res.total;
-      renderAdminBookings(res.items);
+      renderAdminBookings(items);
       $("adm-bookings-count").textContent = res.total
         ? "Показано " + Math.min(filters.offset + res.items.length, res.total) +
           " из " + res.total
@@ -703,6 +866,10 @@
     $("ov-debtors").addEventListener("click", function (e) {
       var row = e.target.closest("[data-jump-agency]");
       if (row) jumpToAgencyDebt(row.dataset.jumpAgency);
+    });
+    $("ov-activity").addEventListener("click", function (e) {
+      var row = e.target.closest("[data-activity-booking]");
+      if (row) openBooking(row.dataset.activityBooking);
     });
 
     ["ab-agency", "ab-departure", "ab-status", "ab-debt"].forEach(function (id) {
@@ -1028,6 +1195,11 @@
 
   var Admin = {
     isOperator: function (agency) { return agency && agency.role === "operator"; },
+    openBooking: openBooking,
+    setActivity: function (activity) {
+      state.activity = activity || [];
+      if ($("ov-activity") && state.confirmedAll.length) renderOverview();
+    },
 
     start: function () {
       document.body.classList.add("is-operator");
