@@ -79,6 +79,32 @@
     return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
+  // date_start — календарная дата без времени. Разбираем её как UTC,
+  // чтобы в часовом поясе оператора она не перепрыгнула на соседний день.
+  function calendarDate(iso) {
+    if (!iso) return null;
+    var d = new Date(iso + "T00:00:00Z");
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDepartureDay(iso) {
+    var d = calendarDate(iso);
+    if (!d) return iso || "";
+    var text = d.toLocaleDateString("ru-RU", {
+      weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+    });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function plural(n, one, few, many) {
+    var mod100 = Math.abs(n) % 100;
+    var mod10 = mod100 % 10;
+    if (mod100 > 10 && mod100 < 20) return many;
+    if (mod10 === 1) return one;
+    if (mod10 > 1 && mod10 < 5) return few;
+    return many;
+  }
+
   // ------------------------------------------------------------- выгрузка
   // Колонки и их порядок — как в ведомости, включая узбекские заголовки:
   // менеджер открывает файл и видит привычную таблицу.
@@ -456,6 +482,95 @@
     loadAdminBookings(true);
   }
 
+  function departureUrgency(date, today) {
+    var start = calendarDate(date);
+    var base = calendarDate(today);
+    var days = start && base ? Math.round((start - base) / 86400000) : 0;
+    if (days === 0) return { label: "Сегодня", className: "is-today" };
+    if (days === 1) return { label: "Завтра", className: "is-tomorrow" };
+    return { label: "Через " + days + " " + plural(days, "день", "дня", "дней"), className: "is-soon" };
+  }
+
+  function renderUpcomingDepartures(departures, bookings, pendingCancel, today, truncated) {
+    if (!departures.length) {
+      return '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    }
+
+    var byDeparture = {};
+    bookings.forEach(function (b) {
+      var key = b.departure_code || "";
+      if (!byDeparture[key]) byDeparture[key] = [];
+      byDeparture[key].push(b);
+    });
+
+    var byDay = {};
+    departures.forEach(function (d) {
+      if (!byDay[d.date_start]) byDay[d.date_start] = [];
+      byDay[d.date_start].push(d);
+    });
+
+    var groups = Object.keys(byDay).sort().map(function (date) {
+      var urgency = departureUrgency(date, today);
+      var rows = byDay[date].map(function (d) {
+        var list = byDeparture[d.code] || [];
+        var pax = list.reduce(function (sum, b) { return sum + (Number(b.passengers_count) || 0); }, 0);
+        var sold = list.reduce(function (sum, b) { return sum + (Number(b.total_price) || 0); }, 0);
+        var paid = list.reduce(function (sum, b) { return sum + (Number(b.paid) || 0); }, 0);
+        var debt = list.reduce(function (sum, b) { return sum + Math.max(0, Number(b.balance) || 0); }, 0);
+        var agencies = {};
+        var cancels = 0;
+        list.forEach(function (b) {
+          agencies[b.agency_name || "—"] = true;
+          if (b.cancel_requested_at || pendingCancel[b.id]) cancels++;
+        });
+        var agencyCount = Object.keys(agencies).length;
+        var paidShare = sold > 0 ? Math.max(0, Math.min(100, Math.round(paid / sold * 100))) : 0;
+        var title = d.tour_name || d.tour_code || d.code;
+        var route = [d.code, TRANSPORT[d.transport] || d.transport, d.destination]
+          .filter(Boolean).join(" · ");
+        var stateClass = cancels ? " has-cancel" : (debt > 0 ? " has-debt" : " is-ready");
+
+        return '<button type="button" class="tt-ops-departure ' + stateClass +
+          '" data-departure="' + esc(d.code) + '">' +
+          '<span class="tt-ops-departure-main"><strong>' + esc(title) + '</strong>' +
+            '<small>' + esc(route) + '</small></span>' +
+          '<span class="tt-ops-counts" aria-label="Загрузка заезда">' +
+            '<span><b>' + list.length + '</b><small>Брони</small></span>' +
+            '<span><b>' + pax + '</b><small>Туристы</small></span>' +
+            '<span><b>' + agencyCount + '</b><small>Агентства</small></span>' +
+          '</span>' +
+          '<span class="tt-ops-finance">' +
+            '<span><small>Продано</small><b>' + money(sold) + '</b></span>' +
+            '<span><small>Оплачено</small><b>' + money(paid) + '</b></span>' +
+            '<span class="tt-ops-debt"><small>Долг</small><b>' + money(debt) + '</b></span>' +
+            '<i class="tt-ops-progress" title="Оплачено ' + paidShare + '%"><em style="width:' + paidShare + '%"></em></i>' +
+          '</span>' +
+          '<span class="tt-ops-flags">' +
+            (cancels
+              ? '<span class="tt-badge tt-badge-cancel">' + cancels + ' ' +
+                  plural(cancels, "отмена", "отмены", "отмен") + '</span>'
+              : (debt > 0
+                ? '<span class="tt-badge tt-badge-info">Есть долг</span>'
+                : '<span class="tt-badge">Оплачено</span>')) +
+            '<span class="tt-ops-open" aria-hidden="true">→</span>' +
+          '</span>' +
+        '</button>';
+      }).join("");
+
+      return '<section class="tt-ops-day ' + urgency.className + '">' +
+        '<header class="tt-ops-day-head"><div><strong>' + urgency.label + '</strong>' +
+          '<span>' + esc(formatDepartureDay(date)) + '</span></div>' +
+          '<small>' + byDay[date].length + ' ' +
+            plural(byDay[date].length, "заезд", "заезда", "заездов") + '</small></header>' +
+        '<div class="tt-ops-departure-list">' + rows + '</div></section>';
+    }).join("");
+
+    return (truncated
+      ? '<div class="tt-ops-data-warning">Финансовая сводка показана по последним ' +
+          bookings.length + ' из ' + state.confirmedTotal + ' броней.</div>'
+      : "") + '<div class="tt-ops-days">' + groups + '</div>';
+  }
+
   function renderOverview() {
     var bookings = state.confirmedAll;
     var truncated = state.confirmedTotal > bookings.length;
@@ -527,11 +642,9 @@
           }).join("") + "</tbody></table></div>"
       : '<div class="tt-empty-state">Долгов нет.</div>';
 
-    $("ov-departures").innerHTML = weekDeps.length
-      ? '<div class="tt-op-dep-grid">' +
-          weekDeps.slice(0, 6).map(function (d) { return opDepCardHtml(d, false); }).join("") +
-        "</div>"
-      : '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    $("ov-departures").innerHTML = renderUpcomingDepartures(
+      weekDeps, bookings, pendingCancel, today, truncated
+    );
 
     $("ov-activity").innerHTML = state.activity.length
       ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +

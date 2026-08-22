@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260822-2" />
+<link rel="stylesheet" href="styles.css?v=20260822-3" />
 </head>
 <body>
 
@@ -438,6 +438,16 @@
 
     <section id="panel-overview" hidden>
       <div id="ov-stats"></div>
+      <div class="tt-panel tt-ops-departures-panel">
+        <div class="tt-panel-head-row tt-ops-panel-head">
+          <div>
+            <h2>Ближайшие заезды</h2>
+            <span class="tt-muted-note">Операционная сводка на 7 дней · нажмите на заезд, чтобы открыть манифест</span>
+          </div>
+          <span class="tt-ops-horizon">7 дней</span>
+        </div>
+        <div id="ov-departures"></div>
+      </div>
       <div class="tt-panel tt-activity-panel">
         <div class="tt-panel-head-row">
           <h2>Действия агентств</h2>
@@ -445,15 +455,9 @@
         </div>
         <div id="ov-activity"></div>
       </div>
-      <div class="tt-ov-grid">
-        <div class="tt-panel">
-          <h2>Кто должен</h2>
-          <div id="ov-debtors"></div>
-        </div>
-        <div class="tt-panel">
-          <h2>Ближайшие заезды</h2>
-          <div id="ov-departures"></div>
-        </div>
+      <div class="tt-panel">
+        <h2>Кто должен</h2>
+        <div id="ov-debtors"></div>
       </div>
     </section>
 
@@ -590,7 +594,7 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260822-1"></script>
-<script src="js/admin.js?v=20260822-2"></script>
+<script src="js/admin.js?v=20260822-3"></script>
 <script src="js/app.js?v=20260822-4"></script>
 </body>
 </html>

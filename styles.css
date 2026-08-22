@@ -3943,6 +3943,91 @@ select { font-family: inherit; }
 .tt-op-dep .tt-dep-seats,
 .tt-op-dep .tt-seat-bar { width: 100%; }
 
+/* «Ближайшие заезды» на обзоре — не витрина тура, а рабочая очередь.
+   Дата группирует решения, строка показывает загрузку, деньги и исключения. */
+.tt-ops-departures-panel { padding: 0; overflow: hidden; }
+.tt-ops-panel-head { padding: 20px 22px 17px; margin: 0; border-bottom: 1px solid var(--tt-border); }
+.tt-ops-panel-head > div { min-width: 0; }
+.tt-ops-panel-head .tt-muted-note { display: block; margin-top: 4px; }
+.tt-ops-horizon {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tt-ops-data-warning {
+  margin: 14px 18px 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(178, 112, 25, 0.24);
+  border-radius: 9px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.74rem;
+}
+.tt-ops-days { display: grid; }
+.tt-ops-day { display: grid; grid-template-columns: 154px minmax(0, 1fr); border-bottom: 1px solid var(--tt-border); }
+.tt-ops-day:last-child { border-bottom: 0; }
+.tt-ops-day-head {
+  padding: 19px 18px 18px 22px;
+  border-right: 1px solid var(--tt-border);
+  background: var(--tt-surface-2);
+}
+.tt-ops-day-head div { display: grid; gap: 3px; }
+.tt-ops-day-head strong { color: var(--tt-success); font-size: 0.78rem; }
+.tt-ops-day.is-today .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-danger); }
+.tt-ops-day.is-today .tt-ops-day-head strong { color: var(--tt-danger); }
+.tt-ops-day.is-tomorrow .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-accent); }
+.tt-ops-day.is-tomorrow .tt-ops-day-head strong { color: var(--tt-accent-dark); }
+.tt-ops-day-head span { font-size: 0.73rem; line-height: 1.35; color: var(--tt-text); }
+.tt-ops-day-head > small { display: block; margin-top: 11px; color: var(--tt-text-muted); font-size: 0.63rem; }
+.tt-ops-departure-list { min-width: 0; }
+.tt-ops-departure {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.35fr) minmax(175px, 0.85fr) minmax(285px, 1.25fr) minmax(105px, auto);
+  gap: 18px;
+  align-items: center;
+  width: 100%;
+  min-height: 92px;
+  padding: 15px 19px;
+  border: 0;
+  border-bottom: 1px solid var(--tt-border);
+  background: var(--tt-surface);
+  color: var(--tt-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-ops-departure:last-child { border-bottom: 0; }
+.tt-ops-departure:hover { background: var(--tt-surface-2); box-shadow: inset 3px 0 0 var(--tt-success); }
+.tt-ops-departure:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--tt-accent); outline-offset: -2px; }
+.tt-ops-departure.has-cancel { box-shadow: inset 3px 0 0 var(--tt-danger); }
+.tt-ops-departure-main { display: grid; gap: 5px; min-width: 0; }
+.tt-ops-departure-main strong { overflow: hidden; color: var(--tt-forest); font-size: 0.92rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-departure-main small { overflow: hidden; color: var(--tt-text-muted); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.tt-ops-counts > span { display: grid; gap: 2px; }
+.tt-ops-counts b { font-size: 0.94rem; font-variant-numeric: tabular-nums; }
+.tt-ops-counts small,
+.tt-ops-finance small { color: var(--tt-text-muted); font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.035em; }
+.tt-ops-finance { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding-bottom: 10px; }
+.tt-ops-finance > span { display: grid; gap: 2px; }
+.tt-ops-finance b { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.tt-ops-departure.has-debt .tt-ops-debt b,
+.tt-ops-departure.has-cancel .tt-ops-debt b { color: var(--tt-warn-text); }
+.tt-ops-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; overflow: hidden; border-radius: 999px; background: rgba(13, 48, 42, 0.09); }
+.tt-ops-progress em { display: block; height: 100%; border-radius: inherit; background: var(--tt-success); }
+.tt-ops-flags { display: flex; align-items: center; justify-content: flex-end; gap: 10px; white-space: nowrap; }
+.tt-ops-flags .tt-badge-cancel { margin-left: 0; }
+.tt-ops-open { color: var(--tt-text-muted); font-size: 1.1rem; transition: transform 0.15s ease; }
+.tt-ops-departure:hover .tt-ops-open { transform: translateX(3px); color: var(--tt-success); }
+
 .tt-ov-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3951,6 +4036,42 @@ select { font-family: inherit; }
 }
 @media (max-width: 900px) {
   .tt-ov-grid { grid-template-columns: 1fr; }
+  .tt-ops-departure {
+    grid-template-columns: minmax(180px, 1.2fr) minmax(170px, 0.8fr) minmax(250px, 1fr) auto;
+    gap: 14px;
+  }
+  .tt-ops-departure-list { overflow-x: auto; }
+  .tt-ops-departure { min-width: 760px; }
+}
+
+@media (max-width: 640px) {
+  .tt-ops-panel-head { align-items: flex-start; padding: 17px 16px 14px; }
+  .tt-ops-horizon { display: none; }
+  .tt-ops-day { grid-template-columns: 1fr; }
+  .tt-ops-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--tt-border);
+  }
+  .tt-ops-day-head div { display: flex; align-items: baseline; gap: 8px; }
+  .tt-ops-day-head > small { margin-top: 0; }
+  .tt-ops-departure-list { overflow: visible; }
+  .tt-ops-departure {
+    min-width: 0;
+    grid-template-columns: 1fr auto;
+    gap: 13px 10px;
+    padding: 15px 16px;
+  }
+  .tt-ops-departure-main { grid-column: 1 / -1; padding-right: 20px; }
+  .tt-ops-counts { grid-column: 1; }
+  .tt-ops-finance { grid-column: 1 / -1; grid-row: 3; }
+  .tt-ops-flags { grid-column: 2; grid-row: 2; }
+  .tt-ops-flags .tt-badge { display: none; }
+  .tt-ops-departure.has-cancel .tt-ops-flags .tt-badge-cancel { display: inline-flex; }
 }
 
 .tt-panel-head-row {
