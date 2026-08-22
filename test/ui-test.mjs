@@ -955,8 +955,35 @@ console.log("\nКабинет оператора");
 // ------------------------------------------------- новый обзор оператора
 console.log("\nОператор — обзор, карточки заездов, агентства");
 {
-  const { page, errors } = await session("operator");
-  await page.waitForTimeout(500);
+  /* Ленте действий нужна хотя бы одна агентская бронь и заявка на отмену.
+   * Заводим их ЗДЕСЬ: session() открывает новый контекст браузера, а значит
+   * и чистый localStorage — брони из предыдущих блоков сюда не доезжают.
+   * Раньше блок на это рассчитывал, и три проверки падали на пустом обзоре. */
+  const { page, errors } = await session("umida");
+  await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const r = await window.TuronApi.createBooking({
+      departure_code: deps[0].code,
+      passengers: [{
+        full_name: "ACTIVITY SEED", birth_date: "1990-02-02",
+        passport_number: "AC1234567", passport_expiry: "2033-02-02",
+        placement: "DBL",
+      }],
+    });
+    const mine = (await window.TuronApi.bookings())
+      .filter((b) => b.code === r.booking_code)[0];
+    await window.TuronApi.requestCancel(mine.id, "клиент передумал");
+    await window.TuronApi.logout().catch(() => {});
+  });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+  if (await page.locator("#public-login-btn").count()) {
+    try { await page.locator("#public-login-btn").click({ timeout: 1200 }); } catch {}
+  }
+  await page.fill("#l-login", "operator");
+  await page.fill("#l-password", "turon2026");
+  await page.click("#login-btn");
+  await page.waitForTimeout(900);
 
   const statsText = await page.locator("#ov-stats").innerText();
   check("сводные цифры на «Обзоре» посчитаны", /\d/.test(statsText), statsText);

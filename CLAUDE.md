@@ -38,7 +38,7 @@ tools/check-seed.py          — сверяет db/seed.sql с генерато�
 
 seed/departures.json    — заезды и цены (источник для сборки)
 test/api-test.mjs       — 135 интеграционных тестов (сервер)
-test/ui-test.mjs        — 256 дымовых тестов интерфейса на preview.html (playwright)
+test/ui-test.mjs        — 263 дымовых теста интерфейса на preview.html (playwright)
 test/run.sh             — запуск тестов (wrangler dev + reset DB + тесты)
 test/reset-db.sh        — пересборка тестовой БД начисто (пароль turon2026)
 
@@ -805,7 +805,7 @@ wrangler d1 execute turon-tour --remote --file=../db/migrations/005-catalog-refr
 ```bash
 npm install                     # один раз: playwright (единственная зависимость)
 node tools/build-preview.js     # пересобрать превью из исходников
-node test/ui-test.mjs           # 256 тестов: навигация, темы, титульная, обе роли, бронь, телефон
+node test/ui-test.mjs           # 263 теста: навигация, темы, титульная, обе роли, бронь, телефон
 ```
 `package.json` нужен только для тестов — сам сайт по-прежнему без сборки,
 в браузер уезжают исходные файлы как есть. Нужен playwright и Chromium. Тест гоняет `preview.html` в демо-режиме, поэтому

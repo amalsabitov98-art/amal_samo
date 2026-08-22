@@ -1840,6 +1840,23 @@ a { color: inherit; }
 /* ------------------------------------------------ комиссии и заработок */
 .tt-earn strong, .tt-earn-value { color: var(--tt-success); }
 .tt-owed-value { color: var(--tt-warn-text); }
+.tt-cancel-value { color: var(--tt-danger); }
+
+.tt-badge-cancel {
+  border-color: rgba(201, 81, 69, 0.32);
+  background: rgba(201, 81, 69, 0.12);
+  color: var(--tt-danger);
+  margin-left: 6px;
+}
+
+.tt-activity-panel { margin-bottom: 20px; }
+.tt-activity-row td:nth-child(2) strong { display: inline-block; margin-right: 4px; }
+.tt-activity-row.is-cancel-request td {
+  background: rgba(201, 81, 69, 0.07);
+}
+.tt-activity-row.is-cancel-request td:first-child {
+  box-shadow: inset 3px 0 0 var(--tt-danger);
+}
 
 /* Шапка списка пассажиров: какой заезд открыт. Раньше при клике по карточке
    на экране не менялось ничего заметного (сетка заездов выше, список ниже
@@ -4080,6 +4097,91 @@ select { font-family: inherit; }
 .tt-op-dep .tt-dep-seats,
 .tt-op-dep .tt-seat-bar { width: 100%; }
 
+/* «Ближайшие заезды» на обзоре — не витрина тура, а рабочая очередь.
+   Дата группирует решения, строка показывает загрузку, деньги и исключения. */
+.tt-ops-departures-panel { padding: 0; overflow: hidden; }
+.tt-ops-panel-head { padding: 20px 22px 17px; margin: 0; border-bottom: 1px solid var(--tt-border); }
+.tt-ops-panel-head > div { min-width: 0; }
+.tt-ops-panel-head .tt-muted-note { display: block; margin-top: 4px; }
+.tt-ops-horizon {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--tt-border);
+  border-radius: 999px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tt-ops-data-warning {
+  margin: 14px 18px 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(178, 112, 25, 0.24);
+  border-radius: 9px;
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  font-size: 0.74rem;
+}
+.tt-ops-days { display: grid; }
+.tt-ops-day { display: grid; grid-template-columns: 154px minmax(0, 1fr); border-bottom: 1px solid var(--tt-border); }
+.tt-ops-day:last-child { border-bottom: 0; }
+.tt-ops-day-head {
+  padding: 19px 18px 18px 22px;
+  border-right: 1px solid var(--tt-border);
+  background: var(--tt-surface-2);
+}
+.tt-ops-day-head div { display: grid; gap: 3px; }
+.tt-ops-day-head strong { color: var(--tt-success); font-size: 0.78rem; }
+.tt-ops-day.is-today .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-danger); }
+.tt-ops-day.is-today .tt-ops-day-head strong { color: var(--tt-danger); }
+.tt-ops-day.is-tomorrow .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-accent); }
+.tt-ops-day.is-tomorrow .tt-ops-day-head strong { color: var(--tt-accent-dark); }
+.tt-ops-day-head span { font-size: 0.73rem; line-height: 1.35; color: var(--tt-text); }
+.tt-ops-day-head > small { display: block; margin-top: 11px; color: var(--tt-text-muted); font-size: 0.63rem; }
+.tt-ops-departure-list { min-width: 0; }
+.tt-ops-departure {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.35fr) minmax(175px, 0.85fr) minmax(285px, 1.25fr) minmax(105px, auto);
+  gap: 18px;
+  align-items: center;
+  width: 100%;
+  min-height: 92px;
+  padding: 15px 19px;
+  border: 0;
+  border-bottom: 1px solid var(--tt-border);
+  background: var(--tt-surface);
+  color: var(--tt-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.tt-ops-departure:last-child { border-bottom: 0; }
+.tt-ops-departure:hover { background: var(--tt-surface-2); box-shadow: inset 3px 0 0 var(--tt-success); }
+.tt-ops-departure:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--tt-accent); outline-offset: -2px; }
+.tt-ops-departure.has-cancel { box-shadow: inset 3px 0 0 var(--tt-danger); }
+.tt-ops-departure-main { display: grid; gap: 5px; min-width: 0; }
+.tt-ops-departure-main strong { overflow: hidden; color: var(--tt-forest); font-size: 0.92rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-departure-main small { overflow: hidden; color: var(--tt-text-muted); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.tt-ops-counts > span { display: grid; gap: 2px; }
+.tt-ops-counts b { font-size: 0.94rem; font-variant-numeric: tabular-nums; }
+.tt-ops-counts small,
+.tt-ops-finance small { color: var(--tt-text-muted); font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.035em; }
+.tt-ops-finance { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding-bottom: 10px; }
+.tt-ops-finance > span { display: grid; gap: 2px; }
+.tt-ops-finance b { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.tt-ops-departure.has-debt .tt-ops-debt b,
+.tt-ops-departure.has-cancel .tt-ops-debt b { color: var(--tt-warn-text); }
+.tt-ops-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; overflow: hidden; border-radius: 999px; background: rgba(13, 48, 42, 0.09); }
+.tt-ops-progress em { display: block; height: 100%; border-radius: inherit; background: var(--tt-success); }
+.tt-ops-flags { display: flex; align-items: center; justify-content: flex-end; gap: 10px; white-space: nowrap; }
+.tt-ops-flags .tt-badge-cancel { margin-left: 0; }
+.tt-ops-open { color: var(--tt-text-muted); font-size: 1.1rem; transition: transform 0.15s ease; }
+.tt-ops-departure:hover .tt-ops-open { transform: translateX(3px); color: var(--tt-success); }
+
 .tt-ov-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4088,6 +4190,42 @@ select { font-family: inherit; }
 }
 @media (max-width: 900px) {
   .tt-ov-grid { grid-template-columns: 1fr; }
+  .tt-ops-departure {
+    grid-template-columns: minmax(180px, 1.2fr) minmax(170px, 0.8fr) minmax(250px, 1fr) auto;
+    gap: 14px;
+  }
+  .tt-ops-departure-list { overflow-x: auto; }
+  .tt-ops-departure { min-width: 760px; }
+}
+
+@media (max-width: 640px) {
+  .tt-ops-panel-head { align-items: flex-start; padding: 17px 16px 14px; }
+  .tt-ops-horizon { display: none; }
+  .tt-ops-day { grid-template-columns: 1fr; }
+  .tt-ops-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--tt-border);
+  }
+  .tt-ops-day-head div { display: flex; align-items: baseline; gap: 8px; }
+  .tt-ops-day-head > small { margin-top: 0; }
+  .tt-ops-departure-list { overflow: visible; }
+  .tt-ops-departure {
+    min-width: 0;
+    grid-template-columns: 1fr auto;
+    gap: 13px 10px;
+    padding: 15px 16px;
+  }
+  .tt-ops-departure-main { grid-column: 1 / -1; padding-right: 20px; }
+  .tt-ops-counts { grid-column: 1; }
+  .tt-ops-finance { grid-column: 1 / -1; grid-row: 3; }
+  .tt-ops-flags { grid-column: 2; grid-row: 2; }
+  .tt-ops-flags .tt-badge { display: none; }
+  .tt-ops-departure.has-cancel .tt-ops-flags .tt-badge-cancel { display: inline-flex; }
 }
 
 .tt-panel-head-row {
@@ -6743,8 +6881,8 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 
 /* ------------------- колокольчик: панель уведомлений ------------------- */
-/* Считается из уже загруженных броней (js/app.js → collectNotices):
-   просроченные платежи, ближайшие выезды, проблемы с паспортами. */
+/* Для агентства считается из его броней, для оператора дополняется общей
+   лентой действий агентств и открытыми запросами отмены. */
 .tt-notice-wrap { position: relative; }
 .tt-notice-panel {
   position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
@@ -6769,6 +6907,8 @@ a.tt-contact-row:hover { color: var(--cc); }
   display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start;
   padding: 10px; border-radius: 10px; font-size: 0.82rem; line-height: 1.4;
 }
+.tt-notice-list li[data-booking-code] { cursor: pointer; }
+.tt-notice-list li[data-booking-code]:hover { background: var(--tt-accent-soft); }
 .tt-notice-list li + li { border-top: 1px solid var(--tt-border); border-radius: 0; }
 .tt-notice-list b {
   display: grid; place-items: center; width: 22px; height: 22px;
@@ -6777,6 +6917,9 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-notice-list .is-late b { background: var(--tt-danger); }
 .tt-notice-list .is-soon b { background: var(--tt-accent); }
 .tt-notice-list .is-pass b { background: var(--tt-warn-border); color: var(--tt-warn-text); }
+.tt-notice-list .is-activity b { background: var(--tt-forest); }
+.tt-notice-list .is-cancel { background: rgba(201, 81, 69, 0.08); }
+.tt-notice-list .is-cancel b { background: var(--tt-danger); }
 .tt-notice-empty { margin: 0; padding: 16px; color: var(--tt-text-muted); font-size: 0.82rem; }
 .tt-notice-go {
   width: 100%; padding: 11px; border: 0; border-top: 1px solid var(--tt-border);
@@ -8377,19 +8520,26 @@ a.tt-contact-row:hover { color: var(--cc); }
 
     <section id="panel-overview" hidden>
       <div id="ov-stats"></div>
-      <div class="tt-ov-grid">
-        <div class="tt-panel">
-          <h2>Кто должен</h2>
-          <div id="ov-debtors"></div>
+      <div class="tt-panel tt-ops-departures-panel">
+        <div class="tt-panel-head-row tt-ops-panel-head">
+          <div>
+            <h2>Ближайшие заезды</h2>
+            <span class="tt-muted-note">Операционная сводка на 7 дней · нажмите на заезд, чтобы открыть манифест</span>
+          </div>
+          <span class="tt-ops-horizon">7 дней</span>
         </div>
-        <div class="tt-panel">
-          <h2>Ближайшие заезды</h2>
-          <div id="ov-departures"></div>
+        <div id="ov-departures"></div>
+      </div>
+      <div class="tt-panel tt-activity-panel">
+        <div class="tt-panel-head-row">
+          <h2>Действия агентств</h2>
+          <span class="tt-muted-note">Открытые отмены и последние события · нажмите, чтобы открыть бронь</span>
         </div>
+        <div id="ov-activity"></div>
       </div>
       <div class="tt-panel">
-        <h2>Последние брони</h2>
-        <div id="ov-recent"></div>
+        <h2>Кто должен</h2>
+        <div id="ov-debtors"></div>
       </div>
     </section>
 
@@ -8423,6 +8573,7 @@ a.tt-contact-row:hover { color: var(--cc); }
           <label for="ab-status">Статус</label>
           <select id="ab-status">
             <option value="confirmed">Действующие</option>
+            <option value="cancel_requested">Запрошена отмена</option>
             <option value="">Все</option>
             <option value="cancelled">Отменённые</option>
           </select>
@@ -13239,6 +13390,8 @@ window.TURON_DESTINATIONS = [
   var API_BASE = (global.TURON_CONFIG && global.TURON_CONFIG.apiBaseUrl) || "";
   var TOKEN_KEY = "turon_token";
   var DEMO_KEY = "turon_demo_state";
+  var activityFallback = null;
+  var activityFallbackAt = 0;
 
   function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
   function setToken(t) { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
@@ -13326,10 +13479,15 @@ window.TURON_DESTINATIONS = [
 
   function demoState() {
     var raw = localStorage.getItem(DEMO_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      var saved = JSON.parse(raw);
+      if (!Array.isArray(saved.events)) saved.events = [];
+      return saved;
+    }
     var fresh = {
       departures: JSON.parse(JSON.stringify(global.TURON_SEED || [])),
       bookings: [],
+      events: [],
       agency: null,
     };
     localStorage.setItem(DEMO_KEY, JSON.stringify(fresh));
@@ -13337,6 +13495,21 @@ window.TURON_DESTINATIONS = [
   }
 
   function saveDemo(s) { localStorage.setItem(DEMO_KEY, JSON.stringify(s)); }
+
+  function demoLogEvent(s, booking, action, details) {
+    var actor = s.agency || {};
+    var events = s.events || (s.events = []);
+    var max = events.reduce(function (n, e) { return Math.max(n, Number(e.id) || 0); }, 0);
+    events.push({
+      id: max + 1,
+      booking_id: booking.id,
+      actor_name: actor.name || "—",
+      actor_role: actor.role || "agency",
+      action: action,
+      details: details || null,
+      created_at: new Date().toISOString(),
+    });
+  }
 
   function ageOn(birthDate, onDate) {
     var b = new Date(birthDate), o = new Date(onDate);
@@ -13649,7 +13822,10 @@ window.TURON_DESTINATIONS = [
       created_at: new Date().toISOString(),
       passengers: priced,
     };
-    s.bookings.push(booking); saveDemo(s);
+    s.bookings.push(booking);
+    demoLogEvent(s, booking, "created", priced.length + " чел.: " +
+      priced.map(function (p) { return p.full_name; }).join(", ") + "; " + total + " USD");
+    saveDemo(s);
     return Promise.resolve({
       booking_code: booking.code, departure_code: d.code,
       seats_taken: seats, total_price: total,
@@ -13803,6 +13979,8 @@ window.TURON_DESTINATIONS = [
         b.seats_used = seats;
         b.total_price = total;
         b.agency_commission = (d.agency_commission || 0) * seats;
+        demoLogEvent(s, b, "edited", "состав: " +
+          priced.map(function (p) { return p.full_name; }).join(", ") + "; " + total + " USD");
         saveDemo(s);
         return Promise.resolve({
           booking_code: b.code, passengers_count: priced.length,
@@ -13834,6 +14012,12 @@ window.TURON_DESTINATIONS = [
         var s = demoState();
         var b = s.bookings.filter(function (x) { return x.id === id; })[0];
         if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
+        if (b.cancel_requested_at) {
+          return Promise.resolve({ booking_code: b.code, requested: true, already_requested: true });
+        }
+        b.cancel_requested_at = new Date().toISOString();
+        demoLogEvent(s, b, "cancel_requested", reason || "агентство просит отменить бронь");
+        saveDemo(s);
         return Promise.resolve({ booking_code: b.code, requested: true });
       }
       return request("/api/bookings/" + id + "/cancel-request", {
@@ -13918,7 +14102,9 @@ window.TURON_DESTINATIONS = [
         var list = s.bookings.filter(function (b) {
           if (filters.departure && b.departure_code !== filters.departure) return false;
           if (filters.agencyId && b.agency_id !== Number(filters.agencyId)) return false;
-          if (filters.status && b.status !== filters.status) return false;
+          if (filters.status === "cancel_requested") {
+            if (!(b.status === "confirmed" && b.cancel_requested_at)) return false;
+          } else if (filters.status && b.status !== filters.status) return false;
           if (filters.debtOnly && !(b.status === "confirmed" && b.total_price > b.paid)) return false;
           if (q) {
             var inCode = b.code.toLowerCase().indexOf(q) !== -1;
@@ -13950,6 +14136,82 @@ window.TURON_DESTINATIONS = [
       if (filters.limit) qs.push("limit=" + filters.limit);
       if (filters.offset) qs.push("offset=" + filters.offset);
       return request("/api/admin/bookings" + (qs.length ? "?" + qs.join("&") : ""));
+    },
+
+    adminActivity: function (limit) {
+      if (!API_BASE) {
+        var s = demoState();
+        var byId = {};
+        var agencies = {};
+        s.bookings.forEach(function (b) { byId[b.id] = b; });
+        DEMO_AGENCIES.forEach(function (a) { agencies[a.id] = a.name; });
+        var list = (s.events || []).filter(function (e) {
+          return e.actor_role === "agency" && byId[e.booking_id];
+        }).map(function (e) {
+          var b = byId[e.booking_id];
+          return Object.assign({}, e, {
+            booking_code: b.code,
+            booking_status: b.status,
+            total_price: b.total_price,
+            agency_name: agencies[b.agency_id] || e.actor_name || "—",
+            departure_code: b.departure_code,
+            date_start: b.date_start,
+            passengers_count: b.passengers_count,
+          });
+        }).sort(function (a, b) {
+          var ap = a.action === "cancel_requested" && a.booking_status === "confirmed";
+          var bp = b.action === "cancel_requested" && b.booking_status === "confirmed";
+          if (ap !== bp) return ap ? -1 : 1;
+          return b.id - a.id;
+        });
+        return Promise.resolve(list.slice(0, Math.min(Number(limit) || 50, 100)));
+      }
+      var size = Math.min(Number(limit) || 50, 100);
+      return request("/api/admin/activity?limit=" + encodeURIComponent(size)).catch(function (err) {
+        if (!err || err.status !== 404) throw err;
+
+        /* Совместимость со старым воркером во время поэтапного деплоя.
+         * Общего маршрута там ещё нет, но журнал каждой брони уже есть.
+         * Берём последние 50 броней и собираем их истории параллельно. Кэш
+         * короткий: колокольчик опрашивает раз в 30 секунд и должен увидеть
+         * новую заявку без обновления страницы. */
+        if (activityFallback && Date.now() - activityFallbackAt < 15000) {
+          return activityFallback.then(function (list) { return list.slice(0, size); });
+        }
+        activityFallbackAt = Date.now();
+        activityFallback = request("/api/admin/bookings?limit=50").then(function (res) {
+          return Promise.all((res.items || []).map(function (b) {
+            return request("/api/admin/bookings/" + b.id + "/history")
+              .catch(function () { return []; })
+              .then(function (events) {
+                return events.filter(function (e) { return e.actor_role === "agency"; })
+                  .map(function (e, i) {
+                    return Object.assign({}, e, {
+                      id: String(b.id) + "-" + String(i) + "-" + e.created_at,
+                      booking_id: b.id,
+                      booking_code: b.code,
+                      booking_status: b.status,
+                      total_price: b.total_price,
+                      agency_name: b.agency_name,
+                      departure_code: b.departure_code,
+                      date_start: b.date_start,
+                      passengers_count: b.passengers_count,
+                    });
+                  });
+              });
+          }));
+        }).then(function (groups) {
+          var list = [].concat.apply([], groups);
+          list.sort(function (a, b) {
+            var ap = a.action === "cancel_requested" && a.booking_status === "confirmed";
+            var bp = b.action === "cancel_requested" && b.booking_status === "confirmed";
+            if (ap !== bp) return ap ? -1 : 1;
+            return String(b.created_at).localeCompare(String(a.created_at));
+          });
+          return list;
+        });
+        return activityFallback.then(function (list) { return list.slice(0, size); });
+      });
     },
 
     manifest: function (departureCode) {
@@ -17635,7 +17897,7 @@ window.TURON_DESTINATIONS = [
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
     // неполной, и это явно подписывается на экране, а не замалчивается.
-    confirmedAll: [], confirmedTotal: 0,
+    confirmedAll: [], confirmedTotal: 0, activity: [],
   };
   var AGGREGATE_LIMIT = 200;
 
@@ -17695,6 +17957,32 @@ window.TURON_DESTINATIONS = [
   function formatDate(iso) {
     if (!iso) return "";
     return new Date(iso).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+
+  // date_start — календарная дата без времени. Разбираем её как UTC,
+  // чтобы в часовом поясе оператора она не перепрыгнула на соседний день.
+  function calendarDate(iso) {
+    if (!iso) return null;
+    var d = new Date(iso + "T00:00:00Z");
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDepartureDay(iso) {
+    var d = calendarDate(iso);
+    if (!d) return iso || "";
+    var text = d.toLocaleDateString("ru-RU", {
+      weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+    });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function plural(n, one, few, many) {
+    var mod100 = Math.abs(n) % 100;
+    var mod10 = mod100 % 10;
+    if (mod100 > 10 && mod100 < 20) return many;
+    if (mod10 === 1) return one;
+    if (mod10 > 1 && mod10 < 5) return few;
+    return many;
   }
 
   // ------------------------------------------------------------- выгрузка
@@ -18029,10 +18317,16 @@ window.TURON_DESTINATIONS = [
   // Единый срез подтверждённых броней для дашборда и статистики агентств —
   // второй запрос не нужен, оба экрана считают из одного и того же массива.
   function loadOverviewData() {
-    return TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT })
-      .then(function (res) {
-        state.confirmedAll = res.items;
-        state.confirmedTotal = res.total;
+    return Promise.all([
+      TuronApi.adminBookings({ status: "confirmed", limit: AGGREGATE_LIMIT }),
+      // Во время поэтапного деплоя старый воркер может ещё не знать новый
+      // маршрут. Сводку броней не роняем целиком — лента появится после
+      // обновления API при следующей перезагрузке.
+      TuronApi.adminActivity(50).catch(function () { return []; }),
+    ]).then(function (res) {
+        state.confirmedAll = res[0].items;
+        state.confirmedTotal = res[0].total;
+        state.activity = res[1] || [];
         renderOverview();
       })
       .catch(function (err) {
@@ -18054,6 +18348,105 @@ window.TURON_DESTINATIONS = [
     $("ab-debt").checked = true;
     loadAdminBookings(true);
     jumpToTab("admin-bookings");
+  }
+
+  function openBooking(code) {
+    $("ab-query").value = code || "";
+    $("ab-agency").value = "";
+    $("ab-departure").value = "";
+    $("ab-status").value = "";
+    $("ab-debt").checked = false;
+    jumpToTab("admin-bookings");
+    loadAdminBookings(true);
+  }
+
+  function departureUrgency(date, today) {
+    var start = calendarDate(date);
+    var base = calendarDate(today);
+    var days = start && base ? Math.round((start - base) / 86400000) : 0;
+    if (days === 0) return { label: "Сегодня", className: "is-today" };
+    if (days === 1) return { label: "Завтра", className: "is-tomorrow" };
+    return { label: "Через " + days + " " + plural(days, "день", "дня", "дней"), className: "is-soon" };
+  }
+
+  function renderUpcomingDepartures(departures, bookings, pendingCancel, today, truncated) {
+    if (!departures.length) {
+      return '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    }
+
+    var byDeparture = {};
+    bookings.forEach(function (b) {
+      var key = b.departure_code || "";
+      if (!byDeparture[key]) byDeparture[key] = [];
+      byDeparture[key].push(b);
+    });
+
+    var byDay = {};
+    departures.forEach(function (d) {
+      if (!byDay[d.date_start]) byDay[d.date_start] = [];
+      byDay[d.date_start].push(d);
+    });
+
+    var groups = Object.keys(byDay).sort().map(function (date) {
+      var urgency = departureUrgency(date, today);
+      var rows = byDay[date].map(function (d) {
+        var list = byDeparture[d.code] || [];
+        var pax = list.reduce(function (sum, b) { return sum + (Number(b.passengers_count) || 0); }, 0);
+        var sold = list.reduce(function (sum, b) { return sum + (Number(b.total_price) || 0); }, 0);
+        var paid = list.reduce(function (sum, b) { return sum + (Number(b.paid) || 0); }, 0);
+        var debt = list.reduce(function (sum, b) { return sum + Math.max(0, Number(b.balance) || 0); }, 0);
+        var agencies = {};
+        var cancels = 0;
+        list.forEach(function (b) {
+          agencies[b.agency_name || "—"] = true;
+          if (b.cancel_requested_at || pendingCancel[b.id]) cancels++;
+        });
+        var agencyCount = Object.keys(agencies).length;
+        var paidShare = sold > 0 ? Math.max(0, Math.min(100, Math.round(paid / sold * 100))) : 0;
+        var title = d.tour_name || d.tour_code || d.code;
+        var route = [d.code, TRANSPORT[d.transport] || d.transport, d.destination]
+          .filter(Boolean).join(" · ");
+        var stateClass = cancels ? " has-cancel" : (debt > 0 ? " has-debt" : " is-ready");
+
+        return '<button type="button" class="tt-ops-departure ' + stateClass +
+          '" data-departure="' + esc(d.code) + '">' +
+          '<span class="tt-ops-departure-main"><strong>' + esc(title) + '</strong>' +
+            '<small>' + esc(route) + '</small></span>' +
+          '<span class="tt-ops-counts" aria-label="Загрузка заезда">' +
+            '<span><b>' + list.length + '</b><small>Брони</small></span>' +
+            '<span><b>' + pax + '</b><small>Туристы</small></span>' +
+            '<span><b>' + agencyCount + '</b><small>Агентства</small></span>' +
+          '</span>' +
+          '<span class="tt-ops-finance">' +
+            '<span><small>Продано</small><b>' + money(sold) + '</b></span>' +
+            '<span><small>Оплачено</small><b>' + money(paid) + '</b></span>' +
+            '<span class="tt-ops-debt"><small>Долг</small><b>' + money(debt) + '</b></span>' +
+            '<i class="tt-ops-progress" title="Оплачено ' + paidShare + '%"><em style="width:' + paidShare + '%"></em></i>' +
+          '</span>' +
+          '<span class="tt-ops-flags">' +
+            (cancels
+              ? '<span class="tt-badge tt-badge-cancel">' + cancels + ' ' +
+                  plural(cancels, "отмена", "отмены", "отмен") + '</span>'
+              : (debt > 0
+                ? '<span class="tt-badge tt-badge-info">Есть долг</span>'
+                : '<span class="tt-badge">Оплачено</span>')) +
+            '<span class="tt-ops-open" aria-hidden="true">→</span>' +
+          '</span>' +
+        '</button>';
+      }).join("");
+
+      return '<section class="tt-ops-day ' + urgency.className + '">' +
+        '<header class="tt-ops-day-head"><div><strong>' + urgency.label + '</strong>' +
+          '<span>' + esc(formatDepartureDay(date)) + '</span></div>' +
+          '<small>' + byDay[date].length + ' ' +
+            plural(byDay[date].length, "заезд", "заезда", "заездов") + '</small></header>' +
+        '<div class="tt-ops-departure-list">' + rows + '</div></section>';
+    }).join("");
+
+    return (truncated
+      ? '<div class="tt-ops-data-warning">Финансовая сводка показана по последним ' +
+          bookings.length + ' из ' + state.confirmedTotal + ' броней.</div>'
+      : "") + '<div class="tt-ops-days">' + groups + '</div>';
   }
 
   function renderOverview() {
@@ -18092,6 +18485,12 @@ window.TURON_DESTINATIONS = [
     var debtors = Object.keys(debtByAgency).map(function (k) { return debtByAgency[k]; })
       .sort(function (a, b) { return b.debt - a.debt; });
     var totalDebt = debtors.reduce(function (s, a) { return s + a.debt; }, 0);
+    var pendingCancel = {};
+    state.activity.forEach(function (ev) {
+      if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+        pendingCancel[ev.booking_id] = true;
+      }
+    });
 
     $("ov-stats").innerHTML =
       '<div class="tt-earnings">' +
@@ -18101,6 +18500,9 @@ window.TURON_DESTINATIONS = [
           money(totalDebt) + "</strong></div>" +
         '<div><span>Просроченных этапов</span><strong' +
           (overdueSteps > 0 ? ' class="tt-owed-value"' : "") + ">" + overdueSteps + "</strong></div>" +
+        '<div><span>Заявок на отмену</span><strong' +
+          (Object.keys(pendingCancel).length ? ' class="tt-cancel-value"' : "") + ">" +
+          Object.keys(pendingCancel).length + "</strong></div>" +
       "</div>" +
       (truncated
         ? '<div class="tt-muted-note">Сводка по последним ' + bookings.length + " из " +
@@ -18118,25 +18520,26 @@ window.TURON_DESTINATIONS = [
           }).join("") + "</tbody></table></div>"
       : '<div class="tt-empty-state">Долгов нет.</div>';
 
-    $("ov-departures").innerHTML = weekDeps.length
-      ? '<div class="tt-op-dep-grid">' +
-          weekDeps.slice(0, 6).map(function (d) { return opDepCardHtml(d, false); }).join("") +
-        "</div>"
-      : '<div class="tt-empty-state">На ближайшие 7 дней заездов нет.</div>';
+    $("ov-departures").innerHTML = renderUpcomingDepartures(
+      weekDeps, bookings, pendingCancel, today, truncated
+    );
 
-    var recentSorted = recent24h.slice().sort(function (a, b) {
-      return b.created_at < a.created_at ? -1 : 1;
-    });
-    $("ov-recent").innerHTML = recentSorted.length
+    $("ov-activity").innerHTML = state.activity.length
       ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +
-          "<th>Время</th><th>Бронь</th><th>Агентство</th><th>Заезд</th><th>Сумма</th>" +
+          "<th>Время</th><th>Действие</th><th>Агентство</th><th>Бронь</th><th>Подробности</th>" +
           "</tr></thead><tbody>" +
-          recentSorted.map(function (b) {
-            return "<tr><td>" + formatDateTime(b.created_at) + "</td><td>" + esc(b.code) +
-              "</td><td>" + esc(b.agency_name) + "</td><td>" + formatDate(b.date_start) +
-              "</td><td>" + money(b.total_price) + "</td></tr>";
+          state.activity.map(function (ev) {
+            var cancel = ev.action === "cancel_requested" && ev.booking_status === "confirmed";
+            return '<tr class="tt-row-link tt-activity-row' + (cancel ? " is-cancel-request" : "") +
+              '" data-activity-booking="' + esc(ev.booking_code) + '">' +
+              "<td>" + formatDateTime(ev.created_at) + "</td>" +
+              "<td><strong>" + esc(ACTION_LABELS[ev.action] || ev.action) + "</strong>" +
+                (cancel ? '<span class="tt-badge tt-badge-cancel">Требует решения</span>' : "") +
+              "</td><td>" + esc(ev.agency_name || ev.actor_name) + "</td>" +
+              "<td>" + esc(ev.booking_code) + "</td>" +
+              '<td class="tt-muted-note">' + esc(ev.details || "—") + "</td></tr>";
           }).join("") + "</tbody></table></div>"
-      : '<div class="tt-empty-state">За последние сутки новых броней нет.</div>';
+      : '<div class="tt-empty-state">Действий агентств пока нет.</div>';
   }
 
   // ---------------------------------------------------------------- брони
@@ -18162,6 +18565,8 @@ window.TURON_DESTINATIONS = [
         '<article class="tt-booking' + (cancelled ? " is-cancelled" : "") + '">' +
           "<div>" +
             "<strong>" + esc(b.code) + "</strong>" +
+            (b.cancel_requested_at && !cancelled
+              ? ' <span class="tt-badge tt-badge-cancel">Запрошена отмена</span>' : "") +
             '<div class="tt-muted-note">' + esc(b.agency_name) + " · " +
               formatDate(b.date_start) + " · " + b.passengers_count + " чел." +
               (cancelled ? " · отменена" : "") + "</div>" +
@@ -18182,7 +18587,8 @@ window.TURON_DESTINATIONS = [
             (cancelled ? "" :
               '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
                 '" data-code="' + esc(b.code) + '" data-total="' + b.total_price +
-                '" data-date="' + esc(b.date_start) + '">Отменить</button>') +
+                '" data-date="' + esc(b.date_start) + '">' +
+                (b.cancel_requested_at ? "Обработать отмену" : "Отменить") + "</button>") +
           "</div>" +
           '<div class="tt-history" data-history-for="' + b.id + '" hidden></div>' +
         "</article>"
@@ -18211,8 +18617,27 @@ window.TURON_DESTINATIONS = [
     filters.limit = state.pageSize;
     filters.offset = state.page * state.pageSize;
     return TuronApi.adminBookings(filters).then(function (res) {
+      var pending = {};
+      state.activity.forEach(function (ev) {
+        if (ev.action === "cancel_requested" && ev.booking_status === "confirmed") {
+          pending[ev.booking_id] = ev.created_at;
+        }
+      });
+      var items = res.items || [];
+      var serverHasCancelField = items.some(function (b) {
+        return Object.prototype.hasOwnProperty.call(b, "cancel_requested_at");
+      });
+      items.forEach(function (b) {
+        if (!b.cancel_requested_at && pending[b.id]) b.cancel_requested_at = pending[b.id];
+      });
+      // Старый воркер ещё не понимает status=cancel_requested и отдаёт все
+      // брони. Лента действий позволяет отфильтровать их на клиенте.
+      if (filters.status === "cancel_requested" && !serverHasCancelField) {
+        items = items.filter(function (b) { return !!pending[b.id]; });
+        res.total = items.length;
+      }
       state.total = res.total;
-      renderAdminBookings(res.items);
+      renderAdminBookings(items);
       $("adm-bookings-count").textContent = res.total
         ? "Показано " + Math.min(filters.offset + res.items.length, res.total) +
           " из " + res.total
@@ -18321,6 +18746,10 @@ window.TURON_DESTINATIONS = [
     $("ov-debtors").addEventListener("click", function (e) {
       var row = e.target.closest("[data-jump-agency]");
       if (row) jumpToAgencyDebt(row.dataset.jumpAgency);
+    });
+    $("ov-activity").addEventListener("click", function (e) {
+      var row = e.target.closest("[data-activity-booking]");
+      if (row) openBooking(row.dataset.activityBooking);
     });
 
     ["ab-agency", "ab-departure", "ab-status", "ab-debt"].forEach(function (id) {
@@ -18646,6 +19075,11 @@ window.TURON_DESTINATIONS = [
 
   var Admin = {
     isOperator: function (agency) { return agency && agency.role === "operator"; },
+    openBooking: openBooking,
+    setActivity: function (activity) {
+      state.activity = activity || [];
+      if ($("ov-activity") && state.confirmedAll.length) renderOverview();
+    },
 
     start: function () {
       document.body.classList.add("is-operator");
@@ -18977,7 +19411,7 @@ window.TURON_DESTINATIONS = [
 
     if (isOperator) {
       TuronAdmin.start();
-      loadOperatorNotices();   // колокольчик — просрочки по всем агентствам
+      startOperatorNoticePolling();
       return;
     }
 
@@ -19133,6 +19567,8 @@ window.TURON_DESTINATIONS = [
       lastAppRoute = null;
       state.bookings = [];
       operatorNotices = null;
+      if (operatorNoticeTimer) window.clearInterval(operatorNoticeTimer);
+      operatorNoticeTimer = null;
       syncPublicAccount();
       navigate("#/", true);
     });
@@ -19167,11 +19603,18 @@ window.TURON_DESTINATIONS = [
   $("notice-btn").addEventListener("click", function (e) {
     e.stopPropagation();
     var willOpen = $("notice-panel").hidden;
-    if (willOpen) renderNotices();
+    if (willOpen && session && TuronAdmin.isOperator(session)) loadOperatorNotices();
+    else if (willOpen) renderNotices();
     setNotices(willOpen);
   });
   $("notice-panel").addEventListener("click", function (e) {
     e.stopPropagation();
+    var booking = e.target.closest("[data-booking-code]");
+    if (booking && window.TuronAdmin) {
+      setNotices(false);
+      TuronAdmin.openBooking(booking.dataset.bookingCode);
+      return;
+    }
     var go = e.target.closest("[data-goto]");
     if (!go) return;
     setNotices(false);
@@ -20270,7 +20713,9 @@ window.TURON_DESTINATIONS = [
             '<div class="tt-muted-note">' + formatDate(b.date_start) + " · " +
               (TRANSPORT[b.transport] || b.transport) + " · " + b.passengers_count + " чел.</div>" +
           "</div>" +
-          (cancelled ? '<span class="tt-badge tt-badge-off">Отменена</span>' : "") +
+          (cancelled ? '<span class="tt-badge tt-badge-off">Отменена</span>' :
+            (b.cancel_requested_at
+              ? '<span class="tt-badge tt-badge-cancel">Отмена запрошена</span>' : "")) +
         "</div>" +
         '<div class="tt-booking-money">' +
           '<div class="tt-sum-line"><span>Стоимость</span><strong>' + money(b.total_price) + "</strong></div>" +
@@ -20284,10 +20729,12 @@ window.TURON_DESTINATIONS = [
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
-          (cancelled ? "" :
+          (cancelled || b.cancel_requested_at ? "" :
             // «Запросить», а не «Отменить»: саму отмену проводит оператор.
             '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
               '">Запросить отмену</button>') +
+          (!cancelled && b.cancel_requested_at
+            ? '<span class="tt-muted-note">Ожидает решения оператора</span>' : "") +
         "</div>" +
       "</article>"
     );
@@ -20337,7 +20784,7 @@ window.TURON_DESTINATIONS = [
      */
     var days = TuronApi.FINAL_DAYS;
     var contact = "";
-    if (global.TuronProvisional && TuronProvisional.OPERATOR) {
+    if (window.TuronProvisional && window.TuronProvisional.OPERATOR) {
       contact = (TuronProvisional.OPERATOR.managers || [])
         .map(function (m) { return m.name + " " + m.phone; }).join("\n");
     }
@@ -20359,7 +20806,7 @@ window.TURON_DESTINATIONS = [
     TuronApi.requestCancel(id).then(function (res) {
       flash("Заявка по брони " + res.booking_code +
         " отправлена — оператор свяжется с вами.");
-      btn.disabled = false;
+      loadBookings();
     }).catch(function (err) {
       alert(err.message);
       btn.disabled = false;
@@ -20463,24 +20910,63 @@ window.TURON_DESTINATIONS = [
    */
   /* ------------------------------------------------------- уведомления
    * Колокольчик раньше был просто иконкой. Теперь собирает то, что
-   * агенту важно не пропустить, из уже загруженных броней:
-   * просроченные платежи, ближайшие выезды и проблемы с паспортами.
-   * Отдельного запроса нет — считаем по state.bookings.
+   * агенту важно не пропустить, из уже загруженных броней. Для оператора
+   * дополнительно читается общая лента действий агентств: новые брони,
+   * изменения состава и запросы отмены.
    */
-  // Уведомления оператора считаются по ВСЕМ броням (/api/admin/bookings),
-  // а не по личным — у оператора своих броней нет. Пока не загружены —
-  // null, тогда работает агентский режим ниже.
+  // Уведомления оператора считаются по всем броням и /api/admin/activity,
+  // а не по личным — у оператора своих броней нет. Пока не загружены — null,
+  // тогда работает агентский режим ниже.
   var operatorNotices = null;
+  var operatorNoticeTimer = null;
+
+  function startOperatorNoticePolling() {
+    if (operatorNoticeTimer) window.clearInterval(operatorNoticeTimer);
+    loadOperatorNotices();
+    // Заявка на отмену не должна ждать обновления страницы. Раз в 30 секунд
+    // перечитываем входящие действия агентств и актуальные риски по броням.
+    operatorNoticeTimer = window.setInterval(loadOperatorNotices, 30000);
+  }
+
+  function operatorActivityText(ev) {
+    var agency = ev.agency_name || ev.actor_name || "Агентство";
+    var code = ev.booking_code || "—";
+    if (ev.action === "created") {
+      return agency + " создало бронь " + code + (ev.details ? " · " + ev.details : "");
+    }
+    if (ev.action === "edited") {
+      return agency + " изменило состав брони " + code +
+        (ev.details ? " · " + ev.details : "");
+    }
+    if (ev.action === "cancel_requested") {
+      return agency + " запросило отмену брони " + code +
+        (ev.details && ev.details !== "агентство просит отменить бронь"
+          ? " · " + ev.details : "");
+    }
+    return agency + " · " + code + " · " + (ev.details || ev.action);
+  }
 
   function loadOperatorNotices() {
-    return TuronApi.adminBookings({ debtOnly: true, limit: 200 })
-      .then(function (res) {
+    return Promise.all([
+      TuronApi.adminBookings({ status: "confirmed", limit: 200 }),
+      TuronApi.adminActivity(50).catch(function () { return []; }),
+    ]).then(function (res) {
         var today = new Date().toISOString().slice(0, 10);
         var soon = new Date();
         soon.setDate(soon.getDate() + 7);
         var soonIso = soon.toISOString().slice(0, 10);
-        var out = [];
-        (res.items || []).forEach(function (b) {
+        var activity = res[1] || [];
+        if (window.TuronAdmin) TuronAdmin.setActivity(activity);
+        var out = activity.slice(0, 20).map(function (ev) {
+          var pendingCancel = ev.action === "cancel_requested" &&
+            ev.booking_status === "confirmed";
+          return {
+            kind: pendingCancel ? "cancel" : "activity",
+            bookingCode: ev.booking_code,
+            text: operatorActivityText(ev),
+          };
+        });
+        (res[0].items || []).forEach(function (b) {
           if (b.status === "cancelled") return;
           var pol = TuronApi.paymentPolicy(b.date_start, b.created_at);
           var lateSum = 0;
@@ -20490,16 +20976,19 @@ window.TURON_DESTINATIONS = [
             if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
           });
           if (lateSum > 0) {
-            out.push({ kind: "late", text: "Просрочен платёж: " +
+            out.push({ kind: "late", bookingCode: b.code, text: "Просрочен платёж: " +
               (b.agency_name || "агентство") + " · " + b.code + " — " + money(lateSum) });
           }
           if (b.date_start >= today && b.date_start <= soonIso) {
-            out.push({ kind: "soon", text: "Выезд " + formatDate(b.date_start) + " · " +
+            out.push({ kind: "soon", bookingCode: b.code,
+              text: "Выезд " + formatDate(b.date_start) + " · " +
               (b.agency_name || "") + " · " + b.code +
               (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
           }
         });
-        var order = { late: 0, soon: 1 };
+        // Необработанные отмены всегда наверху, затем остальные свежие
+        // действия агентств и уже после них расчётные предупреждения.
+        var order = { cancel: 0, activity: 1, late: 2, soon: 3 };
         out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
         operatorNotices = out;
         renderNotices();
@@ -20569,23 +21058,24 @@ window.TURON_DESTINATIONS = [
     if (button) {
       button.classList.toggle("has-notices", list.length > 0);
       button.setAttribute("aria-label", list.length
-        ? "Уведомления: " + list.length + " новых"
+        ? "Уведомления: " + list.length
         : "Уведомлений нет");
     }
 
-    var icons = { late: "!", soon: "✈", pass: "▣" };
+    var icons = { cancel: "×", activity: "↗", late: "!", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
       ? '<div class="tt-notice-head">Уведомления<span>' + list.length + "</span></div>" +
         '<ul class="tt-notice-list">' + list.map(function (n) {
-          return '<li class="is-' + n.kind + '"><b>' + icons[n.kind] + "</b>" +
+          return '<li class="is-' + n.kind + '"' +
+            (n.bookingCode ? ' data-booking-code="' + esc(n.bookingCode) + '"' : "") +
+            '><b>' + icons[n.kind] + "</b>" +
             esc(n.text) + "</li>";
         }).join("") + "</ul>" +
         (operatorNotices
-          ? '<button type="button" class="tt-notice-go" data-goto="admin-bookings">Открыть все брони</button>'
+          ? '<button type="button" class="tt-notice-go" data-goto="overview">Открыть ленту действий</button>'
           : '<button type="button" class="tt-notice-go" data-goto="payments">Перейти к платежам</button>')
       : '<div class="tt-notice-head">Уведомления</div>' +
-        '<p class="tt-notice-empty">Всё в порядке: просрочек нет, ' +
-        "ближайших выездов на этой неделе тоже.</p>";
+        '<p class="tt-notice-empty">Новых действий и предупреждений нет.</p>';
   }
 
   function renderPayments() {
