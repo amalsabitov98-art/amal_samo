@@ -1221,9 +1221,23 @@ console.log("\nПравка документа и отмена");
   check("у агентства кнопка «Запросить отмену», а не «Отменить»",
         listText.includes("Запросить отмену") && !/(^|\s)Отменить(\s|$)/.test(listText));
 
+  // Проверяем именно пользовательский путь: клик должен открыть системное
+  // подтверждение и после согласия отправить заявку через TuronApi.
+  let cancelDialog = "";
+  page.once("dialog", async (dialog) => {
+    cancelDialog = dialog.message();
+    await dialog.accept();
+  });
+  await page.locator('#bookings-list [data-cancel="' + made.id + '"]').click();
+  await page.waitForTimeout(200);
+  check("кнопка показывает условия отмены",
+        cancelDialog.includes("Отправить оператору заявку на отмену брони " + made.code),
+        cancelDialog);
+  check("после клика показано подтверждение отправки",
+        (await page.locator(".tt-flash").last().innerText()).includes(made.code));
+
   // Заявка НИЧЕГО не отменяет: бронь остаётся в силе до решения оператора.
   const afterRequest = await page.evaluate(async (id) => {
-    await window.TuronApi.requestCancel(id, "клиент передумал");
     const list = await window.TuronApi.bookings();
     return (list.filter((b) => b.id === id)[0] || {}).status;
   }, made.id);
