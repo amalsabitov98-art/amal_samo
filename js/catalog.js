@@ -1062,12 +1062,13 @@
         .slice().sort(function (a, b) { return a.price - b.price; });
     }
 
-    // Две модели размещения. Карадениз: есть одноместный (SNG) — тип номера
-    // выводится из числа взрослых (1 → одноместный … 3 → трёхместный), один
-    // счётчик «Взрослый». Умра: одноместного нет (QUAD/TRPL/DBL), тип номера —
-    // это выбор бюджета паломника, а не следствие размера группы, поэтому
-    // счётчик по каждому типу номера отдельно. Признак — наличие SNG в прайсе.
+    // Модель размещения определяем по туру. Наличие SNG ненадёжно: у части
+    // заездов Карадениза одноместный тариф не опубликован, и раньше такие даты
+    // ошибочно получали интерфейс Умры.
     function usesOccupancy(d) {
+      if (d && d.tour_code) return d.tour_code === "KARADENIZ";
+      if (d && (d.transport === "BUS" || d.transport === "TZX")) return true;
+      if (d && (d.transport === "JED" || d.transport === "MED")) return false;
       return placementsOf(d).some(function (p) { return p.code === "SNG"; });
     }
 
@@ -1921,6 +1922,12 @@
       loading();
       return TuronApi.catalogTour(code).then(function (tour) {
         if (stale(seq)) return;
+        // Ответ карточки уже ограничен одним туром, но старые версии API не
+        // добавляли tour_code в каждый заезд. Нормализуем здесь, чтобы модель
+        // размещения не зависела от того, опубликован ли тариф SNG.
+        (tour.departures || []).forEach(function (d) {
+          if (!d.tour_code) d.tour_code = tour.code;
+        });
         loadedTour = tour;
         applyPendingSelection(tour);   // до paintTour: он рисует уже открытый расчёт
         paintTour(tour);
