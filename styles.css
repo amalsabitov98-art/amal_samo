@@ -5675,6 +5675,28 @@ a.tt-contact-row:hover { color: var(--cc); }
       rgba(3, 10, 9, 0.38) 62%, rgba(3, 9, 8, 0.82) 100%);
 }
 
+/* Карточка с фотофоном всегда тёмная — независимо от общего переключателя
+   публичной темы. Иначе в светлой теме блоки оставались прозрачными, но
+   наследовали тёмно-зелёный текст и становились почти нечитаемыми. */
+:root #screen-public.has-tourhero {
+  --tt-bg: #07100d;
+  --tt-surface: #0b1713;
+  --tt-surface-2: #10231c;
+  --tt-border: rgba(232, 202, 120, 0.18);
+  --tt-border-strong: rgba(232, 202, 120, 0.34);
+  --tt-text: #f7f2e8;
+  --tt-text-muted: #c9c1b2;
+  --tt-text-subtle: #9e988c;
+  --tt-accent: #e8ca78;
+  --tt-accent-dark: #f2dda0;
+  --tt-accent-soft: rgba(232, 202, 120, 0.13);
+  --tt-forest: #07130f;
+  --tt-forest-deep: #040b08;
+  --tt-forest-soft: #15372c;
+  color: var(--tt-text);
+  color-scheme: dark;
+}
+
 /* Только лёгкая вуаль сверху — под полупрозрачную шапку, чтобы её кнопки
    не терялись на светлом кадре. Ниже кадр открыт: читаемость текста держит
    его собственная тень, а не затемнение видео. */
@@ -7197,27 +7219,3 @@ a.tt-contact-row:hover { color: var(--cc); }
   border-color: rgba(216, 185, 119, 0.42);
   background: rgba(255, 255, 255, 0.08);
 }
-
-.tt-sidebar-route {
-  position: relative;
-  z-index: 1;
-  width: calc(100% - 8px);
-  margin: auto 4px 14px;
-  padding: 15px;
-  overflow: hidden;
-  border: 1px solid rgba(223, 190, 121, 0.18);
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 92% 2%, rgba(226, 195, 128, 0.16), transparent 42%),
-    linear-gradient(145deg, rgba(255,255,255,0.065), rgba(255,255,255,0.025));
-  color: inherit;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: transform .18s ease, border-color .18s ease, background .18s ease;
-}
-.tt-sidebar-route:hover {
-  transform: translateY(-1px);
-  border-color: rgba(223, 190, 121, 0.38);
-  background:
