@@ -16407,18 +16407,27 @@ window.TURON_DESTINATIONS = [
       "img/card-trabzon-uzungol.webp",
       "img/card-batumi-coast.webp",
     ],
-    "Умра": [
-      "img/card-medina-green-dome.webp",
-      "img/card-jeddah-waterfront.webp",
-      "img/card-medina-nabawi.webp",
-      "img/card-jeddah-balad.webp",
-    ],
+    "Умра": {
+      MED: [
+        "img/card-medina-green-dome.webp",
+        "img/card-medina-nabawi.webp",
+      ],
+      JED: [
+        "img/card-jeddah-waterfront.webp",
+        "img/card-jeddah-balad.webp",
+      ],
+    },
   };
 
   // Кадр закреплён за ДАТОЙ, а не за позицией в списке: иначе один и тот же
   // заезд менял бы фотографию от того, сколько заездов показано выше него.
   function photoFor(g) {
     var list = DESTINATION_PHOTOS[g.destination];
+    // Умра стартует либо через Медину, либо через Джидду. Здесь нельзя
+    // вращать общий набор: иначе подпись «Медина» получает кадр Аль-Балада.
+    if (list && !Array.isArray(list)) {
+      list = list[g.transports[0]] || [];
+    }
     if (!list || !list.length) return "";
     return list[dayNum(g.date_start) % list.length];
   }
