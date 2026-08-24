@@ -779,21 +779,15 @@
     // направление называется «Турция», а «Турция и Грузия» лежит в
     // destinations.title и сюда не приходит. На этом уже попались — все
     // карточки молча остались без фото.
-    "Турция": [
-      "img/card-batumi-sunset.webp",
-      "img/card-rize-tea.webp",
-      "img/card-trabzon-uzungol.webp",
-      "img/card-batumi-coast.webp",
-    ],
+    // Один сильный панорамный кадр лучше случайной ротации: в этой группе
+    // одновременно показаны прилёты через Батуми и Трабзон, а подпись у них
+    // общая. Башня и набережная остаются выше стеклянной панели.
+    "Турция": ["img/card-batumi-bluehour.webp"],
     "Умра": {
-      MED: [
-        "img/card-medina-green-dome.webp",
-        "img/card-medina-nabawi.webp",
-      ],
-      JED: [
-        "img/card-jeddah-waterfront.webp",
-        "img/card-jeddah-balad.webp",
-      ],
+      // Кадры подготовлены специально под вертикальную карточку: ориентир
+      // остаётся в верхней половине, а нижняя часть спокойно уходит под текст.
+      MED: ["img/card-medina-sunset.webp"],
+      JED: ["img/card-jeddah-balad-evening.webp"],
     },
   };
 
