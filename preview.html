@@ -16392,9 +16392,9 @@ window.TURON_DESTINATIONS = [
    * Фотографии подбираются по НАПРАВЛЕНИЮ, а не по номеру карточки. Раньше
    * было ROUTE_PHOTOS[i % длина] — общий список на всё, — и заезд умры
    * выходил с видом Батуми, а два заезда одного тура получали разные кадры.
-   * Направления без своих фотографий (умра — их у нас нет, см. TODO) карточку
-   * не теряют: рисуются без фото, стеклянная панель работает поверх заливки.
-   * Сюда же добавлять новые кадры, когда оператор пришлёт.
+   * Для каждого направления используем отдельный набор реальных фотографий.
+   * Файлы хранятся локально, поэтому карточки не зависят от доступности
+   * внешнего фотостока и не меняются после публикации.
    */
   var DESTINATION_PHOTOS = {
     // Ключ — значение tours.destination, а НЕ заголовок плитки: в базе
@@ -16402,11 +16402,16 @@ window.TURON_DESTINATIONS = [
     // destinations.title и сюда не приходит. На этом уже попались — все
     // карточки молча остались без фото.
     "Турция": [
-      "img/hero-rize-batumi.webp",
-      "img/tour-rize-tea-valley.webp",
-      "img/hero-batumi-sunset.webp",
-      "img/tour-batumi-boulevard.webp",
-      "img/hero-rize-morning.webp",
+      "img/card-batumi-sunset.webp",
+      "img/card-rize-tea.webp",
+      "img/card-trabzon-uzungol.webp",
+      "img/card-batumi-coast.webp",
+    ],
+    "Умра": [
+      "img/card-medina-green-dome.webp",
+      "img/card-jeddah-waterfront.webp",
+      "img/card-medina-nabawi.webp",
+      "img/card-jeddah-balad.webp",
     ],
   };
 
