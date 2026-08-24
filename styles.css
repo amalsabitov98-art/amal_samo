@@ -3089,6 +3089,7 @@ a { color: inherit; }
   text-transform: uppercase;
 }
 .tt-up-seats {
+  margin-left: auto;
   color: rgba(255, 250, 240, 0.76);
   font-size: 0.64rem;
   font-weight: 600;
