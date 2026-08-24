@@ -530,65 +530,6 @@
     navigate(back);
   });
 
-  // --------------------------------------------------------------- заезды
-  function departureCardHtml(d) {
-    var placements = d.prices.filter(function (p) { return p.kind === "placement"; })
-      .sort(function (a, b) { return a.price - b.price; });
-    var children = d.prices.filter(function (p) { return p.kind === "child"; })
-      .sort(function (a, b) { return b.price - a.price; });
-
-    return (
-      '<article class="tt-dep">' +
-        '<div class="tt-dep-main">' +
-          '<div class="tt-dep-date">' +
-            "<strong>" + formatRange(d.date_start, d.nights) + "</strong>" +
-            '<span class="tt-dep-code">' + esc(d.code) +
-              (d.nights ? " · " + d.nights + " ноч." : "") + "</span>" +
-          "</div>" +
-          '<div class="tt-dep-meta">' +
-            '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
-            (d.is_info_tour ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
-          "</div>" +
-        "</div>" +
-
-        '<div class="tt-dep-prices">' +
-          placements.map(function (p) {
-            return '<span class="tt-price-chip"><em>' + esc(p.code) + "</em>" + money(p.price) + "</span>";
-          }).join("") +
-          (children.length
-            ? '<div class="tt-child-prices">' + children.map(function (c) {
-                return esc(c.label) + " — " + money(c.price);
-              }).join(" · ") + "</div>"
-            : "") +
-        "</div>" +
-
-        '<div class="tt-dep-action">' +
-          '<button class="tt-btn" data-book="' + esc(d.code) + '">Забронировать</button>' +
-        "</div>" +
-      "</article>"
-    );
-  }
-
-  function renderDepartures() {
-    var transport = $("f-transport").value;
-    // Доска «Направления» оформлена под Карадениз (фильтр по аэропортам
-    // TZX/BUS, «экспедиции»). Заезды Умры сюда не подмешиваем — они без
-    // подписи тура читались бы как безымянные заезды Карадениза; Умра видна
-    // на своей карточке во вкладке «Туры».
-    var list = state.departures.filter(function (d) {
-      if ((d.tour_code || "KARADENIZ") !== "KARADENIZ") return false;
-      if (transport && d.transport !== transport) return false;
-      return true;
-    });
-    var nextDate = list.length ? formatDate(list[0].date_start) : "—";
-    $("departure-stats").innerHTML =
-      '<article><span>Предстоящие заезды</span><strong>' + list.length + '</strong><small>по выбранным условиям</small></article>' +
-      '<article><span>Ближайший вылет</span><strong class="is-date">' + esc(nextDate) + '</strong><small>следующая экспедиция</small></article>';
-    $("departures-list").innerHTML = list.length
-      ? list.map(departureCardHtml).join("")
-      : '<div class="tt-empty-state">Нет заездов по выбранным условиям.</div>';
-  }
-
   function loadDepartures() {
     return TuronApi.departures().then(function (list) {
       // Заезды НЕ фильтруем по полётной программе: если оператор заведёт
@@ -607,7 +548,6 @@
         }
         return d;
       });
-      renderDepartures();
       // «Новый тур» открывается витриной. Если агент уже в конструкторе
       // (Карадениз или программа Умры) — при перезагрузке данных не выкидываем
       // его оттуда, а перерисовываем; если в сетке программ Умры — её.
@@ -619,13 +559,11 @@
         showBuilderShowcase();
       }
     }).catch(function (err) {
-      $("departures-list").innerHTML =
+      $("builder-showcase").innerHTML =
         '<div class="tt-empty-state">Не удалось загрузить заезды.<div class="tt-muted-note">' +
         esc(err.message) + "</div></div>";
     });
   }
-
-  $("f-transport").addEventListener("change", renderDepartures);
 
   /* ------------------------------------------------------------- билдер
    * «Новый тур» — тот же расчёт, что и калькулятор в каталоге, только в
@@ -1523,11 +1461,6 @@
     $("booking-modal").hidden = true;
     state.current = null;
   }
-
-  $("departures-list").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-book]");
-    if (btn) openBooking(btn.dataset.book);
-  });
 
   // × и клик по затемнению закрывают окно тем же откатом шага, что и «Назад».
   $("bm-close").addEventListener("click", function () { stepBack(closeBooking); });
@@ -2720,7 +2653,6 @@
   function switchTab(name) {
     var labels = {
       builder: ["Новый тур", "Конструктор путешествия"],
-      departures: ["Направления", "Заезды и цены"],
       travellers: ["Туристы", "Все пассажиры агентства"],
       payments: ["Платежи", "Сроки и задолженность"],
       documents: ["Документы", "Ваучеры по броням"],
@@ -2735,7 +2667,7 @@
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
-    ["builder", "departures", "bookings", "tours", "travellers",
+    ["builder", "bookings", "tours", "travellers",
      "payments", "documents", "messages", "overview", "manifest", "admin-bookings", "agencies"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
