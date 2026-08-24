@@ -8,8 +8,6 @@ from Unsplash and Pexels:
 - `card-medina-sunset.webp` — Md Amir Umar, “Captivating sunset view of Masjid Nabawi”, Medina, [Pexels](https://www.pexels.com/photo/stunning-view-of-masjid-nabawi-at-sunset-34731623/), Pexels License.
 - `card-jeddah-balad-evening.webp` — abdullah alallah, “Bustling Evening in Historic Al-Balad”, Jeddah, [Pexels](https://www.pexels.com/photo/bustling-evening-in-historic-al-balad-jeddah-28558794/), Pexels License.
 
-- Destination showcase, Japan — Chris Zhao, “City near mountain during blue hour aerial photography”, Tokyo and Mount Fuji, [Unsplash](https://unsplash.com/photos/city-near-mountain-during-blue-hour-aerial-photography-VMHWnl-e5RA), Unsplash License. The page loads a responsive crop from `images.unsplash.com`.
-
 Earlier destination-card photographs retained in the repository are sourced
 from Wikimedia Commons:
 
