@@ -2992,19 +2992,17 @@ a { color: inherit; }
 
 .tt-up-card {
   position: relative;
-  /* Три в ряд, а не четыре: заголовок блока убран, высоту освободил он же,
-     и при четырёх колонках карточка выходила узкой (≈300px при 1440) —
-     почти колонкой. Три дают пропорцию около 4:5, фотография читается. */
+  /* Три равные горизонтальные карточки. Фото больше не служит подложкой
+     всему контенту: городской пейзаж живёт отдельным широким кадром сверху,
+     а информация — в спокойном тёмном блоке снизу. */
   flex: 0 0 calc((100% - 2 * 18px) / 3);
   display: flex;
   align-items: flex-end;
-  min-height: clamp(390px, 54vh, 540px);
-  padding: 15px;
-  border: 0;
-  border-radius: 22px;
-  /* фото приходит инлайном как --tt-up-photo (см. upcomingCard) */
-  background: var(--tt-up-photo, none) center / cover no-repeat,
-              radial-gradient(120% 95% at 26% 14%, #1f6249, #0a2820 68%);
+  min-height: clamp(340px, 40vh, 380px);
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  background: #071f19;
   /* у <button> в этом файле нет сброса цвета — без явного значения
      браузер подставит чёрный ButtonText */
   color: #fffaf0;
@@ -3015,16 +3013,32 @@ a { color: inherit; }
   transition: transform 0.3s cubic-bezier(0.2, 0.72, 0.28, 1),
               box-shadow 0.3s ease;
 }
-.tt-up-card:hover { transform: translateY(-5px); box-shadow: 0 22px 44px rgba(3, 20, 16, 0.45); }
+.tt-up-card:hover { transform: translateY(-4px); box-shadow: 0 20px 42px rgba(3, 20, 16, 0.42); }
 .tt-up-card:focus-visible { outline: 2px solid #e5ca81; outline-offset: 3px; }
-/* Затемнение под стеклом: на светлых кадрах (небо на закате) панель иначе
-   теряет контраст — проверять надо на самом светлом фото, а не на первом. */
+/* Отдельный широкоформатный фотоблок. Исходники вертикальные, но здесь
+   показывается центральная панорамная полоса — без случайного пола и неба,
+   которые раньше съедали полезную площадь карточки. */
+.tt-up-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 148px;
+  background: var(--tt-up-photo, none) center / cover no-repeat,
+              radial-gradient(120% 95% at 26% 14%, #1f6249, #0a2820 68%);
+  transition: transform 0.45s cubic-bezier(0.2, 0.72, 0.28, 1);
+  pointer-events: none;
+}
+.tt-up-card:hover::before { transform: scale(1.025); }
+/* Только мягкий переход между фотографией и нижним блоком, без затемнения
+   всего кадра: фото должно оставаться фотографией, а не фоном под текстом. */
 .tt-up-card::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    rgba(4, 14, 12, 0.05) 0%, rgba(4, 14, 12, 0.3) 55%, rgba(4, 14, 12, 0.62) 100%);
+  z-index: 1;
+  right: 0;
+  bottom: 148px;
+  left: 0;
+  height: 34px;
+  background: linear-gradient(180deg, transparent, rgba(4, 20, 16, 0.2));
   pointer-events: none;
 }
 /* Без фото (направления вроде умры — своих кадров ещё нет) карточка была
@@ -3035,53 +3049,61 @@ a { color: inherit; }
 .tt-up-card.is-plain::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 0 148px;
   background: url(img/etihad-mark.png) center 32% / 116px no-repeat;
   opacity: 0.16;
   pointer-events: none;
 }
-.tt-up-card.is-plain .tt-up-glass {
-  background: rgba(6, 22, 18, 0.58);
-}
+.tt-up-card.is-plain .tt-up-glass { background: #071f19; }
 
-/* Матовое стекло в духе Apple: размытие подложки, светлый внутренний кант
-   сверху и тонкая тёмная линия снизу — так панель читается «толщиной», а
-   не плоской прозрачной плашкой. */
+/* Информационный блок отделён от фотографии. Здесь намеренно нет стекла и
+   размытия: текст не спорит с изображением и карточка читается как каталог. */
 .tt-up-glass {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   width: 100%;
-  padding: 18px 19px 17px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 17px;
-  background: rgba(12, 34, 29, 0.34);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
-    0 10px 26px rgba(3, 18, 15, 0.3);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  min-height: 148px;
+  padding: 20px 21px 17px;
+  border-top: 1px solid rgba(229, 202, 129, 0.24);
+  border-radius: 0 0 19px 19px;
+  background: #071f19;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 .tt-up-head {
+  position: absolute;
+  inset: 20px 21px auto;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
-.tt-up-when { display: flex; align-items: baseline; gap: 6px; }
+.tt-up-when {
+  position: absolute;
+  bottom: calc(100% + 17px);
+  left: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 7px 11px 6px;
+  border: 1px solid rgba(255, 250, 230, 0.5);
+  border-radius: 999px;
+  background: #d8bf7a;
+  box-shadow: 0 8px 22px rgba(2, 14, 11, 0.28);
+  color: #0a211a;
+}
 .tt-up-when b {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2.7rem;
-  font-weight: 600;
-  line-height: 0.86;
-  letter-spacing: -0.03em;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 .tt-up-when i {
-  color: #e5ca81;
-  font-size: 0.66rem;
+  color: rgba(10, 33, 26, 0.72);
+  font-size: 0.57rem;
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -3096,8 +3118,9 @@ a { color: inherit; }
   white-space: nowrap;
 }
 .tt-up-route {
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding-right: 96px;
+  font-size: 1.13rem;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 .tt-up-sub {
@@ -3109,7 +3132,7 @@ a { color: inherit; }
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 6px;
+  margin-top: auto;
 }
 .tt-up-price {
   font-size: 1.28rem;
@@ -6160,7 +6183,7 @@ a.tt-contact-row:hover { color: var(--cc); }
     flex-basis: calc((100% - 14px) / 2);
     min-height: clamp(300px, 40vh, 380px);
   }
-  .tt-up-when b { font-size: 2.1rem; }
+  .tt-up-when b { font-size: 0.95rem; }
   .tt-up-route { font-size: 1rem; }
   .tt-up-price { font-size: 1.14rem; }
   .tt-hero-search { grid-template-columns: repeat(2, minmax(0, 1fr)); }
