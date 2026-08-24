@@ -66,6 +66,7 @@ body {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
+  isolation: isolate;
 }
 .tt-showcase-slide.is-active,
 .tt-showcase-slide.is-leaving {
@@ -75,27 +76,84 @@ body {
 .tt-showcase-slide.is-active { z-index: 2; pointer-events: auto; }
 .tt-showcase-slide.is-leaving { z-index: 1; }
 .tt-showcase-image,
-.tt-showcase-shade {
+.tt-showcase-shade,
+.tt-showcase-film,
+.tt-showcase-poster-meta,
+.tt-showcase-poster-word {
   position: absolute;
-  inset: 0;
   display: block;
   pointer-events: none;
 }
 .tt-showcase-image {
-  z-index: -2;
+  inset: 0;
+  z-index: 0;
   background: #10241f var(--tt-showcase-image) center 52% / cover no-repeat;
   transform: scale(1.001);
 }
 .tt-showcase-slide.is-active .tt-showcase-image {
   animation: tt-showcase-breathe 14s ease-out both;
 }
-.tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 64% 53%; }
-.tt-showcase-slide.is-japan .tt-showcase-image { background-position: 52% 48%; }
+.tt-showcase-slide.is-karadeniz .tt-showcase-image { background-position: 50% 50%; }
+.tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 50% 50%; }
+.tt-showcase-slide.is-japan .tt-showcase-image { background-position: 50% 50%; }
 .tt-showcase-shade {
-  z-index: -1;
+  inset: 0;
+  z-index: 1;
   background:
-    linear-gradient(90deg, rgba(2, 12, 10, .78) 0%, rgba(2, 12, 10, .38) 38%, transparent 68%),
-    linear-gradient(0deg, rgba(2, 12, 10, .9) 0%, rgba(2, 12, 10, .05) 58%, rgba(2, 12, 10, .28) 100%);
+    linear-gradient(90deg, rgba(2, 12, 10, .82) 0%, rgba(2, 12, 10, .44) 37%, rgba(2, 12, 10, .08) 70%),
+    linear-gradient(0deg, rgba(2, 12, 10, .93) 0%, rgba(2, 12, 10, .09) 59%, rgba(2, 12, 10, .30) 100%);
+}
+.tt-showcase-film {
+  inset: 0;
+  z-index: 2;
+  opacity: .16;
+  mix-blend-mode: soft-light;
+  background-image:
+    repeating-radial-gradient(circle at 31% 37%, rgba(255,255,255,.16) 0 1px, transparent 1px 4px),
+    linear-gradient(115deg, rgba(229,202,129,.12), transparent 28%, rgba(7,23,19,.14) 72%);
+  background-size: 7px 7px, 100% 100%;
+}
+.tt-showcase-poster-meta {
+  top: clamp(176px, 19vh, 212px);
+  left: clamp(28px, 4.2vw, 78px);
+  right: clamp(24px, 3.2vw, 58px);
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 28px;
+  color: rgba(255, 249, 233, .66);
+  font: 600 clamp(.45rem, .52vw, .59rem)/1.35 Manrope, sans-serif;
+  letter-spacing: .21em;
+  text-transform: uppercase;
+}
+.tt-showcase-poster-meta small {
+  font: inherit;
+  white-space: nowrap;
+}
+.tt-showcase-poster-meta small:nth-child(2) { text-align: center; }
+.tt-showcase-poster-meta small:last-child { text-align: right; }
+.tt-showcase-poster-word {
+  top: clamp(216px, 23.5vh, 266px);
+  left: clamp(24px, 3.7vw, 68px);
+  z-index: 2;
+  max-width: calc(100% - 48px);
+  overflow: hidden;
+  color: rgba(241, 229, 199, .20);
+  font: 700 clamp(8.6rem, 18vw, 20rem)/.72 "Barlow Condensed", Impact, "Arial Narrow", sans-serif;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  mix-blend-mode: screen;
+  text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 18px 48px rgba(0,0,0,.12);
+  transform-origin: left top;
+}
+.tt-showcase-slide.is-umrah .tt-showcase-poster-word {
+  color: rgba(233, 214, 166, .18);
+  letter-spacing: -.035em;
+}
+.tt-showcase-slide.is-japan .tt-showcase-poster-word {
+  color: rgba(245, 232, 213, .19);
 }
 .tt-showcase-slide.is-entering {
   animation: tt-showcase-reveal .5s cubic-bezier(.68, 0, .2, 1) both;
@@ -112,6 +170,12 @@ body {
 }
 .tt-showcase-slide.is-active .tt-showcase-copy > * {
   animation: tt-copy-enter .45s cubic-bezier(.2,.78,.2,1) both;
+}
+.tt-showcase-slide.is-active .tt-showcase-poster-meta {
+  animation: tt-poster-meta-enter .65s .1s cubic-bezier(.2,.78,.2,1) both;
+}
+.tt-showcase-slide.is-active .tt-showcase-poster-word {
+  animation: tt-poster-word-enter .9s .04s cubic-bezier(.2,.72,.2,1) both;
 }
 .tt-showcase-slide.is-leaving .tt-showcase-copy {
   animation: tt-copy-leave .18s ease both;
@@ -495,6 +559,14 @@ body {
   to { transform: scale(1.055); }
 }
 @keyframes tt-showcase-progress { to { transform: scaleX(1); } }
+@keyframes tt-poster-meta-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tt-poster-word-enter {
+  from { opacity: 0; transform: translateY(18px) scaleX(.985); }
+  to { opacity: 1; transform: translateY(0) scaleX(1); }
+}
 @keyframes tt-card-enter {
   from { opacity: 0; transform: translateX(34px); }
   to { opacity: 1; transform: translateX(0); }
@@ -683,6 +755,8 @@ body {
 .tt-umrah-contact > a span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #10211c; background: #e4ca83; }
 
 @media (max-width: 880px) {
+  .tt-showcase-poster-meta { top: 170px; }
+  .tt-showcase-poster-word { top: 210px; font-size: clamp(7rem, 18vw, 11rem); }
   .tt-showcase-copy { width: 43vw; bottom: 128px; }
   .tt-showcase-copy h2 { font-size: clamp(2.8rem, 6.6vw, 4.8rem); }
   .tt-showcase-previews { width: 50vw; grid-template-columns: repeat(2, minmax(145px, 1fr)); }
@@ -696,10 +770,18 @@ body {
 
 @media (max-width: 620px) {
   .tt-public-catalogue { height: 100svh; min-height: 620px; }
+  .tt-showcase-poster-meta { display: none; }
+  .tt-showcase-poster-word {
+    top: 154px;
+    left: 17px;
+    max-width: calc(100% - 34px);
+    font-size: clamp(5.2rem, 23vw, 8rem);
+    color: rgba(241, 229, 199, .16);
+  }
   .tt-showcase-route-stops span { min-width: 38px; font-size: .41rem; letter-spacing: .025em; }
-  .tt-showcase-slide.is-karadeniz .tt-showcase-image { background-position: 48% center; }
-  .tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 63% center; }
-  .tt-showcase-slide.is-japan .tt-showcase-image { background-position: 57% center; }
+  .tt-showcase-slide.is-karadeniz .tt-showcase-image { background-position: 68% center; }
+  .tt-showcase-slide.is-umrah .tt-showcase-image { background-position: 62% center; }
+  .tt-showcase-slide.is-japan .tt-showcase-image { background-position: 69% center; }
   .tt-showcase-shade {
     background:
       linear-gradient(180deg, rgba(2,12,10,.2), transparent 26%, rgba(2,12,10,.44) 54%, rgba(2,12,10,.96) 100%),
@@ -744,6 +826,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tt-showcase-slide,
   .tt-showcase-image,
+  .tt-showcase-poster-meta,
+  .tt-showcase-poster-word,
   .tt-showcase-card,
   .tt-showcase-card-image,
   .tt-showcase-card-arrow,

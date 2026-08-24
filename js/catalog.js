@@ -144,14 +144,22 @@
     var slides = [
       {
         cls: "is-karadeniz", destination: "Турция",
-        image: karadeniz.image || "img/hero-rize-batumi.webp",
+        image: "img/showcase-karadeniz-editorial.webp",
+        posterWord: "KARADENIZ",
+        posterLeft: "Batumi · Rize · Trabzon",
+        posterCenter: "Black Sea / 2026",
+        posterRight: "Авторский тур · 8 дней",
         kicker: "Авторский тур · сезон 2026", title: "Загадочный Карадениз",
         route: "Батуми · Ризе · Трабзон", meta: "8 дней · " + karadenizPrice,
         action: "Открыть маршрут", duration: 6000,
       },
       {
         cls: "is-umrah", destination: "Умра",
-        image: "img/umrah-showcase.webp",
+        image: "img/showcase-umrah-editorial.webp",
+        posterWord: "UMRAH",
+        posterLeft: "Makkah · Madinah · Jeddah",
+        posterCenter: "Путь к святыням",
+        posterRight: "Духовное путешествие · 2026",
         kicker: "Духовное путешествие · 2026", title: "Путь к святыням",
         route: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
         action: "Выбрать программу", duration: 5000,
@@ -159,7 +167,11 @@
       },
       {
         cls: "is-japan", destination: "Япония",
-        image: japan.image || "img/japan-programs-bg.webp",
+        image: "img/showcase-japan-editorial.webp",
+        posterWord: "JAPAN",
+        posterLeft: "Tokyo · Kyoto · Nara",
+        posterCenter: "35.3606° N / 138.7274° E",
+        posterRight: "Авторский маршрут · 2026",
         kicker: "Авторские программы · сезон 2026", title: "Япония",
         route: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
         action: "Открыть Японию", duration: 5000,
@@ -178,6 +190,14 @@
             '<span class="tt-showcase-image" style="--tt-showcase-image:url(\'' +
               esc(slide.image) + '\')" aria-hidden="true"></span>' +
             '<span class="tt-showcase-shade" aria-hidden="true"></span>' +
+            '<span class="tt-showcase-film" aria-hidden="true"></span>' +
+            '<span class="tt-showcase-poster-meta" aria-hidden="true">' +
+              '<small>' + esc(slide.posterLeft) + '</small>' +
+              '<small>' + esc(slide.posterCenter) + '</small>' +
+              '<small>' + esc(slide.posterRight) + '</small>' +
+            '</span>' +
+            '<span class="tt-showcase-poster-word" aria-hidden="true">' +
+              esc(slide.posterWord) + '</span>' +
             '<div class="tt-showcase-copy">' +
               '<span class="tt-showcase-kicker">' + esc(slide.kicker) + '</span>' +
               '<h2>' + esc(slide.title) + '</h2>' +
