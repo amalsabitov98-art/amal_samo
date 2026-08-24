@@ -5697,6 +5697,33 @@ a.tt-contact-row:hover { color: var(--cc); }
   color-scheme: dark;
 }
 
+/* «Рассчитать» закрытого заезда имеет класс secondary. Базовый secondary
+   делал его прозрачным с тёмным текстом — на фотофоне надпись исчезала.
+   В карточках с фотофоном все основные действия делаем золотыми и плотными. */
+:root #screen-public.has-tourhero .tt-cat-block .tt-btn,
+:root #screen-public.has-tourhero .tt-cat-block .tt-btn.secondary {
+  border: 1px solid rgba(255, 238, 181, 0.72);
+  background: linear-gradient(135deg, #f2d98e 0%, #d2a94f 100%);
+  color: #182019;
+  box-shadow:
+    0 9px 22px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  text-shadow: none;
+}
+:root #screen-public.has-tourhero .tt-cat-block .tt-btn:hover,
+:root #screen-public.has-tourhero .tt-cat-block .tt-btn.secondary:hover {
+  border-color: #fff0bd;
+  background: linear-gradient(135deg, #f9e8ae 0%, #ddb85f 100%);
+  color: #101812;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.36),
+    0 0 0 3px rgba(232, 202, 120, 0.12);
+}
+:root #screen-public.has-tourhero .tt-cat-block .tt-btn:focus-visible {
+  outline: 2px solid #fff0bd;
+  outline-offset: 3px;
+}
+
 /* Только лёгкая вуаль сверху — под полупрозрачную шапку, чтобы её кнопки
    не терялись на светлом кадре. Ниже кадр открыт: читаемость текста держит
    его собственная тень, а не затемнение видео. */
@@ -7198,24 +7225,3 @@ a.tt-contact-row:hover { color: var(--cc); }
   height: 31px;
   flex: 0 0 auto;
   display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 10px;
-  color: #dfbe79;
-  background: rgba(255, 255, 255, 0.025);
-  transition: 0.18s ease;
-}
-.tt-tab-icon svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.55;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.tt-sidebar .tt-tab.is-active .tt-tab-icon {
-  color: #f2d18b;
-  border-color: rgba(216, 185, 119, 0.42);
-  background: rgba(255, 255, 255, 0.08);
-}
