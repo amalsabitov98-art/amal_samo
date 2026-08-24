@@ -144,7 +144,7 @@
     var slides = [
       {
         cls: "is-karadeniz", destination: "Турция",
-        image: "img/card-rize-tea.webp",
+        image: karadeniz.image || "img/hero-rize-batumi.webp",
         kicker: "Авторский тур · сезон 2026", title: "Загадочный Карадениз",
         route: "Батуми · Ризе · Трабзон", meta: "8 дней · " + karadenizPrice,
         action: "Открыть маршрут", duration: 6000,
@@ -159,7 +159,7 @@
       },
       {
         cls: "is-japan", destination: "Япония",
-        image: "https://images.unsplash.com/photo-1523209191156-df0d2e53114d?auto=format&fit=crop&w=2400&q=82",
+        image: japan.image || "img/japan-programs-bg.webp",
         kicker: "Авторские программы · сезон 2026", title: "Япония",
         route: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
         action: "Открыть Японию", duration: 5000,
