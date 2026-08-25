@@ -6950,6 +6950,21 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-umra-stay small {
   display: block; color: var(--tt-text-muted); font-size: 0.68rem; white-space: nowrap;
 }
+.tt-umra-fallback {
+  display: flex; flex-direction: column; justify-content: center; gap: 7px;
+  min-height: 67px; padding: 8px 0;
+}
+.tt-umra-route { display: flex; align-items: center; gap: 9px; }
+.tt-umra-route span {
+  color: var(--tt-text); font-size: 0.78rem; font-weight: 750;
+}
+.tt-umra-route b { color: var(--tt-accent); font-size: 0.9rem; font-weight: 700; }
+.tt-umra-fallback p {
+  margin: 0; color: var(--tt-text-muted); font-size: 0.69rem; line-height: 1.25;
+}
+.tt-umra-fallback p i {
+  margin: 0 3px; color: var(--tt-accent); font-style: normal;
+}
 .tt-umra-card-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-top: auto;
@@ -20316,8 +20331,7 @@ window.TURON_DESTINATIONS = [
               '<div class="tt-tourcard-body">' +
                 "<h3>" + esc(detail.title) + "</h3>" +
                 '<div class="tt-umra-stays">' +
-                  umraStayHtml("Мекка", detail.makkah) +
-                  umraStayHtml("Медина", detail.medina) +
+                  umraCardMiddle(detail) +
                 "</div>" +
                 '<div class="tt-umra-card-foot">' +
                   '<div><span>' + esc((t.nights || 0) + " ночей") + '</span>' +
@@ -20371,6 +20385,19 @@ window.TURON_DESTINATIONS = [
     return '<div class="tt-umra-stay"><span>' + esc(city) + '</span><div>' +
       '<strong>' + esc(stay.hotel) + '</strong><small>' + esc(stay.distance) + "</small>" +
       "</div></div>";
+  }
+
+  // В старых данных API description может отсутствовать. Вместо пустой
+  // середины показываем нейтральный состав программы; точные отели всегда
+  // имеют приоритет, когда API их прислал.
+  function umraCardMiddle(detail) {
+    var stays = umraStayHtml("Мекка", detail.makkah) +
+      umraStayHtml("Медина", detail.medina);
+    if (stays) return stays;
+    return '<div class="tt-umra-fallback">' +
+      '<div class="tt-umra-route"><span>Мекка</span><b aria-hidden="true">→</b><span>Медина</span></div>' +
+      '<p>Отели <i>·</i> трансферы <i>·</i> сопровождение</p>' +
+    '</div>';
   }
 
   // Конструктор работает по выбранному туру (state.builder.tour): Карадениз или
