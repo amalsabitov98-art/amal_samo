@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260825-12" />
+<link rel="stylesheet" href="styles.css?v=20260825-13" />
 </head>
 <body>
 
@@ -660,6 +660,63 @@
           <button type="submit" class="tt-btn tt-btn-sm" id="ot-save">Сохранить</button>
         </div>
       </form>
+      <!-- Редактор карточки тура: программа по дням, «включено /
+           не включено / информация» и варианты маршрута. Порядок строк
+           задаётся их ПОЛОЖЕНИЕМ в списке — оператор двигает строки
+           стрелками, а не правит числа сортировки. -->
+      <div id="ot-content" class="tt-content-editor" hidden>
+        <div class="tt-content-head">
+          <div>
+            <h4 id="oc-title">Карточка тура</h4>
+            <p class="tt-editor-hint">Это читает гость в каталоге и клиент по
+              ссылке от агента. Писать сюда то, чего в туре нет, нельзя —
+              агент пообещает услугу, которой не существует.</p>
+          </div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" id="oc-close">Закрыть</button>
+        </div>
+
+        <section class="tt-content-block">
+          <h5>Варианты маршрута <span class="tt-opt">если их несколько</span></h5>
+          <p class="tt-editor-hint">У Карадениза два: прилёт в Батуми и прилёт
+            в Трабзон. День программы можно привязать к варианту.</p>
+          <div id="oc-variants"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="variant">
+            + Вариант</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Программа по дням</h5>
+          <div id="oc-days"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="day">
+            + День</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Включено в стоимость</h5>
+          <div id="oc-included"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="included">
+            + Строка</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Не включено</h5>
+          <div id="oc-excluded"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="excluded">
+            + Строка</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Информация</h5>
+          <div id="oc-info"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="info">
+            + Строка</button>
+        </section>
+
+        <div class="tt-newdep-actions">
+          <span class="tt-editor-msg" id="oc-msg"></span>
+          <button type="button" class="tt-btn tt-btn-sm" id="oc-save">Сохранить карточку</button>
+        </div>
+      </div>
       <div id="ot-list"></div>
     </section>
 
@@ -827,11 +884,11 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
-<script src="js/api.js?v=20260825-12"></script>
+<script src="js/api.js?v=20260825-13"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260825-1"></script>
-<script src="js/admin.js?v=20260825-12"></script>
+<script src="js/admin.js?v=20260825-13"></script>
 <script src="js/app.js?v=20260825-12"></script>
 </body>
 </html>

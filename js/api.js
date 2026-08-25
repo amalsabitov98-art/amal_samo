@@ -744,6 +744,90 @@
     return Promise.resolve(Object.assign({}, cur));
   }
 
+  /* ------------------------------------------- контент карточки (демо) */
+  function demoContentStore(s) {
+    if (!s.tourContent) s.tourContent = {};
+    return s.tourContent;
+  }
+
+  function demoTourContent(id) {
+    var s = demoState();
+    var store = demoContentStore(s);
+    var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
+    var saved = store[id] || { content: [], variants: [] };
+    saveDemo(s);
+    return {
+      code: t ? t.code : "",
+      content: saved.content || [],
+      variants: saved.variants || [],
+    };
+  }
+
+  // Двойник updateTourContent: те же проверки, тот же порядок по позиции.
+  function demoSaveTourContent(id, content, variants) {
+    var s = demoState();
+    var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
+    if (!t) return Promise.reject(new Error("Тур не найден"));
+
+    var KINDS = ["included", "excluded", "info", "gallery", "day"];
+    var rows = content || [], vars = variants || [];
+    var cleanVars = [], seenVar = {}, i, v;
+
+    for (i = 0; i < vars.length; i++) {
+      v = vars[i];
+      var vcode = String(v.code || "").trim().toUpperCase();
+      var vtitle = String(v.title || "").trim();
+      if (!vcode) return Promise.reject(new Error("У варианта маршрута нужен код"));
+      if (!/^[A-Z0-9_-]{1,16}$/.test(vcode)) {
+        return Promise.reject(new Error("Вариант «" + vcode + "»: латиница, цифры, дефис"));
+      }
+      if (seenVar[vcode]) {
+        return Promise.reject(new Error("Вариант " + vcode + " встречается дважды"));
+      }
+      seenVar[vcode] = true;
+      if (!vtitle) return Promise.reject(new Error("Вариант " + vcode + ": нужен заголовок"));
+      cleanVars.push({ code: vcode, title: vtitle, sort: cleanVars.length });
+    }
+
+    var cleanRows = [], perKind = {};
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var kind = String(r.kind || "").trim();
+      if (KINDS.indexOf(kind) === -1) {
+        return Promise.reject(new Error("Неизвестный блок «" + kind + "»"));
+      }
+      var text = String(r.text || "").trim();
+      if (!text) {
+        return Promise.reject(new Error(
+          "Пустая строка в контенте — уберите её или заполните"));
+      }
+      if (text.length > 4000) {
+        return Promise.reject(new Error("Строка длиннее 4000 знаков"));
+      }
+      var variant = r.variant == null || r.variant === ""
+        ? null : String(r.variant).trim().toUpperCase();
+      if (variant && !seenVar[variant]) {
+        return Promise.reject(new Error(
+          "День привязан к варианту " + variant + ", которого нет в списке"));
+      }
+      perKind[kind] = (perKind[kind] || 0) + 1;
+      cleanRows.push({
+        kind: kind,
+        variant: kind === "day" ? variant : null,
+        sort: perKind[kind] - 1,
+        title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
+        text: text,
+        url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+      });
+    }
+
+    demoContentStore(s)[id] = { content: cleanRows, variants: cleanVars };
+    saveDemo(s);
+    return Promise.resolve({
+      code: t.code, variants: cleanVars.length, rows: cleanRows.length, by_kind: perKind,
+    });
+  }
+
   // Демо-двойник смены даты. Повторяет проверки и порядок воркера.
   function demoDepartureDate(id, dateStart, opts) {
     var s = demoState();
@@ -1292,6 +1376,23 @@
     updateTour: function (id, payload) {
       if (!API_BASE) return demoSaveTour(id, payload);
       return request("/api/admin/tours/" + id, { method: "POST", body: payload });
+    },
+
+    /*
+     * Контент карточки тура: программа по дням, «включено / не включено /
+     * информация» и варианты маршрута. Набор строк заменяется целиком —
+     * как прайс заезда: порядок задаётся позицией в списке.
+     */
+    tourContent: function (id) {
+      if (!API_BASE) return Promise.resolve(demoTourContent(id));
+      return request("/api/admin/tours/" + id + "/content");
+    },
+
+    updateTourContent: function (id, content, variants) {
+      if (!API_BASE) return demoSaveTourContent(id, content, variants);
+      return request("/api/admin/tours/" + id + "/content", {
+        method: "POST", body: { content: content, variants: variants || [] },
+      });
     },
 
     /*

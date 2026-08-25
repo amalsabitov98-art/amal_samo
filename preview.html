@@ -1998,6 +1998,78 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* --------------------------------------- редактор карточки тура */
+.tt-content-editor {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-content-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+.tt-content-head h4 { margin: 0 0 4px; font-size: 1rem; }
+.tt-content-head .tt-editor-hint { margin: 0; max-width: 62ch; }
+
+.tt-content-block {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-content-block h5 {
+  margin: 0 0 4px;
+  font-size: 0.86rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tt-text-muted);
+}
+.tt-content-block .tt-editor-hint { margin: 0 0 10px; }
+.tt-content-block > .tt-btn { margin-top: 8px; }
+
+/* Строка контента: поля тянутся, кнопки порядка и удаления — по краю.
+   Порядок строк В РАЗМЕТКЕ и есть порядок в карточке, поэтому двигать их
+   надо было чем-то заметным — отсюда стрелки, а не поле «сортировка». */
+.tt-oc-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+}
+.tt-oc-row[data-oc-kind="variant"] { grid-template-columns: 130px 1fr auto; }
+.tt-oc-row[data-oc-kind="info"] { grid-template-columns: 1fr 220px auto; }
+.tt-oc-day { grid-template-columns: 1fr 160px auto; }
+.tt-oc-day textarea { grid-column: 1 / -1; }
+
+.tt-oc-row input,
+.tt-oc-row select,
+.tt-oc-row textarea {
+  width: 100%;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--tt-border);
+  border-radius: 9px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text);
+  resize: vertical;
+}
+.tt-oc-actions { display: flex; gap: 2px; align-items: center; }
+.tt-oc-actions .tt-icon-btn { width: 26px; height: 26px; font-size: 0.9rem; }
+
+@media (max-width: 900px) {
+  .tt-oc-row,
+  .tt-oc-row[data-oc-kind="variant"],
+  .tt-oc-row[data-oc-kind="info"],
+  .tt-oc-day { grid-template-columns: 1fr; }
+  .tt-oc-actions { justify-content: flex-end; }
+}
+
 /* ------------------------------------------------ туры у оператора */
 /* align-items:start, а не end как у общей .tt-newdep-grid: подписи здесь
    разной длины, и при выравнивании по низу поля прыгают по вертикали. */
@@ -9650,6 +9722,63 @@ a.tt-contact-row:hover { color: var(--cc); }
           <button type="submit" class="tt-btn tt-btn-sm" id="ot-save">Сохранить</button>
         </div>
       </form>
+      <!-- Редактор карточки тура: программа по дням, «включено /
+           не включено / информация» и варианты маршрута. Порядок строк
+           задаётся их ПОЛОЖЕНИЕМ в списке — оператор двигает строки
+           стрелками, а не правит числа сортировки. -->
+      <div id="ot-content" class="tt-content-editor" hidden>
+        <div class="tt-content-head">
+          <div>
+            <h4 id="oc-title">Карточка тура</h4>
+            <p class="tt-editor-hint">Это читает гость в каталоге и клиент по
+              ссылке от агента. Писать сюда то, чего в туре нет, нельзя —
+              агент пообещает услугу, которой не существует.</p>
+          </div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" id="oc-close">Закрыть</button>
+        </div>
+
+        <section class="tt-content-block">
+          <h5>Варианты маршрута <span class="tt-opt">если их несколько</span></h5>
+          <p class="tt-editor-hint">У Карадениза два: прилёт в Батуми и прилёт
+            в Трабзон. День программы можно привязать к варианту.</p>
+          <div id="oc-variants"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="variant">
+            + Вариант</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Программа по дням</h5>
+          <div id="oc-days"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="day">
+            + День</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Включено в стоимость</h5>
+          <div id="oc-included"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="included">
+            + Строка</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Не включено</h5>
+          <div id="oc-excluded"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="excluded">
+            + Строка</button>
+        </section>
+
+        <section class="tt-content-block">
+          <h5>Информация</h5>
+          <div id="oc-info"></div>
+          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="info">
+            + Строка</button>
+        </section>
+
+        <div class="tt-newdep-actions">
+          <span class="tt-editor-msg" id="oc-msg"></span>
+          <button type="button" class="tt-btn tt-btn-sm" id="oc-save">Сохранить карточку</button>
+        </div>
+      </div>
       <div id="ot-list"></div>
     </section>
 
@@ -15205,6 +15334,90 @@ window.TURON_DESTINATIONS = [
     return Promise.resolve(Object.assign({}, cur));
   }
 
+  /* ------------------------------------------- контент карточки (демо) */
+  function demoContentStore(s) {
+    if (!s.tourContent) s.tourContent = {};
+    return s.tourContent;
+  }
+
+  function demoTourContent(id) {
+    var s = demoState();
+    var store = demoContentStore(s);
+    var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
+    var saved = store[id] || { content: [], variants: [] };
+    saveDemo(s);
+    return {
+      code: t ? t.code : "",
+      content: saved.content || [],
+      variants: saved.variants || [],
+    };
+  }
+
+  // Двойник updateTourContent: те же проверки, тот же порядок по позиции.
+  function demoSaveTourContent(id, content, variants) {
+    var s = demoState();
+    var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
+    if (!t) return Promise.reject(new Error("Тур не найден"));
+
+    var KINDS = ["included", "excluded", "info", "gallery", "day"];
+    var rows = content || [], vars = variants || [];
+    var cleanVars = [], seenVar = {}, i, v;
+
+    for (i = 0; i < vars.length; i++) {
+      v = vars[i];
+      var vcode = String(v.code || "").trim().toUpperCase();
+      var vtitle = String(v.title || "").trim();
+      if (!vcode) return Promise.reject(new Error("У варианта маршрута нужен код"));
+      if (!/^[A-Z0-9_-]{1,16}$/.test(vcode)) {
+        return Promise.reject(new Error("Вариант «" + vcode + "»: латиница, цифры, дефис"));
+      }
+      if (seenVar[vcode]) {
+        return Promise.reject(new Error("Вариант " + vcode + " встречается дважды"));
+      }
+      seenVar[vcode] = true;
+      if (!vtitle) return Promise.reject(new Error("Вариант " + vcode + ": нужен заголовок"));
+      cleanVars.push({ code: vcode, title: vtitle, sort: cleanVars.length });
+    }
+
+    var cleanRows = [], perKind = {};
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var kind = String(r.kind || "").trim();
+      if (KINDS.indexOf(kind) === -1) {
+        return Promise.reject(new Error("Неизвестный блок «" + kind + "»"));
+      }
+      var text = String(r.text || "").trim();
+      if (!text) {
+        return Promise.reject(new Error(
+          "Пустая строка в контенте — уберите её или заполните"));
+      }
+      if (text.length > 4000) {
+        return Promise.reject(new Error("Строка длиннее 4000 знаков"));
+      }
+      var variant = r.variant == null || r.variant === ""
+        ? null : String(r.variant).trim().toUpperCase();
+      if (variant && !seenVar[variant]) {
+        return Promise.reject(new Error(
+          "День привязан к варианту " + variant + ", которого нет в списке"));
+      }
+      perKind[kind] = (perKind[kind] || 0) + 1;
+      cleanRows.push({
+        kind: kind,
+        variant: kind === "day" ? variant : null,
+        sort: perKind[kind] - 1,
+        title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
+        text: text,
+        url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+      });
+    }
+
+    demoContentStore(s)[id] = { content: cleanRows, variants: cleanVars };
+    saveDemo(s);
+    return Promise.resolve({
+      code: t.code, variants: cleanVars.length, rows: cleanRows.length, by_kind: perKind,
+    });
+  }
+
   // Демо-двойник смены даты. Повторяет проверки и порядок воркера.
   function demoDepartureDate(id, dateStart, opts) {
     var s = demoState();
@@ -15753,6 +15966,23 @@ window.TURON_DESTINATIONS = [
     updateTour: function (id, payload) {
       if (!API_BASE) return demoSaveTour(id, payload);
       return request("/api/admin/tours/" + id, { method: "POST", body: payload });
+    },
+
+    /*
+     * Контент карточки тура: программа по дням, «включено / не включено /
+     * информация» и варианты маршрута. Набор строк заменяется целиком —
+     * как прайс заезда: порядок задаётся позицией в списке.
+     */
+    tourContent: function (id) {
+      if (!API_BASE) return Promise.resolve(demoTourContent(id));
+      return request("/api/admin/tours/" + id + "/content");
+    },
+
+    updateTourContent: function (id, content, variants) {
+      if (!API_BASE) return demoSaveTourContent(id, content, variants);
+      return request("/api/admin/tours/" + id + "/content", {
+        method: "POST", body: { content: content, variants: variants || [] },
+      });
     },
 
     /*
@@ -20135,6 +20365,8 @@ window.TURON_DESTINATIONS = [
       '<div class="tt-booking-action">' +
         '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-edit="' +
           t.id + '">Изменить</button>' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-content="' +
+          t.id + '">Карточка</button>' +
       "</div>" +
     "</article>";
   }
@@ -20185,6 +20417,146 @@ window.TURON_DESTINATIONS = [
     $("ot-msg").textContent = "";
     $("ot-msg").className = "tt-editor-msg";
     $("ot-form").hidden = false;
+  }
+
+  /* ------------------------------------------ контент карточки тура
+   * Порядок строк задаётся их ПОЛОЖЕНИЕМ в списке: оператор двигает
+   * строку стрелками, а sort проставляет сервер по позиции. Числа
+   * сортировки руками не правятся — на них ошибаются.
+   */
+  var contentEditing = null;   // id тура, чья карточка открыта
+
+  /*
+   * Имя блока по виду строки. Не выводится формулой: блоки вариантов и
+   * дней названы во множественном числе (#oc-variants, #oc-days), а
+   * остальные — по виду (#oc-included). На попытке вывести это правилом
+   * уже спотыкались: «variant» превращался в несуществующий #oc-variant,
+   * и кнопка «+ Вариант» молча падала.
+   */
+  function ocBoxId(kind) {
+    if (kind === "variant") return "oc-variants";
+    if (kind === "day") return "oc-days";
+    return "oc-" + kind;
+  }
+
+  function ocVariantRow(v) {
+    return '<div class="tt-oc-row" data-oc-kind="variant">' +
+      '<input type="text" data-f="code" value="' + esc(v.code || "") +
+        '" placeholder="A" maxlength="16" aria-label="Код варианта" />' +
+      '<input type="text" data-f="title" value="' + esc(v.title || "") +
+        '" placeholder="Прилёт в Батуми" aria-label="Заголовок варианта" />' +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function ocRowButtons() {
+    return '<span class="tt-oc-actions">' +
+      '<button type="button" class="tt-icon-btn" data-oc-up aria-label="Выше">↑</button>' +
+      '<button type="button" class="tt-icon-btn" data-oc-down aria-label="Ниже">↓</button>' +
+      '<button type="button" class="tt-icon-btn" data-oc-del aria-label="Убрать">&times;</button>' +
+    "</span>";
+  }
+
+  function ocVariantOptions(selected) {
+    var opts = '<option value="">все варианты</option>';
+    Array.prototype.forEach.call(
+      document.querySelectorAll('#oc-variants [data-f="code"]'),
+      function (input) {
+        var code = input.value.trim().toUpperCase();
+        if (!code) return;
+        opts += '<option value="' + esc(code) + '"' +
+          (code === String(selected || "").toUpperCase() ? " selected" : "") +
+          ">" + esc(code) + "</option>";
+      });
+    return opts;
+  }
+
+  function ocDayRow(r) {
+    return '<div class="tt-oc-row tt-oc-day" data-oc-kind="day">' +
+      '<input type="text" data-f="title" value="' + esc(r.title || "") +
+        '" placeholder="День 1 · Прилёт" aria-label="Заголовок дня" />' +
+      '<select data-f="variant" aria-label="Вариант маршрута">' +
+        ocVariantOptions(r.variant) + "</select>" +
+      '<textarea data-f="text" rows="2" placeholder="Что происходит в этот день"' +
+        ' aria-label="Описание дня">' + esc(r.text || "") + "</textarea>" +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function ocLineRow(kind, r) {
+    return '<div class="tt-oc-row" data-oc-kind="' + kind + '">' +
+      '<input type="text" data-f="text" value="' + esc(r.text || "") +
+        '" placeholder="' + (kind === "info"
+          ? "Виза не нужна до 30 дней" : "Авиаперелёт Ташкент — Батуми") +
+        '" aria-label="Текст строки" />' +
+      (kind === "info"
+        ? '<input type="text" data-f="url" value="' + esc(r.url || "") +
+          '" placeholder="ссылка, если нужна" aria-label="Ссылка" />'
+        : "") +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function renderContentEditor(data) {
+    $("oc-title").textContent = "Карточка тура " + (data.code || "");
+    var content = data.content || [];
+    var pick = function (kind) {
+      return content.filter(function (r) { return r.kind === kind; });
+    };
+    $("oc-variants").innerHTML = (data.variants || []).map(ocVariantRow).join("");
+    // Дни рисуем ПОСЛЕ вариантов: список вариантов в их выпадающем поле
+    // собирается из уже отрисованных полей выше.
+    $("oc-days").innerHTML = pick("day").map(ocDayRow).join("");
+    ["included", "excluded", "info"].forEach(function (kind) {
+      $("oc-" + kind).innerHTML = pick(kind).map(function (r) {
+        return ocLineRow(kind, r);
+      }).join("");
+    });
+    $("oc-msg").textContent = "";
+    $("oc-msg").className = "tt-editor-msg";
+  }
+
+  // Собираем обратно: порядок = порядок строк в разметке.
+  function collectContent() {
+    var out = [];
+    ["day", "included", "excluded", "info"].forEach(function (kind) {
+      var box = $(ocBoxId(kind));
+      Array.prototype.forEach.call(box.querySelectorAll(".tt-oc-row"), function (row) {
+        function v(name) {
+          var el = row.querySelector('[data-f="' + name + '"]');
+          return el ? el.value : "";
+        }
+        out.push({
+          kind: kind,
+          title: v("title") || null,
+          variant: kind === "day" ? (v("variant") || null) : null,
+          text: v("text"),
+          url: v("url") || null,
+        });
+      });
+    });
+    return out;
+  }
+
+  function collectVariants() {
+    return Array.prototype.map.call(
+      $("oc-variants").querySelectorAll(".tt-oc-row"), function (row) {
+        return {
+          code: row.querySelector('[data-f="code"]').value,
+          title: row.querySelector('[data-f="title"]').value,
+        };
+      });
+  }
+
+  // Список вариантов поменялся — обновляем выпадающие поля у дней, сохраняя
+  // уже выбранное. Иначе день молча терял бы привязку при добавлении
+  // нового варианта, и сервер отбил бы сохранение целиком.
+  function refreshDayVariants() {
+    Array.prototype.forEach.call(
+      $("oc-days").querySelectorAll('[data-f="variant"]'), function (sel) {
+        var was = sel.value;
+        sel.innerHTML = ocVariantOptions(was);
+      });
   }
 
   /* --------------------------------------------------- смена даты заезда
@@ -21415,6 +21787,92 @@ window.TURON_DESTINATIONS = [
         msg.textContent = err.message;
       });
     });
+
+    /* -------------------------------------- контент карточки тура */
+    $("ot-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-tour-content]");
+      if (!btn) return;
+      var id = Number(btn.dataset.tourContent);
+      TuronApi.tourContent(id).then(function (data) {
+        contentEditing = id;
+        renderContentEditor(data);
+        $("ot-content").hidden = false;
+        $("ot-form").hidden = true;
+        $("ot-content").scrollIntoView({ behavior: "smooth", block: "start" });
+      }).catch(function (err) {
+        alert("Не удалось открыть карточку: " + err.message);
+      });
+    });
+
+    $("oc-close").addEventListener("click", function () {
+      $("ot-content").hidden = true;
+      contentEditing = null;
+    });
+
+    $("ot-content").addEventListener("click", function (e) {
+      var add = e.target.closest("[data-oc-add]");
+      if (add) {
+        var kind = add.dataset.ocAdd;
+        var box = $(ocBoxId(kind));
+        var html = kind === "variant" ? ocVariantRow({})
+          : (kind === "day" ? ocDayRow({}) : ocLineRow(kind, {}));
+        var tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        box.appendChild(tmp.firstChild);
+        if (kind === "variant") refreshDayVariants();
+        return;
+      }
+
+      var row = e.target.closest(".tt-oc-row");
+      if (!row) {
+        if (e.target.id === "oc-save") saveContent();
+        return;
+      }
+      if (e.target.closest("[data-oc-del]")) {
+        var wasVariant = row.dataset.ocKind === "variant";
+        row.remove();
+        if (wasVariant) refreshDayVariants();
+        return;
+      }
+      // Стрелки двигают строку по списку — порядок в разметке и есть
+      // порядок в карточке, отдельных чисел сортировки нет.
+      if (e.target.closest("[data-oc-up]")) {
+        if (row.previousElementSibling) {
+          row.parentNode.insertBefore(row, row.previousElementSibling);
+        }
+        return;
+      }
+      if (e.target.closest("[data-oc-down]")) {
+        if (row.nextElementSibling) {
+          row.parentNode.insertBefore(row.nextElementSibling, row);
+        }
+      }
+    });
+
+    // Код варианта правят руками — выпадающие поля дней должны за ним
+    // успевать, иначе привязка «уедет» на несуществующий код.
+    $("oc-variants").addEventListener("input", function (e) {
+      if (e.target.matches('[data-f="code"]')) refreshDayVariants();
+    });
+
+    function saveContent() {
+      if (!contentEditing) return;
+      var msg = $("oc-msg"), btn = $("oc-save");
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Сохраняю…";
+      btn.disabled = true;
+      TuronApi.updateTourContent(contentEditing, collectContent(), collectVariants())
+        .then(function (res) {
+          btn.disabled = false;
+          msg.className = "tt-editor-msg is-ok";
+          msg.textContent = "Сохранено: строк " + res.rows +
+            (res.variants ? ", вариантов " + res.variants : "") + ".";
+        }).catch(function (err) {
+          btn.disabled = false;
+          msg.className = "tt-editor-msg is-err";
+          msg.textContent = err.message;
+        });
+    }
 
     /* --------------------------------------------------- новый заезд */
     $("adm-new-dep").addEventListener("click", function () {

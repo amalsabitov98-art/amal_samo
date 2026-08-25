@@ -423,6 +423,8 @@
       '<div class="tt-booking-action">' +
         '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-edit="' +
           t.id + '">Изменить</button>' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-content="' +
+          t.id + '">Карточка</button>' +
       "</div>" +
     "</article>";
   }
@@ -473,6 +475,146 @@
     $("ot-msg").textContent = "";
     $("ot-msg").className = "tt-editor-msg";
     $("ot-form").hidden = false;
+  }
+
+  /* ------------------------------------------ контент карточки тура
+   * Порядок строк задаётся их ПОЛОЖЕНИЕМ в списке: оператор двигает
+   * строку стрелками, а sort проставляет сервер по позиции. Числа
+   * сортировки руками не правятся — на них ошибаются.
+   */
+  var contentEditing = null;   // id тура, чья карточка открыта
+
+  /*
+   * Имя блока по виду строки. Не выводится формулой: блоки вариантов и
+   * дней названы во множественном числе (#oc-variants, #oc-days), а
+   * остальные — по виду (#oc-included). На попытке вывести это правилом
+   * уже спотыкались: «variant» превращался в несуществующий #oc-variant,
+   * и кнопка «+ Вариант» молча падала.
+   */
+  function ocBoxId(kind) {
+    if (kind === "variant") return "oc-variants";
+    if (kind === "day") return "oc-days";
+    return "oc-" + kind;
+  }
+
+  function ocVariantRow(v) {
+    return '<div class="tt-oc-row" data-oc-kind="variant">' +
+      '<input type="text" data-f="code" value="' + esc(v.code || "") +
+        '" placeholder="A" maxlength="16" aria-label="Код варианта" />' +
+      '<input type="text" data-f="title" value="' + esc(v.title || "") +
+        '" placeholder="Прилёт в Батуми" aria-label="Заголовок варианта" />' +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function ocRowButtons() {
+    return '<span class="tt-oc-actions">' +
+      '<button type="button" class="tt-icon-btn" data-oc-up aria-label="Выше">↑</button>' +
+      '<button type="button" class="tt-icon-btn" data-oc-down aria-label="Ниже">↓</button>' +
+      '<button type="button" class="tt-icon-btn" data-oc-del aria-label="Убрать">&times;</button>' +
+    "</span>";
+  }
+
+  function ocVariantOptions(selected) {
+    var opts = '<option value="">все варианты</option>';
+    Array.prototype.forEach.call(
+      document.querySelectorAll('#oc-variants [data-f="code"]'),
+      function (input) {
+        var code = input.value.trim().toUpperCase();
+        if (!code) return;
+        opts += '<option value="' + esc(code) + '"' +
+          (code === String(selected || "").toUpperCase() ? " selected" : "") +
+          ">" + esc(code) + "</option>";
+      });
+    return opts;
+  }
+
+  function ocDayRow(r) {
+    return '<div class="tt-oc-row tt-oc-day" data-oc-kind="day">' +
+      '<input type="text" data-f="title" value="' + esc(r.title || "") +
+        '" placeholder="День 1 · Прилёт" aria-label="Заголовок дня" />' +
+      '<select data-f="variant" aria-label="Вариант маршрута">' +
+        ocVariantOptions(r.variant) + "</select>" +
+      '<textarea data-f="text" rows="2" placeholder="Что происходит в этот день"' +
+        ' aria-label="Описание дня">' + esc(r.text || "") + "</textarea>" +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function ocLineRow(kind, r) {
+    return '<div class="tt-oc-row" data-oc-kind="' + kind + '">' +
+      '<input type="text" data-f="text" value="' + esc(r.text || "") +
+        '" placeholder="' + (kind === "info"
+          ? "Виза не нужна до 30 дней" : "Авиаперелёт Ташкент — Батуми") +
+        '" aria-label="Текст строки" />' +
+      (kind === "info"
+        ? '<input type="text" data-f="url" value="' + esc(r.url || "") +
+          '" placeholder="ссылка, если нужна" aria-label="Ссылка" />'
+        : "") +
+      ocRowButtons() +
+    "</div>";
+  }
+
+  function renderContentEditor(data) {
+    $("oc-title").textContent = "Карточка тура " + (data.code || "");
+    var content = data.content || [];
+    var pick = function (kind) {
+      return content.filter(function (r) { return r.kind === kind; });
+    };
+    $("oc-variants").innerHTML = (data.variants || []).map(ocVariantRow).join("");
+    // Дни рисуем ПОСЛЕ вариантов: список вариантов в их выпадающем поле
+    // собирается из уже отрисованных полей выше.
+    $("oc-days").innerHTML = pick("day").map(ocDayRow).join("");
+    ["included", "excluded", "info"].forEach(function (kind) {
+      $("oc-" + kind).innerHTML = pick(kind).map(function (r) {
+        return ocLineRow(kind, r);
+      }).join("");
+    });
+    $("oc-msg").textContent = "";
+    $("oc-msg").className = "tt-editor-msg";
+  }
+
+  // Собираем обратно: порядок = порядок строк в разметке.
+  function collectContent() {
+    var out = [];
+    ["day", "included", "excluded", "info"].forEach(function (kind) {
+      var box = $(ocBoxId(kind));
+      Array.prototype.forEach.call(box.querySelectorAll(".tt-oc-row"), function (row) {
+        function v(name) {
+          var el = row.querySelector('[data-f="' + name + '"]');
+          return el ? el.value : "";
+        }
+        out.push({
+          kind: kind,
+          title: v("title") || null,
+          variant: kind === "day" ? (v("variant") || null) : null,
+          text: v("text"),
+          url: v("url") || null,
+        });
+      });
+    });
+    return out;
+  }
+
+  function collectVariants() {
+    return Array.prototype.map.call(
+      $("oc-variants").querySelectorAll(".tt-oc-row"), function (row) {
+        return {
+          code: row.querySelector('[data-f="code"]').value,
+          title: row.querySelector('[data-f="title"]').value,
+        };
+      });
+  }
+
+  // Список вариантов поменялся — обновляем выпадающие поля у дней, сохраняя
+  // уже выбранное. Иначе день молча терял бы привязку при добавлении
+  // нового варианта, и сервер отбил бы сохранение целиком.
+  function refreshDayVariants() {
+    Array.prototype.forEach.call(
+      $("oc-days").querySelectorAll('[data-f="variant"]'), function (sel) {
+        var was = sel.value;
+        sel.innerHTML = ocVariantOptions(was);
+      });
   }
 
   /* --------------------------------------------------- смена даты заезда
@@ -1703,6 +1845,92 @@
         msg.textContent = err.message;
       });
     });
+
+    /* -------------------------------------- контент карточки тура */
+    $("ot-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-tour-content]");
+      if (!btn) return;
+      var id = Number(btn.dataset.tourContent);
+      TuronApi.tourContent(id).then(function (data) {
+        contentEditing = id;
+        renderContentEditor(data);
+        $("ot-content").hidden = false;
+        $("ot-form").hidden = true;
+        $("ot-content").scrollIntoView({ behavior: "smooth", block: "start" });
+      }).catch(function (err) {
+        alert("Не удалось открыть карточку: " + err.message);
+      });
+    });
+
+    $("oc-close").addEventListener("click", function () {
+      $("ot-content").hidden = true;
+      contentEditing = null;
+    });
+
+    $("ot-content").addEventListener("click", function (e) {
+      var add = e.target.closest("[data-oc-add]");
+      if (add) {
+        var kind = add.dataset.ocAdd;
+        var box = $(ocBoxId(kind));
+        var html = kind === "variant" ? ocVariantRow({})
+          : (kind === "day" ? ocDayRow({}) : ocLineRow(kind, {}));
+        var tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        box.appendChild(tmp.firstChild);
+        if (kind === "variant") refreshDayVariants();
+        return;
+      }
+
+      var row = e.target.closest(".tt-oc-row");
+      if (!row) {
+        if (e.target.id === "oc-save") saveContent();
+        return;
+      }
+      if (e.target.closest("[data-oc-del]")) {
+        var wasVariant = row.dataset.ocKind === "variant";
+        row.remove();
+        if (wasVariant) refreshDayVariants();
+        return;
+      }
+      // Стрелки двигают строку по списку — порядок в разметке и есть
+      // порядок в карточке, отдельных чисел сортировки нет.
+      if (e.target.closest("[data-oc-up]")) {
+        if (row.previousElementSibling) {
+          row.parentNode.insertBefore(row, row.previousElementSibling);
+        }
+        return;
+      }
+      if (e.target.closest("[data-oc-down]")) {
+        if (row.nextElementSibling) {
+          row.parentNode.insertBefore(row.nextElementSibling, row);
+        }
+      }
+    });
+
+    // Код варианта правят руками — выпадающие поля дней должны за ним
+    // успевать, иначе привязка «уедет» на несуществующий код.
+    $("oc-variants").addEventListener("input", function (e) {
+      if (e.target.matches('[data-f="code"]')) refreshDayVariants();
+    });
+
+    function saveContent() {
+      if (!contentEditing) return;
+      var msg = $("oc-msg"), btn = $("oc-save");
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Сохраняю…";
+      btn.disabled = true;
+      TuronApi.updateTourContent(contentEditing, collectContent(), collectVariants())
+        .then(function (res) {
+          btn.disabled = false;
+          msg.className = "tt-editor-msg is-ok";
+          msg.textContent = "Сохранено: строк " + res.rows +
+            (res.variants ? ", вариантов " + res.variants : "") + ".";
+        }).catch(function (err) {
+          btn.disabled = false;
+          msg.className = "tt-editor-msg is-err";
+          msg.textContent = err.message;
+        });
+    }
 
     /* --------------------------------------------------- новый заезд */
     $("adm-new-dep").addEventListener("click", function () {

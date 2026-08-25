@@ -2814,6 +2814,129 @@ console.log("\nТуры: чего сервер не даёт");
   await page.close();
 }
 
+console.log("\nКарточка тура: программа, включено, варианты");
+{
+  const { page, errors } = await session("operator");
+  page.on("dialog", (d) => d.accept());
+  await page.locator('.tt-tab[data-tab="op-tours"]').first().click({ force: true });
+  await page.waitForTimeout(800);
+
+  check("у тура есть кнопка «Карточка»",
+        (await page.locator("[data-tour-content]").count()) > 0);
+  await page.locator("[data-tour-content]").first().click();
+  await page.waitForTimeout(700);
+  check("редактор карточки открылся", await page.locator("#ot-content").isVisible());
+
+  // Вариант маршрута и день, привязанный к нему.
+  await page.locator('[data-oc-add="variant"]').click();
+  await page.waitForTimeout(200);
+  await page.locator('#oc-variants [data-f="code"]').fill("A");
+  await page.locator('#oc-variants [data-f="title"]').fill("Прилёт в Батуми");
+  await page.dispatchEvent('#oc-variants [data-f="code"]', "input");
+  await page.waitForTimeout(200);
+
+  await page.locator('[data-oc-add="day"]').click();
+  await page.waitForTimeout(200);
+  // Ловушка: добавленный вариант должен сразу появиться в выпадающем поле
+  // дня, иначе привязка «уедет» и сервер отобьёт сохранение целиком.
+  check("новый вариант сразу виден в списке у дня",
+        (await page.locator('#oc-days [data-f="variant"] option').count()) === 2);
+
+  await page.locator('#oc-days [data-f="title"]').fill("День 1 · Прилёт");
+  await page.locator('#oc-days [data-f="text"]').fill("Встреча, трансфер в отель.");
+  await page.locator('#oc-days [data-f="variant"]').selectOption("A");
+
+  await page.locator('[data-oc-add="included"]').click();
+  await page.waitForTimeout(200);
+  await page.locator('#oc-included [data-f="text"]').fill("Авиаперелёт Ташкент — Батуми");
+
+  await page.click("#oc-save");
+  await page.waitForTimeout(900);
+  check("карточка сохранена с подтверждением",
+        (await page.locator("#oc-msg").innerText()).includes("Сохранено"));
+
+  // Порядок задаётся положением строки, а не числом — двигаем стрелкой.
+  await page.locator('[data-oc-add="included"]').click();
+  await page.waitForTimeout(200);
+  await page.locator("#oc-included .tt-oc-row").nth(1)
+    .locator('[data-f="text"]').fill("Проживание в отелях");
+  await page.locator("#oc-included .tt-oc-row").nth(1)
+    .locator("[data-oc-up]").click();
+  await page.waitForTimeout(200);
+  check("стрелка двигает строку вверх",
+        (await page.locator("#oc-included .tt-oc-row").first()
+          .locator('[data-f="text"]').inputValue()) === "Проживание в отелях");
+
+  await page.click("#oc-save");
+  await page.waitForTimeout(900);
+  const saved = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminTours();
+    const t = list[0];
+    return await window.TuronApi.tourContent(t.id);
+  });
+  const included = saved.content.filter((r) => r.kind === "included");
+  check("порядок сохранён так, как на экране",
+        included[0].text === "Проживание в отелях", JSON.stringify(included));
+  check("день привязан к варианту",
+        saved.content.find((r) => r.kind === "day").variant === "A");
+  check("вариант маршрута сохранён",
+        saved.variants.length === 1 && saved.variants[0].code === "A");
+
+  await page.close();
+}
+
+console.log("\nКарточка тура: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminTours();
+    const id = list[0].id;
+    const out = {};
+
+    try {
+      await window.TuronApi.updateTourContent(id, [{ kind: "included", text: "  " }], []);
+      out.empty = "прошло";
+    } catch (e) { out.empty = e.message; }
+
+    try {
+      await window.TuronApi.updateTourContent(id, [{ kind: "выдумка", text: "X" }], []);
+      out.badKind = "прошло";
+    } catch (e) { out.badKind = e.message; }
+
+    // День, привязанный к несуществующему варианту, просто не показался бы
+    // в карточке — молчаливая потеря данных, ловим её на сервере.
+    try {
+      await window.TuronApi.updateTourContent(
+        id, [{ kind: "day", text: "X", variant: "Z" }], []);
+      out.ghost = "прошло";
+    } catch (e) { out.ghost = e.message; }
+
+    try {
+      await window.TuronApi.updateTourContent(id, [], [
+        { code: "A", title: "Раз" }, { code: "A", title: "Два" }]);
+      out.dupeVariant = "прошло";
+    } catch (e) { out.dupeVariant = e.message; }
+
+    try {
+      await window.TuronApi.updateTourContent(id, [], [{ code: "A", title: "" }]);
+      out.noTitle = "прошло";
+    } catch (e) { out.noTitle = e.message; }
+    return out;
+  });
+
+  check("пустая строка контента не проходит", /Пустая строка/.test(res.empty), res.empty);
+  check("выдуманный вид блока не проходит", /Неизвестный блок/.test(res.badKind), res.badKind);
+  check("день с несуществующим вариантом не проходит",
+        /которого нет/.test(res.ghost), res.ghost);
+  check("два одинаковых варианта не проходят",
+        /дважды/.test(res.dupeVariant), res.dupeVariant);
+  check("вариант без заголовка не проходит",
+        /заголовок/.test(res.noTitle), res.noTitle);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

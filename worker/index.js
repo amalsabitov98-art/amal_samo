@@ -1364,6 +1364,118 @@ async function updateTour(request, env, actor, tourId) {
 }
 
 /*
+ * КОНТЕНТ КАРТОЧКИ тура: программа по дням, «включено / не включено /
+ * информация» и варианты маршрута. Это то, что гость читает в каталоге,
+ * а агент показывает клиенту по ссылке.
+ *
+ * Набор строк заменяется ЦЕЛИКОМ, как прайс заезда и состав брони: так не
+ * остаётся висящих строк и не нужны отдельные маршруты на добавление,
+ * удаление и перестановку. Порядок задаётся ПОЗИЦИЕЙ в присланном списке
+ * (sort проставляем сами) — оператор двигает строки, а не правит числа.
+ *
+ * Варианты маршрута приходят той же пачкой: у Карадениза их два (прилёт в
+ * Батуми и прилёт в Трабзон), и день программы привязан к варианту полем
+ * `variant`. День без варианта — общий для всех.
+ */
+async function updateTourContent(request, env, actor, tourId) {
+  const body = await request.json().catch(() => ({}));
+  const tour = await env.DB.prepare("SELECT id, code FROM tours WHERE id = ?")
+    .bind(tourId).first();
+  if (!tour) return fail("Тур не найден", 404);
+
+  const KINDS = ["included", "excluded", "info", "gallery", "day"];
+  const rows = Array.isArray(body.content) ? body.content : [];
+  const variants = Array.isArray(body.variants) ? body.variants : [];
+
+  const cleanVariants = [];
+  const seenVariant = {};
+  for (const v of variants) {
+    const code = String(v.code || "").trim().toUpperCase();
+    const title = String(v.title || "").trim();
+    if (!code) return fail("У варианта маршрута нужен код");
+    if (!/^[A-Z0-9_-]{1,16}$/.test(code)) {
+      return fail(`Вариант «${code}»: латиница, цифры, дефис`);
+    }
+    if (seenVariant[code]) return fail(`Вариант ${code} встречается дважды`);
+    seenVariant[code] = true;
+    if (!title) return fail(`Вариант ${code}: нужен заголовок`);
+    cleanVariants.push({ code, title, sort: cleanVariants.length });
+  }
+
+  const cleanRows = [];
+  const perKind = {};
+  for (const r of rows) {
+    const kind = String(r.kind || "").trim();
+    if (KINDS.indexOf(kind) === -1) return fail(`Неизвестный блок «${kind}»`);
+    const text = String(r.text || "").trim();
+    if (!text) return fail("Пустая строка в контенте — уберите её или заполните");
+    if (text.length > 4000) return fail("Строка длиннее 4000 знаков");
+
+    const variant = r.variant == null || r.variant === ""
+      ? null : String(r.variant).trim().toUpperCase();
+    // День, привязанный к несуществующему варианту, просто не покажется в
+    // карточке — это и есть «данные потерялись молча», ловим здесь.
+    if (variant && !seenVariant[variant]) {
+      return fail(`День привязан к варианту ${variant}, которого нет в списке`);
+    }
+
+    perKind[kind] = (perKind[kind] || 0) + 1;
+    cleanRows.push({
+      kind,
+      variant: kind === "day" ? variant : null,
+      sort: perKind[kind] - 1,
+      title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
+      text,
+      url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+    });
+  }
+
+  const statements = [
+    env.DB.prepare("DELETE FROM tour_content WHERE tour_id = ?").bind(tourId),
+    env.DB.prepare("DELETE FROM tour_variants WHERE tour_id = ?").bind(tourId),
+  ];
+  for (const v of cleanVariants) {
+    statements.push(env.DB.prepare(
+      "INSERT INTO tour_variants (tour_id, code, title, sort) VALUES (?, ?, ?, ?)"
+    ).bind(tourId, v.code, v.title, v.sort));
+  }
+  for (const r of cleanRows) {
+    statements.push(env.DB.prepare(
+      `INSERT INTO tour_content (tour_id, kind, variant, sort, title, text, url)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(tourId, r.kind, r.variant, r.sort, r.title, r.text, r.url));
+  }
+  await env.DB.batch(statements);
+
+  return json({
+    code: tour.code,
+    variants: cleanVariants.length,
+    rows: cleanRows.length,
+    by_kind: perKind,
+  });
+}
+
+async function tourContent(env, tourId) {
+  const tour = await env.DB.prepare("SELECT id, code FROM tours WHERE id = ?")
+    .bind(tourId).first();
+  if (!tour) return fail("Тур не найден", 404);
+
+  const content = await env.DB.prepare(
+    `SELECT kind, variant, sort, title, text, url FROM tour_content
+      WHERE tour_id = ? ORDER BY kind, sort`
+  ).bind(tourId).all();
+  const variants = await env.DB.prepare(
+    "SELECT code, title, sort FROM tour_variants WHERE tour_id = ? ORDER BY sort"
+  ).bind(tourId).all();
+
+  return json({
+    code: tour.code,
+    content: content.results,
+    variants: variants.results,
+  });
+}
+
+/*
  * Смена ДАТЫ заезда. Рейсы переносят — это нормальная жизнь, но по
  * проданным броням дата тянет за собой куда больше, чем кажется:
  *
@@ -2340,6 +2452,14 @@ async function route(request, env, ctx) {
         if (path === "/api/admin/tours" && request.method === "POST") {
           return await createTour(request, env, agency);
         }
+        const tourCnt = path.match(/^\/api\/admin\/tours\/(\d+)\/content$/);
+        if (tourCnt && request.method === "GET") {
+          return await tourContent(env, Number(tourCnt[1]));
+        }
+        if (tourCnt && request.method === "POST") {
+          return await updateTourContent(request, env, agency, Number(tourCnt[1]));
+        }
+
         const tourEdit = path.match(/^\/api\/admin\/tours\/(\d+)$/);
         if (tourEdit && request.method === "POST") {
           return await updateTour(request, env, agency, Number(tourEdit[1]));
