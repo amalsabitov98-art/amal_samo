@@ -287,21 +287,58 @@
   }
 
   // --------------------------------------------------------------- заезды
-  // Карточки заезда переиспользуют визуал агентской вкладки «Направления»
-  // (.tt-dep, .tt-seat-bar) — оператору место в кабинете такое же родное,
-  // просто без цен и кнопки «Забронировать»: тут это выбор, а не продажа.
+  var OP_MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+  var OP_MONTHS_SHORT = ["ЯНВ", "ФЕВ", "МАР", "АПР", "МАЙ", "ИЮН",
+    "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"];
+  var OP_ARRIVAL = { TZX: "Трабзон", BUS: "Батуми", MED: "Медина", JED: "Джидда" };
+
+  function opDepIdentity(d) {
+    var umra = /^UMRA_/i.test(d.code || "");
+    var arrival = OP_ARRIVAL[d.transport] || d.transport || "Маршрут";
+    return {
+      badge: umra ? "Умра · " + (d.transport || arrival) : (TRANSPORT[d.transport] || arrival),
+      route: (umra ? "Умра" : "Карадениз") + " · " + arrival,
+    };
+  }
+
+  // Вся строка остаётся кнопкой: визуальное действие справа не уменьшает
+  // область клика и не меняет существующую логику выбора заезда.
   function opDepCardHtml(d, active) {
     // Закрытый заезд из сетки не убираем: оператору его надо найти, чтобы
     // открыть обратно. Помечаем и приглушаем.
     var closed = d.is_open === 0;
+    var date = calendarDate(d.date_start);
+    var identity = opDepIdentity(d);
     return '<button type="button" class="tt-op-dep' +
       (active ? " is-active" : "") + (closed ? " is-closed" : "") +
       '" data-departure="' + esc(d.code) + '">' +
-      '<div class="tt-dep-date"><strong>' + formatDate(d.date_start) + "</strong>" +
-        '<span class="tt-dep-code">' + esc(d.code) + "</span></div>" +
-      '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
-      (closed ? '<span class="tt-badge tt-badge-off">Продажа закрыта</span>' : "") +
+      '<span class="tt-op-date"><strong>' + (date ? date.getUTCDate() : "—") + '</strong>' +
+        '<small>' + (date ? OP_MONTHS_SHORT[date.getUTCMonth()] : "") + '</small></span>' +
+      '<span class="tt-op-dot" aria-hidden="true"></span>' +
+      '<span class="tt-op-code">' + esc(d.code) + "</span>" +
+      '<span class="tt-badge tt-op-route-badge">' + esc(identity.badge) + "</span>" +
+      '<span class="tt-op-route">' + esc(identity.route) + "</span>" +
+      '<span class="tt-badge tt-op-status ' + (closed ? "tt-badge-off" : "is-open") + '">' +
+        (closed ? "Продажа закрыта" : "Продажа открыта") + "</span>" +
+      '<span class="tt-op-open">Открыть <b aria-hidden="true">›</b></span>' +
     "</button>";
+  }
+
+  function opWeekKey(d) {
+    var date = calendarDate(d.date_start);
+    if (!date) return "unknown";
+    return date.getUTCFullYear() + "-" + date.getUTCMonth() + "-" +
+      Math.floor((date.getUTCDate() - 1) / 7);
+  }
+
+  function opWeekLabel(list) {
+    var first = calendarDate(list[0].date_start);
+    if (!first) return "Даты не указаны";
+    var start = Math.floor((first.getUTCDate() - 1) / 7) * 7 + 1;
+    var lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+    var end = Math.min(start + 6, lastDay);
+    return start + "–" + end + " " + OP_MONTHS[first.getUTCMonth()];
   }
 
   /*
@@ -482,9 +519,23 @@
   }
 
   function grid(list) {
-    return '<div class="tt-op-dep-grid">' +
-      list.map(function (d) { return opDepCardHtml(d, d.code === state.selectedDeparture); }).join("") +
-    "</div>";
+    var groups = [];
+    list.forEach(function (d) {
+      var key = opWeekKey(d);
+      var group = groups[groups.length - 1];
+      if (!group || group.key !== key) {
+        group = { key: key, items: [] };
+        groups.push(group);
+      }
+      group.items.push(d);
+    });
+    return groups.map(function (group) {
+      return '<section class="tt-op-week"><h3><span aria-hidden="true">▣</span>' +
+        esc(opWeekLabel(group.items)) + '</h3><div class="tt-op-dep-grid">' +
+        group.items.map(function (d) {
+          return opDepCardHtml(d, d.code === state.selectedDeparture);
+        }).join("") + "</div></section>";
+    }).join("");
   }
 
   // Заездов за сезон десятки — стеной карточек прошедшие мешают найти
