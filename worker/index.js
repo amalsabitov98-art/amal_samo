@@ -1186,6 +1186,22 @@ async function setDepartureOpen(env, actor, departureId, open) {
     return json({ code: dep.code, is_open: open, changed: false });
   }
 
+  /*
+   * Открыть заезд, которому нечем торговать, нельзя. Заезд, созданный без
+   * образца, рождается закрытым и БЕЗ ЦЕН — если его открыть как есть,
+   * агентство увидит его в списке и уткнётся в «нет цены на размещение»
+   * уже на форме брони. Отказ здесь дешевле такой встречи.
+   */
+  if (open) {
+    const priced = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM departure_prices
+        WHERE departure_id = ? AND kind = 'placement'`
+    ).bind(departureId).first();
+    if (!priced.n) {
+      return fail("У заезда нет ни одной цены размещения — сначала заполните прайс", 409);
+    }
+  }
+
   await env.DB.prepare("UPDATE departures SET is_open = ? WHERE id = ?")
     .bind(open ? 1 : 0, departureId).run();
 

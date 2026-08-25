@@ -510,6 +510,12 @@
             <label for="nd-source">Образец</label>
             <select id="nd-source"></select>
           </div>
+          <!-- Виден только когда образец не выбран: без него сервер не знает,
+               к какому туру привязать заезд, и раньше форма молча падала. -->
+          <div class="tt-field-full" id="nd-tour-field" hidden>
+            <label for="nd-tour">Тур</label>
+            <select id="nd-tour"></select>
+          </div>
           <div class="tt-field-full">
             <label for="nd-date">Дата выезда</label>
             <input type="date" id="nd-date" required />

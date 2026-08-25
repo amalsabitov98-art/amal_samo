@@ -1072,6 +1072,12 @@
         if (!!was === !!open) {
           return Promise.resolve({ code: d.code, is_open: !!open, changed: false });
         }
+        // Открыть заезд без цен нельзя: агентство уткнулось бы в «нет цены
+        // на размещение» уже на форме брони.
+        if (open && !(d.prices || []).some(function (p) { return p.kind === "placement"; })) {
+          return Promise.reject(new Error(
+            "У заезда нет ни одной цены размещения — сначала заполните прайс"));
+        }
         d.is_open = open ? 1 : 0;
         saveDemo(s);
         return Promise.resolve({

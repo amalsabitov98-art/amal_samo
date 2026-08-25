@@ -9465,6 +9465,12 @@ a.tt-contact-row:hover { color: var(--cc); }
             <label for="nd-source">Образец</label>
             <select id="nd-source"></select>
           </div>
+          <!-- Виден только когда образец не выбран: без него сервер не знает,
+               к какому туру привязать заезд, и раньше форма молча падала. -->
+          <div class="tt-field-full" id="nd-tour-field" hidden>
+            <label for="nd-tour">Тур</label>
+            <select id="nd-tour"></select>
+          </div>
           <div class="tt-field-full">
             <label for="nd-date">Дата выезда</label>
             <input type="date" id="nd-date" required />
@@ -15430,6 +15436,12 @@ window.TURON_DESTINATIONS = [
         if (!!was === !!open) {
           return Promise.resolve({ code: d.code, is_open: !!open, changed: false });
         }
+        // Открыть заезд без цен нельзя: агентство уткнулось бы в «нет цены
+        // на размещение» уже на форме брони.
+        if (open && !(d.prices || []).some(function (p) { return p.kind === "placement"; })) {
+          return Promise.reject(new Error(
+            "У заезда нет ни одной цены размещения — сначала заполните прайс"));
+        }
         d.is_open = open ? 1 : 0;
         saveDemo(s);
         return Promise.resolve({
@@ -19884,7 +19896,24 @@ window.TURON_DESTINATIONS = [
     } else if (!$("nd-capacity").value) {
       $("nd-capacity").value = 65;
     }
+    // Без образца сервер не знает, к какому туру привязать заезд — спрашиваем.
+    // Раньше поля не было вовсе, и такой заезд просто не создавался.
+    $("nd-tour-field").hidden = !!src;
     refreshSuggestedCode();
+  }
+
+  // Список туров для формы «без образца». Тянем один раз при первом
+  // открытии формы: он меняется куда реже, чем заезды.
+  function fillTourOptions() {
+    var sel = $("nd-tour");
+    if (sel.options.length) return Promise.resolve();
+    return TuronApi.tours().then(function (list) {
+      sel.innerHTML = (list || []).map(function (t) {
+        return '<option value="' + esc(t.code) + '">' + esc(t.name || t.code) + "</option>";
+      }).join("");
+    }).catch(function () {
+      sel.innerHTML = '<option value="">не удалось загрузить туры</option>';
+    });
   }
 
   function refreshSuggestedCode() {
@@ -20789,7 +20818,7 @@ window.TURON_DESTINATIONS = [
     $("adm-new-dep").addEventListener("click", function () {
       var form = $("adm-new-dep-form");
       form.hidden = !form.hidden;
-      if (!form.hidden) { fillNewDepForm(); $("nd-date").focus(); }
+      if (!form.hidden) { fillTourOptions(); fillNewDepForm(); $("nd-date").focus(); }
     });
     $("nd-cancel").addEventListener("click", function () {
       $("adm-new-dep-form").hidden = true;
@@ -20807,6 +20836,8 @@ window.TURON_DESTINATIONS = [
       save.disabled = true;
       TuronApi.createDeparture({
         source_code: $("nd-source").value || null,
+        // Тур нужен только когда образца нет: с образцом он берётся оттуда.
+        tour_code: $("nd-source").value ? null : ($("nd-tour").value || null),
         code: $("nd-code").value,
         date_start: $("nd-date").value,
         transport: $("nd-transport").value,

@@ -488,7 +488,24 @@
     } else if (!$("nd-capacity").value) {
       $("nd-capacity").value = 65;
     }
+    // Без образца сервер не знает, к какому туру привязать заезд — спрашиваем.
+    // Раньше поля не было вовсе, и такой заезд просто не создавался.
+    $("nd-tour-field").hidden = !!src;
     refreshSuggestedCode();
+  }
+
+  // Список туров для формы «без образца». Тянем один раз при первом
+  // открытии формы: он меняется куда реже, чем заезды.
+  function fillTourOptions() {
+    var sel = $("nd-tour");
+    if (sel.options.length) return Promise.resolve();
+    return TuronApi.tours().then(function (list) {
+      sel.innerHTML = (list || []).map(function (t) {
+        return '<option value="' + esc(t.code) + '">' + esc(t.name || t.code) + "</option>";
+      }).join("");
+    }).catch(function () {
+      sel.innerHTML = '<option value="">не удалось загрузить туры</option>';
+    });
   }
 
   function refreshSuggestedCode() {
@@ -1393,7 +1410,7 @@
     $("adm-new-dep").addEventListener("click", function () {
       var form = $("adm-new-dep-form");
       form.hidden = !form.hidden;
-      if (!form.hidden) { fillNewDepForm(); $("nd-date").focus(); }
+      if (!form.hidden) { fillTourOptions(); fillNewDepForm(); $("nd-date").focus(); }
     });
     $("nd-cancel").addEventListener("click", function () {
       $("adm-new-dep-form").hidden = true;
@@ -1411,6 +1428,8 @@
       save.disabled = true;
       TuronApi.createDeparture({
         source_code: $("nd-source").value || null,
+        // Тур нужен только когда образца нет: с образцом он берётся оттуда.
+        tour_code: $("nd-source").value ? null : ($("nd-tour").value || null),
         code: $("nd-code").value,
         date_start: $("nd-date").value,
         transport: $("nd-transport").value,
