@@ -14,6 +14,8 @@
     departures: [], current: null, agencies: [], selectedDeparture: null,
     departureFilter: "", showPast: false, page: 0, pageSize: 20, total: 0,
     detailTab: "passengers", departureListScroll: 0,
+    departurePeriod: "upcoming", departureDirection: "", departureRoute: "",
+    departureSale: "", departureLoad: "",
     // «Обзор» и статистика агентств считаются из одного и того же среза
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
@@ -543,30 +545,63 @@
   // за кнопку; поиск ищет по всем без разбора, раз человек уже назвал дату.
   function renderDepartureCards() {
     var q = state.departureFilter.trim().toLowerCase();
-    if (q) {
-      var found = state.departures.filter(function (d) {
-        return d.code.toLowerCase().indexOf(q) !== -1 ||
-          formatDate(d.date_start).indexOf(q) !== -1;
-      });
-      $("adm-departure-cards").innerHTML = found.length
-        ? grid(found) : '<div class="tt-empty-state">Заезды не найдены.</div>';
-      return;
-    }
-
     var today = new Date().toISOString().slice(0, 10);
-    var upcoming = state.departures.filter(function (d) { return d.date_start >= today; });
-    var past = state.departures.filter(function (d) { return d.date_start < today; });
+    var inSeven = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    var inThirty = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    var filtered = state.departures.filter(function (d) {
+      var identity = opDepIdentity(d);
+      if (q) {
+        var haystack = [d.code, formatDate(d.date_start), d.tour_name, d.tour_code,
+          identity.badge, identity.route].filter(Boolean).join(" ").toLowerCase();
+        if (haystack.indexOf(q) === -1) return false;
+      }
+      if (state.departurePeriod === "upcoming" && d.date_start < today) return false;
+      if (state.departurePeriod === "7" && (d.date_start < today || d.date_start > inSeven)) return false;
+      if (state.departurePeriod === "30" && (d.date_start < today || d.date_start > inThirty)) return false;
+      if (state.departurePeriod === "past" && d.date_start >= today) return false;
+      var umra = /^UMRA_/i.test(d.code || "");
+      if (state.departureDirection === "umra" && !umra) return false;
+      if (state.departureDirection === "karadeniz" && umra) return false;
+      if (state.departureRoute && String(d.transport || "").toUpperCase() !== state.departureRoute) return false;
+      var closed = d.is_open === 0;
+      if (state.departureSale === "open" && closed) return false;
+      if (state.departureSale === "closed" && !closed) return false;
+      var cap = Number(d.capacity || 0);
+      var remaining = cap - Number(d.seats_taken || 0);
+      if (state.departureLoad === "available" && !(cap > 0 && remaining > 0)) return false;
+      if (state.departureLoad === "low" && !(cap > 0 && remaining > 0 && remaining <= 10)) return false;
+      if (state.departureLoad === "full" && !(cap > 0 && remaining <= 0)) return false;
+      return true;
+    }).sort(function (a, b) {
+      if (state.departurePeriod === "past") return a.date_start > b.date_start ? -1 : 1;
+      return a.date_start < b.date_start ? -1 : 1;
+    });
 
-    var html = upcoming.length ? grid(upcoming)
-      : '<div class="tt-empty-state">Предстоящих заездов нет.</div>';
-    if (past.length) {
-      html += '<button type="button" class="tt-btn secondary tt-btn-sm tt-toggle-past" ' +
-        'id="adm-toggle-past">' +
-        (state.showPast ? "Скрыть прошедшие" : "Показать прошедшие (" + past.length + ")") +
-        "</button>";
-      if (state.showPast) html += grid(past.slice().reverse());
+    document.querySelectorAll("[data-dep-period]").forEach(function (button) {
+      button.classList.toggle("is-active", button.dataset.depPeriod === state.departurePeriod);
+    });
+    $("adm-filter-count").textContent = "Найдено " + filtered.length + " " +
+      plural(filtered.length, "заезд", "заезда", "заездов");
+
+    var chips = [];
+    if (state.departurePeriod !== "upcoming") {
+      chips.push(["period", { "7": "7 дней", "30": "30 дней", past: "Прошедшие" }[state.departurePeriod]]);
     }
-    $("adm-departure-cards").innerHTML = html;
+    if (state.departureDirection) chips.push(["direction", state.departureDirection === "umra" ? "Умра" : "Карадениз"]);
+    if (state.departureRoute) chips.push(["route", OP_ARRIVAL[state.departureRoute] || state.departureRoute]);
+    if (state.departureSale) chips.push(["sale", state.departureSale === "open" ? "Продажа открыта" : "Продажа закрыта"]);
+    if (state.departureLoad) chips.push(["load", {
+      available: "Есть места", low: "Мало мест", full: "Мест нет",
+    }[state.departureLoad]]);
+    $("adm-filter-chips").innerHTML = chips.map(function (chip) {
+      return '<button type="button" data-clear-filter="' + chip[0] + '">' +
+        esc(chip[1]) + ' <b aria-hidden="true">×</b></button>';
+    }).join("");
+
+    $("adm-departure-cards").innerHTML = filtered.length
+      ? grid(filtered)
+      : '<div class="tt-empty-state">Заезды по выбранным условиям не найдены.' +
+          '<div class="tt-muted-note">Измените фильтры или нажмите «Сбросить».</div></div>';
   }
 
   function setSelectedDeparture(code) {
@@ -1192,13 +1227,51 @@
       state.departureFilter = $("adm-departure-search").value;
       renderDepartureCards();
     }, 200));
+    document.querySelector(".tt-period-switch").addEventListener("click", function (e) {
+      var button = e.target.closest("[data-dep-period]");
+      if (!button) return;
+      state.departurePeriod = button.dataset.depPeriod;
+      renderDepartureCards();
+    });
+    [
+      ["adm-filter-direction", "departureDirection"],
+      ["adm-filter-route", "departureRoute"],
+      ["adm-filter-sale", "departureSale"],
+      ["adm-filter-load", "departureLoad"],
+    ].forEach(function (pair) {
+      $(pair[0]).addEventListener("change", function () {
+        state[pair[1]] = this.value;
+        renderDepartureCards();
+      });
+    });
+    $("adm-filter-reset").addEventListener("click", function () {
+      state.departureFilter = "";
+      state.departurePeriod = "upcoming";
+      state.departureDirection = "";
+      state.departureRoute = "";
+      state.departureSale = "";
+      state.departureLoad = "";
+      $("adm-departure-search").value = "";
+      $("adm-filter-direction").value = "";
+      $("adm-filter-route").value = "";
+      $("adm-filter-sale").value = "";
+      $("adm-filter-load").value = "";
+      renderDepartureCards();
+    });
+    $("adm-filter-chips").addEventListener("click", function (e) {
+      var chip = e.target.closest("[data-clear-filter]");
+      if (!chip) return;
+      var key = chip.dataset.clearFilter;
+      if (key === "period") state.departurePeriod = "upcoming";
+      if (key === "direction") { state.departureDirection = ""; $("adm-filter-direction").value = ""; }
+      if (key === "route") { state.departureRoute = ""; $("adm-filter-route").value = ""; }
+      if (key === "sale") { state.departureSale = ""; $("adm-filter-sale").value = ""; }
+      if (key === "load") { state.departureLoad = ""; $("adm-filter-load").value = ""; }
+      renderDepartureCards();
+    });
     $("adm-departure-cards").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (card) { setSelectedDeparture(card.dataset.departure); return; }
-      if (e.target.id === "adm-toggle-past") {
-        state.showPast = !state.showPast;
-        renderDepartureCards();
-      }
     });
     /*
      * Редактор цен. Всё внутри #adm-dep-controls, поэтому один обработчик
