@@ -766,8 +766,7 @@
               '<div class="tt-tourcard-body">' +
                 "<h3>" + esc(detail.title) + "</h3>" +
                 '<div class="tt-umra-stays">' +
-                  umraStayHtml("Мекка", detail.makkah) +
-                  umraStayHtml("Медина", detail.medina) +
+                  umraCardMiddle(detail) +
                 "</div>" +
                 '<div class="tt-umra-card-foot">' +
                   '<div><span>' + esc((t.nights || 0) + " ночей") + '</span>' +
@@ -821,6 +820,19 @@
     return '<div class="tt-umra-stay"><span>' + esc(city) + '</span><div>' +
       '<strong>' + esc(stay.hotel) + '</strong><small>' + esc(stay.distance) + "</small>" +
       "</div></div>";
+  }
+
+  // В старых данных API description может отсутствовать. Вместо пустой
+  // середины показываем нейтральный состав программы; точные отели всегда
+  // имеют приоритет, когда API их прислал.
+  function umraCardMiddle(detail) {
+    var stays = umraStayHtml("Мекка", detail.makkah) +
+      umraStayHtml("Медина", detail.medina);
+    if (stays) return stays;
+    return '<div class="tt-umra-fallback">' +
+      '<div class="tt-umra-route"><span>Мекка</span><b aria-hidden="true">→</b><span>Медина</span></div>' +
+      '<p>Отели <i>·</i> трансферы <i>·</i> сопровождение</p>' +
+    '</div>';
   }
 
   // Конструктор работает по выбранному туру (state.builder.tour): Карадениз или
