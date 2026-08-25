@@ -1977,6 +1977,85 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* ------------------------------------------------- редактор цен заезда */
+.tt-dep-controls-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tt-price-editor {
+  margin: -6px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-price-editor h4 { margin: 0 0 4px; font-size: 0.98rem; }
+.tt-price-editor .tt-editor-hint { margin: 0 0 12px; }
+
+/* Восемь колонок: код, подпись, тип, возраст от/до, место, цена, удалить.
+   Подпись тянется, остальное по содержимому — иначе цена и коды прыгают
+   от строки к строке и таблица перестаёт читаться столбцами. */
+.tt-price-head,
+.tt-price-row {
+  display: grid;
+  grid-template-columns: 92px minmax(120px, 1fr) 132px 62px 62px 78px 96px 32px;
+  gap: 8px;
+  align-items: center;
+}
+.tt-price-head {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tt-text-muted);
+  padding: 0 0 6px;
+}
+.tt-price-row { padding: 4px 0; }
+.tt-price-row input, .tt-price-row select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  border: 1px solid var(--tt-border);
+  border-radius: 8px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text);
+  font-family: inherit;
+}
+.tt-price-row input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.tt-price-code { text-transform: uppercase; }
+.tt-price-money { font-variant-numeric: tabular-nums; }
+.tt-price-seat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+}
+.tt-price-seat input { width: auto; }
+.tt-price-seat.is-off { opacity: 0.4; }
+
+.tt-price-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-price-actions .tt-editor-msg { flex: 1 1 auto; }
+
+/* На узком экране сетка в восемь колонок нечитаема — строка становится
+   карточкой с подписями полей, а шапку таблицы прячем. */
+@media (max-width: 900px) {
+  .tt-price-head { display: none; }
+  .tt-price-row {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--tt-border);
+  }
+  .tt-price-row [data-p="label"] { grid-column: 1 / -1; }
+}
+
 .tt-badge-change {
   border-color: rgba(182, 145, 47, 0.36);
   background: rgba(182, 145, 47, 0.13);

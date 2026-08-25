@@ -1998,6 +1998,85 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* ------------------------------------------------- редактор цен заезда */
+.tt-dep-controls-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tt-price-editor {
+  margin: -6px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-price-editor h4 { margin: 0 0 4px; font-size: 0.98rem; }
+.tt-price-editor .tt-editor-hint { margin: 0 0 12px; }
+
+/* Восемь колонок: код, подпись, тип, возраст от/до, место, цена, удалить.
+   Подпись тянется, остальное по содержимому — иначе цена и коды прыгают
+   от строки к строке и таблица перестаёт читаться столбцами. */
+.tt-price-head,
+.tt-price-row {
+  display: grid;
+  grid-template-columns: 92px minmax(120px, 1fr) 132px 62px 62px 78px 96px 32px;
+  gap: 8px;
+  align-items: center;
+}
+.tt-price-head {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tt-text-muted);
+  padding: 0 0 6px;
+}
+.tt-price-row { padding: 4px 0; }
+.tt-price-row input, .tt-price-row select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  border: 1px solid var(--tt-border);
+  border-radius: 8px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text);
+  font-family: inherit;
+}
+.tt-price-row input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.tt-price-code { text-transform: uppercase; }
+.tt-price-money { font-variant-numeric: tabular-nums; }
+.tt-price-seat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--tt-text-muted);
+}
+.tt-price-seat input { width: auto; }
+.tt-price-seat.is-off { opacity: 0.4; }
+
+.tt-price-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-price-actions .tt-editor-msg { flex: 1 1 auto; }
+
+/* На узком экране сетка в восемь колонок нечитаема — строка становится
+   карточкой с подписями полей, а шапку таблицы прячем. */
+@media (max-width: 900px) {
+  .tt-price-head { display: none; }
+  .tt-price-row {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--tt-border);
+  }
+  .tt-price-row [data-p="label"] { grid-column: 1 / -1; }
+}
+
 .tt-badge-change {
   border-color: rgba(182, 145, 47, 0.36);
   background: rgba(182, 145, 47, 0.13);
@@ -14430,6 +14509,91 @@ window.TURON_DESTINATIONS = [
     }));
   }
 
+  /*
+   * Демо-двойник правки прайса. Повторяет проверки воркера — иначе в
+   * превью «пустая цена» или удаление проданного тарифа проходили бы
+   * молча, а на бою отбивались бы сервером.
+   */
+  function demoDeparturePrices(id, prices) {
+    var s = demoState();
+    var d = s.departures.filter(function (x) { return x.id === id; })[0];
+    if (!d) return Promise.reject(new Error("Заезд не найден"));
+    var rows = prices || [];
+    if (!rows.length) {
+      return Promise.reject(new Error("В прайсе должна остаться хотя бы одна строка"));
+    }
+
+    var clean = [], seen = {}, i, r;
+    for (i = 0; i < rows.length; i++) {
+      r = rows[i];
+      var code = String(r.code || "").trim().toUpperCase();
+      var label = String(r.label || "").trim();
+      var kind = r.kind === "child" ? "child" : "placement";
+      var price = Number(r.price);
+      if (!code) return Promise.reject(new Error("У каждой строки прайса нужен код"));
+      if (!/^[A-Z0-9_]{1,16}$/.test(code)) {
+        return Promise.reject(new Error("Код «" + code + "»: только латиница, цифры и подчёркивание"));
+      }
+      if (seen[code]) return Promise.reject(new Error("Код " + code + " встречается дважды"));
+      seen[code] = true;
+      if (!label) return Promise.reject(new Error("Строка " + code + ": нужна подпись"));
+      if (!isFinite(price) || price < 0) {
+        return Promise.reject(new Error("Строка " + code + ": цена должна быть числом от нуля"));
+      }
+      var ageFrom = null, ageTo = null, seat = 1;
+      if (kind === "child") {
+        ageFrom = Number(r.age_from); ageTo = Number(r.age_to);
+        if (!isFinite(ageFrom) || !isFinite(ageTo) ||
+            ageFrom % 1 !== 0 || ageTo % 1 !== 0) {
+          return Promise.reject(new Error("Строка " + code + ": нужен возрастной диапазон"));
+        }
+        if (ageFrom < 0 || ageTo > 120 || ageFrom >= ageTo) {
+          return Promise.reject(new Error(
+            "Строка " + code + ": диапазон «от» должен быть меньше «до»"));
+        }
+        seat = (r.occupies_seat === 0 || r.occupies_seat === false) ? 0 : 1;
+      }
+      clean.push({ code: code, label: label, kind: kind, price: price,
+                   age_from: ageFrom, age_to: ageTo, occupies_seat: seat });
+    }
+
+    if (!clean.some(function (x) { return x.kind === "placement"; })) {
+      return Promise.reject(new Error(
+        "Нужно хотя бы одно размещение — иначе заезд нечем продавать"));
+    }
+
+    // Тариф, по которому уже едут, убрать нельзя: он подписывает строку в
+    // ведомости и в билете.
+    var used = {};
+    s.bookings.forEach(function (b) {
+      if (b.departure_code !== d.code || b.status !== "confirmed") return;
+      (b.passengers || []).forEach(function (p) { used[p.price_code] = true; });
+    });
+    var gone = Object.keys(used).filter(function (c) { return !seen[c]; });
+    if (gone.length) {
+      return Promise.reject(new Error("По тарифу " + gone.join(", ") +
+        " уже есть туристы — такую строку убрать нельзя. " +
+        "Цену менять можно: на проданные брони она не влияет."));
+    }
+
+    var wasBy = {};
+    (d.prices || []).forEach(function (x) { wasBy[x.code] = x; });
+    var changed = clean.filter(function (x) {
+      return !wasBy[x.code] || wasBy[x.code].price !== x.price;
+    }).map(function (x) {
+      return { code: x.code, from: wasBy[x.code] ? wasBy[x.code].price : null, to: x.price };
+    });
+    var removed = (d.prices || []).filter(function (x) { return !seen[x.code]; })
+      .map(function (x) { return x.code; });
+
+    d.prices = clean;
+    saveDemo(s);
+    return Promise.resolve({
+      code: d.code, rows: clean.length, changed: changed, removed: removed,
+      sold_untouched: Object.keys(used).length,
+    });
+  }
+
   function demoCreateBooking(payload) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
@@ -14730,6 +14894,20 @@ window.TURON_DESTINATIONS = [
       }
       return request("/api/admin/departures/" + id + "/" + (open ? "open" : "close"),
                      { method: "POST" });
+    },
+
+    /*
+     * Правка прайса заезда. Набор строк заменяется целиком.
+     *
+     * На проданные брони НЕ влияет: цена пассажира заморожена в момент
+     * брони (passengers.price) и из прайса не перечитывается. Именно
+     * поэтому правку вообще можно давать оператору.
+     */
+    updateDeparturePrices: function (id, prices) {
+      if (!API_BASE) return demoDeparturePrices(id, prices);
+      return request("/api/admin/departures/" + id + "/prices", {
+        method: "POST", body: { prices: prices },
+      });
     },
 
     // Реальная отмена — только оператор (маршрут в ветке /api/admin/).
@@ -18988,10 +19166,99 @@ window.TURON_DESTINATIONS = [
             ? "продажа закрыта — новые брони не принимаются"
             : "продажа открыта") +
           "</span></div>" +
-        '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
-          d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
-          (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
-      "</div>";
+        '<div class="tt-dep-controls-actions">' +
+          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-prices="' +
+            d.id + '">' + (priceEditor === d.id ? "Скрыть цены" : "Цены") + "</button>" +
+          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
+            d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
+            (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
+        "</div>" +
+      "</div>" +
+      (priceEditor === d.id ? priceEditorHtml(d) : "");
+  }
+
+  /* ------------------------------------------------------- прайс заезда
+   * Редактор цен. Открыт не более чем у одного заезда за раз — id лежит
+   * здесь, а не в разметке: перерисовка карточек его бы стёрла.
+   */
+  var priceEditor = null;
+
+  function priceRowHtml(p, i) {
+    var child = p.kind === "child";
+    return '<div class="tt-price-row" data-price-row="' + i + '">' +
+      '<input type="text" class="tt-price-code" data-p="code" value="' +
+        esc(p.code || "") + '" placeholder="DBL" aria-label="Код тарифа" />' +
+      '<input type="text" data-p="label" value="' + esc(p.label || "") +
+        '" placeholder="Двухместный" aria-label="Подпись" />' +
+      '<select data-p="kind" aria-label="Тип">' +
+        '<option value="placement"' + (child ? "" : " selected") + ">Размещение</option>" +
+        '<option value="child"' + (child ? " selected" : "") + ">Детский</option>" +
+      "</select>" +
+      '<input type="number" class="tt-price-age" data-p="age_from" min="0" max="120" value="' +
+        (p.age_from == null ? "" : p.age_from) + '" placeholder="от" aria-label="Возраст от"' +
+        (child ? "" : " disabled") + " />" +
+      '<input type="number" class="tt-price-age" data-p="age_to" min="0" max="120" value="' +
+        (p.age_to == null ? "" : p.age_to) + '" placeholder="до" aria-label="Возраст до"' +
+        (child ? "" : " disabled") + " />" +
+      '<label class="tt-price-seat' + (child ? "" : " is-off") + '">' +
+        '<input type="checkbox" data-p="occupies_seat"' +
+          (p.occupies_seat === 0 ? "" : " checked") + (child ? "" : " disabled") +
+        " /> место</label>" +
+      '<input type="number" class="tt-price-money" data-p="price" min="0" step="1" value="' +
+        (p.price == null ? "" : p.price) + '" aria-label="Цена" />' +
+      '<button type="button" class="tt-icon-btn" data-price-del="' + i +
+        '" aria-label="Убрать строку">&times;</button>' +
+    "</div>";
+  }
+
+  function priceEditorHtml(d) {
+    var rows = (d.prices || []).slice().sort(function (a, b) {
+      // Размещения сверху, детские снизу — так же, как их видит агент
+      // в форме брони.
+      if (a.kind !== b.kind) return a.kind === "placement" ? -1 : 1;
+      return String(a.code).localeCompare(String(b.code));
+    });
+    return '<div class="tt-price-editor" id="adm-price-editor" data-dep="' + d.id + '">' +
+      "<h4>Цены заезда " + esc(d.code) + "</h4>" +
+      '<p class="tt-editor-hint">На уже проданные брони это не влияет: цена ' +
+        "туриста записана в момент брони и из прайса не перечитывается. " +
+        "Меняется только то, по чему будут продавать дальше.</p>" +
+      '<div class="tt-price-head">' +
+        "<span>Код</span><span>Подпись</span><span>Тип</span>" +
+        "<span>Возраст</span><span></span><span>Место</span><span>Цена, $</span><span></span>" +
+      "</div>" +
+      '<div id="adm-price-rows">' + rows.map(priceRowHtml).join("") + "</div>" +
+      '<div class="tt-price-actions">' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" id="adm-price-add">' +
+          "+ Строка</button>" +
+        '<span class="tt-editor-msg" id="adm-price-msg"></span>' +
+        '<button type="button" class="tt-btn tt-btn-sm" id="adm-price-save">Сохранить цены</button>' +
+      "</div>" +
+    "</div>";
+  }
+
+  // Читаем таблицу обратно в массив. Порядок строк = порядок в разметке,
+  // поэтому индексы в data-price-row нужны только для удаления.
+  function collectPrices() {
+    return Array.prototype.map.call(
+      document.querySelectorAll("#adm-price-rows .tt-price-row"),
+      function (row) {
+        function v(name) {
+          var el = row.querySelector('[data-p="' + name + '"]');
+          return el ? el.value : "";
+        }
+        var kind = v("kind");
+        var seatEl = row.querySelector('[data-p="occupies_seat"]');
+        return {
+          code: v("code"),
+          label: v("label"),
+          kind: kind,
+          price: v("price") === "" ? NaN : Number(v("price")),
+          age_from: kind === "child" && v("age_from") !== "" ? Number(v("age_from")) : null,
+          age_to: kind === "child" && v("age_to") !== "" ? Number(v("age_to")) : null,
+          occupies_seat: kind === "child" && seatEl && !seatEl.checked ? 0 : 1,
+        };
+      });
   }
 
   function grid(list) {
@@ -19571,7 +19838,69 @@ window.TURON_DESTINATIONS = [
         renderDepartureCards();
       }
     });
+    /*
+     * Редактор цен. Всё внутри #adm-dep-controls, поэтому один обработчик
+     * на контейнер: сама панель перерисовывается целиком, и обработчики,
+     * навешенные на её содержимое, терялись бы при каждой перерисовке.
+     */
     $("adm-dep-controls").addEventListener("click", function (e) {
+      var open = e.target.closest("[data-dep-prices]");
+      if (open) {
+        var openId = Number(open.dataset.depPrices);
+        priceEditor = priceEditor === openId ? null : openId;
+        renderDepartureControls();
+        return;
+      }
+
+      if (e.target.id === "adm-price-add") {
+        var box = $("adm-price-rows");
+        var tmp = document.createElement("div");
+        // Индекс новой строки — по числу уже нарисованных: он нужен только
+        // кнопке удаления и уникальности внутри одной отрисовки.
+        tmp.innerHTML = priceRowHtml(
+          { code: "", label: "", kind: "placement", price: "" },
+          box.children.length);
+        box.appendChild(tmp.firstChild);
+        return;
+      }
+
+      var del = e.target.closest("[data-price-del]");
+      if (del) {
+        var row = del.closest(".tt-price-row");
+        if (row) row.remove();
+        return;
+      }
+
+      if (e.target.id === "adm-price-save") {
+        var editor = $("adm-price-editor");
+        if (!editor) return;
+        var depId = Number(editor.dataset.dep);
+        var msg = $("adm-price-msg");
+        var save = $("adm-price-save");
+        msg.className = "tt-editor-msg";
+        msg.textContent = "Сохраняю…";
+        save.disabled = true;
+        TuronApi.updateDeparturePrices(depId, collectPrices()).then(function (res) {
+          save.disabled = false;
+          msg.className = "tt-editor-msg is-ok";
+          msg.textContent = res.changed.length
+            ? "Сохранено. Изменено цен: " + res.changed.length +
+              (res.sold_untouched ? "; проданные брони не тронуты" : "")
+            : "Сохранено, цены не менялись.";
+          // Перечитываем заезды: в state.departures лежит старый прайс, а
+          // по нему считает и калькулятор, и форма брони.
+          return TuronApi.departures({ all: true }).then(function (list) {
+            state.departures = list;
+            renderDepartureCards();
+          });
+        }).catch(function (err) {
+          save.disabled = false;
+          msg.className = "tt-editor-msg is-err";
+          msg.textContent = err.message;
+        });
+        return;
+      }
+
       var btn = e.target.closest("[data-dep-toggle]");
       if (!btn) return;
       var id = Number(btn.dataset.depToggle);
@@ -19598,6 +19927,22 @@ window.TURON_DESTINATIONS = [
         alert("Не удалось изменить продажу: " + err.message);
       });
     });
+    /*
+     * Возрастной диапазон и «место» осмысленны только у детского тарифа —
+     * у размещения они гасятся. Иначе оператор заполнил бы «от 5 до 10» у
+     * строки DBL и не понял, почему это ни на что не влияет.
+     */
+    $("adm-dep-controls").addEventListener("change", function (e) {
+      var sel = e.target.closest('[data-p="kind"]');
+      if (!sel) return;
+      var row = sel.closest(".tt-price-row");
+      var child = sel.value === "child";
+      row.querySelectorAll('[data-p="age_from"], [data-p="age_to"], [data-p="occupies_seat"]')
+        .forEach(function (el) { el.disabled = !child; });
+      var seat = row.querySelector(".tt-price-seat");
+      if (seat) seat.classList.toggle("is-off", !child);
+    });
+
     $("ov-departures").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (!card) return;

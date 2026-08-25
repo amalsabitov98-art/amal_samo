@@ -612,6 +612,91 @@
     }));
   }
 
+  /*
+   * Демо-двойник правки прайса. Повторяет проверки воркера — иначе в
+   * превью «пустая цена» или удаление проданного тарифа проходили бы
+   * молча, а на бою отбивались бы сервером.
+   */
+  function demoDeparturePrices(id, prices) {
+    var s = demoState();
+    var d = s.departures.filter(function (x) { return x.id === id; })[0];
+    if (!d) return Promise.reject(new Error("Заезд не найден"));
+    var rows = prices || [];
+    if (!rows.length) {
+      return Promise.reject(new Error("В прайсе должна остаться хотя бы одна строка"));
+    }
+
+    var clean = [], seen = {}, i, r;
+    for (i = 0; i < rows.length; i++) {
+      r = rows[i];
+      var code = String(r.code || "").trim().toUpperCase();
+      var label = String(r.label || "").trim();
+      var kind = r.kind === "child" ? "child" : "placement";
+      var price = Number(r.price);
+      if (!code) return Promise.reject(new Error("У каждой строки прайса нужен код"));
+      if (!/^[A-Z0-9_]{1,16}$/.test(code)) {
+        return Promise.reject(new Error("Код «" + code + "»: только латиница, цифры и подчёркивание"));
+      }
+      if (seen[code]) return Promise.reject(new Error("Код " + code + " встречается дважды"));
+      seen[code] = true;
+      if (!label) return Promise.reject(new Error("Строка " + code + ": нужна подпись"));
+      if (!isFinite(price) || price < 0) {
+        return Promise.reject(new Error("Строка " + code + ": цена должна быть числом от нуля"));
+      }
+      var ageFrom = null, ageTo = null, seat = 1;
+      if (kind === "child") {
+        ageFrom = Number(r.age_from); ageTo = Number(r.age_to);
+        if (!isFinite(ageFrom) || !isFinite(ageTo) ||
+            ageFrom % 1 !== 0 || ageTo % 1 !== 0) {
+          return Promise.reject(new Error("Строка " + code + ": нужен возрастной диапазон"));
+        }
+        if (ageFrom < 0 || ageTo > 120 || ageFrom >= ageTo) {
+          return Promise.reject(new Error(
+            "Строка " + code + ": диапазон «от» должен быть меньше «до»"));
+        }
+        seat = (r.occupies_seat === 0 || r.occupies_seat === false) ? 0 : 1;
+      }
+      clean.push({ code: code, label: label, kind: kind, price: price,
+                   age_from: ageFrom, age_to: ageTo, occupies_seat: seat });
+    }
+
+    if (!clean.some(function (x) { return x.kind === "placement"; })) {
+      return Promise.reject(new Error(
+        "Нужно хотя бы одно размещение — иначе заезд нечем продавать"));
+    }
+
+    // Тариф, по которому уже едут, убрать нельзя: он подписывает строку в
+    // ведомости и в билете.
+    var used = {};
+    s.bookings.forEach(function (b) {
+      if (b.departure_code !== d.code || b.status !== "confirmed") return;
+      (b.passengers || []).forEach(function (p) { used[p.price_code] = true; });
+    });
+    var gone = Object.keys(used).filter(function (c) { return !seen[c]; });
+    if (gone.length) {
+      return Promise.reject(new Error("По тарифу " + gone.join(", ") +
+        " уже есть туристы — такую строку убрать нельзя. " +
+        "Цену менять можно: на проданные брони она не влияет."));
+    }
+
+    var wasBy = {};
+    (d.prices || []).forEach(function (x) { wasBy[x.code] = x; });
+    var changed = clean.filter(function (x) {
+      return !wasBy[x.code] || wasBy[x.code].price !== x.price;
+    }).map(function (x) {
+      return { code: x.code, from: wasBy[x.code] ? wasBy[x.code].price : null, to: x.price };
+    });
+    var removed = (d.prices || []).filter(function (x) { return !seen[x.code]; })
+      .map(function (x) { return x.code; });
+
+    d.prices = clean;
+    saveDemo(s);
+    return Promise.resolve({
+      code: d.code, rows: clean.length, changed: changed, removed: removed,
+      sold_untouched: Object.keys(used).length,
+    });
+  }
+
   function demoCreateBooking(payload) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
@@ -912,6 +997,20 @@
       }
       return request("/api/admin/departures/" + id + "/" + (open ? "open" : "close"),
                      { method: "POST" });
+    },
+
+    /*
+     * Правка прайса заезда. Набор строк заменяется целиком.
+     *
+     * На проданные брони НЕ влияет: цена пассажира заморожена в момент
+     * брони (passengers.price) и из прайса не перечитывается. Именно
+     * поэтому правку вообще можно давать оператору.
+     */
+    updateDeparturePrices: function (id, prices) {
+      if (!API_BASE) return demoDeparturePrices(id, prices);
+      return request("/api/admin/departures/" + id + "/prices", {
+        method: "POST", body: { prices: prices },
+      });
     },
 
     // Реальная отмена — только оператор (маршрут в ветке /api/admin/).

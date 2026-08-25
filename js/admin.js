@@ -330,10 +330,99 @@
             ? "продажа закрыта — новые брони не принимаются"
             : "продажа открыта") +
           "</span></div>" +
-        '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
-          d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
-          (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
-      "</div>";
+        '<div class="tt-dep-controls-actions">' +
+          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-prices="' +
+            d.id + '">' + (priceEditor === d.id ? "Скрыть цены" : "Цены") + "</button>" +
+          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
+            d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
+            (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
+        "</div>" +
+      "</div>" +
+      (priceEditor === d.id ? priceEditorHtml(d) : "");
+  }
+
+  /* ------------------------------------------------------- прайс заезда
+   * Редактор цен. Открыт не более чем у одного заезда за раз — id лежит
+   * здесь, а не в разметке: перерисовка карточек его бы стёрла.
+   */
+  var priceEditor = null;
+
+  function priceRowHtml(p, i) {
+    var child = p.kind === "child";
+    return '<div class="tt-price-row" data-price-row="' + i + '">' +
+      '<input type="text" class="tt-price-code" data-p="code" value="' +
+        esc(p.code || "") + '" placeholder="DBL" aria-label="Код тарифа" />' +
+      '<input type="text" data-p="label" value="' + esc(p.label || "") +
+        '" placeholder="Двухместный" aria-label="Подпись" />' +
+      '<select data-p="kind" aria-label="Тип">' +
+        '<option value="placement"' + (child ? "" : " selected") + ">Размещение</option>" +
+        '<option value="child"' + (child ? " selected" : "") + ">Детский</option>" +
+      "</select>" +
+      '<input type="number" class="tt-price-age" data-p="age_from" min="0" max="120" value="' +
+        (p.age_from == null ? "" : p.age_from) + '" placeholder="от" aria-label="Возраст от"' +
+        (child ? "" : " disabled") + " />" +
+      '<input type="number" class="tt-price-age" data-p="age_to" min="0" max="120" value="' +
+        (p.age_to == null ? "" : p.age_to) + '" placeholder="до" aria-label="Возраст до"' +
+        (child ? "" : " disabled") + " />" +
+      '<label class="tt-price-seat' + (child ? "" : " is-off") + '">' +
+        '<input type="checkbox" data-p="occupies_seat"' +
+          (p.occupies_seat === 0 ? "" : " checked") + (child ? "" : " disabled") +
+        " /> место</label>" +
+      '<input type="number" class="tt-price-money" data-p="price" min="0" step="1" value="' +
+        (p.price == null ? "" : p.price) + '" aria-label="Цена" />' +
+      '<button type="button" class="tt-icon-btn" data-price-del="' + i +
+        '" aria-label="Убрать строку">&times;</button>' +
+    "</div>";
+  }
+
+  function priceEditorHtml(d) {
+    var rows = (d.prices || []).slice().sort(function (a, b) {
+      // Размещения сверху, детские снизу — так же, как их видит агент
+      // в форме брони.
+      if (a.kind !== b.kind) return a.kind === "placement" ? -1 : 1;
+      return String(a.code).localeCompare(String(b.code));
+    });
+    return '<div class="tt-price-editor" id="adm-price-editor" data-dep="' + d.id + '">' +
+      "<h4>Цены заезда " + esc(d.code) + "</h4>" +
+      '<p class="tt-editor-hint">На уже проданные брони это не влияет: цена ' +
+        "туриста записана в момент брони и из прайса не перечитывается. " +
+        "Меняется только то, по чему будут продавать дальше.</p>" +
+      '<div class="tt-price-head">' +
+        "<span>Код</span><span>Подпись</span><span>Тип</span>" +
+        "<span>Возраст</span><span></span><span>Место</span><span>Цена, $</span><span></span>" +
+      "</div>" +
+      '<div id="adm-price-rows">' + rows.map(priceRowHtml).join("") + "</div>" +
+      '<div class="tt-price-actions">' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" id="adm-price-add">' +
+          "+ Строка</button>" +
+        '<span class="tt-editor-msg" id="adm-price-msg"></span>' +
+        '<button type="button" class="tt-btn tt-btn-sm" id="adm-price-save">Сохранить цены</button>' +
+      "</div>" +
+    "</div>";
+  }
+
+  // Читаем таблицу обратно в массив. Порядок строк = порядок в разметке,
+  // поэтому индексы в data-price-row нужны только для удаления.
+  function collectPrices() {
+    return Array.prototype.map.call(
+      document.querySelectorAll("#adm-price-rows .tt-price-row"),
+      function (row) {
+        function v(name) {
+          var el = row.querySelector('[data-p="' + name + '"]');
+          return el ? el.value : "";
+        }
+        var kind = v("kind");
+        var seatEl = row.querySelector('[data-p="occupies_seat"]');
+        return {
+          code: v("code"),
+          label: v("label"),
+          kind: kind,
+          price: v("price") === "" ? NaN : Number(v("price")),
+          age_from: kind === "child" && v("age_from") !== "" ? Number(v("age_from")) : null,
+          age_to: kind === "child" && v("age_to") !== "" ? Number(v("age_to")) : null,
+          occupies_seat: kind === "child" && seatEl && !seatEl.checked ? 0 : 1,
+        };
+      });
   }
 
   function grid(list) {
@@ -913,7 +1002,69 @@
         renderDepartureCards();
       }
     });
+    /*
+     * Редактор цен. Всё внутри #adm-dep-controls, поэтому один обработчик
+     * на контейнер: сама панель перерисовывается целиком, и обработчики,
+     * навешенные на её содержимое, терялись бы при каждой перерисовке.
+     */
     $("adm-dep-controls").addEventListener("click", function (e) {
+      var open = e.target.closest("[data-dep-prices]");
+      if (open) {
+        var openId = Number(open.dataset.depPrices);
+        priceEditor = priceEditor === openId ? null : openId;
+        renderDepartureControls();
+        return;
+      }
+
+      if (e.target.id === "adm-price-add") {
+        var box = $("adm-price-rows");
+        var tmp = document.createElement("div");
+        // Индекс новой строки — по числу уже нарисованных: он нужен только
+        // кнопке удаления и уникальности внутри одной отрисовки.
+        tmp.innerHTML = priceRowHtml(
+          { code: "", label: "", kind: "placement", price: "" },
+          box.children.length);
+        box.appendChild(tmp.firstChild);
+        return;
+      }
+
+      var del = e.target.closest("[data-price-del]");
+      if (del) {
+        var row = del.closest(".tt-price-row");
+        if (row) row.remove();
+        return;
+      }
+
+      if (e.target.id === "adm-price-save") {
+        var editor = $("adm-price-editor");
+        if (!editor) return;
+        var depId = Number(editor.dataset.dep);
+        var msg = $("adm-price-msg");
+        var save = $("adm-price-save");
+        msg.className = "tt-editor-msg";
+        msg.textContent = "Сохраняю…";
+        save.disabled = true;
+        TuronApi.updateDeparturePrices(depId, collectPrices()).then(function (res) {
+          save.disabled = false;
+          msg.className = "tt-editor-msg is-ok";
+          msg.textContent = res.changed.length
+            ? "Сохранено. Изменено цен: " + res.changed.length +
+              (res.sold_untouched ? "; проданные брони не тронуты" : "")
+            : "Сохранено, цены не менялись.";
+          // Перечитываем заезды: в state.departures лежит старый прайс, а
+          // по нему считает и калькулятор, и форма брони.
+          return TuronApi.departures({ all: true }).then(function (list) {
+            state.departures = list;
+            renderDepartureCards();
+          });
+        }).catch(function (err) {
+          save.disabled = false;
+          msg.className = "tt-editor-msg is-err";
+          msg.textContent = err.message;
+        });
+        return;
+      }
+
       var btn = e.target.closest("[data-dep-toggle]");
       if (!btn) return;
       var id = Number(btn.dataset.depToggle);
@@ -940,6 +1091,22 @@
         alert("Не удалось изменить продажу: " + err.message);
       });
     });
+    /*
+     * Возрастной диапазон и «место» осмысленны только у детского тарифа —
+     * у размещения они гасятся. Иначе оператор заполнил бы «от 5 до 10» у
+     * строки DBL и не понял, почему это ни на что не влияет.
+     */
+    $("adm-dep-controls").addEventListener("change", function (e) {
+      var sel = e.target.closest('[data-p="kind"]');
+      if (!sel) return;
+      var row = sel.closest(".tt-price-row");
+      var child = sel.value === "child";
+      row.querySelectorAll('[data-p="age_from"], [data-p="age_to"], [data-p="occupies_seat"]')
+        .forEach(function (el) { el.disabled = !child; });
+      var seat = row.querySelector(".tt-price-seat");
+      if (seat) seat.classList.toggle("is-off", !child);
+    });
+
     $("ov-departures").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (!card) return;

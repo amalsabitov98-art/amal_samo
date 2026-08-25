@@ -2316,6 +2316,140 @@ console.log("\nЗаезд: открыть и закрыть продажу");
   await page.close();
 }
 
+console.log("\nЦены заезда: правка оператором");
+{
+  const { page, errors } = await session("operator");
+  page.on("dialog", (d) => d.accept());
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(900);
+
+  const dep = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    return { code: d.code, id: d.id, rows: d.prices.length,
+             dbl: d.prices.find((p) => p.code === "DBL").price };
+  });
+
+  check("у заезда есть кнопка «Цены»",
+        (await page.locator("#adm-dep-controls [data-dep-prices]").count()) === 1);
+  await page.locator("#adm-dep-controls [data-dep-prices]").click();
+  await page.waitForTimeout(500);
+  check("редактор открылся со всеми строками прайса",
+        (await page.locator("#adm-price-rows .tt-price-row").count()) === dep.rows);
+  check("у размещения возраст погашен",
+        await page.locator('#adm-price-rows .tt-price-row').first()
+          .locator('[data-p="age_from"]').isDisabled());
+  check("предупреждение о проданных бронях на месте",
+        (await page.locator("#adm-price-editor .tt-editor-hint").innerText())
+          .includes("не влияет"));
+
+  // Меняем цену DBL и сохраняем.
+  const dblRow = page.locator("#adm-price-rows .tt-price-row")
+    .filter({ has: page.locator('[data-p="code"][value="DBL"]') });
+  await dblRow.locator('[data-p="price"]').fill(String(dep.dbl + 25));
+  await page.locator("#adm-price-save").click();
+  await page.waitForTimeout(900);
+  check("сохранение подтверждено сообщением",
+        (await page.locator("#adm-price-msg").innerText()).includes("Сохранено"));
+
+  const after = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures();
+    const d = deps.find((x) => x.code === code);
+    return { dbl: d.prices.find((p) => p.code === "DBL").price, rows: d.prices.length };
+  }, dep.code);
+  check("новая цена записана", after.dbl === dep.dbl + 25);
+  check("остальные строки на месте", after.rows === dep.rows);
+
+  // Главное свойство: проданная бронь от смены прайса не меняется.
+  const frozen = await page.evaluate(async (o) => {
+    const deps = await window.TuronApi.departures();
+    const d = deps.find((x) => x.code === o.code);
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const made = await window.TuronApi.createBooking({ departure_code: o.code, passengers: [
+      { full_name: "PRICE FREEZE", birth_date: adult, passport_number: "PF1111111",
+        passport_expiry: "2032-01-01", placement: "DBL" }] });
+    const wasTotal = made.total_price;
+    const rows = d.prices.map((p) => Object.assign({}, p,
+      { price: p.code === "DBL" ? p.price + 400 : p.price }));
+    await window.TuronApi.updateDeparturePrices(d.id, rows);
+    const list = await window.TuronApi.bookings();
+    const b = list.find((x) => x.code === made.booking_code);
+    return { wasTotal: wasTotal, nowTotal: b.total_price };
+  }, { code: dep.code });
+  check("подорожание заезда НЕ меняет сумму проданной брони",
+        frozen.wasTotal === frozen.nowTotal,
+        JSON.stringify(frozen));
+
+  await page.close();
+}
+
+console.log("\nЦены заезда: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const ok = d.prices;
+    const out = {};
+    const only = (list) => window.TuronApi.updateDeparturePrices(d.id, list);
+
+    try { await only([]); out.empty = "прошло"; }
+    catch (e) { out.empty = e.message; }
+
+    // Одни детские тарифы — заезд нечем продавать
+    try {
+      await only(ok.filter((p) => p.kind === "child"));
+      out.noPlacement = "прошло";
+    } catch (e) { out.noPlacement = e.message; }
+
+    // Цена буквами
+    try {
+      await only(ok.map((p) => Object.assign({}, p,
+        { price: p.code === "DBL" ? NaN : p.price })));
+      out.badPrice = "прошло";
+    } catch (e) { out.badPrice = e.message; }
+
+    // Детский диапазон наоборот
+    try {
+      await only(ok.map((p) => p.code === "CHD_5_10"
+        ? Object.assign({}, p, { age_from: 10, age_to: 5 }) : p));
+      out.badAge = "прошло";
+    } catch (e) { out.badAge = e.message; }
+
+    // Два одинаковых кода
+    try {
+      await only(ok.concat([Object.assign({}, ok[0])]));
+      out.dupe = "прошло";
+    } catch (e) { out.dupe = e.message; }
+
+    // Тариф, по которому уже едут, убрать нельзя
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    await window.TuronApi.createBooking({ departure_code: d.code, passengers: [
+      { full_name: "GUARD PRICE", birth_date: adult, passport_number: "GP1111111",
+        passport_expiry: "2032-01-01", placement: "DBL" }] });
+    try {
+      await only(ok.filter((p) => p.code !== "DBL"));
+      out.inUse = "прошло";
+    } catch (e) { out.inUse = e.message; }
+    return out;
+  });
+
+  check("пустой прайс не принимается", /хотя бы одна/.test(res.empty), res.empty);
+  check("без размещений заезд продавать нечем",
+        /хотя бы одно размещение/.test(res.noPlacement), res.noPlacement);
+  check("цена не числом не проходит", /цена/.test(res.badPrice), res.badPrice);
+  check("перевёрнутый детский диапазон не проходит",
+        /меньше/.test(res.badAge), res.badAge);
+  check("два одинаковых кода не проходят", /дважды/.test(res.dupe), res.dupe);
+  check("тариф с туристами удалить нельзя",
+        /уже есть туристы/.test(res.inUse), res.inUse);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

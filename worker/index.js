@@ -1191,6 +1191,119 @@ async function setDepartureOpen(env, actor, departureId, open) {
   });
 }
 
+/*
+ * Правка ПРАЙСА заезда: цены размещений и детские тарифы.
+ *
+ * На уже проданные брони НЕ влияет и влиять не может: цена пассажира
+ * заморожена в `passengers.price` в момент брони и из `departure_prices`
+ * больше не перечитывается. Это не оговорка, а причина, по которой правку
+ * вообще можно давать оператору — иначе смена цены задним числом меняла бы
+ * суммы у клиентов, которым уже выставлен счёт.
+ *
+ * Набор строк заменяется ЦЕЛИКОМ (как состав брони): так проще не оставить
+ * висящих строк и не городить отдельные маршруты на добавление/удаление.
+ *
+ * Единственный запрет — убрать тариф, ПО КОТОРОМУ УЖЕ ЕДУТ. Строка сама по
+ * себе цену брони не держит, но она подписывает тариф в ведомости и в
+ * билете; убери её — и в списке пассажиров останется код, которому в
+ * прайсе ничего не соответствует.
+ */
+async function updateDeparturePrices(request, env, actor, departureId) {
+  const body = await request.json().catch(() => ({}));
+  const rows = Array.isArray(body.prices) ? body.prices : [];
+  if (!rows.length) return fail("В прайсе должна остаться хотя бы одна строка");
+
+  const dep = await env.DB.prepare(
+    "SELECT id, code FROM departures WHERE id = ?"
+  ).bind(departureId).first();
+  if (!dep) return fail("Заезд не найден", 404);
+
+  const clean = [];
+  const seen = {};
+  for (const r of rows) {
+    const code = String(r.code || "").trim().toUpperCase();
+    const label = String(r.label || "").trim();
+    const kind = r.kind === "child" ? "child" : "placement";
+    const price = Number(r.price);
+
+    if (!code) return fail("У каждой строки прайса нужен код");
+    if (!/^[A-Z0-9_]{1,16}$/.test(code)) {
+      return fail(`Код «${code}»: только латиница, цифры и подчёркивание`);
+    }
+    if (seen[code]) return fail(`Код ${code} встречается дважды`);
+    seen[code] = true;
+    if (!label) return fail(`Строка ${code}: нужна подпись`);
+    if (!isFinite(price) || price < 0) return fail(`Строка ${code}: цена должна быть числом от нуля`);
+
+    let ageFrom = null, ageTo = null, seat = 1;
+    if (kind === "child") {
+      ageFrom = Number(r.age_from);
+      ageTo = Number(r.age_to);
+      if (!Number.isInteger(ageFrom) || !Number.isInteger(ageTo)) {
+        return fail(`Строка ${code}: нужен возрастной диапазон`);
+      }
+      if (ageFrom < 0 || ageTo > 120 || ageFrom >= ageTo) {
+        return fail(`Строка ${code}: диапазон «от» должен быть меньше «до»`);
+      }
+      // Младенец до 2 лет летит на руках: место не занимает, но цена есть.
+      seat = r.occupies_seat === 0 || r.occupies_seat === false ? 0 : 1;
+    }
+    clean.push({ code, label, kind, price, age_from: ageFrom, age_to: ageTo, occupies_seat: seat });
+  }
+
+  if (!clean.some((r) => r.kind === "placement")) {
+    return fail("Нужно хотя бы одно размещение — иначе заезд нечем продавать");
+  }
+
+  // Что было и что из этого реально продано.
+  const before = (await env.DB.prepare(
+    "SELECT code, label, kind, price FROM departure_prices WHERE departure_id = ? ORDER BY kind, code"
+  ).bind(departureId).all()).results;
+
+  const used = (await env.DB.prepare(
+    `SELECT DISTINCT p.price_code AS code
+       FROM passengers p JOIN bookings b ON b.id = p.booking_id
+      WHERE b.departure_id = ? AND b.status = 'confirmed'`
+  ).bind(departureId).all()).results.map((r) => r.code);
+
+  const gone = used.filter((code) => !seen[code]);
+  if (gone.length) {
+    return fail(`По тарифу ${gone.join(", ")} уже есть туристы — такую строку убрать нельзя. ` +
+                "Цену менять можно: на проданные брони она не влияет.", 409);
+  }
+
+  // Что изменилось — для ответа и для понимания оператором. Проданные брони
+  // при этом не трогаем НИЧЕМ: их цена заморожена в passengers.price.
+  const wasBy = {};
+  before.forEach((r) => { wasBy[r.code] = r; });
+  const changes = clean
+    .filter((r) => !wasBy[r.code] || wasBy[r.code].price !== r.price)
+    .map((r) => ({
+      code: r.code,
+      from: wasBy[r.code] ? wasBy[r.code].price : null,
+      to: r.price,
+    }));
+  const removed = before.filter((r) => !seen[r.code]).map((r) => r.code);
+
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM departure_prices WHERE departure_id = ?").bind(departureId),
+    ...clean.map((r) => env.DB.prepare(
+      `INSERT INTO departure_prices
+         (departure_id, code, label, kind, price, age_from, age_to, occupies_seat)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(departureId, r.code, r.label, r.kind, r.price,
+           r.age_from, r.age_to, r.occupies_seat)),
+  ]);
+
+  return json({
+    code: dep.code,
+    rows: clean.length,
+    changed: changes,
+    removed: removed,
+    sold_untouched: used.length,
+  });
+}
+
 async function notifyChangeRequest(env, r) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const text =
@@ -1857,6 +1970,13 @@ async function route(request, env, ctx) {
         const depOpen = path.match(/^\/api\/admin\/departures\/(\d+)\/(open|close)$/);
         if (depOpen && request.method === "POST") {
           return await setDepartureOpen(env, agency, Number(depOpen[1]), depOpen[2] === "open");
+        }
+
+        // Прайс заезда. Проданные брони не трогает: цена заморожена в
+        // passengers.price на момент брони.
+        const depPrices = path.match(/^\/api\/admin\/departures\/(\d+)\/prices$/);
+        if (depPrices && request.method === "POST") {
+          return await updateDeparturePrices(request, env, agency, Number(depPrices[1]));
         }
 
         const adminCancel = path.match(/^\/api\/admin\/bookings\/(\d+)\/cancel$/);
