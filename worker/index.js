@@ -1223,6 +1223,147 @@ async function setDepartureOpen(env, actor, departureId, open) {
 }
 
 /*
+ * ------------------------------------------------------------ туры
+ *
+ * Тур — это ПРОДУКТ, а заезды — его даты. Раньше туры заводились только
+ * seed-файлом, то есть руками через код; здесь оператор заводит их сам.
+ *
+ * КОД ТУРА НЕ МЕНЯЕТСЯ ПОСЛЕ СОЗДАНИЯ. Он стоит в публичном адресе
+ * карточки (`#/t/KARADENIZ`), и агенты рассылают такие ссылки клиентам —
+ * смена кода тихо ломает все уже отправленные. Название, направление,
+ * комиссии и описание правятся свободно, код — нет.
+ *
+ * УДАЛЕНИЯ ТУРА НЕТ, как и удаления заезда: на него ссылаются заезды, а
+ * через них брони. Снять с продажи — `is_bookable = 0`: тур исчезает из
+ * каталога и из продажи, но всё проданное остаётся на месте.
+ */
+async function adminTours(env) {
+  const rows = await env.DB.prepare(
+    `SELECT t.id, t.code, t.name, t.destination, t.agency_commission,
+            t.operator_commission, t.is_bookable, t.note, t.description,
+            t.nights, t.from_price,
+            (SELECT COUNT(*) FROM departures d WHERE d.tour_id = t.id) AS departures,
+            (SELECT COUNT(*) FROM departures d
+              WHERE d.tour_id = t.id AND d.date_start >= date('now')) AS upcoming
+       FROM tours t ORDER BY t.destination, t.name`
+  ).all();
+  return json(rows.results);
+}
+
+function tourFields(body, current) {
+  const cur = current || {};
+  const name = String(body.name != null ? body.name : cur.name || "").trim();
+  const destination = String(
+    body.destination != null ? body.destination : cur.destination || "").trim();
+
+  if (!name) return { error: "Нужно название тура" };
+  if (!destination) return { error: "Нужно направление" };
+
+  const num = (key, fallback) => {
+    if (body[key] == null || body[key] === "") return fallback;
+    const v = Number(body[key]);
+    return isFinite(v) ? v : NaN;
+  };
+
+  const agency = num("agency_commission", cur.agency_commission || 0);
+  const operator = num("operator_commission", cur.operator_commission || 0);
+  if (!isFinite(agency) || agency < 0) return { error: "Комиссия агентства: число от нуля" };
+  if (!isFinite(operator) || operator < 0) return { error: "Комиссия оператора: число от нуля" };
+
+  const nights = body.nights == null || body.nights === ""
+    ? (cur.nights == null ? null : cur.nights)
+    : Number(body.nights);
+  if (nights != null && (!Number.isInteger(nights) || nights < 0 || nights > 365)) {
+    return { error: "Ночей: целое число от 0" };
+  }
+
+  const fromPrice = body.from_price == null || body.from_price === ""
+    ? (cur.from_price == null ? null : cur.from_price)
+    : Number(body.from_price);
+  if (fromPrice != null && (!isFinite(fromPrice) || fromPrice < 0)) {
+    return { error: "Цена «от»: число от нуля" };
+  }
+
+  return {
+    name, destination,
+    agency_commission: agency,
+    operator_commission: operator,
+    nights: nights,
+    from_price: fromPrice,
+    description: body.description != null
+      ? String(body.description).trim().slice(0, 4000) || null
+      : (cur.description || null),
+    note: body.note != null
+      ? String(body.note).trim().slice(0, 500) || null
+      : (cur.note || null),
+    is_bookable: body.is_bookable == null
+      ? (cur.is_bookable == null ? 1 : cur.is_bookable)
+      : (body.is_bookable ? 1 : 0),
+  };
+}
+
+async function createTour(request, env, actor) {
+  const body = await request.json().catch(() => ({}));
+  const code = String(body.code || "").trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{3,32}$/.test(code)) {
+    return fail("Код тура: латиница, цифры, дефис — от 3 до 32 знаков");
+  }
+  const exists = await env.DB.prepare("SELECT id FROM tours WHERE code = ?")
+    .bind(code).first();
+  if (exists) return fail(`Тур с кодом ${code} уже есть`, 409);
+
+  const f = tourFields(body, null);
+  if (f.error) return fail(f.error);
+
+  const made = await env.DB.prepare(
+    `INSERT INTO tours (code, name, destination, agency_commission, operator_commission,
+                        is_bookable, note, description, nights, from_price)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(code, f.name, f.destination, f.agency_commission, f.operator_commission,
+         f.is_bookable, f.note, f.description, f.nights, f.from_price).run();
+
+  return json({ id: made.meta.last_row_id, code, ...f, departures: 0 });
+}
+
+async function updateTour(request, env, actor, tourId) {
+  const body = await request.json().catch(() => ({}));
+  const cur = await env.DB.prepare("SELECT * FROM tours WHERE id = ?")
+    .bind(tourId).first();
+  if (!cur) return fail("Тур не найден", 404);
+
+  // Код в публичном адресе карточки — менять его значит ломать уже
+  // разосланные агентами ссылки. Молча игнорировать тоже нельзя.
+  if (body.code && String(body.code).trim().toUpperCase() !== cur.code) {
+    return fail("Код тура не меняется: он стоит в ссылке на карточку, " +
+                "которую агенты уже разослали клиентам", 409);
+  }
+
+  const f = tourFields(body, cur);
+  if (f.error) return fail(f.error);
+
+  // Снять с продажи тур, у которого есть предстоящие заезды, можно — но
+  // оператор должен понимать, что вместе с туром из каталога пропадут и они.
+  let hiddenUpcoming = 0;
+  if (!f.is_bookable && cur.is_bookable) {
+    const up = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM departures
+        WHERE tour_id = ? AND is_open = 1 AND date_start >= date('now')`
+    ).bind(tourId).first();
+    hiddenUpcoming = up.n;
+  }
+
+  await env.DB.prepare(
+    `UPDATE tours SET name = ?, destination = ?, agency_commission = ?,
+                      operator_commission = ?, is_bookable = ?, note = ?,
+                      description = ?, nights = ?, from_price = ?
+      WHERE id = ?`
+  ).bind(f.name, f.destination, f.agency_commission, f.operator_commission,
+         f.is_bookable, f.note, f.description, f.nights, f.from_price, tourId).run();
+
+  return json({ id: tourId, code: cur.code, ...f, hidden_upcoming: hiddenUpcoming });
+}
+
+/*
  * Смена ДАТЫ заезда. Рейсы переносят — это нормальная жизнь, но по
  * проданным броням дата тянет за собой куда больше, чем кажется:
  *
@@ -2193,6 +2334,17 @@ async function route(request, env, ctx) {
 
         // Прайс заезда. Проданные брони не трогает: цена заморожена в
         // passengers.price на момент брони.
+        if (path === "/api/admin/tours" && request.method === "GET") {
+          return await adminTours(env);
+        }
+        if (path === "/api/admin/tours" && request.method === "POST") {
+          return await createTour(request, env, agency);
+        }
+        const tourEdit = path.match(/^\/api\/admin\/tours\/(\d+)$/);
+        if (tourEdit && request.method === "POST") {
+          return await updateTour(request, env, agency, Number(tourEdit[1]));
+        }
+
         if (path === "/api/admin/departures" && request.method === "POST") {
           return await createDeparture(request, env, agency);
         }

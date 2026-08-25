@@ -1977,6 +1977,30 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* ------------------------------------------------ туры у оператора */
+/* align-items:start, а не end как у общей .tt-newdep-grid: подписи здесь
+   разной длины, и при выравнивании по низу поля прыгают по вертикали. */
+.tt-tour-grid {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  align-items: start;
+}
+.tt-tour-grid .tt-col-2 { grid-column: span 2; }
+.tt-tour-grid textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  border: 1px solid var(--tt-border);
+  border-radius: 10px;
+  background: var(--tt-surface-2);
+  color: var(--tt-text);
+  resize: vertical;
+}
+@media (max-width: 900px) {
+  .tt-tour-grid { grid-template-columns: 1fr 1fr; }
+  .tt-tour-grid .tt-col-2 { grid-column: 1 / -1; }
+}
+
 /* --------------------------------------------- перенос заезда на дату */
 .tt-date-preview { margin-top: 14px; }
 .tt-date-preview h4 { margin: 0 0 6px; font-size: 0.95rem; }

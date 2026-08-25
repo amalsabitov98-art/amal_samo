@@ -23,6 +23,8 @@
     confirmedAll: [], confirmedTotal: 0, activity: [],
     // последний отрисованный список броней — см. renderAdminBookings
     shown: [],
+    // каталог туров операторской вкладки «Туры»
+    tours: [],
   };
   var AGGREGATE_LIMIT = 200;
 
@@ -394,6 +396,83 @@
             (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
         "</div>" +
       "</div>";
+  }
+
+  /* ----------------------------------------------------------- туры
+   * Тур — ПРОДУКТ, заезды — его даты. Код после создания не меняется: он
+   * стоит в публичной ссылке на карточку, которую агенты уже разослали
+   * клиентам. Удаления нет — только снятие с продажи, как у заезда.
+   */
+  var tourEditing = null;   // id правимого тура; null — форма создаёт новый
+
+  function tourRowHtml(t) {
+    var off = t.is_bookable === 0;
+    return '<article class="tt-booking' + (off ? " is-cancelled" : "") + '">' +
+      "<div><strong>" + esc(t.name) + "</strong>" +
+        (off ? ' <span class="tt-badge tt-badge-off">Снят с продажи</span>' : "") +
+        '<div class="tt-muted-note">' + esc(t.code) + " · " + esc(t.destination) +
+          (t.nights ? " · " + t.nights + " ноч." : "") + "</div></div>" +
+      '<div class="tt-booking-money">' +
+        '<div class="tt-sum-line"><span>Заездов</span><strong>' +
+          (t.upcoming || 0) + " из " + (t.departures || 0) + "</strong></div>" +
+        '<div class="tt-sum-line"><span>Комиссия агентства</span><strong>' +
+          money(t.agency_commission || 0) + "</strong></div>" +
+        '<div class="tt-sum-line"><span>Комиссия оператора</span><strong>' +
+          money(t.operator_commission || 0) + "</strong></div>" +
+      "</div>" +
+      '<div class="tt-booking-action">' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-edit="' +
+          t.id + '">Изменить</button>' +
+      "</div>" +
+    "</article>";
+  }
+
+  function renderTours() {
+    $("ot-list").innerHTML = state.tours.length
+      ? state.tours.map(tourRowHtml).join("")
+      : '<div class="tt-empty-state">Туров пока нет.</div>';
+    // Направления подсказываем уже заведёнными: они связаны с плитками
+    // каталога ПО ТЕКСТУ, и «Турция » с пробелом завела бы вторую плитку.
+    var seen = {};
+    $("ot-dest-list").innerHTML = state.tours.map(function (t) {
+      if (!t.destination || seen[t.destination]) return "";
+      seen[t.destination] = true;
+      return '<option value="' + esc(t.destination) + '"></option>';
+    }).join("");
+  }
+
+  function loadTours() {
+    return TuronApi.adminTours().then(function (list) {
+      state.tours = list || [];
+      renderTours();
+    }).catch(function (err) {
+      $("ot-list").innerHTML =
+        '<div class="tt-empty-state">Не удалось загрузить туры.<div class="tt-muted-note">' +
+        esc(err.message) + "</div></div>";
+    });
+  }
+
+  function fillTourForm(t) {
+    tourEditing = t ? t.id : null;
+    $("ot-form-title").textContent = t ? "Тур " + t.code : "Новый тур";
+    $("ot-form-hint").textContent = t
+      ? "Код тура не меняется: он стоит в ссылке на карточку, которую агенты " +
+        "уже разослали клиентам. Всё остальное правится свободно."
+      : "После создания к туру можно вешать заезды. Код в ссылке на карточку — " +
+        "поменять его потом нельзя.";
+    $("ot-code").value = t ? t.code : "";
+    $("ot-code").disabled = !!t;
+    $("ot-name").value = t ? t.name : "";
+    $("ot-destination").value = t ? t.destination : "";
+    $("ot-nights").value = t && t.nights != null ? t.nights : "";
+    $("ot-agency").value = t ? (t.agency_commission || 0) : "";
+    $("ot-operator").value = t ? (t.operator_commission || 0) : "";
+    $("ot-from").value = t && t.from_price != null ? t.from_price : "";
+    $("ot-description").value = (t && t.description) || "";
+    $("ot-bookable").checked = !t || t.is_bookable !== 0;
+    $("ot-msg").textContent = "";
+    $("ot-msg").className = "tt-editor-msg";
+    $("ot-form").hidden = false;
   }
 
   /* --------------------------------------------------- смена даты заезда
@@ -1560,6 +1639,71 @@
       if (seat) seat.classList.toggle("is-off", !child);
     });
 
+    /* ---------------------------------------------------------- туры */
+    $("ot-new").addEventListener("click", function () {
+      var form = $("ot-form");
+      // Повторный клик по «+ Новый тур» при открытой ПРАВКЕ должен
+      // переключить форму на создание, а не закрыть её молча.
+      if (!form.hidden && tourEditing === null) { form.hidden = true; return; }
+      fillTourForm(null);
+      $("ot-code").focus();
+    });
+    $("ot-cancel").addEventListener("click", function () {
+      $("ot-form").hidden = true;
+      tourEditing = null;
+    });
+    $("ot-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-tour-edit]");
+      if (!btn) return;
+      var t = state.tours.filter(function (x) {
+        return x.id === Number(btn.dataset.tourEdit);
+      })[0];
+      if (t) { fillTourForm(t); $("ot-name").focus(); }
+    });
+
+    $("ot-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("ot-msg"), save = $("ot-save");
+      var payload = {
+        name: $("ot-name").value,
+        destination: $("ot-destination").value,
+        nights: $("ot-nights").value,
+        agency_commission: $("ot-agency").value,
+        operator_commission: $("ot-operator").value,
+        from_price: $("ot-from").value,
+        description: $("ot-description").value,
+        is_bookable: $("ot-bookable").checked ? 1 : 0,
+      };
+      if (!tourEditing) payload.code = $("ot-code").value;
+
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Сохраняю…";
+      save.disabled = true;
+      var action = tourEditing
+        ? TuronApi.updateTour(tourEditing, payload)
+        : TuronApi.createTour(payload);
+      action.then(function (res) {
+        save.disabled = false;
+        $("ot-form").hidden = true;
+        var wasNew = !tourEditing;
+        tourEditing = null;
+        return loadTours().then(function () {
+          alert(wasNew
+            ? "Тур " + res.code + " создан. Теперь заведите ему заезд на вкладке " +
+              "«Заезды и пассажиры» — цены берутся с заезда, не с тура."
+            : "Тур " + res.code + " сохранён." +
+              (res.hidden_upcoming
+                ? " Снят с продажи вместе с предстоящими заездами: " +
+                  res.hidden_upcoming + "."
+                : ""));
+        });
+      }).catch(function (err) {
+        save.disabled = false;
+        msg.className = "tt-editor-msg is-err";
+        msg.textContent = err.message;
+      });
+    });
+
     /* --------------------------------------------------- новый заезд */
     $("adm-new-dep").addEventListener("click", function () {
       var form = $("adm-new-dep-form");
@@ -2039,6 +2183,8 @@
         return loadOverviewData();
       }).then(function () {
         return loadAgencies();
+      }).then(function () {
+        return loadTours();
       }).then(function () {
         return loadAdminBookings(true);
       });

@@ -2987,12 +2987,14 @@
       manifest: ["Заезды и пассажиры", "Операторская панель"],
       "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
       agencies: ["Агентства", "Партнёрская сеть"],
+      "op-tours": ["Туры", "Продукты и комиссии"],
     };
     document.querySelectorAll(".tt-tab").forEach(function (t) {
       t.classList.toggle("is-active", t.dataset.tab === name);
     });
     ["builder", "bookings", "tours", "travellers",
-     "payments", "documents", "messages", "overview", "manifest", "admin-bookings", "agencies"]
+     "payments", "documents", "messages", "overview", "manifest", "admin-bookings",
+     "agencies", "op-tours"]
       .forEach(function (key) {
         var panel = $("panel-" + key);
         if (panel) panel.hidden = key !== name;

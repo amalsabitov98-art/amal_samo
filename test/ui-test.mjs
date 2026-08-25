@@ -2713,6 +2713,107 @@ console.log("\nПеренос заезда: чего сервер не даёт"
   await page.close();
 }
 
+console.log("\nТуры: оператор заводит продукт");
+{
+  const { page, errors } = await session("operator");
+  page.on("dialog", (d) => d.accept());
+  await page.locator('.tt-tab[data-tab="op-tours"]').first().click({ force: true });
+  await page.waitForTimeout(800);
+
+  check("вкладка «Туры» есть только у оператора",
+        await page.locator("#panel-op-tours").isVisible());
+  const before = await page.locator("#ot-list .tt-booking").count();
+  check("список туров непустой", before > 0, before + " туров");
+
+  await page.click("#ot-new");
+  await page.waitForTimeout(400);
+  check("код нового тура вводится", !(await page.locator("#ot-code").isDisabled()));
+
+  await page.fill("#ot-code", "PROBA");
+  await page.fill("#ot-name", "Пробный тур");
+  await page.fill("#ot-destination", "Турция");
+  await page.fill("#ot-agency", "40");
+  await page.fill("#ot-operator", "25");
+  await page.fill("#ot-nights", "7");
+  await page.click("#ot-save");
+  await page.waitForTimeout(1000);
+  check("тур появился в списке",
+        (await page.locator("#ot-list .tt-booking").count()) === before + 1);
+
+  const made = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminTours();
+    return list.find((t) => t.code === "PROBA");
+  });
+  check("комиссии сохранены",
+        made.agency_commission === 40 && made.operator_commission === 25);
+  check("новый тур сразу в продаже", made.is_bookable !== 0);
+  check("заездов у нового тура нет", made.departures === 0);
+
+  // Код — часть публичной ссылки на карточку, менять его нельзя.
+  await page.locator('[data-tour-edit]').first().click();
+  await page.waitForTimeout(400);
+  check("при правке код заблокирован", await page.locator("#ot-code").isDisabled());
+  check("в подсказке объяснено, почему",
+        (await page.locator("#ot-form-hint").innerText()).includes("ссылке"));
+
+  await page.close();
+}
+
+console.log("\nТуры: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminTours();
+    const first = list[0];
+    const out = {};
+
+    try {
+      await window.TuronApi.createTour({ code: "ab", name: "X", destination: "Y" });
+      out.shortCode = "прошло";
+    } catch (e) { out.shortCode = e.message; }
+
+    try {
+      await window.TuronApi.createTour({
+        code: first.code, name: "X", destination: "Y" });
+      out.dupe = "прошло";
+    } catch (e) { out.dupe = e.message; }
+
+    try {
+      await window.TuronApi.createTour({ code: "NONAME1", name: "  ", destination: "Y" });
+      out.noName = "прошло";
+    } catch (e) { out.noName = e.message; }
+
+    try {
+      await window.TuronApi.createTour({ code: "NODEST1", name: "X", destination: "" });
+      out.noDest = "прошло";
+    } catch (e) { out.noDest = e.message; }
+
+    try {
+      await window.TuronApi.createTour({
+        code: "BADCOMM", name: "X", destination: "Y", agency_commission: -5 });
+      out.badComm = "прошло";
+    } catch (e) { out.badComm = e.message; }
+
+    // Смена кода уже созданного тура ломает разосланные ссылки.
+    try {
+      await window.TuronApi.updateTour(first.id, { code: "NEWCODE1" });
+      out.recode = "прошло";
+    } catch (e) { out.recode = e.message; }
+    return out;
+  });
+
+  check("короткий код тура не проходит", /Код тура/.test(res.shortCode), res.shortCode);
+  check("код-дубликат не проходит", /уже есть/.test(res.dupe), res.dupe);
+  check("тур без названия не проходит", /название/.test(res.noName), res.noName);
+  check("тур без направления не проходит", /направление/.test(res.noDest), res.noDest);
+  check("отрицательная комиссия не проходит", /Комиссия/.test(res.badComm), res.badComm);
+  check("код существующего тура сменить нельзя",
+        /не меняется/.test(res.recode), res.recode);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

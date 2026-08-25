@@ -630,6 +630,120 @@
     return null;
   }
 
+  /* ------------------------------------------------------- туры (демо)
+   * Туры в демо живут в TURON_TOURS, но заводить новые надо уметь и там —
+   * иначе форму нельзя ни посмотреть, ни проверить тестом. Кладём их в то
+   * же хранилище, что заезды и брони.
+   */
+  function demoTourStore(s) {
+    if (!s.tours) {
+      s.tours = JSON.parse(JSON.stringify(global.TURON_TOURS || []))
+        .map(function (t, i) {
+          return Object.assign({
+            id: i + 1, operator_commission: 0, description: null, from_price: null,
+          }, t);
+        });
+    }
+    return s.tours;
+  }
+
+  function demoTours() {
+    var s = demoState();
+    var list = demoTourStore(s);
+    saveDemo(s);
+    return list.map(function (t) {
+      var deps = s.departures.filter(function (d) { return d.tour_code === t.code; });
+      var today = new Date().toISOString().slice(0, 10);
+      return Object.assign({}, t, {
+        departures: deps.length,
+        upcoming: deps.filter(function (d) { return d.date_start >= today; }).length,
+      });
+    });
+  }
+
+  // Общая проверка полей — двойник tourFields из воркера.
+  function demoTourFields(body, cur) {
+    cur = cur || {};
+    var name = String(body.name != null ? body.name : cur.name || "").trim();
+    var destination = String(
+      body.destination != null ? body.destination : cur.destination || "").trim();
+    if (!name) return { error: "Нужно название тура" };
+    if (!destination) return { error: "Нужно направление" };
+
+    function num(key, fallback) {
+      if (body[key] == null || body[key] === "") return fallback;
+      var v = Number(body[key]);
+      return isFinite(v) ? v : NaN;
+    }
+    var agency = num("agency_commission", cur.agency_commission || 0);
+    var operator = num("operator_commission", cur.operator_commission || 0);
+    if (!isFinite(agency) || agency < 0) return { error: "Комиссия агентства: число от нуля" };
+    if (!isFinite(operator) || operator < 0) return { error: "Комиссия оператора: число от нуля" };
+
+    var nights = body.nights == null || body.nights === ""
+      ? (cur.nights == null ? null : cur.nights) : Number(body.nights);
+    if (nights != null && (!isFinite(nights) || nights % 1 !== 0 || nights < 0 || nights > 365)) {
+      return { error: "Ночей: целое число от 0" };
+    }
+    var fromPrice = body.from_price == null || body.from_price === ""
+      ? (cur.from_price == null ? null : cur.from_price) : Number(body.from_price);
+    if (fromPrice != null && (!isFinite(fromPrice) || fromPrice < 0)) {
+      return { error: "Цена «от»: число от нуля" };
+    }
+    return {
+      name: name, destination: destination,
+      agency_commission: agency, operator_commission: operator,
+      nights: nights, from_price: fromPrice,
+      description: body.description != null
+        ? String(body.description).trim().slice(0, 4000) || null
+        : (cur.description || null),
+      note: body.note != null
+        ? String(body.note).trim().slice(0, 500) || null
+        : (cur.note || null),
+      is_bookable: body.is_bookable == null
+        ? (cur.is_bookable == null ? 1 : cur.is_bookable)
+        : (body.is_bookable ? 1 : 0),
+    };
+  }
+
+  function demoSaveTour(id, payload) {
+    var s = demoState();
+    var list = demoTourStore(s);
+
+    if (!id) {
+      var code = String(payload.code || "").trim().toUpperCase();
+      if (!/^[A-Z0-9_-]{3,32}$/.test(code)) {
+        return Promise.reject(new Error(
+          "Код тура: латиница, цифры, дефис — от 3 до 32 знаков"));
+      }
+      if (list.some(function (t) { return t.code === code; })) {
+        return Promise.reject(new Error("Тур с кодом " + code + " уже есть"));
+      }
+      var f = demoTourFields(payload, null);
+      if (f.error) return Promise.reject(new Error(f.error));
+      var made = Object.assign({
+        id: list.reduce(function (n, t) { return Math.max(n, t.id || 0); }, 0) + 1,
+        code: code,
+      }, f);
+      list.push(made);
+      saveDemo(s);
+      return Promise.resolve(Object.assign({ departures: 0 }, made));
+    }
+
+    var cur = list.filter(function (t) { return t.id === id; })[0];
+    if (!cur) return Promise.reject(new Error("Тур не найден"));
+    if (payload.code && String(payload.code).trim().toUpperCase() !== cur.code) {
+      return Promise.reject(new Error(
+        "Код тура не меняется: он стоит в ссылке на карточку, " +
+        "которую агенты уже разослали клиентам"));
+    }
+    var upd = demoTourFields(payload, cur);
+    if (upd.error) return Promise.reject(new Error(upd.error));
+    Object.assign(cur, upd);
+    saveDemo(s);
+    return Promise.resolve(Object.assign({}, cur));
+  }
+
   // Демо-двойник смены даты. Повторяет проверки и порядок воркера.
   function demoDepartureDate(id, dateStart, opts) {
     var s = demoState();
@@ -1158,6 +1272,26 @@
     createDeparture: function (payload) {
       if (!API_BASE) return demoCreateDeparture(payload);
       return request("/api/admin/departures", { method: "POST", body: payload });
+    },
+
+    /* ----------------------------------------------------------- туры
+     * Тур — продукт, заезды — его даты. Код тура после создания НЕ
+     * меняется: он стоит в публичной ссылке на карточку, которую агенты
+     * рассылают клиентам. Удаления тура нет — только снятие с продажи.
+     */
+    adminTours: function () {
+      if (!API_BASE) return Promise.resolve(demoTours());
+      return request("/api/admin/tours");
+    },
+
+    createTour: function (payload) {
+      if (!API_BASE) return demoSaveTour(null, payload);
+      return request("/api/admin/tours", { method: "POST", body: payload });
+    },
+
+    updateTour: function (id, payload) {
+      if (!API_BASE) return demoSaveTour(id, payload);
+      return request("/api/admin/tours/" + id, { method: "POST", body: payload });
     },
 
     /*

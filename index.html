@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260825-11" />
+<link rel="stylesheet" href="styles.css?v=20260825-12" />
 </head>
 <body>
 
@@ -208,6 +208,7 @@
       <button class="tt-tab tt-tab-op" data-tab="overview" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 10h6V4h-6z" /></svg></span><span>Обзор</span></button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" /></svg></span><span>Заезды и пассажиры</span></button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3" /></svg></span><span>Все брони</span></button>
+      <button class="tt-tab tt-tab-op" data-tab="op-tours" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4M9 12h6" /></svg></span><span>Туры</span></button>
       <button class="tt-tab tt-tab-op" data-tab="agencies" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14M8 10h2M14 10h2M8 14h2M14 14h2M10 21v-3h4v3" /></svg></span><span>Агентства</span></button>
     </div>
 
@@ -601,6 +602,67 @@
       <div id="adm-bookings-pager" class="tt-pager"></div>
     </section>
 
+    <!-- Туры — это ПРОДУКТЫ, а заезды на вкладке «Заезды» — их даты.
+         Код тура после создания не меняется: он стоит в публичной ссылке
+         на карточку, которую агенты рассылают клиентам. -->
+    <section id="panel-op-tours" hidden>
+      <div class="tt-toolbar">
+        <button class="tt-btn secondary" id="ot-new">+ Новый тур</button>
+      </div>
+      <form id="ot-form" class="tt-newdep" hidden>
+        <h4 id="ot-form-title">Новый тур</h4>
+        <p class="tt-editor-hint" id="ot-form-hint">После создания к туру можно
+          вешать заезды. Код в ссылке на карточку — поменять его потом нельзя.</p>
+        <div class="tt-newdep-grid tt-tour-grid">
+          <div class="tt-field-full">
+            <label for="ot-code">Код тура</label>
+            <input type="text" id="ot-code" placeholder="KARADENIZ" maxlength="32" />
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-name">Название</label>
+            <input type="text" id="ot-name" placeholder="Карадениз" />
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-destination">Направление</label>
+            <input type="text" id="ot-destination" placeholder="Турция" list="ot-dest-list" />
+            <datalist id="ot-dest-list"></datalist>
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-nights">Ночей</label>
+            <input type="number" id="ot-nights" min="0" max="365" />
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-agency">Комиссия агентства, $</label>
+            <input type="number" id="ot-agency" min="0" step="1" />
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-operator">Комиссия оператора, $</label>
+            <input type="number" id="ot-operator" min="0" step="1" />
+          </div>
+          <div class="tt-field-full">
+            <label for="ot-from">Цена «от», $</label>
+            <input type="number" id="ot-from" min="0" step="1"
+              placeholder="если заездов ещё нет" />
+          </div>
+          <div class="tt-field-full tt-col-2">
+            <label for="ot-description">Описание для карточки</label>
+            <textarea id="ot-description" rows="3"
+              placeholder="Что это за тур — гость увидит это в каталоге"></textarea>
+          </div>
+        </div>
+        <label class="tt-comp-keep" id="ot-bookable-row">
+          <input type="checkbox" id="ot-bookable" checked />
+          В продаже — тур виден в каталоге и по нему принимаются брони
+        </label>
+        <div class="tt-newdep-actions">
+          <span class="tt-editor-msg" id="ot-msg"></span>
+          <button type="button" class="tt-btn secondary tt-btn-sm" id="ot-cancel">Отмена</button>
+          <button type="submit" class="tt-btn tt-btn-sm" id="ot-save">Сохранить</button>
+        </div>
+      </form>
+      <div id="ot-list"></div>
+    </section>
+
     <section id="panel-agencies" hidden>
       <div class="tt-panel">
         <div class="tt-panel-head-row">
@@ -765,11 +827,11 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
-<script src="js/api.js?v=20260825-11"></script>
+<script src="js/api.js?v=20260825-12"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260825-1"></script>
-<script src="js/admin.js?v=20260825-11"></script>
-<script src="js/app.js?v=20260825-6"></script>
+<script src="js/admin.js?v=20260825-12"></script>
+<script src="js/app.js?v=20260825-12"></script>
 </body>
 </html>
