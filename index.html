@@ -413,7 +413,18 @@
 
     <section id="panel-overview" hidden>
       <div id="ov-stats"></div>
-      <div class="tt-panel tt-ops-departures-panel">
+      <div class="tt-overview-tabs" id="ov-tabs" role="tablist" aria-label="Разделы обзора">
+        <button type="button" class="is-active" role="tab" aria-selected="true" data-overview-tab="departures">
+          Ближайшие заезды <span id="ov-tab-departures-count">0</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" data-overview-tab="activity">
+          Действия агентств <span id="ov-tab-activity-count">0</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" data-overview-tab="debtors">
+          Задолженности <span id="ov-tab-debtors-count">0</span>
+        </button>
+      </div>
+      <div class="tt-panel tt-ops-departures-panel tt-overview-pane" data-overview-pane="departures" role="tabpanel">
         <div class="tt-panel-head-row tt-ops-panel-head">
           <div>
             <h2>Ближайшие заезды</h2>
@@ -423,15 +434,18 @@
         </div>
         <div id="ov-departures"></div>
       </div>
-      <div class="tt-panel tt-activity-panel">
+      <div class="tt-panel tt-activity-panel tt-overview-pane" data-overview-pane="activity" role="tabpanel" hidden>
         <div class="tt-panel-head-row">
           <h2>Действия агентств</h2>
           <span class="tt-muted-note">Открытые отмены и последние события · нажмите, чтобы открыть бронь</span>
         </div>
         <div id="ov-activity"></div>
       </div>
-      <div class="tt-panel">
-        <h2>Кто должен</h2>
+      <div class="tt-panel tt-overview-pane" data-overview-pane="debtors" role="tabpanel" hidden>
+        <div class="tt-panel-head-row">
+          <h2>Задолженности агентств</h2>
+          <span class="tt-muted-note">Нажмите на агентство, чтобы открыть его брони с долгом</span>
+        </div>
         <div id="ov-debtors"></div>
       </div>
     </section>

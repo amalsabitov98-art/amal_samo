@@ -4159,6 +4159,11 @@ select { font-family: inherit; }
   padding-right: clamp(22px, 2vw, 34px);
   padding-left: clamp(22px, 2vw, 34px);
 }
+.tt-app-shell.is-overview .tt-app-container {
+  max-width: none;
+  padding-right: clamp(22px, 2vw, 34px);
+  padding-left: clamp(22px, 2vw, 34px);
+}
 
 .tt-section-intro {
   display: flex;
@@ -4455,18 +4460,67 @@ select { font-family: inherit; }
 
 /* «Ближайшие заезды» на обзоре — не витрина тура, а рабочая очередь.
    Дата группирует решения, строка показывает загрузку, деньги и исключения. */
+.tt-overview-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 6px;
+  border: 1px solid var(--tt-border);
+  border-radius: 16px;
+  background: var(--tt-surface-2);
+}
+.tt-overview-tabs button {
+  min-height: 66px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tt-forest);
+  font-family: "Manrope", Arial, sans-serif;
+  font-size: 1.02rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.tt-overview-tabs button:hover { border-color: var(--tt-border-strong); background: var(--tt-surface); }
+.tt-overview-tabs button.is-active { border-color: var(--tt-forest); background: var(--tt-forest); color: #fff; }
+.tt-overview-tabs button span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 29px;
+  height: 29px;
+  margin-left: 8px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(13, 48, 42, 0.09);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.tt-overview-tabs button.is-active span { background: rgba(255, 255, 255, 0.16); }
+.tt-overview-pane[hidden] { display: none !important; }
+#panel-overview > #ov-stats { margin-bottom: 24px; }
+#panel-overview .tt-earnings { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 0; }
+#panel-overview .tt-earnings > div { min-height: 126px; justify-content: center; padding: 24px 26px; }
+#panel-overview .tt-earnings span { font-size: 0.9rem; line-height: 1.35; }
+#panel-overview .tt-earnings strong { margin-top: 5px; font-size: 2.05rem; line-height: 1; }
+.tt-overview-pane { margin-bottom: 0; }
+.tt-overview-pane:not(.tt-ops-departures-panel) { padding: 28px; }
+.tt-overview-pane > .tt-panel-head-row { margin-bottom: 22px; }
+.tt-overview-pane > .tt-panel-head-row .tt-muted-note { font-size: 0.84rem; }
+.tt-overview-pane > .tt-panel-head-row h2 { font-size: 1.65rem; }
 .tt-ops-departures-panel { padding: 0; overflow: hidden; }
-.tt-ops-panel-head { padding: 20px 22px 17px; margin: 0; border-bottom: 1px solid var(--tt-border); }
+.tt-ops-panel-head { padding: 27px 30px 23px; margin: 0; border-bottom: 1px solid var(--tt-border); }
 .tt-ops-panel-head > div { min-width: 0; }
 .tt-ops-panel-head .tt-muted-note { display: block; margin-top: 4px; }
 .tt-ops-horizon {
   flex: 0 0 auto;
-  padding: 6px 10px;
+  padding: 8px 13px;
   border: 1px solid var(--tt-border);
   border-radius: 999px;
   background: var(--tt-surface-2);
   color: var(--tt-text-muted);
-  font-size: 0.66rem;
+  font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4481,21 +4535,21 @@ select { font-family: inherit; }
   font-size: 0.74rem;
 }
 .tt-ops-days { display: grid; }
-.tt-ops-day { display: grid; grid-template-columns: 154px minmax(0, 1fr); border-bottom: 1px solid var(--tt-border); }
+.tt-ops-day { display: grid; grid-template-columns: 190px minmax(0, 1fr); border-bottom: 1px solid var(--tt-border); }
 .tt-ops-day:last-child { border-bottom: 0; }
 .tt-ops-day-head {
-  padding: 19px 18px 18px 22px;
+  padding: 26px 22px 24px 28px;
   border-right: 1px solid var(--tt-border);
   background: var(--tt-surface-2);
 }
 .tt-ops-day-head div { display: grid; gap: 3px; }
-.tt-ops-day-head strong { color: var(--tt-success); font-size: 0.78rem; }
+.tt-ops-day-head strong { color: var(--tt-success); font-size: 0.96rem; }
 .tt-ops-day.is-today .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-danger); }
 .tt-ops-day.is-today .tt-ops-day-head strong { color: var(--tt-danger); }
 .tt-ops-day.is-tomorrow .tt-ops-day-head { box-shadow: inset 4px 0 0 var(--tt-accent); }
 .tt-ops-day.is-tomorrow .tt-ops-day-head strong { color: var(--tt-accent-dark); }
-.tt-ops-day-head span { font-size: 0.73rem; line-height: 1.35; color: var(--tt-text); }
-.tt-ops-day-head > small { display: block; margin-top: 11px; color: var(--tt-text-muted); font-size: 0.63rem; }
+.tt-ops-day-head span { font-size: 0.88rem; line-height: 1.35; color: var(--tt-text); }
+.tt-ops-day-head > small { display: block; margin-top: 14px; color: var(--tt-text-muted); font-size: 0.76rem; }
 .tt-ops-departure-list { min-width: 0; }
 .tt-ops-departure {
   display: grid;
@@ -4503,8 +4557,8 @@ select { font-family: inherit; }
   gap: 18px;
   align-items: center;
   width: 100%;
-  min-height: 92px;
-  padding: 15px 19px;
+  min-height: 112px;
+  padding: 20px 24px;
   border: 0;
   border-bottom: 1px solid var(--tt-border);
   background: var(--tt-surface);
@@ -4519,24 +4573,40 @@ select { font-family: inherit; }
 .tt-ops-departure:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--tt-accent); outline-offset: -2px; }
 .tt-ops-departure.has-cancel { box-shadow: inset 3px 0 0 var(--tt-danger); }
 .tt-ops-departure-main { display: grid; gap: 5px; min-width: 0; }
-.tt-ops-departure-main strong { overflow: hidden; color: var(--tt-forest); font-size: 0.92rem; text-overflow: ellipsis; white-space: nowrap; }
-.tt-ops-departure-main small { overflow: hidden; color: var(--tt-text-muted); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-departure-main strong { overflow: hidden; color: var(--tt-forest); font-size: 1.12rem; text-overflow: ellipsis; white-space: nowrap; }
+.tt-ops-departure-main small { overflow: hidden; color: var(--tt-text-muted); font-size: 0.8rem; text-overflow: ellipsis; white-space: nowrap; }
 .tt-ops-counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .tt-ops-counts > span { display: grid; gap: 2px; }
-.tt-ops-counts b { font-size: 0.94rem; font-variant-numeric: tabular-nums; }
+.tt-ops-counts b { font-size: 1.18rem; font-variant-numeric: tabular-nums; }
 .tt-ops-counts small,
-.tt-ops-finance small { color: var(--tt-text-muted); font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.035em; }
+.tt-ops-finance small { color: var(--tt-text-muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.035em; }
 .tt-ops-finance { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding-bottom: 10px; }
 .tt-ops-finance > span { display: grid; gap: 2px; }
-.tt-ops-finance b { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.tt-ops-finance b { font-size: 1rem; font-variant-numeric: tabular-nums; }
 .tt-ops-departure.has-debt .tt-ops-debt b,
 .tt-ops-departure.has-cancel .tt-ops-debt b { color: var(--tt-warn-text); }
 .tt-ops-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; overflow: hidden; border-radius: 999px; background: rgba(13, 48, 42, 0.09); }
 .tt-ops-progress em { display: block; height: 100%; border-radius: inherit; background: var(--tt-success); }
 .tt-ops-flags { display: flex; align-items: center; justify-content: flex-end; gap: 10px; white-space: nowrap; }
 .tt-ops-flags .tt-badge-cancel { margin-left: 0; }
-.tt-ops-open { color: var(--tt-text-muted); font-size: 1.1rem; transition: transform 0.15s ease; }
-.tt-ops-departure:hover .tt-ops-open { transform: translateX(3px); color: var(--tt-success); }
+.tt-ops-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 116px;
+  padding: 11px 14px;
+  border: 1px solid var(--tt-border-strong);
+  border-radius: 10px;
+  color: var(--tt-accent-dark);
+  font-size: 0.88rem;
+  font-weight: 750;
+  transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.tt-ops-open b { font-size: 1.2rem; }
+.tt-ops-departure:hover .tt-ops-open { transform: translateX(3px); background: var(--tt-forest); color: #fff; }
+#panel-overview .tt-table th { padding: 14px 16px; font-size: 0.73rem; }
+#panel-overview .tt-table td { padding: 17px 16px; font-size: 0.9rem; }
 
 .tt-ov-grid {
   display: grid;
@@ -4545,6 +4615,8 @@ select { font-family: inherit; }
   align-items: start;
 }
 @media (max-width: 900px) {
+  #panel-overview .tt-earnings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #panel-overview .tt-earnings > div { border-bottom: 1px solid var(--tt-border); }
   .tt-ov-grid { grid-template-columns: 1fr; }
   .tt-ops-departure {
     grid-template-columns: minmax(180px, 1.2fr) minmax(170px, 0.8fr) minmax(250px, 1fr) auto;
@@ -4555,6 +4627,10 @@ select { font-family: inherit; }
 }
 
 @media (max-width: 640px) {
+  .tt-overview-tabs { grid-template-columns: 1fr; }
+  .tt-overview-tabs button { min-height: 52px; font-size: 0.9rem; }
+  #panel-overview .tt-earnings { grid-template-columns: 1fr; }
+  #panel-overview .tt-earnings > div { min-height: 96px; }
   .tt-ops-panel-head { align-items: flex-start; padding: 17px 16px 14px; }
   .tt-ops-horizon { display: none; }
   .tt-ops-day { grid-template-columns: 1fr; }
@@ -9093,7 +9169,18 @@ a.tt-contact-row:hover { color: var(--cc); }
 
     <section id="panel-overview" hidden>
       <div id="ov-stats"></div>
-      <div class="tt-panel tt-ops-departures-panel">
+      <div class="tt-overview-tabs" id="ov-tabs" role="tablist" aria-label="Разделы обзора">
+        <button type="button" class="is-active" role="tab" aria-selected="true" data-overview-tab="departures">
+          Ближайшие заезды <span id="ov-tab-departures-count">0</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" data-overview-tab="activity">
+          Действия агентств <span id="ov-tab-activity-count">0</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" data-overview-tab="debtors">
+          Задолженности <span id="ov-tab-debtors-count">0</span>
+        </button>
+      </div>
+      <div class="tt-panel tt-ops-departures-panel tt-overview-pane" data-overview-pane="departures" role="tabpanel">
         <div class="tt-panel-head-row tt-ops-panel-head">
           <div>
             <h2>Ближайшие заезды</h2>
@@ -9103,15 +9190,18 @@ a.tt-contact-row:hover { color: var(--cc); }
         </div>
         <div id="ov-departures"></div>
       </div>
-      <div class="tt-panel tt-activity-panel">
+      <div class="tt-panel tt-activity-panel tt-overview-pane" data-overview-pane="activity" role="tabpanel" hidden>
         <div class="tt-panel-head-row">
           <h2>Действия агентств</h2>
           <span class="tt-muted-note">Открытые отмены и последние события · нажмите, чтобы открыть бронь</span>
         </div>
         <div id="ov-activity"></div>
       </div>
-      <div class="tt-panel">
-        <h2>Кто должен</h2>
+      <div class="tt-panel tt-overview-pane" data-overview-pane="debtors" role="tabpanel" hidden>
+        <div class="tt-panel-head-row">
+          <h2>Задолженности агентств</h2>
+          <span class="tt-muted-note">Нажмите на агентство, чтобы открыть его брони с долгом</span>
+        </div>
         <div id="ov-debtors"></div>
       </div>
     </section>
@@ -19840,7 +19930,7 @@ window.TURON_DESTINATIONS = [
               : (debt > 0
                 ? '<span class="tt-badge tt-badge-info">Есть долг</span>'
                 : '<span class="tt-badge">Оплачено</span>')) +
-            '<span class="tt-ops-open" aria-hidden="true">→</span>' +
+            '<span class="tt-ops-open">Открыть <b aria-hidden="true">→</b></span>' +
           '</span>' +
         '</button>';
       }).join("");
@@ -19902,6 +19992,10 @@ window.TURON_DESTINATIONS = [
       }
     });
 
+    $("ov-tab-departures-count").textContent = weekDeps.length;
+    $("ov-tab-activity-count").textContent = state.activity.length;
+    $("ov-tab-debtors-count").textContent = debtors.length;
+
     $("ov-stats").innerHTML =
       '<div class="tt-earnings">' +
         '<div><span>Заездов за 7 дней</span><strong>' + weekDeps.length + "</strong></div>" +
@@ -19950,6 +20044,17 @@ window.TURON_DESTINATIONS = [
               '<td class="tt-muted-note">' + esc(ev.details || "—") + "</td></tr>";
           }).join("") + "</tbody></table></div>"
       : '<div class="tt-empty-state">Действий агентств пока нет.</div>';
+  }
+
+  function setOverviewTab(name) {
+    document.querySelectorAll("[data-overview-tab]").forEach(function (button) {
+      var active = button.dataset.overviewTab === name;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.querySelectorAll("[data-overview-pane]").forEach(function (pane) {
+      pane.hidden = pane.dataset.overviewPane !== name;
+    });
   }
 
   // ---------------------------------------------------------------- брони
@@ -20313,6 +20418,10 @@ window.TURON_DESTINATIONS = [
       if (!card) return;
       setSelectedDeparture(card.dataset.departure);
       jumpToTab("manifest");
+    });
+    $("ov-tabs").addEventListener("click", function (e) {
+      var button = e.target.closest("[data-overview-tab]");
+      if (button) setOverviewTab(button.dataset.overviewTab);
     });
     $("ov-debtors").addEventListener("click", function (e) {
       var row = e.target.closest("[data-jump-agency]");
@@ -23750,6 +23859,7 @@ window.TURON_DESTINATIONS = [
       });
     $("screen-app").classList.toggle("is-builder", name === "builder");
     $("screen-app").classList.toggle("is-manifest", name === "manifest");
+    $("screen-app").classList.toggle("is-overview", name === "overview");
     if (labels[name]) {
       $("workspace-title").textContent = labels[name][0];
       $("workspace-kicker").textContent = labels[name][1];
