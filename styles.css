@@ -4133,6 +4133,11 @@ select { font-family: inherit; }
   max-width: 1420px;
   padding: 26px clamp(20px, 3vw, 42px) 70px;
 }
+.tt-app-shell.is-manifest .tt-app-container {
+  max-width: none;
+  padding-right: clamp(22px, 2vw, 34px);
+  padding-left: clamp(22px, 2vw, 34px);
+}
 
 .tt-section-intro {
   display: flex;
@@ -4355,16 +4360,16 @@ select { font-family: inherit; }
 /* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
    это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
    .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */
-.tt-op-week { margin: 0 0 24px; }
+.tt-op-week { margin: 0 0 30px; }
 .tt-op-week > h3 {
   display: flex; align-items: center; gap: 9px;
-  margin: 0 0 12px; color: var(--tt-text); font-family: "Manrope", Arial, sans-serif;
-  font-size: 1rem; font-weight: 750; letter-spacing: 0.02em; text-transform: uppercase;
+  margin: 0 0 14px; color: var(--tt-text); font-family: "Manrope", Arial, sans-serif;
+  font-size: 1.12rem; font-weight: 750; letter-spacing: 0.015em; text-transform: uppercase;
 }
 .tt-op-week > h3 span {
-  display: inline-grid; place-items: center; width: 34px; height: 34px;
+  display: inline-grid; place-items: center; width: 38px; height: 38px;
   border: 1px solid var(--tt-border-strong); border-radius: 50%;
-  color: var(--tt-accent-dark); font-size: 0.8rem;
+  color: var(--tt-accent-dark); font-size: 0.9rem;
 }
 .tt-op-dep-grid {
   overflow: hidden; margin-bottom: 0;
@@ -4373,8 +4378,8 @@ select { font-family: inherit; }
 }
 .tt-op-dep {
   display: grid;
-  grid-template-columns: 78px 16px minmax(160px, 0.8fr) 155px minmax(190px, 1.3fr) auto 136px;
-  align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 0 17px 0 0;
+  grid-template-columns: 96px 18px minmax(190px, 0.8fr) 180px minmax(240px, 1.3fr) auto 154px;
+  align-items: center; gap: 18px; width: 100%; min-height: 100px; padding: 0 21px 0 0;
   border: 0; border-bottom: 1px solid var(--tt-border); border-radius: 0;
   background: var(--tt-surface); color: var(--tt-text); font: inherit; text-align: left;
   cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease;
@@ -4391,34 +4396,34 @@ select { font-family: inherit; }
   justify-content: center; border-right: 1px solid var(--tt-border);
   font-family: "Manrope", Arial, sans-serif; font-variant-numeric: tabular-nums;
 }
-.tt-op-date strong { font-size: 1.68rem; font-weight: 750; line-height: 1; }
-.tt-op-date small { margin-top: 5px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.045em; }
+.tt-op-date strong { font-size: 2rem; font-weight: 750; line-height: 1; }
+.tt-op-date small { margin-top: 6px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em; }
 .tt-op-dot {
-  width: 10px; height: 10px; border-radius: 50%; background: var(--tt-accent-dark);
+  width: 12px; height: 12px; border-radius: 50%; background: var(--tt-accent-dark);
   box-shadow: 0 0 0 4px var(--tt-surface);
 }
 .tt-op-code {
-  overflow: hidden; color: var(--tt-text-muted); font-size: 0.85rem; font-weight: 650;
+  overflow: hidden; color: var(--tt-text-muted); font-size: 1rem; font-weight: 650;
   letter-spacing: 0.035em; text-overflow: ellipsis; white-space: nowrap;
 }
 .tt-op-route-badge { justify-self: start; }
 .tt-op-route-badge,
-.tt-op-status { padding: 7px 10px; font-size: 0.78rem; }
-.tt-op-route { font-size: 1rem; font-weight: 650; white-space: nowrap; }
+.tt-op-status { padding: 9px 13px; font-size: 0.9rem; }
+.tt-op-route { font-size: 1.15rem; font-weight: 650; white-space: nowrap; }
 .tt-op-status { justify-self: end; white-space: nowrap; }
 .tt-op-status.is-open {
   border-color: rgba(22, 128, 95, 0.14); background: var(--tt-success-soft); color: var(--tt-success);
 }
 .tt-op-open {
   display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
-  min-width: 126px; padding: 12px 15px; border: 1px solid var(--tt-border-strong);
-  border-radius: 11px; color: var(--tt-accent-dark); font-size: 0.92rem; font-weight: 750;
+  min-width: 144px; padding: 14px 17px; border: 1px solid var(--tt-border-strong);
+  border-radius: 12px; color: var(--tt-accent-dark); font-size: 1.05rem; font-weight: 750;
 }
-.tt-op-open b { font-size: 1.3rem; line-height: 0.8; }
+.tt-op-open b { font-size: 1.45rem; line-height: 0.8; }
 .tt-op-dep.is-active .tt-op-open { color: #fff; background: var(--tt-accent-dark); }
 
 @media (max-width: 1120px) {
-  .tt-op-dep { grid-template-columns: 72px 13px minmax(145px, 1fr) 145px auto 122px; }
+  .tt-op-dep { grid-template-columns: 82px 14px minmax(160px, 1fr) 155px auto 136px; min-height: 88px; }
   .tt-op-route { display: none; }
 }
 @media (max-width: 760px) {
