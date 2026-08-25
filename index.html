@@ -451,13 +451,13 @@
     </section>
 
     <section id="panel-manifest" hidden>
+      <div id="adm-departure-list">
       <div class="tt-toolbar">
         <div class="tt-field" style="min-width:230px">
           <label for="adm-departure-search">Найти заезд</label>
           <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
         </div>
         <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
-        <button class="tt-btn" id="adm-export" disabled>Выгрузить в Excel</button>
       </div>
       <!-- Форма нового заезда. Прайс лежит у КАЖДОГО заезда отдельно
            (3-6 размещений плюс детские), поэтому основной путь — копия с
@@ -496,11 +496,32 @@
         </div>
       </form>
       <div id="adm-departure-cards"></div>
+      </div>
       <!-- Управление продажей выбранного заезда. Стоит здесь, а не на самой
            карточке: карточка это <button>, вложить в неё вторую кнопку
            нельзя. Оператор всё равно смотрит ведомость именно тут. -->
-      <div id="adm-dep-controls" hidden></div>
-      <div id="adm-manifest"></div>
+      <div id="adm-departure-detail" class="tt-departure-detail" hidden>
+        <button type="button" class="tt-detail-back" id="adm-detail-back">← Все заезды</button>
+        <div id="adm-dep-controls" hidden></div>
+        <div class="tt-detail-tabs" id="adm-detail-tabs" role="tablist" aria-label="Разделы заезда">
+          <button type="button" class="is-active" role="tab" aria-selected="true" data-detail-tab="passengers">Пассажиры</button>
+          <button type="button" role="tab" aria-selected="false" data-detail-tab="bookings">Брони</button>
+          <button type="button" role="tab" aria-selected="false" data-detail-tab="prices">Тарифы и цены</button>
+          <button type="button" role="tab" aria-selected="false" data-detail-tab="history">История изменений</button>
+        </div>
+        <div class="tt-detail-pane" data-detail-pane="passengers">
+          <div id="adm-manifest"></div>
+        </div>
+        <div class="tt-detail-pane" data-detail-pane="bookings" hidden>
+          <div id="adm-detail-bookings"></div>
+        </div>
+        <div class="tt-detail-pane" data-detail-pane="prices" hidden>
+          <div id="adm-detail-prices"></div>
+        </div>
+        <div class="tt-detail-pane" data-detail-pane="history" hidden>
+          <div id="adm-detail-history"></div>
+        </div>
+      </div>
     </section>
 
     <section id="panel-admin-bookings" hidden>

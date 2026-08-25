@@ -2141,6 +2141,104 @@ a { color: inherit; }
 }
 .tt-manifest-seats { margin-left: auto; }
 
+/* Отдельный экран заезда: список больше не остаётся над ведомостью. */
+.tt-departure-detail { min-width: 0; }
+.tt-detail-back {
+  margin: 0 0 14px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--tt-forest);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tt-detail-back:hover { color: var(--tt-accent-dark); }
+.tt-detail-head {
+  position: sticky;
+  top: 10px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 22px 24px;
+  border: 1px solid var(--tt-border);
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 0 10px 34px rgba(24, 45, 38, 0.08);
+  backdrop-filter: blur(16px);
+}
+.tt-detail-title { min-width: 0; }
+.tt-detail-title h2 {
+  overflow: hidden;
+  margin: 0 0 7px;
+  color: var(--tt-forest);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.8rem, 2.4vw, 2.45rem);
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-detail-title > div { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; color: var(--tt-text-muted); font-size: 0.88rem; }
+.tt-detail-title .tt-op-status { margin-left: 5px; }
+.tt-detail-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex: 0 0 auto; }
+.tt-detail-actions .tt-btn { min-height: 46px; padding: 11px 16px; font-size: 0.82rem; }
+.tt-detail-sale { border-color: rgba(201, 81, 69, 0.45) !important; color: var(--tt-danger) !important; }
+.tt-detail-sale[data-open="1"] { border-color: rgba(22, 128, 95, 0.28) !important; color: var(--tt-success) !important; }
+.tt-detail-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  margin: 0 0 24px;
+  border: 1px solid var(--tt-border-strong);
+  border-radius: 14px;
+  background: var(--tt-surface);
+}
+.tt-detail-tabs button {
+  min-height: 66px;
+  padding: 12px 18px;
+  border: 0;
+  border-right: 1px solid var(--tt-border);
+  background: transparent;
+  color: var(--tt-forest);
+  font-family: "Manrope", Arial, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.tt-detail-tabs button:last-child { border-right: 0; }
+.tt-detail-tabs button:hover { background: var(--tt-surface-2); }
+.tt-detail-tabs button.is-active { background: var(--tt-forest); color: #fff; }
+.tt-detail-pane[hidden] { display: none !important; }
+.tt-detail-pane .tt-price-editor { margin: 0; padding: 24px; }
+.tt-detail-pane .tt-price-editor h4 { font-size: 1.3rem; }
+#adm-manifest .tt-earnings { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; padding: 0; }
+#adm-manifest .tt-earnings > div { min-height: 124px; justify-content: center; padding: 24px 26px; border-right: 1px solid var(--tt-border); }
+#adm-manifest .tt-earnings > div:last-child { border-right: 0; }
+#adm-manifest .tt-earnings span { font-size: 0.88rem; }
+#adm-manifest .tt-earnings strong { margin-top: 5px; font-size: 2rem; }
+.tt-departure-detail .tt-table th { padding: 14px 15px; font-size: 0.69rem; white-space: nowrap; }
+.tt-departure-detail .tt-table td { padding: 19px 15px; font-size: 0.84rem; white-space: nowrap; }
+.tt-departure-detail .tt-table td:last-child { text-align: right; }
+
+@media (max-width: 900px) {
+  .tt-detail-head { position: static; align-items: flex-start; flex-direction: column; }
+  .tt-detail-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .tt-detail-tabs { grid-template-columns: 1fr 1fr; }
+  .tt-detail-tabs button:nth-child(2) { border-right: 0; }
+  .tt-detail-tabs button:nth-child(-n+2) { border-bottom: 1px solid var(--tt-border); }
+  #adm-manifest .tt-earnings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #adm-manifest .tt-earnings > div { border-bottom: 1px solid var(--tt-border); }
+}
+@media (max-width: 560px) {
+  .tt-detail-tabs { grid-template-columns: 1fr; }
+  .tt-detail-tabs button { min-height: 52px; border-right: 0; border-bottom: 1px solid var(--tt-border); }
+  .tt-detail-tabs button:last-child { border-bottom: 0; }
+  #adm-manifest .tt-earnings { grid-template-columns: 1fr; }
+}
+
 .tt-earnings {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
