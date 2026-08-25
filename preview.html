@@ -4376,36 +4376,75 @@ select { font-family: inherit; }
 /* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
    это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
    .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */
+.tt-op-week { margin: 0 0 14px; }
+.tt-op-week > h3 {
+  display: flex; align-items: center; gap: 9px;
+  margin: 0 0 7px; color: var(--tt-text); font-family: "Manrope", Arial, sans-serif;
+  font-size: 0.78rem; font-weight: 750; letter-spacing: 0.035em; text-transform: uppercase;
+}
+.tt-op-week > h3 span {
+  display: inline-grid; place-items: center; width: 24px; height: 24px;
+  border: 1px solid var(--tt-border-strong); border-radius: 50%;
+  color: var(--tt-accent-dark); font-size: 0.62rem;
+}
 .tt-op-dep-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  overflow: hidden; margin-bottom: 0;
+  border: 1px solid var(--tt-border); border-radius: 12px;
+  background: var(--tt-surface); box-shadow: 0 7px 24px rgba(24, 45, 38, 0.04);
 }
 .tt-op-dep {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--tt-border);
-  border-left: 3px solid var(--tt-success);
-  border-radius: var(--tt-radius);
-  background: var(--tt-surface);
-  box-shadow: 0 7px 24px rgba(24, 45, 38, 0.045);
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  display: grid;
+  grid-template-columns: 55px 12px minmax(130px, 0.8fr) 130px minmax(150px, 1.3fr) auto 104px;
+  align-items: center; gap: 10px; width: 100%; min-height: 55px; padding: 0 12px 0 0;
+  border: 0; border-bottom: 1px solid var(--tt-border); border-radius: 0;
+  background: var(--tt-surface); color: var(--tt-text); font: inherit; text-align: left;
+  cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease;
 }
-.tt-op-dep:hover { transform: translateY(-2px); border-color: var(--tt-border-strong); box-shadow: var(--tt-shadow-hover); }
-.tt-op-dep.is-active { border-color: var(--tt-accent); box-shadow: 0 0 0 2px var(--tt-accent-soft); }
-.tt-op-dep.is-low { border-left-color: var(--tt-warn-border); }
-.tt-op-dep.is-full { border-left-color: var(--tt-danger); opacity: 0.7; }
-.tt-op-dep .tt-dep-seats,
-.tt-op-dep .tt-seat-bar { width: 100%; }
+.tt-op-dep:last-child { border-bottom: 0; }
+.tt-op-dep:hover { background: var(--tt-surface-2); }
+.tt-op-dep.is-active {
+  position: relative; z-index: 1; background: rgba(225, 183, 91, 0.08);
+  box-shadow: inset 0 0 0 1px var(--tt-accent);
+}
+.tt-op-dep.is-closed { color: var(--tt-text-muted); }
+.tt-op-date {
+  align-self: stretch; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border-right: 1px solid var(--tt-border);
+  font-family: "Manrope", Arial, sans-serif; font-variant-numeric: tabular-nums;
+}
+.tt-op-date strong { font-size: 1.12rem; font-weight: 750; line-height: 1; }
+.tt-op-date small { margin-top: 3px; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em; }
+.tt-op-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--tt-accent-dark);
+  box-shadow: 0 0 0 3px var(--tt-surface);
+}
+.tt-op-code {
+  overflow: hidden; color: var(--tt-text-muted); font-size: 0.64rem; font-weight: 600;
+  letter-spacing: 0.035em; text-overflow: ellipsis; white-space: nowrap;
+}
+.tt-op-route-badge { justify-self: start; }
+.tt-op-route { font-size: 0.77rem; font-weight: 600; white-space: nowrap; }
+.tt-op-status { justify-self: end; white-space: nowrap; }
+.tt-op-status.is-open {
+  border-color: rgba(22, 128, 95, 0.14); background: var(--tt-success-soft); color: var(--tt-success);
+}
+.tt-op-open {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-width: 94px; padding: 8px 11px; border: 1px solid var(--tt-border-strong);
+  border-radius: 9px; color: var(--tt-accent-dark); font-size: 0.72rem; font-weight: 750;
+}
+.tt-op-open b { font-size: 1.05rem; line-height: 0.8; }
+.tt-op-dep.is-active .tt-op-open { color: #fff; background: var(--tt-accent-dark); }
+
+@media (max-width: 1120px) {
+  .tt-op-dep { grid-template-columns: 55px 12px minmax(120px, 1fr) 120px auto 100px; }
+  .tt-op-route { display: none; }
+}
+@media (max-width: 760px) {
+  .tt-op-dep { grid-template-columns: 50px 8px minmax(100px, 1fr) auto; gap: 8px; padding-right: 8px; }
+  .tt-op-route-badge, .tt-op-status { display: none; }
+  .tt-op-open { min-width: 82px; padding: 7px 9px; }
+}
 
 /* «Ближайшие заезды» на обзоре — не витрина тура, а рабочая очередь.
    Дата группирует решения, строка показывает загрузку, деньги и исключения. */
@@ -19289,21 +19328,58 @@ window.TURON_DESTINATIONS = [
   }
 
   // --------------------------------------------------------------- заезды
-  // Карточки заезда переиспользуют визуал агентской вкладки «Направления»
-  // (.tt-dep, .tt-seat-bar) — оператору место в кабинете такое же родное,
-  // просто без цен и кнопки «Забронировать»: тут это выбор, а не продажа.
+  var OP_MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+  var OP_MONTHS_SHORT = ["ЯНВ", "ФЕВ", "МАР", "АПР", "МАЙ", "ИЮН",
+    "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"];
+  var OP_ARRIVAL = { TZX: "Трабзон", BUS: "Батуми", MED: "Медина", JED: "Джидда" };
+
+  function opDepIdentity(d) {
+    var umra = /^UMRA_/i.test(d.code || "");
+    var arrival = OP_ARRIVAL[d.transport] || d.transport || "Маршрут";
+    return {
+      badge: umra ? "Умра · " + (d.transport || arrival) : (TRANSPORT[d.transport] || arrival),
+      route: (umra ? "Умра" : "Карадениз") + " · " + arrival,
+    };
+  }
+
+  // Вся строка остаётся кнопкой: визуальное действие справа не уменьшает
+  // область клика и не меняет существующую логику выбора заезда.
   function opDepCardHtml(d, active) {
     // Закрытый заезд из сетки не убираем: оператору его надо найти, чтобы
     // открыть обратно. Помечаем и приглушаем.
     var closed = d.is_open === 0;
+    var date = calendarDate(d.date_start);
+    var identity = opDepIdentity(d);
     return '<button type="button" class="tt-op-dep' +
       (active ? " is-active" : "") + (closed ? " is-closed" : "") +
       '" data-departure="' + esc(d.code) + '">' +
-      '<div class="tt-dep-date"><strong>' + formatDate(d.date_start) + "</strong>" +
-        '<span class="tt-dep-code">' + esc(d.code) + "</span></div>" +
-      '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
-      (closed ? '<span class="tt-badge tt-badge-off">Продажа закрыта</span>' : "") +
+      '<span class="tt-op-date"><strong>' + (date ? date.getUTCDate() : "—") + '</strong>' +
+        '<small>' + (date ? OP_MONTHS_SHORT[date.getUTCMonth()] : "") + '</small></span>' +
+      '<span class="tt-op-dot" aria-hidden="true"></span>' +
+      '<span class="tt-op-code">' + esc(d.code) + "</span>" +
+      '<span class="tt-badge tt-op-route-badge">' + esc(identity.badge) + "</span>" +
+      '<span class="tt-op-route">' + esc(identity.route) + "</span>" +
+      '<span class="tt-badge tt-op-status ' + (closed ? "tt-badge-off" : "is-open") + '">' +
+        (closed ? "Продажа закрыта" : "Продажа открыта") + "</span>" +
+      '<span class="tt-op-open">Открыть <b aria-hidden="true">›</b></span>' +
     "</button>";
+  }
+
+  function opWeekKey(d) {
+    var date = calendarDate(d.date_start);
+    if (!date) return "unknown";
+    return date.getUTCFullYear() + "-" + date.getUTCMonth() + "-" +
+      Math.floor((date.getUTCDate() - 1) / 7);
+  }
+
+  function opWeekLabel(list) {
+    var first = calendarDate(list[0].date_start);
+    if (!first) return "Даты не указаны";
+    var start = Math.floor((first.getUTCDate() - 1) / 7) * 7 + 1;
+    var lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+    var end = Math.min(start + 6, lastDay);
+    return start + "–" + end + " " + OP_MONTHS[first.getUTCMonth()];
   }
 
   /*
@@ -19484,9 +19560,23 @@ window.TURON_DESTINATIONS = [
   }
 
   function grid(list) {
-    return '<div class="tt-op-dep-grid">' +
-      list.map(function (d) { return opDepCardHtml(d, d.code === state.selectedDeparture); }).join("") +
-    "</div>";
+    var groups = [];
+    list.forEach(function (d) {
+      var key = opWeekKey(d);
+      var group = groups[groups.length - 1];
+      if (!group || group.key !== key) {
+        group = { key: key, items: [] };
+        groups.push(group);
+      }
+      group.items.push(d);
+    });
+    return groups.map(function (group) {
+      return '<section class="tt-op-week"><h3><span aria-hidden="true">▣</span>' +
+        esc(opWeekLabel(group.items)) + '</h3><div class="tt-op-dep-grid">' +
+        group.items.map(function (d) {
+          return opDepCardHtml(d, d.code === state.selectedDeparture);
+        }).join("") + "</div></section>";
+    }).join("");
   }
 
   // Заездов за сезон десятки — стеной карточек прошедшие мешают найти
