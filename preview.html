@@ -1978,6 +1978,26 @@ a { color: inherit; }
 
 /* Просьба заменить туриста — не отмена: бронь остаётся в силе, поэтому
    метка не красная, а «внимание», как у прочего ожидающего действия. */
+/* Панель управления выбранным заездом (открыть/закрыть продажу). */
+.tt-dep-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface-2);
+  font-size: 0.9rem;
+}
+.tt-dep-controls .tt-muted-note { display: inline; margin-left: 4px; }
+/* Закрытый заезд из сетки не убираем — оператору его надо найти, чтобы
+   открыть обратно. Приглушаем, но оставляем читаемым. */
+.tt-op-dep.is-closed { opacity: 0.62; }
+.tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
+
 .tt-badge-change {
   border-color: rgba(182, 145, 47, 0.36);
   background: rgba(182, 145, 47, 0.13);
@@ -8950,6 +8970,10 @@ a.tt-contact-row:hover { color: var(--cc); }
         <button class="tt-btn" id="adm-export" disabled>Выгрузить в Excel</button>
       </div>
       <div id="adm-departure-cards"></div>
+      <!-- Управление продажей выбранного заезда. Стоит здесь, а не на самой
+           карточке: карточка это <button>, вложить в неё вторую кнопку
+           нельзя. Оператор всё равно смотрит ведомость именно тут. -->
+      <div id="adm-dep-controls" hidden></div>
       <div id="adm-manifest"></div>
     </section>
 
@@ -13898,15 +13922,31 @@ window.TURON_DESTINATIONS = [
   ];
   var DEMO_PASSWORD = "turon2026";
 
+  /*
+   * У заездов в seed-данных есть только `code` — числового `id` нет, он
+   * появляется лишь в базе (AUTOINCREMENT). А маршруты вроде
+   * «открыть/закрыть продажу» адресуют заезд именно по id, как и всё
+   * остальное в API. Поэтому проставляем его здесь по порядку.
+   *
+   * Backfill идёт и для УЖЕ СОХРАНЁННОГО состояния, а не только для
+   * свежего: у демо-пользователя в localStorage лежит слепок без id, и без
+   * дозаполнения кнопка молча не срабатывала бы (id уходил как NaN).
+   */
+  function withDemoIds(list) {
+    (list || []).forEach(function (d, i) { if (!d.id) d.id = i + 1; });
+    return list;
+  }
+
   function demoState() {
     var raw = localStorage.getItem(DEMO_KEY);
     if (raw) {
       var saved = JSON.parse(raw);
       if (!Array.isArray(saved.events)) saved.events = [];
+      withDemoIds(saved.departures);
       return saved;
     }
     var fresh = {
-      departures: JSON.parse(JSON.stringify(global.TURON_SEED || [])),
+      departures: withDemoIds(JSON.parse(JSON.stringify(global.TURON_SEED || []))),
       bookings: [],
       events: [],
       agency: null,
@@ -14310,6 +14350,7 @@ window.TURON_DESTINATIONS = [
     }
     var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+    if (d.is_open === 0) return Promise.reject(new Error("Заезд закрыт"));
 
     for (var j = 0; j < passengers.length; j++) {
       var bad = invalidBirthDate(passengers[j].birth_date, d.date_start);
@@ -14393,6 +14434,10 @@ window.TURON_DESTINATIONS = [
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+    // Закрытая продажа — единственная блокировка брони (потолок мест снят).
+    if (d.is_open === 0) {
+      return Promise.reject(new Error("Заезд закрыт для продажи. Уточните у оператора."));
+    }
 
     for (var j = 0; j < payload.passengers.length; j++) {
       var bad = invalidBirthDate(payload.passengers[j].birth_date, d.date_start);
@@ -14564,8 +14609,13 @@ window.TURON_DESTINATIONS = [
       var all = opts && opts.all;
       if (!API_BASE) {
         var today = new Date().toISOString().slice(0, 10);
-        return Promise.resolve(demoState().departures
+        var st = demoState();
+        // Закрытый заезд видит только оператор — ему нужно уметь открыть
+        // его обратно. Агентству он не показывается вовсе (как и на сервере).
+        var isOp = st.agency && st.agency.role === "operator";
+        return Promise.resolve(st.departures
           .filter(function (d) { return all || d.date_start >= today; })
+          .filter(function (d) { return isOp || d.is_open !== 0; })
           .map(function (d) {
             return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
           }));
@@ -14653,6 +14703,33 @@ window.TURON_DESTINATIONS = [
       return request("/api/bookings/" + id + "/cancel-request", {
         method: "POST", body: { reason: reason || "" },
       });
+    },
+
+    /*
+     * Открыть/закрыть продажу заезда — единственный рычаг оператора над
+     * продажей (потолок мест снят). Закрытие ничего не удаляет: проданные
+     * брони живут дальше, не создаются только новые.
+     */
+    setDepartureOpen: function (id, open) {
+      if (!API_BASE) {
+        var s = demoState();
+        var d = s.departures.filter(function (x) { return x.id === id; })[0];
+        if (!d) return Promise.reject(new Error("Заезд не найден"));
+        var was = d.is_open === undefined ? 1 : d.is_open;
+        if (!!was === !!open) {
+          return Promise.resolve({ code: d.code, is_open: !!open, changed: false });
+        }
+        d.is_open = open ? 1 : 0;
+        saveDemo(s);
+        return Promise.resolve({
+          code: d.code, date_start: d.date_start, is_open: !!open, changed: true,
+          bookings: s.bookings.filter(function (b) {
+            return b.departure_code === d.code && b.status === "confirmed";
+          }).length,
+        });
+      }
+      return request("/api/admin/departures/" + id + "/" + (open ? "open" : "close"),
+                     { method: "POST" });
     },
 
     // Реальная отмена — только оператор (маршрут в ветке /api/admin/).
@@ -18872,12 +18949,49 @@ window.TURON_DESTINATIONS = [
   // (.tt-dep, .tt-seat-bar) — оператору место в кабинете такое же родное,
   // просто без цен и кнопки «Забронировать»: тут это выбор, а не продажа.
   function opDepCardHtml(d, active) {
+    // Закрытый заезд из сетки не убираем: оператору его надо найти, чтобы
+    // открыть обратно. Помечаем и приглушаем.
+    var closed = d.is_open === 0;
     return '<button type="button" class="tt-op-dep' +
-      (active ? " is-active" : "") + '" data-departure="' + esc(d.code) + '">' +
+      (active ? " is-active" : "") + (closed ? " is-closed" : "") +
+      '" data-departure="' + esc(d.code) + '">' +
       '<div class="tt-dep-date"><strong>' + formatDate(d.date_start) + "</strong>" +
         '<span class="tt-dep-code">' + esc(d.code) + "</span></div>" +
       '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
+      (closed ? '<span class="tt-badge tt-badge-off">Продажа закрыта</span>' : "") +
     "</button>";
+  }
+
+  /*
+   * Панель управления выбранным заездом. Пока в ней одна кнопка — открыть
+   * или закрыть продажу; сюда же лягут правка цен и даты.
+   *
+   * Закрытие мягкое и ничего не удаляет: проданные брони живут дальше,
+   * ведомость печатается, оплаты проводятся. Удаления заезда нет и не
+   * планируется — каскад снёс бы прайс, а брони остались бы без заезда.
+   */
+  function renderDepartureControls() {
+    var box = $("adm-dep-controls");
+    if (!box) return;
+    var d = state.departures.filter(function (x) {
+      return x.code === state.selectedDeparture;
+    })[0];
+    if (!d) { box.hidden = true; box.innerHTML = ""; return; }
+
+    var closed = d.is_open === 0;
+    box.hidden = false;
+    box.innerHTML =
+      '<div class="tt-dep-controls">' +
+        "<div><strong>" + esc(d.code) + "</strong> · " + formatDate(d.date_start) +
+          ' <span class="tt-muted-note">' +
+          (closed
+            ? "продажа закрыта — новые брони не принимаются"
+            : "продажа открыта") +
+          "</span></div>" +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
+          d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
+          (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
+      "</div>";
   }
 
   function grid(list) {
@@ -18920,6 +19034,7 @@ window.TURON_DESTINATIONS = [
   function setSelectedDeparture(code) {
     state.selectedDeparture = code;
     renderDepartureCards();
+    renderDepartureControls();
     loadManifest();
     /*
      * Прокрутка к результату. Заездов за сезон десятки, сетка карточек выше
@@ -19456,6 +19571,33 @@ window.TURON_DESTINATIONS = [
         renderDepartureCards();
       }
     });
+    $("adm-dep-controls").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-dep-toggle]");
+      if (!btn) return;
+      var id = Number(btn.dataset.depToggle);
+      var open = btn.dataset.open === "1";
+      var dep = state.departures.filter(function (x) { return x.id === id; })[0];
+      // Закрытие спрашиваем подтверждением, открытие — нет: закрыть заезд
+      // на сезоне значит остановить продажу, а открыть обратно безобидно.
+      if (!open && !confirm(
+            "Закрыть продажу заезда " + (dep ? dep.code : "") + "?\n\n" +
+            "Уже проданные брони останутся в силе — не примутся только новые.")) {
+        return;
+      }
+      btn.disabled = true;
+      TuronApi.setDepartureOpen(id, open).then(function (res) {
+        if (dep) dep.is_open = res.is_open ? 1 : 0;
+        renderDepartureCards();
+        renderDepartureControls();
+        alert(res.is_open
+          ? "Продажа заезда " + res.code + " открыта."
+          : "Продажа заезда " + res.code + " закрыта." +
+            (res.bookings ? " Уже продано броней: " + res.bookings + "." : ""));
+      }).catch(function (err) {
+        btn.disabled = false;
+        alert("Не удалось изменить продажу: " + err.message);
+      });
+    });
     $("ov-departures").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (!card) return;
@@ -19865,6 +20007,7 @@ window.TURON_DESTINATIONS = [
         state.selectedDeparture = upcoming.length ? upcoming[0].code
           : (state.departures.length ? state.departures[state.departures.length - 1].code : null);
         renderDepartureCards();
+        renderDepartureControls();
         $("ab-departure").innerHTML = '<option value="">Все</option>' +
           state.departures.map(function (d) {
             return '<option value="' + esc(d.code) + '">' + formatDate(d.date_start) +

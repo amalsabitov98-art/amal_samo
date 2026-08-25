@@ -104,15 +104,31 @@
   ];
   var DEMO_PASSWORD = "turon2026";
 
+  /*
+   * У заездов в seed-данных есть только `code` — числового `id` нет, он
+   * появляется лишь в базе (AUTOINCREMENT). А маршруты вроде
+   * «открыть/закрыть продажу» адресуют заезд именно по id, как и всё
+   * остальное в API. Поэтому проставляем его здесь по порядку.
+   *
+   * Backfill идёт и для УЖЕ СОХРАНЁННОГО состояния, а не только для
+   * свежего: у демо-пользователя в localStorage лежит слепок без id, и без
+   * дозаполнения кнопка молча не срабатывала бы (id уходил как NaN).
+   */
+  function withDemoIds(list) {
+    (list || []).forEach(function (d, i) { if (!d.id) d.id = i + 1; });
+    return list;
+  }
+
   function demoState() {
     var raw = localStorage.getItem(DEMO_KEY);
     if (raw) {
       var saved = JSON.parse(raw);
       if (!Array.isArray(saved.events)) saved.events = [];
+      withDemoIds(saved.departures);
       return saved;
     }
     var fresh = {
-      departures: JSON.parse(JSON.stringify(global.TURON_SEED || [])),
+      departures: withDemoIds(JSON.parse(JSON.stringify(global.TURON_SEED || []))),
       bookings: [],
       events: [],
       agency: null,
@@ -516,6 +532,7 @@
     }
     var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+    if (d.is_open === 0) return Promise.reject(new Error("Заезд закрыт"));
 
     for (var j = 0; j < passengers.length; j++) {
       var bad = invalidBirthDate(passengers[j].birth_date, d.date_start);
@@ -599,6 +616,10 @@
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+    // Закрытая продажа — единственная блокировка брони (потолок мест снят).
+    if (d.is_open === 0) {
+      return Promise.reject(new Error("Заезд закрыт для продажи. Уточните у оператора."));
+    }
 
     for (var j = 0; j < payload.passengers.length; j++) {
       var bad = invalidBirthDate(payload.passengers[j].birth_date, d.date_start);
@@ -770,8 +791,13 @@
       var all = opts && opts.all;
       if (!API_BASE) {
         var today = new Date().toISOString().slice(0, 10);
-        return Promise.resolve(demoState().departures
+        var st = demoState();
+        // Закрытый заезд видит только оператор — ему нужно уметь открыть
+        // его обратно. Агентству он не показывается вовсе (как и на сервере).
+        var isOp = st.agency && st.agency.role === "operator";
+        return Promise.resolve(st.departures
           .filter(function (d) { return all || d.date_start >= today; })
+          .filter(function (d) { return isOp || d.is_open !== 0; })
           .map(function (d) {
             return Object.assign({}, d, { seats_free: d.capacity - d.seats_taken });
           }));
@@ -859,6 +885,33 @@
       return request("/api/bookings/" + id + "/cancel-request", {
         method: "POST", body: { reason: reason || "" },
       });
+    },
+
+    /*
+     * Открыть/закрыть продажу заезда — единственный рычаг оператора над
+     * продажей (потолок мест снят). Закрытие ничего не удаляет: проданные
+     * брони живут дальше, не создаются только новые.
+     */
+    setDepartureOpen: function (id, open) {
+      if (!API_BASE) {
+        var s = demoState();
+        var d = s.departures.filter(function (x) { return x.id === id; })[0];
+        if (!d) return Promise.reject(new Error("Заезд не найден"));
+        var was = d.is_open === undefined ? 1 : d.is_open;
+        if (!!was === !!open) {
+          return Promise.resolve({ code: d.code, is_open: !!open, changed: false });
+        }
+        d.is_open = open ? 1 : 0;
+        saveDemo(s);
+        return Promise.resolve({
+          code: d.code, date_start: d.date_start, is_open: !!open, changed: true,
+          bookings: s.bookings.filter(function (b) {
+            return b.departure_code === d.code && b.status === "confirmed";
+          }).length,
+        });
+      }
+      return request("/api/admin/departures/" + id + "/" + (open ? "open" : "close"),
+                     { method: "POST" });
     },
 
     // Реальная отмена — только оператор (маршрут в ветке /api/admin/).

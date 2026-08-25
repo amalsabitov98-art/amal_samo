@@ -291,12 +291,49 @@
   // (.tt-dep, .tt-seat-bar) — оператору место в кабинете такое же родное,
   // просто без цен и кнопки «Забронировать»: тут это выбор, а не продажа.
   function opDepCardHtml(d, active) {
+    // Закрытый заезд из сетки не убираем: оператору его надо найти, чтобы
+    // открыть обратно. Помечаем и приглушаем.
+    var closed = d.is_open === 0;
     return '<button type="button" class="tt-op-dep' +
-      (active ? " is-active" : "") + '" data-departure="' + esc(d.code) + '">' +
+      (active ? " is-active" : "") + (closed ? " is-closed" : "") +
+      '" data-departure="' + esc(d.code) + '">' +
       '<div class="tt-dep-date"><strong>' + formatDate(d.date_start) + "</strong>" +
         '<span class="tt-dep-code">' + esc(d.code) + "</span></div>" +
       '<span class="tt-badge">' + (TRANSPORT[d.transport] || d.transport) + "</span>" +
+      (closed ? '<span class="tt-badge tt-badge-off">Продажа закрыта</span>' : "") +
     "</button>";
+  }
+
+  /*
+   * Панель управления выбранным заездом. Пока в ней одна кнопка — открыть
+   * или закрыть продажу; сюда же лягут правка цен и даты.
+   *
+   * Закрытие мягкое и ничего не удаляет: проданные брони живут дальше,
+   * ведомость печатается, оплаты проводятся. Удаления заезда нет и не
+   * планируется — каскад снёс бы прайс, а брони остались бы без заезда.
+   */
+  function renderDepartureControls() {
+    var box = $("adm-dep-controls");
+    if (!box) return;
+    var d = state.departures.filter(function (x) {
+      return x.code === state.selectedDeparture;
+    })[0];
+    if (!d) { box.hidden = true; box.innerHTML = ""; return; }
+
+    var closed = d.is_open === 0;
+    box.hidden = false;
+    box.innerHTML =
+      '<div class="tt-dep-controls">' +
+        "<div><strong>" + esc(d.code) + "</strong> · " + formatDate(d.date_start) +
+          ' <span class="tt-muted-note">' +
+          (closed
+            ? "продажа закрыта — новые брони не принимаются"
+            : "продажа открыта") +
+          "</span></div>" +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
+          d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
+          (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
+      "</div>";
   }
 
   function grid(list) {
@@ -339,6 +376,7 @@
   function setSelectedDeparture(code) {
     state.selectedDeparture = code;
     renderDepartureCards();
+    renderDepartureControls();
     loadManifest();
     /*
      * Прокрутка к результату. Заездов за сезон десятки, сетка карточек выше
@@ -875,6 +913,33 @@
         renderDepartureCards();
       }
     });
+    $("adm-dep-controls").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-dep-toggle]");
+      if (!btn) return;
+      var id = Number(btn.dataset.depToggle);
+      var open = btn.dataset.open === "1";
+      var dep = state.departures.filter(function (x) { return x.id === id; })[0];
+      // Закрытие спрашиваем подтверждением, открытие — нет: закрыть заезд
+      // на сезоне значит остановить продажу, а открыть обратно безобидно.
+      if (!open && !confirm(
+            "Закрыть продажу заезда " + (dep ? dep.code : "") + "?\n\n" +
+            "Уже проданные брони останутся в силе — не примутся только новые.")) {
+        return;
+      }
+      btn.disabled = true;
+      TuronApi.setDepartureOpen(id, open).then(function (res) {
+        if (dep) dep.is_open = res.is_open ? 1 : 0;
+        renderDepartureCards();
+        renderDepartureControls();
+        alert(res.is_open
+          ? "Продажа заезда " + res.code + " открыта."
+          : "Продажа заезда " + res.code + " закрыта." +
+            (res.bookings ? " Уже продано броней: " + res.bookings + "." : ""));
+      }).catch(function (err) {
+        btn.disabled = false;
+        alert("Не удалось изменить продажу: " + err.message);
+      });
+    });
     $("ov-departures").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (!card) return;
@@ -1284,6 +1349,7 @@
         state.selectedDeparture = upcoming.length ? upcoming[0].code
           : (state.departures.length ? state.departures[state.departures.length - 1].code : null);
         renderDepartureCards();
+        renderDepartureControls();
         $("ab-departure").innerHTML = '<option value="">Все</option>' +
           state.departures.map(function (d) {
             return '<option value="' + esc(d.code) + '">' + formatDate(d.date_start) +

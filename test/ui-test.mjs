@@ -2252,6 +2252,70 @@ console.log("\nЗамена состава: чего сервер не даёт"
   await page.close();
 }
 
+console.log("\nЗаезд: открыть и закрыть продажу");
+{
+  const { page, errors } = await session("operator");
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(900);
+
+  const dep = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    return { code: deps[0].code, id: deps[0].id };
+  });
+  await page.locator(`#adm-departure-cards [data-departure="${dep.code}"]`).click();
+  await page.waitForTimeout(900);
+
+  check("у выбранного заезда есть панель управления продажей",
+        (await page.locator("#adm-dep-controls [data-dep-toggle]").count()) === 1);
+  check("пока продажа открыта, кнопка предлагает закрыть",
+        (await page.locator("#adm-dep-controls [data-dep-toggle]").innerText())
+          .includes("Закрыть"));
+
+  // Один ПОСТОЯННЫЙ обработчик, а не два `once` подряд: закрытие показывает
+  // два окна (подтверждение и сообщение о результате), но оба `once`
+  // срабатывают на первом же диалоге, и второй падает с «already handled».
+  page.on("dialog", (d) => d.accept());
+  await page.locator("#adm-dep-controls [data-dep-toggle]").click();
+  await page.waitForTimeout(900);
+
+  check("после закрытия кнопка предлагает открыть",
+        (await page.locator("#adm-dep-controls [data-dep-toggle]").innerText())
+          .includes("Открыть"));
+  check("карточка заезда помечена «Продажа закрыта»",
+        (await page.locator(`#adm-departure-cards [data-departure="${dep.code}"].is-closed`)
+          .count()) === 1);
+
+  // Главное: закрытый заезд НЕ продаётся, но и не пропадает у оператора.
+  const sale = await page.evaluate(async (code) => {
+    const out = {};
+    const deps = await window.TuronApi.departures();
+    out.stillVisible = deps.some((d) => d.code === code);
+    const d = deps.find((x) => x.code === code);
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    try {
+      await window.TuronApi.createBooking({ departure_code: code, passengers: [
+        { full_name: "CLOSED TRY", birth_date: adult, passport_number: "CL1111111",
+          passport_expiry: "2032-01-01", placement: "DBL" }] });
+      out.booked = "прошло";
+    } catch (e) { out.booked = e.message; }
+    return out;
+  }, dep.code);
+  check("закрытый заезд остаётся виден оператору", sale.stillVisible === true);
+  check("по закрытому заезду бронь не создаётся",
+        /закрыт/.test(sale.booked), sale.booked);
+
+  // Возвращаем как было — открытие спрашивать не должно, только сообщит.
+  await page.locator("#adm-dep-controls [data-dep-toggle]").click();
+  await page.waitForTimeout(900);
+  check("продажа открывается обратно",
+        (await page.locator("#adm-dep-controls [data-dep-toggle]").innerText())
+          .includes("Закрыть"));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

@@ -245,15 +245,28 @@ async function cbuRates() {
  * который уже улетел, нельзя. Оператору нужны и прошедшие — по ним он
  * выгружает списки пассажиров, поэтому для него includePast.
  */
-async function listDepartures(env, includePast) {
+/*
+ * Список заездов.
+ *
+ * `includeClosed` есть только ради ОПЕРАТОРА и по умолчанию выключен.
+ * Ловушка: закрытый заезд отсюда не виден, а этой же функцией ищут заезд
+ * createBooking и правка состава — то есть фильтр `is_open = 1` и есть
+ * запрет продажи. Но если закрытые прятать вообще ото всех, оператор,
+ * закрыв заезд, теряет его из кабинета и открыть обратно уже нечем.
+ * Поэтому флаг раздельный: продающие пути его НЕ передают и закрытых
+ * по-прежнему не видят, а управляющий список оператора — передаёт.
+ */
+async function listDepartures(env, includePast, includeClosed) {
   const dateFilter = includePast ? "" : "AND d.date_start >= date('now')";
+  const openFilter = includeClosed ? "" : "AND d.is_open = 1";
   const departures = await env.DB.prepare(
     `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
             d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free,
+            d.is_open,
             t.code AS tour_code, t.name AS tour_name, t.destination,
             t.agency_commission, t.nights
        FROM departures d JOIN tours t ON t.id = d.tour_id
-      WHERE d.is_open = 1 AND t.is_bookable = 1 ${dateFilter}
+      WHERE t.is_bookable = 1 ${openFilter} ${dateFilter}
       ORDER BY d.date_start, d.transport`
   ).all();
 
@@ -1134,6 +1147,50 @@ async function requestChange(request, env, agency, bookingId, ctx) {
   return json({ booking_code: booking.code, requested: true });
 }
 
+/*
+ * Открыть или закрыть продажу заезда.
+ *
+ * Единственный рычаг оператора над продажей: потолок мест снят (вместимость
+ * он держит в голове и звонит агентству, если самолёт полон), поэтому
+ * `is_open` — это и есть «стоп продажам». Закрытие ничего не удаляет:
+ * уже проданные брони живут дальше, ведомость печатается, оплаты
+ * проводятся. Не создаются только НОВЫЕ брони и не правится состав.
+ *
+ * Удаления заезда здесь нет намеренно. `departure_prices` и `bookings`
+ * ссылаются на него, у цен стоит ON DELETE CASCADE — удаление снесло бы
+ * весь прайс, а брони остались бы без заезда. Закрытие продажи решает ту
+ * же задачу и ничего не теряет.
+ */
+async function setDepartureOpen(env, actor, departureId, open) {
+  const dep = await env.DB.prepare(
+    "SELECT id, code, date_start, is_open FROM departures WHERE id = ?"
+  ).bind(departureId).first();
+  if (!dep) return fail("Заезд не найден", 404);
+
+  if (!!dep.is_open === open) {
+    return json({ code: dep.code, is_open: open, changed: false });
+  }
+
+  await env.DB.prepare("UPDATE departures SET is_open = ? WHERE id = ?")
+    .bind(open ? 1 : 0, departureId).run();
+
+  // Сколько броней уже продано — оператору полезно знать, что он закрывает
+  // не пустой заезд; в журнал заезда это не пишется (журнал у нас на бронь,
+  // не на заезд), поэтому возвращаем числом в ответе.
+  const sold = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM bookings
+      WHERE departure_id = ? AND status = 'confirmed'`
+  ).bind(departureId).first();
+
+  return json({
+    code: dep.code,
+    date_start: dep.date_start,
+    is_open: open,
+    changed: true,
+    bookings: sold.n,
+  });
+}
+
 async function notifyChangeRequest(env, r) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const text =
@@ -1666,8 +1723,12 @@ async function route(request, env, ctx) {
     if (path === "/api/departures" && request.method === "GET") {
       // прошедшие заезды показываем только оператору — ему они нужны для
       // выгрузки списков, агентству продавать их уже нельзя
-      const includePast = url.searchParams.get("all") === "1" && agency.role === "operator";
-      return json(await listDepartures(env, includePast));
+      const isOperator = agency.role === "operator";
+      const includePast = url.searchParams.get("all") === "1" && isOperator;
+      // Закрытые заезды видит только оператор — иначе, закрыв продажу, он
+      // терял бы заезд из кабинета и открыть обратно было бы нечем.
+      // Агентству закрытый заезд не показывается вовсе.
+      return json(await listDepartures(env, includePast, isOperator));
     }
 
     if (path === "/api/bookings" && request.method === "POST") {
@@ -1786,6 +1847,16 @@ async function route(request, env, ctx) {
         const adminPax = path.match(/^\/api\/admin\/bookings\/(\d+)\/passengers$/);
         if (adminPax && request.method === "POST") {
           return await adminUpdateBookingPassengers(request, env, agency, Number(adminPax[1]));
+        }
+
+        // Открыть/закрыть продажу заезда. Закрытие — мягкое: бронь по
+        // закрытому заезду не создаётся и состав не правится, но сам заезд
+        // и всё уже проданное остаются на месте. Удаления заезда нет и не
+        // будет: каскад снёс бы `departure_prices`, а брони остались бы
+        // без заезда.
+        const depOpen = path.match(/^\/api\/admin\/departures\/(\d+)\/(open|close)$/);
+        if (depOpen && request.method === "POST") {
+          return await setDepartureOpen(env, agency, Number(depOpen[1]), depOpen[2] === "open");
         }
 
         const adminCancel = path.match(/^\/api\/admin\/bookings\/(\d+)\/cancel$/);

@@ -1957,6 +1957,26 @@ a { color: inherit; }
 
 /* Просьба заменить туриста — не отмена: бронь остаётся в силе, поэтому
    метка не красная, а «внимание», как у прочего ожидающего действия. */
+/* Панель управления выбранным заездом (открыть/закрыть продажу). */
+.tt-dep-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface-2);
+  font-size: 0.9rem;
+}
+.tt-dep-controls .tt-muted-note { display: inline; margin-left: 4px; }
+/* Закрытый заезд из сетки не убираем — оператору его надо найти, чтобы
+   открыть обратно. Приглушаем, но оставляем читаемым. */
+.tt-op-dep.is-closed { opacity: 0.62; }
+.tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
+
 .tt-badge-change {
   border-color: rgba(182, 145, 47, 0.36);
   background: rgba(182, 145, 47, 0.13);
