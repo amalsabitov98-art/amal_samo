@@ -2984,7 +2984,7 @@
       bookings: ["Бронирования", "Продажи агентства"],
       tours: ["Комиссии", "Партнёрская программа"],
       overview: ["Обзор", "Что происходит прямо сейчас"],
-      manifest: ["Списки пассажиров", "Операторская панель"],
+      manifest: ["Заезды и пассажиры", "Операторская панель"],
       "admin-bookings": ["Все брони", "Контроль продаж и оплат"],
       agencies: ["Агентства", "Партнёрская сеть"],
     };
@@ -2998,6 +2998,7 @@
         if (panel) panel.hidden = key !== name;
       });
     $("screen-app").classList.toggle("is-builder", name === "builder");
+    $("screen-app").classList.toggle("is-manifest", name === "manifest");
     if (labels[name]) {
       $("workspace-title").textContent = labels[name][0];
       $("workspace-kicker").textContent = labels[name][1];
