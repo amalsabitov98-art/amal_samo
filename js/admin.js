@@ -13,6 +13,7 @@
   var state = {
     departures: [], current: null, agencies: [], selectedDeparture: null,
     departureFilter: "", showPast: false, page: 0, pageSize: 20, total: 0,
+    detailTab: "passengers", departureListScroll: 0,
     // «Обзор» и статистика агентств считаются из одного и того же среза
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
@@ -359,23 +360,22 @@
 
     var closed = d.is_open === 0;
     box.hidden = false;
+    var identity = opDepIdentity(d);
     box.innerHTML =
-      '<div class="tt-dep-controls">' +
-        "<div><strong>" + esc(d.code) + "</strong> · " + formatDate(d.date_start) +
-          ' <span class="tt-muted-note">' +
-          (closed
-            ? "продажа закрыта — новые брони не принимаются"
-            : "продажа открыта") +
-          "</span></div>" +
-        '<div class="tt-dep-controls-actions">' +
-          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-prices="' +
-            d.id + '">' + (priceEditor === d.id ? "Скрыть цены" : "Цены") + "</button>" +
-          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-toggle="' +
+      '<div class="tt-detail-head">' +
+        '<div class="tt-detail-title"><h2>' + esc(d.code + " · " + identity.route) + '</h2>' +
+          '<div><span>' + formatDate(d.date_start) + '</span><span>·</span>' +
+          '<span>' + esc(identity.badge) + '</span>' +
+          '<span class="tt-badge tt-op-status ' + (closed ? "tt-badge-off" : "is-open") + '">' +
+            (closed ? "Продажа закрыта" : "Продажа открыта") + '</span></div></div>' +
+        '<div class="tt-detail-actions">' +
+          '<button type="button" class="tt-btn secondary" id="adm-export" disabled>Выгрузить Excel</button>' +
+          '<button type="button" class="tt-btn secondary" data-detail-open="prices">Цены</button>' +
+          '<button type="button" class="tt-btn secondary tt-detail-sale" data-dep-toggle="' +
             d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
             (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
         "</div>" +
-      "</div>" +
-      (priceEditor === d.id ? priceEditorHtml(d) : "");
+      "</div>";
   }
 
   /* ------------------------------------------------------- прайс заезда
@@ -570,9 +570,12 @@
   }
 
   function setSelectedDeparture(code) {
+    state.departureListScroll = global.scrollY || 0;
     state.selectedDeparture = code;
-    renderDepartureCards();
+    $("adm-departure-list").hidden = true;
+    $("adm-departure-detail").hidden = false;
     renderDepartureControls();
+    setDetailTab("passengers");
     loadManifest();
     /*
      * Прокрутка к результату. Заездов за сезон десятки, сетка карточек выше
@@ -584,13 +587,81 @@
      * setSelectedDeparture, а сразу за ним jumpToTab("manifest") — если
      * прокрутить синхронно, переключение вкладки следом сбросит позицию.
      */
-    var box = $("adm-manifest");
+    var box = $("adm-departure-detail");
     if (!box || !box.scrollIntoView) return;
     global.requestAnimationFrame(function () {
       var smooth = !(global.matchMedia &&
         global.matchMedia("(prefers-reduced-motion: reduce)").matches);
       box.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
     });
+  }
+
+  function showDepartureList() {
+    $("adm-departure-detail").hidden = true;
+    $("adm-departure-list").hidden = false;
+    priceEditor = null;
+    renderDepartureCards();
+    global.requestAnimationFrame(function () {
+      global.scrollTo({ top: state.departureListScroll, behavior: "auto" });
+    });
+  }
+
+  function setDetailTab(name) {
+    state.detailTab = name;
+    document.querySelectorAll("[data-detail-tab]").forEach(function (button) {
+      var active = button.dataset.detailTab === name;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.querySelectorAll("[data-detail-pane]").forEach(function (pane) {
+      pane.hidden = pane.dataset.detailPane !== name;
+    });
+    if (name === "prices") {
+      var d = state.departures.filter(function (x) {
+        return x.code === state.selectedDeparture;
+      })[0];
+      priceEditor = d ? d.id : null;
+      $("adm-detail-prices").innerHTML = d ? priceEditorHtml(d) : "";
+    }
+  }
+
+  function renderDetailSecondary(data) {
+    var grouped = {};
+    data.passengers.forEach(function (p) {
+      var key = p.booking_code || "—";
+      if (!grouped[key]) grouped[key] = {
+        code: key, bookedAt: p.booked_at, agency: p.agency_name, passengers: 0, total: 0,
+      };
+      grouped[key].passengers++;
+      grouped[key].total += Number(p.price) || 0;
+    });
+    var bookings = Object.keys(grouped).map(function (key) { return grouped[key]; });
+    $("adm-detail-bookings").innerHTML = bookings.length
+      ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +
+          '<th>Бронь</th><th>Создана</th><th>Агентство</th><th>Пассажиров</th>' +
+          '<th>Стоимость</th><th></th></tr></thead><tbody>' +
+          bookings.map(function (b) {
+            return '<tr><td><strong>' + esc(b.code) + '</strong></td><td>' +
+              formatDate(b.bookedAt) + '</td><td>' + esc(b.agency) + '</td><td>' +
+              b.passengers + '</td><td>' + money(b.total) + '</td><td>' +
+              '<button type="button" class="tt-btn secondary tt-btn-sm" data-detail-booking="' +
+                esc(b.code) + '">Открыть бронь</button></td></tr>';
+          }).join("") + '</tbody></table></div>'
+      : '<div class="tt-empty-state">Броней через кабинет пока нет.</div>';
+
+    var bookingCodes = {};
+    bookings.forEach(function (b) { bookingCodes[b.code] = true; });
+    var events = state.activity.filter(function (ev) { return bookingCodes[ev.booking_code]; });
+    $("adm-detail-history").innerHTML = events.length
+      ? '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>' +
+          '<th>Время</th><th>Действие</th><th>Бронь</th><th>Агентство</th><th>Подробности</th>' +
+          '</tr></thead><tbody>' + events.map(function (ev) {
+            return '<tr><td>' + formatDateTime(ev.created_at) + '</td><td><strong>' +
+              esc(ACTION_LABELS[ev.action] || ev.action) + '</strong></td><td>' +
+              esc(ev.booking_code) + '</td><td>' + esc(ev.agency_name || ev.actor_name) +
+              '</td><td>' + esc(ev.details || "—") + '</td></tr>';
+          }).join("") + '</tbody></table></div>'
+      : '<div class="tt-empty-state">Изменений по этому заезду пока нет.</div>';
   }
 
   /*
@@ -617,16 +688,22 @@
   function renderManifest(data) {
     state.current = data;
     var pax = data.passengers;
-    var head = manifestHeadHtml(data.departure);
+    var head = "";
+    var sum = data.summary || {};
+    var paxTab = document.querySelector('[data-detail-tab="passengers"]');
+    var bookingsTab = document.querySelector('[data-detail-tab="bookings"]');
+    if (paxTab) paxTab.textContent = "Пассажиры · " + pax.length;
+    if (bookingsTab) bookingsTab.textContent = "Брони · " + (sum.bookings_count || 0);
+    renderDetailSecondary(data);
     if (!pax.length) {
       $("adm-manifest").innerHTML = head +
         '<div class="tt-empty-state">На этот заезд ещё нет броней через кабинет.' +
         '<div class="tt-muted-note">Места, проданные до запуска системы, ' +
         "учтены в счётчике заезда, но пофамильно их здесь нет.</div></div>";
-      $("adm-export").disabled = true;
+      if ($("adm-export")) $("adm-export").disabled = true;
       return;
     }
-    $("adm-export").disabled = false;
+    if ($("adm-export")) $("adm-export").disabled = false;
 
     // Правка документа живёт ИМЕННО здесь: оператор смотрит ведомость и
     // видит опечатку в паспорте глазами — чинить её логично на месте, а не
@@ -644,7 +721,6 @@
       "</tr>";
     }).join("");
 
-    var sum = data.summary || {};
     $("adm-manifest").innerHTML = head +
       '<div class="tt-earnings">' +
         '<div><span>Броней</span><strong>' + (sum.bookings_count || 0) + "</strong></div>" +
@@ -664,7 +740,7 @@
     var code = state.selectedDeparture;
     if (!code) {
       $("adm-manifest").innerHTML = '<div class="tt-empty-state">Заездов пока нет.</div>';
-      $("adm-export").disabled = true;
+      if ($("adm-export")) $("adm-export").disabled = true;
       return;
     }
     $("adm-manifest").innerHTML = '<div class="tt-empty-state">Загрузка…</div>';
@@ -1129,7 +1205,16 @@
      * на контейнер: сама панель перерисовывается целиком, и обработчики,
      * навешенные на её содержимое, терялись бы при каждой перерисовке.
      */
-    $("adm-dep-controls").addEventListener("click", function (e) {
+    $("panel-manifest").addEventListener("click", function (e) {
+      if (e.target.id === "adm-export") {
+        if (state.current) downloadCsv(state.current.departure.code, state.current.passengers);
+        return;
+      }
+      var detailOpen = e.target.closest("[data-detail-open]");
+      if (detailOpen) {
+        setDetailTab(detailOpen.dataset.detailOpen);
+        return;
+      }
       var open = e.target.closest("[data-dep-prices]");
       if (open) {
         var openId = Number(open.dataset.depPrices);
@@ -1178,6 +1263,8 @@
           return TuronApi.departures({ all: true }).then(function (list) {
             state.departures = list;
             renderDepartureCards();
+            renderDepartureControls();
+            setDetailTab("prices");
           });
         }).catch(function (err) {
           save.disabled = false;
@@ -1218,7 +1305,7 @@
      * у размещения они гасятся. Иначе оператор заполнил бы «от 5 до 10» у
      * строки DBL и не понял, почему это ни на что не влияет.
      */
-    $("adm-dep-controls").addEventListener("change", function (e) {
+    $("panel-manifest").addEventListener("change", function (e) {
       var sel = e.target.closest('[data-p="kind"]');
       if (!sel) return;
       var row = sel.closest(".tt-price-row");
@@ -1281,6 +1368,15 @@
       setSelectedDeparture(card.dataset.departure);
       jumpToTab("manifest");
     });
+    $("adm-detail-back").addEventListener("click", showDepartureList);
+    $("adm-detail-tabs").addEventListener("click", function (e) {
+      var button = e.target.closest("[data-detail-tab]");
+      if (button) setDetailTab(button.dataset.detailTab);
+    });
+    $("adm-departure-detail").addEventListener("click", function (e) {
+      var booking = e.target.closest("[data-detail-booking]");
+      if (booking) openBooking(booking.dataset.detailBooking);
+    });
     $("ov-tabs").addEventListener("click", function (e) {
       var button = e.target.closest("[data-overview-tab]");
       if (button) setOverviewTab(button.dataset.overviewTab);
@@ -1307,10 +1403,6 @@
         state.page++; loadAdminBookings(false);
       }
     });
-    $("adm-export").addEventListener("click", function () {
-      if (state.current) downloadCsv(state.current.departure.code, state.current.passengers);
-    });
-
     /*
      * Правка данных туриста. Одно окно, две формы, и разделены они не для
      * красоты: документ (ФИО, номер, срок) не трогает ни размещение, ни дату
