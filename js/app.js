@@ -583,14 +583,19 @@
   var BUILDER_PRODUCTS = [
     {
       key: "karadeniz", title: "Загадочный Карадениз",
-      route: "Батуми · Ризе · Трабзон", days: "8 дней",
+      route: "Батуми · Ризе · Трабзон",
+      facts: [{ label: "Длительность", value: "8 дней" }],
       image: "img/hero-rize-batumi.webp", kicker: "Авторский тур · сезон 2026",
       price: function () { return builderMinPrice(function (d) {
         return (d.tour_code || "KARADENIZ") === "KARADENIZ"; }); },
     },
     {
       key: "Умра", title: "Путь к святыням",
-      route: "Мекка · Медина · Джидда", days: "9 программ · 10/13 дней",
+      route: "Мекка · Медина · Джидда",
+      facts: [
+        { label: "Программы", value: "9 вариантов" },
+        { label: "Длительность", value: "10 / 13 дней" },
+      ],
       image: "img/umrah-showcase.webp", kicker: "Умра · 2026",
       price: function () {
         var fromTours = umraMinFromPrice();
@@ -600,7 +605,9 @@
     },
     {
       key: "Япония", title: "Япония",
-      route: "Токио · Киото · Нара · Хаконэ", days: "4 программы · март—ноябрь",
+      route: "Токио · Киото · Нара · Хаконэ",
+      facts: [{ label: "Программы", value: "4 маршрута" }],
+      tailFact: { label: "Сезон", value: "март — ноябрь" },
       image: "img/japan-programs-bg.webp", kicker: "Авторские программы · 2026",
       price: function () { return null; },
     },
@@ -640,16 +647,25 @@
       "</div>" +
       '<div class="tt-tourgrid">' + BUILDER_PRODUCTS.map(function (p) {
         var price = p.price();
-        var meta = p.days + (price != null ? " · от " + money(price) : "");
+        var facts = p.facts.slice();
+        if (price != null) facts.push({ label: "Стоимость", value: "от " + money(price), accent: true });
+        else if (p.tailFact) facts.push(p.tailFact);
         return '<article class="tt-tourcard" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
           '<div class="tt-tourcard-photo"><img src="' + esc(p.image) + '" alt="' +
             esc(p.title) + '" loading="lazy" />' +
             '<span class="tt-tourcard-kicker">' + esc(p.kicker) + "</span></div>" +
           '<div class="tt-tourcard-body">' +
             "<h3>" + esc(p.title) + "</h3>" +
-            '<p class="tt-tourcard-route">' + esc(p.route) + "</p>" +
-            '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
-            '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+            '<p class="tt-tourcard-route"><svg aria-hidden="true" viewBox="0 0 24 24">' +
+              '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/>' +
+              '<circle cx="12" cy="10" r="2.5"/></svg>' + esc(p.route) + "</p>" +
+            '<div class="tt-tourcard-facts tt-tourcard-facts-' + facts.length + '">' +
+              facts.map(function (f) {
+                return '<div class="tt-tourcard-fact' + (f.accent ? ' is-accent' : '') + '">' +
+                  '<span>' + esc(f.label) + '</span><strong>' + esc(f.value) + '</strong></div>';
+              }).join("") +
+            "</div>" +
+            '<span class="tt-tourcard-open">Подробнее <b aria-hidden="true">→</b></span>' +
           "</div>" +
         "</article>";
       }).join("") + "</div>";

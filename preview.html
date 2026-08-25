@@ -6840,6 +6840,7 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 .tt-tourcard-photo img {
   width: 100%; height: 100%; object-fit: cover; display: block;
+  image-rendering: auto;
   transition: transform 0.4s ease;
 }
 .tt-tourcard:hover .tt-tourcard-photo img { transform: scale(1.05); }
@@ -6863,11 +6864,51 @@ a.tt-contact-row:hover { color: var(--cc); }
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.45rem; line-height: 1.1; color: var(--tt-forest); margin: 0;
 }
-.tt-tourcard-route { color: var(--tt-text-muted); font-size: 0.86rem; font-weight: 600; margin: 0; }
+.tt-tourcard-route {
+  display: flex; align-items: center; gap: 7px;
+  color: var(--tt-text-muted); font-size: 0.86rem; font-weight: 600; margin: 0;
+}
+.tt-tourcard-route svg {
+  width: 16px; height: 16px; flex: 0 0 auto; fill: none;
+  stroke: var(--tt-accent-dark); stroke-width: 1.8; stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .tt-tourcard-meta { color: var(--tt-text); font-size: 0.84rem; margin: 0; }
+.tt-tourcard[data-product] .tt-tourcard-body {
+  gap: 7px; min-height: 218px; padding: 18px 18px 20px;
+}
+.tt-tourcard[data-product] .tt-tourcard-body h3 {
+  font-size: 1.58rem; line-height: 1.08;
+}
+.tt-tourcard-facts {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px; padding-top: 14px; border-top: 1px solid var(--tt-border);
+}
+.tt-tourcard-facts-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tt-tourcard-fact {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  padding: 0 12px;
+}
+.tt-tourcard-fact:first-child { padding-left: 0; }
+.tt-tourcard-fact:last-child { padding-right: 0; }
+.tt-tourcard-fact + .tt-tourcard-fact { border-left: 1px solid var(--tt-border); }
+.tt-tourcard-fact span {
+  color: var(--tt-text-muted); font-size: 0.59rem; font-weight: 800;
+  letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase;
+}
+.tt-tourcard-fact.is-accent span { color: var(--tt-accent-dark); }
+.tt-tourcard-fact strong {
+  color: var(--tt-text); font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.03rem; font-weight: 650; line-height: 1.08; white-space: nowrap;
+}
 .tt-tourcard-open {
   margin-top: 8px; display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.82rem; font-weight: 700; color: var(--tt-accent-dark);
+}
+.tt-tourcard[data-product] .tt-tourcard-open {
+  align-self: flex-end; margin-top: auto; gap: 8px;
+  padding: 9px 14px; border: 1px solid var(--tt-border-strong); border-radius: 12px;
+  background: var(--tt-surface-2);
 }
 .tt-tourcard-open b { transition: transform 0.18s ease; }
 .tt-tourcard:hover .tt-tourcard-open b { transform: translateX(3px); }
@@ -6877,6 +6918,7 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 @media (max-width: 560px) {
   .tt-tourgrid { grid-template-columns: 1fr; }
+  .tt-tourcard[data-product] .tt-tourcard-body { min-height: 0; }
 }
 
 .tt-mj { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
@@ -20033,14 +20075,19 @@ window.TURON_DESTINATIONS = [
   var BUILDER_PRODUCTS = [
     {
       key: "karadeniz", title: "Загадочный Карадениз",
-      route: "Батуми · Ризе · Трабзон", days: "8 дней",
+      route: "Батуми · Ризе · Трабзон",
+      facts: [{ label: "Длительность", value: "8 дней" }],
       image: "img/hero-rize-batumi.webp", kicker: "Авторский тур · сезон 2026",
       price: function () { return builderMinPrice(function (d) {
         return (d.tour_code || "KARADENIZ") === "KARADENIZ"; }); },
     },
     {
       key: "Умра", title: "Путь к святыням",
-      route: "Мекка · Медина · Джидда", days: "9 программ · 10/13 дней",
+      route: "Мекка · Медина · Джидда",
+      facts: [
+        { label: "Программы", value: "9 вариантов" },
+        { label: "Длительность", value: "10 / 13 дней" },
+      ],
       image: "img/umrah-showcase.webp", kicker: "Умра · 2026",
       price: function () {
         var fromTours = umraMinFromPrice();
@@ -20050,7 +20097,9 @@ window.TURON_DESTINATIONS = [
     },
     {
       key: "Япония", title: "Япония",
-      route: "Токио · Киото · Нара · Хаконэ", days: "4 программы · март—ноябрь",
+      route: "Токио · Киото · Нара · Хаконэ",
+      facts: [{ label: "Программы", value: "4 маршрута" }],
+      tailFact: { label: "Сезон", value: "март — ноябрь" },
       image: "img/japan-programs-bg.webp", kicker: "Авторские программы · 2026",
       price: function () { return null; },
     },
@@ -20090,16 +20139,25 @@ window.TURON_DESTINATIONS = [
       "</div>" +
       '<div class="tt-tourgrid">' + BUILDER_PRODUCTS.map(function (p) {
         var price = p.price();
-        var meta = p.days + (price != null ? " · от " + money(price) : "");
+        var facts = p.facts.slice();
+        if (price != null) facts.push({ label: "Стоимость", value: "от " + money(price), accent: true });
+        else if (p.tailFact) facts.push(p.tailFact);
         return '<article class="tt-tourcard" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
           '<div class="tt-tourcard-photo"><img src="' + esc(p.image) + '" alt="' +
             esc(p.title) + '" loading="lazy" />' +
             '<span class="tt-tourcard-kicker">' + esc(p.kicker) + "</span></div>" +
           '<div class="tt-tourcard-body">' +
             "<h3>" + esc(p.title) + "</h3>" +
-            '<p class="tt-tourcard-route">' + esc(p.route) + "</p>" +
-            '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
-            '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+            '<p class="tt-tourcard-route"><svg aria-hidden="true" viewBox="0 0 24 24">' +
+              '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/>' +
+              '<circle cx="12" cy="10" r="2.5"/></svg>' + esc(p.route) + "</p>" +
+            '<div class="tt-tourcard-facts tt-tourcard-facts-' + facts.length + '">' +
+              facts.map(function (f) {
+                return '<div class="tt-tourcard-fact' + (f.accent ? ' is-accent' : '') + '">' +
+                  '<span>' + esc(f.label) + '</span><strong>' + esc(f.value) + '</strong></div>';
+              }).join("") +
+            "</div>" +
+            '<span class="tt-tourcard-open">Подробнее <b aria-hidden="true">→</b></span>' +
           "</div>" +
         "</article>";
       }).join("") + "</div>";
