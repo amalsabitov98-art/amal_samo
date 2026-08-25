@@ -117,13 +117,18 @@ CREATE TABLE IF NOT EXISTS departures (
   date_start    TEXT    NOT NULL,          -- YYYY-MM-DD
   transport     TEXT    NOT NULL,          -- TZX (авиа) | BUS
   is_info_tour  INTEGER NOT NULL DEFAULT 0,
+  -- ПЛАНОВАЯ вместимость, а не лимит продажи: показывается оператору в
+  -- сводках («занято 38 из 45»), но бронь по ней не блокируется.
   capacity      INTEGER NOT NULL,
-  -- денормализовано намеренно: место списывается одним UPDATE с проверкой
-  -- лимита, иначе два одновременных бронирования займут одно место дважды
+  -- денормализовано намеренно: место списывается одним UPDATE, счётчик
+  -- ведётся для сводок и с реальностью не сверяется
   seats_taken   INTEGER NOT NULL DEFAULT 0,
   is_open       INTEGER NOT NULL DEFAULT 1,
-  CHECK (seats_taken >= 0),
-  CHECK (seats_taken <= capacity)
+  -- Ловит настоящую ошибку — уход счётчика в минус при возврате мест.
+  -- Парного «seats_taken <= capacity» здесь БЫТЬ НЕ ДОЛЖНО: продажа сверх
+  -- плановой вместимости разрешена оператором, и база отклоняла бы бронь
+  -- ровно тогда, когда рейс заполняется (см. db/migrations/015).
+  CHECK (seats_taken >= 0)
 );
 CREATE INDEX IF NOT EXISTS idx_departures_date ON departures(date_start);
 

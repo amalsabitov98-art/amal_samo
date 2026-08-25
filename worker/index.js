@@ -440,6 +440,38 @@ async function catalogDepartures(env) {
 }
 
 // Возраст на дату выезда — именно так тариф и определяется у оператора.
+/*
+ * Дата рождения: настоящая ли она.
+ *
+ * Раньше проверялся только формат регулярным выражением, и «2026-02-31»
+ * проходило насквозь: new Date() молча превращал её в 3 марта, ageOn
+ * считал от подменённой даты, и пассажир получал не тот тариф — а от
+ * тарифа зависят цена, занимает ли он место и комиссия агентства.
+ *
+ * Проверяем тремя шагами: формат, реальность даты (сверяем разбор обратно —
+ * так ловятся 31 февраля и 31 апреля) и здравые границы. Верхняя граница —
+ * дата выезда: родиться позже вылета нельзя, а без этой проверки ageOn
+ * вернул бы отрицательный возраст и тариф не нашёлся бы вовсе.
+ */
+function invalidBirthDate(value, departureDate) {
+  const birth = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
+    return "Дата рождения нужна в формате ГГГГ-ММ-ДД";
+  }
+  const d = new Date(birth + "T00:00:00Z");
+  if (isNaN(d.getTime())) return `Даты ${birth} не существует`;
+  // Разбор обратно: 2026-02-31 превратится в 2026-03-03 и не совпадёт.
+  if (d.toISOString().slice(0, 10) !== birth) return `Даты ${birth} не существует`;
+  if (birth < "1900-01-01") return "Дата рождения раньше 1900 года — проверьте паспорт";
+  if (departureDate && birth > departureDate) {
+    return "Дата рождения позже даты выезда";
+  }
+  if (birth > new Date().toISOString().slice(0, 10)) {
+    return "Дата рождения в будущем";
+  }
+  return null;
+}
+
 function ageOn(birthDate, onDate) {
   const b = new Date(birthDate), o = new Date(onDate);
   let age = o.getFullYear() - b.getFullYear();
@@ -643,6 +675,14 @@ async function createBooking(request, env, agency, ctx) {
   const departure = all.find((d) => d.code === body.departure_code);
   if (!departure) return fail("Заезд не найден или закрыт", 404);
 
+  // Дата рождения определяет тариф, место и комиссию — проверяем, что она
+  // настоящая, а не просто похожа на дату. Здесь, а не выше: нужна дата
+  // выезда, а она известна только после загрузки заезда.
+  for (const p of passengers) {
+    const bad = invalidBirthDate(p.birth_date, departure.date_start);
+    if (bad) return fail(`${p.full_name || "Пассажир"}: ${bad}`);
+  }
+
   const priced = [];
   for (const p of passengers) {
     const tariff = priceFor(p, departure);
@@ -763,6 +803,13 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
 
   const departure = (await listDepartures(env, true)).find((d) => d.code === booking.departure_code);
   if (!departure) return fail("Заезд закрыт", 409);
+
+  // Та же проверка, что и при создании брони: правка состава меняет тариф
+  // и число мест ровно так же, поэтому кривая дата опасна здесь не меньше.
+  for (const p of passengers) {
+    const bad = invalidBirthDate(p.birth_date, departure.date_start);
+    if (bad) return fail(`${p.full_name || "Пассажир"}: ${bad}`);
+  }
 
   const priced = [];
   for (const p of passengers) {
@@ -982,9 +1029,6 @@ async function notifyCancelRequest(env, r) {
 async function updatePassengerBirthdate(request, env, actor, passengerId) {
   const body = await request.json().catch(() => ({}));
   const birth = String(body.birth_date || "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
-    return fail("Дата рождения нужна в формате ГГГГ-ММ-ДД");
-  }
 
   const pax = await env.DB.prepare(
     `SELECT p.*, b.code AS booking_code, b.status, b.departure_id, b.total_price,
@@ -999,6 +1043,12 @@ async function updatePassengerBirthdate(request, env, actor, passengerId) {
 
   const today = new Date().toISOString().slice(0, 10);
   if (pax.date_start <= today) return fail("Заезд уже начался — состав не меняется");
+
+  // Раньше здесь проверялся только формат, и «2026-02-31» доходило до
+  // priceFor: new Date() подменял её на 3 марта, тариф считался от чужой
+  // даты, а оператор видел в предпросмотре правдоподобную цифру.
+  const badBirth = invalidBirthDate(birth, pax.date_start);
+  if (badBirth) return fail(badBirth);
 
   const departure = (await listDepartures(env, true)).find((d) => d.code === pax.departure_code);
   if (!departure) return fail("Заезд не найден", 404);
@@ -1276,7 +1326,8 @@ async function adminActivity(env, limit) {
 }
 
 async function addPayment(request, env, actor) {
-  const { booking_code, amount, note } = await request.json();
+  const body = await request.json();
+  const { booking_code, amount, note } = body;
   const value = Number(amount);
   if (!booking_code) return fail("Не указана бронь");
   if (!isFinite(value) || value === 0) return fail("Сумма должна быть числом, не равным нулю");
@@ -1293,6 +1344,30 @@ async function addPayment(request, env, actor) {
   // Отрицательная сумма — это возврат; в минус по брони не уходим.
   if (paidRow.paid + value < 0) {
     return fail(`Возврат больше оплаченного: оплачено ${paidRow.paid}`);
+  }
+
+  /*
+   * Переплата: принять больше долга МОЖНО (решение оператора — так бывает
+   * законно, например авансом за следующий тур), но не молча. Деньги уже
+   * на счету, поэтому блокировать наглухо нельзя: оператор не смог бы
+   * провести реальное поступление. Поэтому первый запрос без allow_overpay
+   * возвращает 409 с расчётом, интерфейс показывает подтверждение, и
+   * повторный запрос с флагом проводит операцию.
+   *
+   * Так ловится настоящая ошибка — лишний ноль в сумме, — а законный
+   * сценарий остаётся возможным в один дополнительный клик.
+   */
+  const balance = Math.round((booking.total_price - paidRow.paid) * 100) / 100;
+  const overpay = Math.round((value - balance) * 100) / 100;
+  if (value > 0 && overpay > 0.01 && body.allow_overpay !== true) {
+    return json({
+      error: `Переплата ${overpay} USD: остаток по брони ${balance} USD, ` +
+             `а вносится ${value} USD. Проверьте сумму.`,
+      overpay: true,
+      balance,
+      amount: value,
+      excess: overpay,
+    }, 409);
   }
 
   await env.DB.batch([

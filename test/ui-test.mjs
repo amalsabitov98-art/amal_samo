@@ -1932,6 +1932,132 @@ console.log("\nКолокольчик: отметить прочитанным")
   await page.close();
 }
 
+/* ------------------------------------------- четыре инварианта из аудита
+ * Проверяем ровно то, что было сломано, а не «функцию вообще»:
+ *   — граница 14 дней: оплата и отмена должны считать ОДИНАКОВО;
+ *   — дата рождения: несуществующая не должна доходить до расчёта тарифа;
+ *   — переплата: не блокируется, но требует подтверждения. */
+console.log("\nИнварианты: сроки, даты, переплата");
+{
+  const { page, errors } = await session("umida");
+
+  /* Дыра была ровно на 14-м дне: оплата считала «меньше 14» (рассрочка ещё
+   * действует), отмена — «14 и меньше» (уже штраф 100%). Агентство внесло
+   * 30%, а при отмене с него удерживали всё. */
+  const boundary = await page.evaluate(() => {
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const inDays = (n) => {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n);
+      return iso(d);
+    };
+    const at = (n) => ({
+      days: n,
+      // штраф при отмене
+      penalty: window.TuronApi.cancellationPenalty(inDays(n), 1000).penalty,
+      // требуется ли платить всё сразу
+      urgent: window.TuronApi.paymentPolicy(inDays(n)).urgent,
+    });
+    return [at(20), at(15), at(14), at(13), at(5)];
+  });
+  const mismatch = boundary.filter((r) => r.penalty !== r.urgent);
+  check("отмена и оплата считают границу одинаково на всех сроках",
+        mismatch.length === 0, JSON.stringify(mismatch));
+  const d14 = boundary.find((r) => r.days === 14);
+  const d13 = boundary.find((r) => r.days === 13);
+  check("14-й день ещё без штрафа (решение оператора)",
+        d14 && d14.penalty === false, JSON.stringify(d14));
+  check("с 13-го дня штраф и полная оплата включаются вместе",
+        d13 && d13.penalty === true && d13.urgent === true, JSON.stringify(d13));
+
+  /* Дата рождения. Проверяем именно несуществующую: формат у неё
+   * правильный, и старая проверка регулярным выражением её пропускала. */
+  const dob = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const pax = (birth) => ({
+      full_name: "BAD DATE", birth_date: birth, passport_number: "ZZ1",
+      passport_expiry: "2033-01-01", placement: "DBL",
+    });
+    const tryBook = async (birth) => {
+      try {
+        await window.TuronApi.createBooking({
+          departure_code: deps[0].code, passengers: [pax(birth)],
+        });
+        return "прошло";
+      } catch (e) { return "отклонено"; }
+    };
+    return {
+      fake: await tryBook("2026-02-31"),
+      future: await tryBook("2099-01-01"),
+      ancient: await tryBook("1799-01-01"),
+      good: await tryBook("1990-05-05"),
+    };
+  });
+  check("31 февраля не проходит", dob.fake === "отклонено", dob.fake);
+  check("дата из будущего не проходит", dob.future === "отклонено", dob.future);
+  check("1799 год не проходит", dob.ancient === "отклонено", dob.ancient);
+  check("нормальная дата проходит", dob.good === "прошло", dob.good);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
+{
+  const { page, errors } = await session("umida");
+  /* Переплата. Решение оператора: бывает законной, поэтому НЕ блокируем, а
+   * переспрашиваем — деньги уже на счету, и запретить провести реальное
+   * поступление нельзя. */
+  const over = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const r = await window.TuronApi.createBooking({
+      departure_code: deps[0].code,
+      passengers: [{
+        full_name: "OVERPAY TEST", birth_date: "1990-01-01",
+        passport_number: "OP1", passport_expiry: "2033-01-01", placement: "DBL",
+      }],
+    });
+    const mine = (await window.TuronApi.bookings())
+      .filter((b) => b.code === r.booking_code)[0];
+    const total = mine.total_price;
+
+    await window.TuronApi.login("operator", "turon2026");
+    const out = { total };
+    // 1) сумма больше долга без согласия — должна вернуться с расчётом
+    try {
+      await window.TuronApi.addPayment(r.booking_code, total + 500);
+      out.blind = "прошло";
+    } catch (e) {
+      out.blind = "переспросило";
+      out.status = e.status;
+      out.excess = e.data && e.data.excess;
+      out.balance = e.data && e.data.balance;
+    }
+    // 2) ровно долг — проходит без вопросов
+    try {
+      await window.TuronApi.addPayment(r.booking_code, total);
+      out.exact = "прошло";
+    } catch (e) { out.exact = "отклонено: " + e.message; }
+    // 3) с согласия оператора переплата проводится
+    try {
+      const res = await window.TuronApi.addPayment(
+        r.booking_code, 300, null, { allowOverpay: true });
+      out.confirmed = "прошло";
+      out.paid = res.paid;
+    } catch (e) { out.confirmed = "отклонено: " + e.message; }
+    return out;
+  });
+  check("переплата не проводится молча, а возвращает расчёт",
+        over.blind === "переспросило" && over.status === 409 && over.excess === 500,
+        JSON.stringify(over));
+  check("оплата ровно по остатку проходит без вопросов",
+        over.exact === "прошло", over.exact);
+  check("с подтверждения оператора переплата проводится",
+        over.confirmed === "прошло" && over.paid === over.total + 300,
+        JSON.stringify(over));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

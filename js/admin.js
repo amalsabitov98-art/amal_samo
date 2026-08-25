@@ -47,8 +47,9 @@
     cancel_requested: "запрошена отмена",
   };
 
-  // Полных дней до выезда — по нему показывается удержание при отмене.
-  // Граница одна на оплату и на штраф, см. TuronApi.FINAL_DAYS.
+  // Полных дней до выезда — для показа сроков. Правило удержания при отмене
+  // здесь НЕ считается: оно одно на оба кабинета, см.
+  // TuronApi.cancellationPenalty.
   function daysUntil(dateStr) {
     if (!dateStr) return Infinity;
     var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -1110,11 +1111,14 @@
         var cid = Number(cancelBtn.dataset.cancel);
         // Показываем удержание по тому же правилу, что видит агентство,
         // чтобы оператор не считал его в уме перед разговором с агентом.
-        var left = daysUntil(cancelBtn.dataset.date);
-        var warn = left <= TuronApi.FINAL_DAYS
-          ? "До выезда " + TuronApi.FINAL_DAYS + " дней или меньше — удержание 100% (" +
-            money(Number(cancelBtn.dataset.total) || 0) + ").\n\n"
-          : "До выезда больше " + TuronApi.FINAL_DAYS + " дней — без удержания.\n\n";
+        // То же правило, что видит агентство: одна функция на оба кабинета,
+        // иначе оператор и агент считали бы удержание по-разному.
+        var pen = TuronApi.cancellationPenalty(
+          cancelBtn.dataset.date, cancelBtn.dataset.total);
+        var warn = pen.penalty
+          ? "До выезда меньше " + TuronApi.FINAL_DAYS + " дней — удержание 100% (" +
+            money(pen.amount) + ").\n\n"
+          : "До выезда " + TuronApi.FINAL_DAYS + " дней или больше — без удержания.\n\n";
         if (!confirm(warn + "Отменить бронь " + cancelBtn.dataset.code +
                      "? Места вернутся в продажу.")) return;
         cancelBtn.disabled = true;
@@ -1142,13 +1146,34 @@
         return;
       }
       btn.disabled = true;
-      TuronApi.addPayment(code, amount).then(function (res) {
+
+      /*
+       * Переплата не блокируется, а подтверждается: деньги уже пришли на
+       * счёт, и запретить оператору провести реальное поступление нельзя.
+       * Сервер первым запросом такую сумму не проводит и возвращает 409 с
+       * расчётом — показываем его и переспрашиваем. Так ловится лишний ноль
+       * в сумме, а законный аванс проходит в один дополнительный клик.
+       */
+      function done(res) {
         Admin.reload();
         alert("Оплата проведена. По брони " + res.booking_code +
               " оплачено " + money(res.paid) + ", остаток " + money(res.balance) + ".");
-      }).catch(function (err) {
+      }
+      function failed(err) {
         btn.disabled = false;
         alert(err.message);
+      }
+
+      TuronApi.addPayment(code, amount).then(done).catch(function (err) {
+        var d = err && err.data;
+        if (!(err.status === 409 && d && d.overpay)) return failed(err);
+        if (!confirm(err.message + "\n\nПровести всё равно? " +
+                     "Переплата останется на брони как аванс.")) {
+          btn.disabled = false;
+          return;
+        }
+        TuronApi.addPayment(code, amount, null, { allowOverpay: true })
+          .then(done).catch(failed);
       });
     });
 

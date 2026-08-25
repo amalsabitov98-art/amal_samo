@@ -64,6 +64,10 @@
           // отклоняется TypeError без .status, это и есть «нет связи».
           var err = new Error(data.error || "Ошибка запроса (" + r.status + ")");
           err.status = r.status;
+          // Весь ответ целиком: некоторым ошибкам нужны данные, а не только
+          // текст (например переплата возвращает остаток и величину лишнего,
+          // чтобы интерфейс собрал внятное подтверждение).
+          err.data = data;
           throw err;
         }
         return data;
@@ -297,10 +301,28 @@
    */
   var FINAL_DAYS = 14;
 
+  /*
+   * Дней до выезда — ОДИН счёт на оплату и на отмену.
+   *
+   * Считаем от ПОЛУНОЧИ дня отсчёта до полуночи дня выезда. Тут уже была
+   * дыра: оплата брала `new Date()` с текущим временем и `Math.floor`, а
+   * отмена — полночь и `Math.round`. В один и тот же день, если дело было
+   * после полудня, оплата видела 13 дней («платить всё сразу»), а отмена
+   * 14 («ещё бесплатно») — то есть граница FINAL_DAYS зависела от часа,
+   * когда агент открыл кабинет. Одинаковый оператор сравнения этого не
+   * лечит: расходилась сама БАЗА отсчёта.
+   */
+  function daysBetweenDates(from, dateStart) {
+    var start = new Date(from.getTime());
+    start.setHours(0, 0, 0, 0);
+    var dep = new Date(dateStart + "T00:00:00");
+    return Math.round((dep - start) / DAY_MS);
+  }
+
   function paymentPolicy(departureDate, bookingDate) {
-    var dep = new Date(departureDate + "T00:00:00Z");
+    var dep = new Date(departureDate + "T00:00:00");
     var from = bookingDate ? new Date(bookingDate) : new Date();
-    var daysLeft = Math.floor((dep - from) / DAY_MS);
+    var daysLeft = daysBetweenDates(from, departureDate);
 
     if (daysLeft < FINAL_DAYS) {
       return {
@@ -328,6 +350,39 @@
           label: "не позднее чем за " + FINAL_DAYS + " дней до выезда",
         },
       ],
+    };
+  }
+
+  /* ------------------------------------------------- отмена и штраф
+   * Полных дней от сегодня до выезда.
+   */
+  function daysUntilDeparture(dateStart) {
+    if (!dateStart) return Infinity;
+    return daysBetweenDates(new Date(), dateStart);
+  }
+
+  /*
+   * Штрафная зона отмены — ОДНА функция на оба кабинета.
+   *
+   * Правило было продублировано сравнениями в js/app.js и js/admin.js, и они
+   * разъехались: оплата считала `daysLeft < FINAL_DAYS`, а отмена
+   * `daysUntil <= FINAL_DAYS`. Ровно на 14-м дне получалась дыра — агентство
+   * ещё имело законное право доплачивать по рассрочке (70% как раз «не
+   * позднее чем за 14 дней», то есть в этот самый день), но при отмене с
+   * него удерживали уже все 100%. Внесено 30%, должен 100%.
+   *
+   * Теперь граница одна и та же, что у полной оплаты: пока срок доплаты НЕ
+   * истёк (days >= FINAL_DAYS), отмена бесплатна. Штраф начинается со
+   * следующего дня — ровно тогда же, когда включается требование платить
+   * всё сразу. Решение оператора: 14-й день считается ещё бесплатным.
+   */
+  function cancellationPenalty(dateStart, total) {
+    var days = daysUntilDeparture(dateStart);
+    var penalty = days < FINAL_DAYS;
+    return {
+      days_left: days,
+      penalty: penalty,
+      amount: penalty ? (Number(total) || 0) : 0,
     };
   }
 
@@ -370,6 +425,30 @@
    * воркера: считает новый тариф той же priceFor, без confirm только
    * возвращает предпросмотр, с confirm — двигает цену, места и комиссию.
    */
+  /*
+   * Дата рождения — двойник `invalidBirthDate` из worker/index.js.
+   *
+   * Проверка обязана быть в ОБОИХ путях: демо-режим (preview.html, ui-тесты)
+   * идёт мимо воркера целиком, и без этой копии «31 февраля» проходило бы
+   * в браузере молча — а по дате рождения считается тариф и признак
+   * младенца, то есть цена и число мест. Расходиться копиям нельзя:
+   * правите здесь — правьте и в воркере.
+   */
+  function invalidBirthDate(value, departureDate) {
+    var birth = String(value || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
+      return "Дата рождения нужна в формате ГГГГ-ММ-ДД";
+    }
+    var d = new Date(birth + "T00:00:00Z");
+    if (isNaN(d.getTime())) return "Даты " + birth + " не существует";
+    // Разбор обратно: 2026-02-31 превратится в 2026-03-03 и не совпадёт.
+    if (d.toISOString().slice(0, 10) !== birth) return "Даты " + birth + " не существует";
+    if (birth < "1900-01-01") return "Дата рождения раньше 1900 года — проверьте паспорт";
+    if (departureDate && birth > departureDate) return "Дата рождения позже даты выезда";
+    if (birth > new Date().toISOString().slice(0, 10)) return "Дата рождения в будущем";
+    return null;
+  }
+
   function demoBirthdate(passengerId, body) {
     var s = demoState();
     var booking = null, pax = null;
@@ -384,6 +463,9 @@
     }
     var d = s.departures.filter(function (x) { return x.code === booking.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+
+    var badDate = invalidBirthDate(body.birth_date, d.date_start);
+    if (badDate) return Promise.reject(new Error(badDate));
 
     var tariff = priceFor({ birth_date: body.birth_date, placement: pax.placement }, d);
     if (!tariff) {
@@ -422,6 +504,14 @@
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
+
+    for (var j = 0; j < payload.passengers.length; j++) {
+      var bad = invalidBirthDate(payload.passengers[j].birth_date, d.date_start);
+      if (bad) {
+        return Promise.reject(new Error(
+          (payload.passengers[j].full_name || "Пассажир") + ": " + bad));
+      }
+    }
 
     var priced = [], seats = 0, total = 0;
     // База номеров берётся ОДИН раз: внутри цикла новая бронь ещё не в
@@ -605,6 +695,13 @@
         var b = s.bookings.filter(function (x) { return x.id === id; })[0];
         if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
         var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
+        for (var j = 0; j < passengers.length; j++) {
+          var bad = invalidBirthDate(passengers[j].birth_date, d && d.date_start);
+          if (bad) {
+            return Promise.reject(new Error(
+              (passengers[j].full_name || "Пассажир") + ": " + bad));
+          }
+        }
         var priced = [], seats = 0, total = 0;
         var paxId = nextDemoPassengerId(s);
         for (var i = 0; i < passengers.length; i++) {
@@ -905,7 +1002,14 @@
       return request("/api/admin/manifest?departure=" + encodeURIComponent(departureCode));
     },
 
-    addPayment: function (bookingCode, amount, note) {
+    /*
+     * Проведение оплаты или возврата. opts.allowOverpay — согласие оператора
+     * принять сумму больше остатка: сервер первым запросом такую операцию
+     * не проводит, а возвращает 409 с расчётом (см. worker/index.js).
+     * Блокировать переплату наглухо нельзя — деньги уже на счету.
+     */
+    addPayment: function (bookingCode, amount, note, opts) {
+      opts = opts || {};
       if (!API_BASE) {
         var s = demoState();
         var b = s.bookings.filter(function (x) { return x.code === bookingCode; })[0];
@@ -915,6 +1019,17 @@
         if (b.paid + amount < 0) {
           return Promise.reject(new Error("Возврат больше оплаченного: оплачено " + b.paid));
         }
+        // Демо повторяет серверную развилку, иначе подтверждение переплаты
+        // нельзя было бы проверить без подключённого бэкенда.
+        var bal = Math.round((b.total_price - b.paid) * 100) / 100;
+        var over = Math.round((amount - bal) * 100) / 100;
+        if (amount > 0 && over > 0.01 && opts.allowOverpay !== true) {
+          var e = new Error("Переплата " + over + " USD: остаток по брони " + bal +
+            " USD, а вносится " + amount + " USD. Проверьте сумму.");
+          e.status = 409;
+          e.data = { overpay: true, balance: bal, amount: amount, excess: over };
+          return Promise.reject(e);
+        }
         b.paid += amount;
         (b.payments = b.payments || []).push({ amount: amount, note: note || null });
         saveDemo(s);
@@ -923,7 +1038,11 @@
         });
       }
       return request("/api/admin/payments", {
-        method: "POST", body: { booking_code: bookingCode, amount: amount, note: note },
+        method: "POST",
+        body: {
+          booking_code: bookingCode, amount: amount, note: note,
+          allow_overpay: opts.allowOverpay === true,
+        },
       });
     },
 
@@ -987,6 +1106,8 @@
     // чтобы число жило в одном месте, а не в трёх.
     FINAL_DAYS: FINAL_DAYS,
     departureEnd: departureEnd,
+    daysUntilDeparture: daysUntilDeparture,
+    cancellationPenalty: cancellationPenalty,
     joinName: joinName,
     splitName: splitName,
   };
