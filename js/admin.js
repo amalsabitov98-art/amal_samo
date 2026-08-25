@@ -369,7 +369,17 @@
           '<div><span>' + formatDate(d.date_start) + '</span><span>·</span>' +
           '<span>' + esc(identity.badge) + '</span>' +
           '<span class="tt-badge tt-op-status ' + (closed ? "tt-badge-off" : "is-open") + '">' +
-            (closed ? "Продажа закрыта" : "Продажа открыта") + '</span></div></div>' +
+            (closed ? "Продажа закрыта" : "Продажа открыта") + "</span>" +
+          // Загрузка заезда. Она жила в шапке списка пассажиров, а при
+          // переезде на отдельный экран заезда потерялась вместе с ней.
+          // Нужна именно здесь: у заездов, проданных ДО запуска системы,
+          // seats_taken больше нуля при пустом списке, и без счётчика
+          // пустой экран не отвечает на вопрос «а почему пусто».
+          (Number(d.capacity || 0)
+            ? '<span class="tt-manifest-seats tt-muted-note">занято ' +
+              Number(d.seats_taken || 0) + " из " + Number(d.capacity) + "</span>"
+            : "") +
+          "</div></div>" +
         '<div class="tt-detail-actions">' +
           '<button type="button" class="tt-btn secondary" id="adm-export" disabled>Выгрузить Excel</button>' +
           '<button type="button" class="tt-btn secondary" data-detail-open="prices">Цены</button>' +
@@ -716,26 +726,6 @@
       : '<div class="tt-empty-state">Изменений по этому заезду пока нет.</div>';
   }
 
-  /*
-   * Шапка списка: какой именно заезд открыт и его загрузка. Рисуется ВСЕГДА,
-   * в том числе когда пассажиров нет — иначе пустой экран не отвечал на
-   * вопрос «а почему пусто». У заездов, проданных до запуска системы,
-   * seats_taken больше нуля при пустом списке, и счётчик это прямо показывает.
-   */
-  function manifestHeadHtml(d) {
-    if (!d) return "";
-    var taken = Number(d.seats_taken || 0);
-    var cap = Number(d.capacity || 0);
-    return '<div class="tt-manifest-head">' +
-      '<div class="tt-manifest-when">' +
-        "<strong>" + formatDate(d.date_start) + "</strong>" +
-        '<span class="tt-dep-code">' + esc(d.code) + "</span>" +
-      "</div>" +
-      '<span class="tt-badge">' + esc(TRANSPORT[d.transport] || d.transport) + "</span>" +
-      (cap ? '<span class="tt-manifest-seats tt-muted-note">занято ' + taken +
-        " из " + cap + "</span>" : "") +
-    "</div>";
-  }
 
   function renderManifest(data) {
     state.current = data;
@@ -1342,9 +1332,7 @@
         msg.textContent = "Сохраняю…";
         save.disabled = true;
         TuronApi.updateDeparturePrices(depId, collectPrices()).then(function (res) {
-          save.disabled = false;
-          msg.className = "tt-editor-msg is-ok";
-          msg.textContent = res.changed.length
+          var text = res.changed.length
             ? "Сохранено. Изменено цен: " + res.changed.length +
               (res.sold_untouched ? "; проданные брони не тронуты" : "")
             : "Сохранено, цены не менялись.";
@@ -1355,6 +1343,20 @@
             renderDepartureCards();
             renderDepartureControls();
             setDetailTab("prices");
+            /*
+             * Сообщение ставим ПОСЛЕ перерисовки, а не до неё.
+             * setDetailTab("prices") собирает панель цен заново — вместе со
+             * старой разметкой стиралось и «Сохранено», и оператор жал
+             * кнопку, не получая никакого подтверждения. Узлы ищем заново
+             * по той же причине: прежние уже выброшены из документа.
+             */
+            var freshMsg = $("adm-price-msg");
+            if (freshMsg) {
+              freshMsg.className = "tt-editor-msg is-ok";
+              freshMsg.textContent = text;
+            }
+            var freshSave = $("adm-price-save");
+            if (freshSave) freshSave.disabled = false;
           });
         }).catch(function (err) {
           save.disabled = false;

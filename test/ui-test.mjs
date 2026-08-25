@@ -1124,8 +1124,15 @@ console.log("\nОператор — обзор, карточки заездов,
         /создана|изменён состав|запрошена отмена/.test(activityText), activityText);
   check("запрос отмены выделен как требующий решения",
         (await page.locator("#ov-activity .is-cancel-request").count()) > 0);
-  check("блок «Кто должен» отрисован", await page.locator("#ov-debtors").isVisible());
+  // «Обзор» стал вкладочным: заезды открыты сразу, долги и лента — по
+  // вкладкам. Гарантия та же (оператор видит, кто должен), путь другой.
   check("блок «Ближайшие заезды» отрисован", await page.locator("#ov-departures").isVisible());
+  await page.locator('[data-overview-tab="debtors"]').click();
+  await page.waitForTimeout(400);
+  check("блок «Кто должен» открывается своей вкладкой",
+        await page.locator("#ov-debtors").isVisible());
+  await page.locator('[data-overview-tab="departures"]').click();
+  await page.waitForTimeout(300);
 
   await page.click("#notice-btn");
   await page.waitForTimeout(300);
@@ -1157,19 +1164,32 @@ console.log("\nОператор — обзор, карточки заездов,
     const wantCode = await depCards.nth(1).getAttribute("data-departure");
     await depCards.nth(1).click();
     await page.waitForTimeout(1200);   // прокрутка smooth
-    check("клик по карточке заезда переключает выбор",
-          await depCards.nth(1).evaluate((el) => el.classList.contains("is-active")));
+    /* Клик по заезду теперь не подсвечивает карточку в общей сетке, а
+     * ОТКРЫВАЕТ отдельный экран заезда: список прячется, на его месте
+     * появляется детальный вид с пассажирами, ценами и историей. Проверяем
+     * то же, что и раньше — результат на экране и подписан тем заездом, по
+     * которому кликнули, — но по новому пути. */
+    check("клик по заезду открывает его отдельный экран",
+          (await page.locator("#adm-departure-detail").isVisible()) &&
+          (await page.locator("#adm-departure-list").isHidden()));
     const seen = await page.evaluate(() => {
       const r = document.querySelector("#adm-manifest").getBoundingClientRect();
-      return { top: Math.round(r.top), winH: window.innerHeight, scrollY: Math.round(window.scrollY) };
+      return { top: Math.round(r.top), winH: window.innerHeight };
     });
-    check("после клика список пассажиров попадает на экран",
-          seen.scrollY > 0 && seen.top < seen.winH, JSON.stringify(seen));
-    const headText = await page.locator(".tt-manifest-head").innerText().catch(() => "");
-    check("список подписан выбранным заездом",
+    check("список пассажиров попадает на экран", seen.top < seen.winH, JSON.stringify(seen));
+    // Шапка переехала из списка пассажиров в шапку самого экрана заезда.
+    const headText = await page.locator(".tt-detail-head").innerText().catch(() => "");
+    check("экран подписан выбранным заездом",
           headText.includes(wantCode), `ждали ${wantCode}, шапка «${headText.replace(/\n/g, " ")}»`);
     check("в шапке видна загрузка заезда (занято N из M)",
           /занято \d+ из \d+/.test(headText), headText.replace(/\n/g, " "));
+
+    // Возврат к списку — иначе поиск ниже искал бы в спрятанной сетке.
+    await page.locator("#adm-detail-back").click();
+    await page.waitForTimeout(500);
+    check("«Назад» возвращает к списку заездов",
+          (await page.locator("#adm-departure-list").isVisible()) &&
+          (await page.locator("#adm-departure-detail").isHidden()));
   }
   await page.fill("#adm-departure-search", "несуществующий-код-xyz");
   await page.waitForTimeout(400);
@@ -2330,9 +2350,12 @@ console.log("\nЦены заезда: правка оператором");
              dbl: d.prices.find((p) => p.code === "DBL").price };
   });
 
+  // Цены живут на отдельном экране заезда — сначала открываем сам заезд.
+  await page.locator(`#adm-departure-cards [data-departure="${dep.code}"]`).click();
+  await page.waitForTimeout(900);
   check("у заезда есть кнопка «Цены»",
-        (await page.locator("#adm-dep-controls [data-dep-prices]").count()) === 1);
-  await page.locator("#adm-dep-controls [data-dep-prices]").click();
+        (await page.locator('[data-detail-open="prices"]').count()) === 1);
+  await page.locator('[data-detail-open="prices"]').click();
   await page.waitForTimeout(500);
   check("редактор открылся со всеми строками прайса",
         (await page.locator("#adm-price-rows .tt-price-row").count()) === dep.rows);
