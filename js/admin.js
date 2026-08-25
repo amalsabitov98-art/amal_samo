@@ -792,7 +792,7 @@
               : (debt > 0
                 ? '<span class="tt-badge tt-badge-info">Есть долг</span>'
                 : '<span class="tt-badge">Оплачено</span>')) +
-            '<span class="tt-ops-open" aria-hidden="true">→</span>' +
+            '<span class="tt-ops-open">Открыть <b aria-hidden="true">→</b></span>' +
           '</span>' +
         '</button>';
       }).join("");
@@ -854,6 +854,10 @@
       }
     });
 
+    $("ov-tab-departures-count").textContent = weekDeps.length;
+    $("ov-tab-activity-count").textContent = state.activity.length;
+    $("ov-tab-debtors-count").textContent = debtors.length;
+
     $("ov-stats").innerHTML =
       '<div class="tt-earnings">' +
         '<div><span>Заездов за 7 дней</span><strong>' + weekDeps.length + "</strong></div>" +
@@ -902,6 +906,17 @@
               '<td class="tt-muted-note">' + esc(ev.details || "—") + "</td></tr>";
           }).join("") + "</tbody></table></div>"
       : '<div class="tt-empty-state">Действий агентств пока нет.</div>';
+  }
+
+  function setOverviewTab(name) {
+    document.querySelectorAll("[data-overview-tab]").forEach(function (button) {
+      var active = button.dataset.overviewTab === name;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.querySelectorAll("[data-overview-pane]").forEach(function (pane) {
+      pane.hidden = pane.dataset.overviewPane !== name;
+    });
   }
 
   // ---------------------------------------------------------------- брони
@@ -1265,6 +1280,10 @@
       if (!card) return;
       setSelectedDeparture(card.dataset.departure);
       jumpToTab("manifest");
+    });
+    $("ov-tabs").addEventListener("click", function (e) {
+      var button = e.target.closest("[data-overview-tab]");
+      if (button) setOverviewTab(button.dataset.overviewTab);
     });
     $("ov-debtors").addEventListener("click", function (e) {
       var row = e.target.closest("[data-jump-agency]");

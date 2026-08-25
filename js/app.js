@@ -2999,6 +2999,7 @@
       });
     $("screen-app").classList.toggle("is-builder", name === "builder");
     $("screen-app").classList.toggle("is-manifest", name === "manifest");
+    $("screen-app").classList.toggle("is-overview", name === "overview");
     if (labels[name]) {
       $("workspace-title").textContent = labels[name][0];
       $("workspace-kicker").textContent = labels[name][1];
