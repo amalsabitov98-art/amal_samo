@@ -7125,21 +7125,38 @@ a.tt-contact-row:hover { color: var(--cc); }
   overflow: hidden;
 }
 .tt-notice-head {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid var(--tt-border);
   font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--tt-forest);
 }
-.tt-notice-head span {
+.tt-notice-headline { display: flex; align-items: center; gap: 8px; }
+.tt-notice-count {
   min-width: 20px; padding: 1px 7px; border-radius: 999px;
   background: var(--tt-accent); color: #fff; font-size: 0.7rem; text-align: center;
+  font-style: normal;
 }
+/* Видна, только пока есть непрочитанные — сама гаснет вместе со счётчиком
+   у колокольчика, как только агент нажал «Отметить прочитанным». */
+.tt-notice-mark-read {
+  padding: 5px 10px; border: 1px solid var(--tt-border-strong); border-radius: 999px;
+  background: var(--tt-surface-2); color: var(--tt-forest);
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; text-transform: none;
+  cursor: pointer; white-space: nowrap;
+}
+.tt-notice-mark-read:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
 .tt-notice-list { margin: 0; padding: 6px; list-style: none;
   max-height: 340px; overflow-y: auto; }
 .tt-notice-list li {
   display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start;
   padding: 10px; border-radius: 10px; font-size: 0.82rem; line-height: 1.4;
+  transition: opacity 0.18s ease;
 }
+/* Прочитанные не исчезают — вопрос мог остаться нерешённым, агент должен
+   вернуться и найти его снова, — но тускнеют, чтобы взгляд сразу отличал
+   новое от уже увиденного. */
+.tt-notice-list li.is-read { opacity: 0.5; }
+.tt-notice-list li.is-read:hover { opacity: 0.85; }
 .tt-notice-list li[data-booking-code] { cursor: pointer; }
 .tt-notice-list li[data-booking-code]:hover { background: var(--tt-accent-soft); }
 .tt-notice-list li + li { border-top: 1px solid var(--tt-border); border-radius: 0; }
@@ -19916,6 +19933,13 @@ window.TURON_DESTINATIONS = [
   });
   $("notice-panel").addEventListener("click", function (e) {
     e.stopPropagation();
+    // Панель НЕ закрываем: агент должен увидеть, как список тускнеет и
+    // счётчик у колокольчика гаснет — это и есть подтверждение «отмечено».
+    if (e.target.closest("[data-mark-read]")) {
+      markNoticesSeen(collectNotices());
+      renderNotices();
+      return;
+    }
     var booking = e.target.closest("[data-booking-code]");
     if (booking && window.TuronAdmin) {
       setNotices(false);
@@ -21189,6 +21213,41 @@ window.TURON_DESTINATIONS = [
   var operatorNotices = null;
   var operatorNoticeTimer = null;
 
+  /* ---------------------------------------------------- «прочитано»
+   * Уведомления считаются заново при каждой отрисовке (это факты, а не
+   * события с id: «просрочен платёж», «выезд скоро» и т.п. появляются и
+   * пропадают сами по себе). Отметку «прочитано» поэтому храним отдельно —
+   * по СТАБИЛЬНОМУ ключу каждого уведомления, в localStorage, за свой
+   * ключ на каждый аккаунт (иначе на одном компьютере агентства делили бы
+   * чужие отметки). Ключ не включает сумму долга и т.п.: просрочка на той
+   * же брони — это то же самое уведомление, растущий долг заново дёргать
+   * колокольчик не должен, а вот новая просрочка на ДРУГОЙ брони — уже
+   * новый ключ, значит непрочитанная.
+   */
+  function noticeStorageKey() {
+    var uid = session ? (session.id != null ? session.id : session.login) : "anon";
+    return "turon.notices.seen." + uid;
+  }
+  function loadSeenNotices() {
+    try {
+      var arr = JSON.parse(localStorage.getItem(noticeStorageKey()) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function markNoticesSeen(list) {
+    var seen = loadSeenNotices();
+    var known = {};
+    seen.forEach(function (k) { known[k] = true; });
+    list.forEach(function (n) {
+      if (n.key && !known[n.key]) { seen.push(n.key); known[n.key] = true; }
+    });
+    try {
+      // Старые ключи больше никогда не понадобятся, но localStorage не
+      // резиновый — подрезаем хвост на всякий случай.
+      localStorage.setItem(noticeStorageKey(), JSON.stringify(seen.slice(-500)));
+    } catch (e) {}
+  }
+
   function startOperatorNoticePolling() {
     if (operatorNoticeTimer) window.clearInterval(operatorNoticeTimer);
     loadOperatorNotices();
@@ -21231,6 +21290,11 @@ window.TURON_DESTINATIONS = [
             ev.booking_status === "confirmed";
           return {
             kind: pendingCancel ? "cancel" : "activity",
+            // Ключ на id самого события, а не на его текущий вид: когда
+            // оператор проведёт отмену, эта же запись перестанет быть
+            // «cancel» и станет обычной «activity», но повторно дёргать
+            // непрочитанным уже решённое незачем — id не меняется.
+            key: "ev:" + ev.id,
             bookingCode: ev.booking_code,
             text: operatorActivityText(ev),
           };
@@ -21245,11 +21309,12 @@ window.TURON_DESTINATIONS = [
             if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
           });
           if (lateSum > 0) {
-            out.push({ kind: "late", bookingCode: b.code, text: "Просрочен платёж: " +
+            out.push({ kind: "late", key: "late:" + b.code, bookingCode: b.code,
+              text: "Просрочен платёж: " +
               (b.agency_name || "агентство") + " · " + b.code + " — " + money(lateSum) });
           }
           if (b.date_start >= today && b.date_start <= soonIso) {
-            out.push({ kind: "soon", bookingCode: b.code,
+            out.push({ kind: "soon", key: "soon:" + b.code, bookingCode: b.code,
               text: "Выезд " + formatDate(b.date_start) + " · " +
               (b.agency_name || "") + " · " + b.code +
               (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
@@ -21284,7 +21349,7 @@ window.TURON_DESTINATIONS = [
           if (b.paid < need - 0.01 && due < today) lateSum = Math.max(lateSum, need - b.paid);
         });
         if (lateSum > 0) {
-          out.push({ kind: "late", code: b.code,
+          out.push({ kind: "late", key: "late:" + b.code, code: b.code,
             text: "Просрочен платёж по брони " + b.code + " — " + money(lateSum) });
         }
 
@@ -21292,28 +21357,31 @@ window.TURON_DESTINATIONS = [
         // оплату у себя, и без этой строки агентство узнавало бы об этом,
         // только случайно заглянув в «Документы».
         if (docsUnlocked(b)) {
-          out.push({ kind: "docs", code: b.code,
+          out.push({ kind: "docs", key: "docs:" + b.code, code: b.code,
             text: "Бронь " + b.code + " оплачена полностью — ваучер и авиабилет готовы" });
         }
 
         // 3. выезд на этой неделе
         if (b.date_start >= today && b.date_start <= soonIso) {
-          out.push({ kind: "soon", code: b.code,
+          out.push({ kind: "soon", key: "soon:" + b.code, code: b.code,
             text: "Выезд " + formatDate(b.date_start) + " · бронь " + b.code +
                   (b.balance > 0 ? " · остаток " + money(b.balance) : "") });
         }
 
-        // 4. паспорта: истекающие и незаполненные
-        (b.passengers || []).forEach(function (p) {
+        // 4. паспорта: истекающие и незаполненные. Ключ по индексу пассажира
+        // в брони — своего id у пассажира в списке агентства нет, а порядок
+        // стабилен (сервер отдаёт по id), пока состав брони не меняли.
+        (b.passengers || []).forEach(function (p, idx) {
+          var key = "pass:" + b.code + ":" + idx;
           if (!p.passport_number || !p.passport_expiry) {
-            out.push({ kind: "pass", code: b.code,
+            out.push({ kind: "pass", key: key,  code: b.code,
               text: "Не заполнен паспорт: " + (p.full_name || "пассажир") +
                     " · бронь " + b.code });
             return;
           }
           var issue = TuronApi.passportIssue(p.passport_expiry, b.date_start);
           if (issue) {
-            out.push({ kind: "pass", code: b.code,
+            out.push({ kind: "pass", key: key, code: b.code,
               text: (p.full_name || "Пассажир") + " — " + issue + " · бронь " + b.code });
           }
         });
@@ -21327,24 +21395,40 @@ window.TURON_DESTINATIONS = [
 
   function renderNotices() {
     var list = collectNotices();
+    var seenKeys = {};
+    loadSeenNotices().forEach(function (k) { seenKeys[k] = true; });
+    // У уведомления без ключа (не должно случаться, но на всякий случай)
+    // «прочитанным» его считать нельзя — иначе оно тихо потерялось бы.
+    var unread = list.filter(function (n) { return !n.key || !seenKeys[n.key]; }).length;
+
     var dot = $("notice-dot");
     var button = $("notice-btn");
     if (dot) {
-      dot.hidden = list.length === 0;
-      dot.textContent = list.length > 9 ? "9+" : String(list.length);
+      dot.hidden = unread === 0;
+      dot.textContent = unread > 9 ? "9+" : String(unread);
     }
     if (button) {
-      button.classList.toggle("has-notices", list.length > 0);
-      button.setAttribute("aria-label", list.length
-        ? "Уведомления: " + list.length
-        : "Уведомлений нет");
+      button.classList.toggle("has-notices", unread > 0);
+      button.setAttribute("aria-label", unread
+        ? "Уведомления: непрочитанных " + unread
+        : (list.length ? "Уведомления: всё прочитано" : "Уведомлений нет"));
     }
 
     var icons = { cancel: "×", activity: "↗", late: "!", docs: "✓", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
-      ? '<div class="tt-notice-head">Уведомления<span>' + list.length + "</span></div>" +
+      ? '<div class="tt-notice-head">' +
+          '<span class="tt-notice-headline">Уведомления' +
+            '<b class="tt-notice-count">' + list.length + "</b></span>" +
+          // Кнопка видна, только пока есть непрочитанные — отметили,
+          // и она сама исчезает вместе со счётчиком нового у колокольчика.
+          (unread > 0
+            ? '<button type="button" class="tt-notice-mark-read" data-mark-read>' +
+              "Отметить прочитанным</button>"
+            : "") +
+        "</div>" +
         '<ul class="tt-notice-list">' + list.map(function (n) {
-          return '<li class="is-' + n.kind + '"' +
+          var isRead = n.key && seenKeys[n.key];
+          return '<li class="is-' + n.kind + (isRead ? " is-read" : "") + '"' +
             (n.bookingCode ? ' data-booking-code="' + esc(n.bookingCode) + '"' : "") +
             // «Документы готовы» — единственное уведомление, из которого есть
             // куда пойти прямо сейчас: за бланками.

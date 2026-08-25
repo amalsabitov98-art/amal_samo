@@ -1831,6 +1831,107 @@ console.log("\nДокументы: счёт, оплата, бланки");
   await page.close();
 }
 
+/* ------------------------------------------------- колокольчик: «прочитано»
+ * Уведомления пересчитываются заново при каждой отрисовке — это факты
+ * («просрочен платёж», «выезд скоро»), а не события с id, поэтому отметка
+ * «прочитано» хранится отдельно, по стабильному ключу, в localStorage.
+ * Проверяем: счётчик показывает именно НЕПРОЧИТАННОЕ (не общее число),
+ * отметка переживает закрытие панели и перезагрузку страницы, а новая
+ * проблема снова будит колокольчик, не трогая уже прочитанные пункты. */
+console.log("\nКолокольчик: отметить прочитанным");
+{
+  const { page, errors } = await session("umida");
+
+  await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    await window.TuronApi.createBooking({
+      departure_code: deps[0].code,
+      passengers: [{
+        full_name: "BELL FIRST", birth_date: "1990-01-01",
+        passport_number: "", passport_expiry: "", placement: "DBL",
+      }],
+    });
+  });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  const before = await page.evaluate(() => ({
+    dotHidden: document.getElementById("notice-dot").hidden,
+    dot: document.getElementById("notice-dot").textContent,
+    items: document.querySelectorAll("#notice-panel .tt-notice-list li").length,
+    read: document.querySelectorAll("#notice-panel .tt-notice-list li.is-read").length,
+    hasBtn: !!document.querySelector("[data-mark-read]"),
+  }));
+  check("непрочитанное уведомление показано и не потускневшее",
+        !before.dotHidden && before.read === 0 && before.hasBtn, JSON.stringify(before));
+
+  await page.click("[data-mark-read]");
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({
+    dotHidden: document.getElementById("notice-dot").hidden,
+    hasBtn: !!document.querySelector("[data-mark-read]"),
+    read: document.querySelectorAll("#notice-panel .tt-notice-list li.is-read").length,
+    total: document.querySelectorAll("#notice-panel .tt-notice-list li").length,
+    panelOpen: !document.getElementById("notice-panel").hidden,
+    hasNoticesClass: document.getElementById("notice-btn").classList.contains("has-notices"),
+  }));
+  check("после отметки счётчик гаснет, а пункт тускнеет, не исчезая",
+        after.dotHidden && !after.hasBtn && after.read === after.total &&
+        after.total === before.items && !after.hasNoticesClass, JSON.stringify(after));
+  check("панель не закрывается кликом по кнопке — виден результат", after.panelOpen);
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  const afterReload = await page.evaluate(() => ({
+    dotHidden: document.getElementById("notice-dot").hidden,
+    read: document.querySelectorAll("#notice-panel .tt-notice-list li.is-read").length,
+  }));
+  check("отметка переживает перезагрузку страницы (хранится в localStorage)",
+        afterReload.dotHidden && afterReload.read === before.items, JSON.stringify(afterReload));
+
+  // Новая проблема на ДРУГОЙ брони обязана разбудить колокольчик заново,
+  // не трогая уже прочитанное — растущий долг на той же брони так шуметь
+  // не должен, а вот новая брониповая проблема — другое дело.
+  await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    await window.TuronApi.createBooking({
+      departure_code: (deps[1] || deps[0]).code,
+      passengers: [{
+        full_name: "BELL SECOND", birth_date: "1990-01-01",
+        passport_number: "", passport_expiry: "", placement: "DBL",
+      }],
+    });
+  });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+  const withNew = await page.evaluate(() => ({
+    dotHidden: document.getElementById("notice-dot").hidden,
+    dot: document.getElementById("notice-dot").textContent,
+  }));
+  check("новая проблема снова показывает непрочитанное",
+        !withNew.dotHidden && withNew.dot !== "0", JSON.stringify(withNew));
+
+  await page.click("#notice-btn");
+  await page.waitForTimeout(300);
+  const mixed = await page.evaluate(() => ({
+    total: document.querySelectorAll("#notice-panel .tt-notice-list li").length,
+    read: document.querySelectorAll("#notice-panel .tt-notice-list li.is-read").length,
+  }));
+  // Вторая бронь может добавить больше одного пункта (паспорт + скорый
+  // выезд у брони с близкой датой) — важно не точное число, а что старые
+  // пункты остались прочитанными, а появились и НОВЫЕ непрочитанные.
+  check("старое остаётся прочитанным, добавилось новое непрочитанное",
+        mixed.total > before.items && mixed.read === before.items,
+        JSON.stringify(mixed) + " vs before.items=" + before.items);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

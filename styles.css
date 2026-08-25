@@ -7104,21 +7104,38 @@ a.tt-contact-row:hover { color: var(--cc); }
   overflow: hidden;
 }
 .tt-notice-head {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid var(--tt-border);
   font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--tt-forest);
 }
-.tt-notice-head span {
+.tt-notice-headline { display: flex; align-items: center; gap: 8px; }
+.tt-notice-count {
   min-width: 20px; padding: 1px 7px; border-radius: 999px;
   background: var(--tt-accent); color: #fff; font-size: 0.7rem; text-align: center;
+  font-style: normal;
 }
+/* Видна, только пока есть непрочитанные — сама гаснет вместе со счётчиком
+   у колокольчика, как только агент нажал «Отметить прочитанным». */
+.tt-notice-mark-read {
+  padding: 5px 10px; border: 1px solid var(--tt-border-strong); border-radius: 999px;
+  background: var(--tt-surface-2); color: var(--tt-forest);
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; text-transform: none;
+  cursor: pointer; white-space: nowrap;
+}
+.tt-notice-mark-read:hover { background: var(--tt-accent-soft); color: var(--tt-accent-dark); }
 .tt-notice-list { margin: 0; padding: 6px; list-style: none;
   max-height: 340px; overflow-y: auto; }
 .tt-notice-list li {
   display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start;
   padding: 10px; border-radius: 10px; font-size: 0.82rem; line-height: 1.4;
+  transition: opacity 0.18s ease;
 }
+/* Прочитанные не исчезают — вопрос мог остаться нерешённым, агент должен
+   вернуться и найти его снова, — но тускнеют, чтобы взгляд сразу отличал
+   новое от уже увиденного. */
+.tt-notice-list li.is-read { opacity: 0.5; }
+.tt-notice-list li.is-read:hover { opacity: 0.85; }
 .tt-notice-list li[data-booking-code] { cursor: pointer; }
 .tt-notice-list li[data-booking-code]:hover { background: var(--tt-accent-soft); }
 .tt-notice-list li + li { border-top: 1px solid var(--tt-border); border-radius: 0; }
