@@ -630,6 +630,62 @@
     return null;
   }
 
+  // Демо-двойник смены даты. Повторяет проверки и порядок воркера.
+  function demoDepartureDate(id, dateStart, opts) {
+    var s = demoState();
+    var d = s.departures.filter(function (x) { return x.id === id; })[0];
+    if (!d) return Promise.reject(new Error("Заезд не найден"));
+
+    var bad = invalidCalendarDate(dateStart);
+    if (bad) return Promise.reject(new Error("Дата заезда: " + bad));
+    if (dateStart < new Date().toISOString().slice(0, 10)) {
+      return Promise.reject(new Error("Дата заезда в прошлом"));
+    }
+    if (d.date_start === dateStart) {
+      return Promise.reject(new Error("Это и есть текущая дата заезда"));
+    }
+
+    var affected = s.bookings.filter(function (b) {
+      return b.departure_code === d.code && b.status === "confirmed";
+    }).map(function (b) {
+      return {
+        code: b.code,
+        // Имя агентства берём по брони, а не по текущему пользователю:
+        // смотрит-то оператор, и подставлять его имя всем броням нельзя.
+        agency_name: (DEMO_AGENCIES.filter(function (a) {
+          return a.id === b.agency_id;
+        })[0] || {}).name || "",
+        created_at: b.created_at,
+        total_price: b.total_price,
+        paid: b.paid || 0,
+        balance: Math.round((b.total_price - (b.paid || 0)) * 100) / 100,
+      };
+    });
+
+    var out = { code: d.code, from: d.date_start, to: dateStart, bookings: affected };
+    if (!opts.confirm) return Promise.resolve(Object.assign({ preview: true }, out));
+
+    var wasDate = d.date_start;
+    d.date_start = dateStart;
+    // Брони держат дату отдельным полем — иначе «Платежи» у агентства
+    // считали бы сроки по старому выезду.
+    s.bookings.forEach(function (b) {
+      if (b.departure_code === d.code) b.date_start = dateStart;
+    });
+    s.departures.sort(function (a, b) {
+      return a.date_start < b.date_start ? -1 : (a.date_start > b.date_start ? 1 : 0);
+    });
+    affected.forEach(function (a) {
+      var b = s.bookings.filter(function (x) { return x.code === a.code; })[0];
+      if (b) {
+        demoLogEvent(s, b, "edited",
+          "дата заезда " + d.code + ": " + wasDate + " → " + dateStart);
+      }
+    });
+    saveDemo(s);
+    return Promise.resolve(Object.assign({ preview: false, changed: true }, out));
+  }
+
   // Демо-двойник создания заезда. Повторяет проверки воркера.
   function demoCreateDeparture(payload) {
     var s = demoState();
@@ -1102,6 +1158,23 @@
     createDeparture: function (payload) {
       if (!API_BASE) return demoCreateDeparture(payload);
       return request("/api/admin/departures", { method: "POST", body: payload });
+    },
+
+    /*
+     * Смена даты заезда. Два шага: без confirm сервер только собирает,
+     * кого это заденет, и ничего не пишет.
+     *
+     * Сроки оплаты и штрафную зону считает НЕ сервер, а paymentPolicy /
+     * cancellationPenalty здесь же — та самая, что рисует «Платежи»
+     * агентству. Вторая точка правды по срокам нам не нужна.
+     */
+    updateDepartureDate: function (id, dateStart, opts) {
+      var o = opts || {};
+      if (!API_BASE) return demoDepartureDate(id, dateStart, o);
+      return request("/api/admin/departures/" + id + "/date", {
+        method: "POST",
+        body: { date_start: dateStart, confirm: o.confirm === true },
+      });
     },
 
     /*

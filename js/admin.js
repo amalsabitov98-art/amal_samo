@@ -355,6 +355,10 @@
   function renderDepartureControls() {
     var box = $("adm-dep-controls");
     if (!box) return;
+    // Панель собирается заново, и расчёт переноса вместе с ней исчезает —
+    // сбрасываем и его состояние, иначе «Перенести» осталось бы висеть
+    // указывающим на заезд, которого на экране уже нет.
+    dateChange = null;
     var d = state.departures.filter(function (x) {
       return x.code === state.selectedDeparture;
     })[0];
@@ -383,11 +387,92 @@
         '<div class="tt-detail-actions">' +
           '<button type="button" class="tt-btn secondary" id="adm-export" disabled>Выгрузить Excel</button>' +
           '<button type="button" class="tt-btn secondary" data-detail-open="prices">Цены</button>' +
+          '<button type="button" class="tt-btn secondary" data-dep-date="' + d.id +
+            '" data-current="' + esc(d.date_start) + '">Изменить дату</button>' +
           '<button type="button" class="tt-btn secondary tt-detail-sale" data-dep-toggle="' +
             d.id + '" data-open="' + (closed ? "1" : "0") + '">' +
             (closed ? "Открыть продажу" : "Закрыть продажу") + "</button>" +
         "</div>" +
       "</div>";
+  }
+
+  /* --------------------------------------------------- смена даты заезда
+   * Дата тянет за собой сроки оплаты и штрафную зону по УЖЕ ПРОДАННЫМ
+   * броням, поэтому сначала показываем, кого заденет, и только потом
+   * применяем. Сроки считает TuronApi.paymentPolicy — та же функция, что
+   * рисует «Платежи» агентству; своей арифметики здесь нет намеренно.
+   */
+  function dateChangeSummary(res) {
+    var days = TuronApi.FINAL_DAYS;
+    var rows = (res.bookings || []).map(function (b) {
+      var was = TuronApi.paymentPolicy(res.from, b.created_at);
+      var now = TuronApi.paymentPolicy(res.to, b.created_at);
+      // Самое опасное: бронь въезжает в зону, где платить надо всё сразу,
+      // а отмена удерживает 100%. Агентство об этом не просило.
+      var intoPenalty = !was.urgent && now.urgent;
+      var lastWas = was.steps[was.steps.length - 1].due;
+      var lastNow = now.steps[now.steps.length - 1].due;
+      var wasIso = lastWas.toISOString().slice(0, 10);
+      var nowIso = lastNow.toISOString().slice(0, 10);
+
+      /*
+       * Подпись пишем по факту, а не «сроки сдвигаются» на все случаи.
+       * Когда обе даты уже внутри FINAL_DAYS, оплата считается от ДАТЫ
+       * БРОНИ («всё сразу в течение суток») и от переноса не зависит —
+       * срок honestly остаётся прежним, и говорить обратное нельзя.
+       */
+      var note;
+      if (intoPenalty) {
+        note = '<span class="tt-date-flag">до выезда меньше ' + days +
+          " дней: платить всё сразу, отмена со 100% удержанием</span>";
+      } else if (was.urgent && now.urgent) {
+        note = '<span class="tt-muted-note">оплата и так требуется полностью — ' +
+          "срок не меняется</span>";
+      } else if (was.urgent && !now.urgent) {
+        note = '<span class="tt-muted-note">выходит из штрафной зоны: ' +
+          "снова рассрочка и отмена без удержания</span>";
+      } else if (wasIso === nowIso) {
+        note = '<span class="tt-muted-note">срок не меняется</span>';
+      } else {
+        note = '<span class="tt-muted-note">срок сдвигается</span>';
+      }
+
+      return '<tr' + (intoPenalty ? ' class="tt-date-warn"' : "") + ">" +
+        "<td><strong>" + esc(b.code) + "</strong><br>" +
+          '<span class="tt-muted-note">' + esc(b.agency_name || "") + "</span></td>" +
+        '<td class="num">' + money(b.balance) + "</td>" +
+        "<td>" + formatDate(wasIso) +
+          (wasIso === nowIso ? "" : " → <strong>" + formatDate(nowIso) + "</strong>") +
+        "</td>" +
+        "<td>" + note + "</td>" +
+      "</tr>";
+    });
+    var risky = (res.bookings || []).filter(function (b) {
+      return !TuronApi.paymentPolicy(res.from, b.created_at).urgent &&
+        TuronApi.paymentPolicy(res.to, b.created_at).urgent;
+    }).length;
+
+    return '<div class="tt-editor-preview tt-date-preview">' +
+      "<h4>Перенос заезда " + esc(res.code) + ": " +
+        formatDate(res.from) + " → " + formatDate(res.to) + "</h4>" +
+      (rows.length
+        ? '<p class="tt-editor-hint">Затронет проданных броней: <b>' + rows.length +
+            "</b>" + (risky
+              ? '. Из них <b class="tt-date-flag">' + risky +
+                "</b> попадут в штрафную зону — агентство об этом не просило, " +
+                "предупредите его."
+              : ". В штрафную зону никто не попадает.") + "</p>" +
+          '<div class="tt-table-wrap"><table class="tt-table tt-date-table">' +
+            "<thead><tr><th>Бронь</th><th>Остаток</th>" +
+            "<th>Срок полной оплаты</th><th></th></tr></thead>" +
+            "<tbody>" + rows.join("") + "</tbody></table></div>"
+        : '<p class="tt-editor-hint">Проданных броней нет — перенос никого не затронет.</p>') +
+      '<div class="tt-price-actions">' +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" id="adm-date-cancel">Отмена</button>' +
+        '<span class="tt-editor-msg" id="adm-date-msg"></span>' +
+        '<button type="button" class="tt-btn tt-btn-sm" id="adm-date-apply">Перенести заезд</button>' +
+      "</div>" +
+    "</div>";
   }
 
   /* ------------------------------------------------------- прайс заезда
@@ -502,6 +587,16 @@
     // Раньше поля не было вовсе, и такой заезд просто не создавался.
     $("nd-tour-field").hidden = !!src;
     refreshSuggestedCode();
+  }
+
+  // Подтверждённый шаг переноса: какой заезд и на какую дату. Живёт здесь,
+  // а не в разметке — панель заезда перерисовывается.
+  var dateChange = null;
+
+  function dropDateChange() {
+    dateChange = null;
+    var box = document.querySelector(".tt-date-preview");
+    if (box) box.remove();
   }
 
   // Список туров для формы «без образца». Тянем один раз при первом
@@ -1295,6 +1390,63 @@
         setDetailTab(detailOpen.dataset.detailOpen);
         return;
       }
+      /*
+       * Смена даты. Первый шаг — спросить новую дату и ПОКАЗАТЬ, кого
+       * перенос заденет; ничего при этом не пишется. Второй — применить.
+       * Расчёт держим в переменной, а не в разметке: панель заезда
+       * перерисовывается, и из неё он бы пропал.
+       */
+      var dateBtn = e.target.closest("[data-dep-date]");
+      if (dateBtn) {
+        var depDateId = Number(dateBtn.dataset.depDate);
+        var asked = prompt(
+          "Новая дата выезда (ГГГГ-ММ-ДД).\n\n" +
+          "Сначала покажу, кого из уже проданных броней это заденет — " +
+          "у них сдвинутся сроки оплаты.",
+          dateBtn.dataset.current || "");
+        if (asked === null) return;
+        TuronApi.updateDepartureDate(depDateId, asked.trim()).then(function (res) {
+          dateChange = { id: depDateId, date: asked.trim() };
+          $("adm-dep-controls").insertAdjacentHTML("beforeend", dateChangeSummary(res));
+        }).catch(function (err) {
+          alert("Не получилось: " + err.message);
+        });
+        return;
+      }
+
+      if (e.target.id === "adm-date-cancel") {
+        dropDateChange();
+        return;
+      }
+
+      if (e.target.id === "adm-date-apply") {
+        if (!dateChange) return;
+        var dmsg = $("adm-date-msg"), dbtn = $("adm-date-apply");
+        dmsg.className = "tt-editor-msg";
+        dmsg.textContent = "Переношу…";
+        dbtn.disabled = true;
+        TuronApi.updateDepartureDate(dateChange.id, dateChange.date, { confirm: true })
+          .then(function (res) {
+            dateChange = null;
+            return TuronApi.departures({ all: true }).then(function (list) {
+              state.departures = list;
+              renderDepartureCards();
+              renderDepartureControls();
+              loadManifest();
+              alert("Заезд " + res.code + " перенесён на " + formatDate(res.to) +
+                (res.bookings.length
+                  ? ". Затронуто броней: " + res.bookings.length +
+                    " — предупредите агентства."
+                  : "."));
+            });
+          }).catch(function (err) {
+            dbtn.disabled = false;
+            dmsg.className = "tt-editor-msg is-err";
+            dmsg.textContent = err.message;
+          });
+        return;
+      }
+
       var open = e.target.closest("[data-dep-prices]");
       if (open) {
         var openId = Number(open.dataset.depPrices);

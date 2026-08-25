@@ -1977,6 +1977,17 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* --------------------------------------------- перенос заезда на дату */
+.tt-date-preview { margin-top: 14px; }
+.tt-date-preview h4 { margin: 0 0 6px; font-size: 0.95rem; }
+.tt-date-table { margin-top: 4px; }
+.tt-date-table td { vertical-align: top; }
+/* Бронь, которую перенос загоняет в штрафную зону: до выезда становится
+   меньше FINAL_DAYS, значит платить надо всё сразу, а отмена удерживает
+   100%. Агентство об этом не просило — строка должна бросаться в глаза. */
+.tt-date-warn td { background: rgba(201, 81, 69, 0.07); }
+.tt-date-flag { color: var(--tt-danger); font-weight: 600; }
+
 /* -------------------------------------------------- форма нового заезда */
 .tt-newdep {
   margin: 0 0 16px;

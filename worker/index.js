@@ -1223,6 +1223,89 @@ async function setDepartureOpen(env, actor, departureId, open) {
 }
 
 /*
+ * Смена ДАТЫ заезда. Рейсы переносят — это нормальная жизнь, но по
+ * проданным броням дата тянет за собой куда больше, чем кажется:
+ *
+ *   - сроки оплаты (30% в 3 дня, остальное не позднее чем за FINAL_DAYS
+ *     до выезда) считаются ОТ ДАТЫ ВЫЕЗДА;
+ *   - за FINAL_DAYS до выезда и ближе платить надо всё сразу, а отмена
+ *     удерживает 100% — то есть сдвиг даты может задним числом загнать
+ *     агентство в штрафную зону по броням, которые оно уже оплатило
+ *     наполовину и отменить теперь может только с потерей всей суммы.
+ *
+ * Поэтому работает в два шага, как замена состава: без confirm только
+ * СОБИРАЕТ, кого это заденет, и ничего не пишет.
+ *
+ * Сами сроки здесь НЕ считаются намеренно: правило живёт в одной
+ * `TuronApi.paymentPolicy` на клиенте, и дублировать его на сервере
+ * значит завести вторую точку правды, которая рано или поздно разойдётся
+ * с первой. Сервер отдаёт факты (дата брони, сумма, оплачено), а
+ * предпросмотр считает та же функция, что рисует «Платежи» агентству.
+ */
+async function updateDepartureDate(request, env, actor, departureId) {
+  const body = await request.json().catch(() => ({}));
+  const dateStart = String(body.date_start || "").trim();
+  const confirm = body.confirm === true;
+
+  const badDate = invalidCalendarDate(dateStart);
+  if (badDate) return fail(`Дата заезда: ${badDate}`);
+  if (dateStart < new Date().toISOString().slice(0, 10)) {
+    return fail("Дата заезда в прошлом");
+  }
+
+  const dep = await env.DB.prepare(
+    "SELECT id, code, date_start, transport FROM departures WHERE id = ?"
+  ).bind(departureId).first();
+  if (!dep) return fail("Заезд не найден", 404);
+
+  if (dep.date_start === dateStart) {
+    return fail("Это и есть текущая дата заезда");
+  }
+
+  const affected = (await env.DB.prepare(
+    `SELECT b.id, b.code, b.created_at, b.total_price,
+            a.name AS agency_name,
+            COALESCE((SELECT SUM(amount) FROM payments p WHERE p.booking_id = b.id), 0) AS paid
+       FROM bookings b JOIN agencies a ON a.id = b.agency_id
+      WHERE b.departure_id = ? AND b.status = 'confirmed'
+      ORDER BY b.code`
+  ).bind(departureId).all()).results;
+
+  const summary = {
+    code: dep.code,
+    from: dep.date_start,
+    to: dateStart,
+    bookings: affected.map((b) => ({
+      code: b.code,
+      agency_name: b.agency_name,
+      created_at: b.created_at,
+      total_price: b.total_price,
+      paid: Math.round(b.paid * 100) / 100,
+      balance: Math.round((b.total_price - b.paid) * 100) / 100,
+    })),
+  };
+
+  if (!confirm) return json({ preview: true, ...summary });
+
+  await env.DB.prepare("UPDATE departures SET date_start = ? WHERE id = ?")
+    .bind(dateStart, departureId).run();
+
+  /*
+   * Пишем в журнал КАЖДОЙ затронутой брони, а не только рядом с заездом:
+   * журнал у нас на бронь, и агентство должно увидеть причину, по которой
+   * у него вдруг сдвинулись сроки платежей. Иначе это выглядит как сбой.
+   */
+  if (affected.length) {
+    await env.DB.batch(affected.map((b) => logEvent(
+      env, b.id, actor, "edited",
+      `дата заезда ${dep.code}: ${dep.date_start} → ${dateStart}`
+    )));
+  }
+
+  return json({ preview: false, changed: true, ...summary });
+}
+
+/*
  * Создание заезда — ПО ОБРАЗЦУ существующего.
  *
  * Прайс лежит не у тура, а у КАЖДОГО заезда отдельно (`departure_prices`,
@@ -2112,6 +2195,13 @@ async function route(request, env, ctx) {
         // passengers.price на момент брони.
         if (path === "/api/admin/departures" && request.method === "POST") {
           return await createDeparture(request, env, agency);
+        }
+
+        // Смена даты: в два шага, как замена состава. Без confirm только
+        // собирает, кого заденет.
+        const depDate = path.match(/^\/api\/admin\/departures\/(\d+)\/date$/);
+        if (depDate && request.method === "POST") {
+          return await updateDepartureDate(request, env, agency, Number(depDate[1]));
         }
 
         const depPrices = path.match(/^\/api\/admin\/departures\/(\d+)\/prices$/);

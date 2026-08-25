@@ -2595,6 +2595,124 @@ console.log("\nНовый заезд: чего сервер не даёт");
   await page.close();
 }
 
+console.log("\nПеренос заезда на другую дату");
+{
+  const { page, errors } = await session("umida");
+  // Бронь на ДАЛЬНЕМ заезде: только на таком видно главное — как перенос
+  // ближе к сегодняшнему дню загоняет уже проданную бронь в штрафную зону.
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const far = deps[deps.length - 1];
+    const adult = new Date(new Date(far.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const r = await window.TuronApi.createBooking({ departure_code: far.code, passengers: [
+      { full_name: "MOVE ONE", birth_date: adult, passport_number: "MV1111111",
+        passport_expiry: "2033-01-01", placement: "DBL" }] });
+    return { code: far.code, date: far.date_start, booking: r.booking_code };
+  });
+  check("бронь на дальнем заезде создана", !!made.booking);
+
+  // Пересаживаемся оператором в той же вкладке (демо живёт в localStorage).
+  await page.evaluate(async () => { await window.TuronApi.logout().catch(() => {}); });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+  if (await page.locator("#public-login-btn").count()) {
+    try { await page.locator("#public-login-btn").click({ timeout: 1200 }); } catch {}
+  }
+  await page.fill("#l-login", "operator");
+  await page.fill("#l-password", "turon2026");
+  await page.click("#login-btn");
+  await page.waitForTimeout(900);
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(900);
+  await page.locator(`#adm-departure-cards [data-departure="${made.code}"]`).click();
+  await page.waitForTimeout(900);
+  check("у заезда есть кнопка «Изменить дату»",
+        (await page.locator("[data-dep-date]").count()) === 1);
+
+  // Переносим на послезавтра — внутрь границы FINAL_DAYS.
+  const soon = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
+  page.once("dialog", (d) => d.accept(soon));
+  await page.locator("[data-dep-date]").click();
+  await page.waitForTimeout(900);
+  check("показан расчёт, а не молчаливый перенос",
+        await page.locator(".tt-date-preview").isVisible());
+  check("в расчёте перечислены затронутые брони",
+        (await page.locator(".tt-date-table tbody tr").count()) === 1);
+  check("бронь помечена как попадающая в штрафную зону",
+        (await page.locator(".tt-date-warn").count()) === 1);
+  check("штрафная зона названа словами",
+        (await page.locator(".tt-date-preview").innerText()).includes("штрафную зону"));
+
+  // До подтверждения дата не тронута.
+  const midway = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures({ all: true });
+    return deps.find((d) => d.code === code).date_start;
+  }, made.code);
+  check("до подтверждения дата заезда прежняя", midway === made.date,
+        midway + " против " + made.date);
+
+  page.on("dialog", (d) => d.accept());
+  await page.locator("#adm-date-apply").click();
+  await page.waitForTimeout(1400);
+  const after = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures({ all: true });
+    return deps.find((d) => d.code === code).date_start;
+  }, made.code);
+  check("после подтверждения дата перенесена", after === soon, after);
+
+  /*
+   * Перенос должен остаться в журнале брони — иначе агентство увидит
+   * сдвинутые сроки платежей и решит, что это сбой.
+   *
+   * Читаем демо-хранилище напрямую, а не через API: bookingHistory в
+   * демо не реализован вовсе, а adminActivity показывает только действия
+   * АГЕНТСТВ — перенос же делает оператор. Проверить сам факт записи
+   * иначе неоткуда, а он тут и есть самое ценное.
+   */
+  const logged = await page.evaluate((code) => {
+    const st = JSON.parse(localStorage.getItem("turon_demo_state") || "{}");
+    const b = (st.bookings || []).find((x) => x.code === code);
+    return (st.events || []).some((e) =>
+      e.booking_id === b.id && (e.details || "").includes("дата заезда"));
+  }, made.booking);
+  check("перенос записан в журнал брони", logged === true);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
+console.log("\nПеренос заезда: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    // Берём ПРЕДСТОЯЩИЙ заезд: у прошедшего проверка «дата в прошлом»
+    // срабатывает раньше остальных, и «та же дата» до неё не доходит.
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const out = {};
+    const move = (date) => window.TuronApi.updateDepartureDate(d.id, date, { confirm: true });
+
+    try { await move("2027-02-31"); out.badDate = "прошло"; }
+    catch (e) { out.badDate = e.message; }
+
+    try { await move("2020-01-01"); out.past = "прошло"; }
+    catch (e) { out.past = e.message; }
+
+    try { await move(d.date_start); out.same = "прошло"; }
+    catch (e) { out.same = e.message; }
+    return out;
+  });
+
+  check("31 февраля не проходит", /не существует/.test(res.badDate), res.badDate);
+  check("дата в прошлом не проходит", /в прошлом/.test(res.past), res.past);
+  check("перенос на ту же дату отклоняется",
+        /текущая дата/.test(res.same), res.same);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");
