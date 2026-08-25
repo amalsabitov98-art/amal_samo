@@ -813,9 +813,11 @@ console.log("\nКабинет агентства");
         (await page.locator("#builder-umra .tt-tourcard[data-program]").count()) === 5 &&
         (await page.locator("#builder-karadeniz").isHidden()));
 
-  // возвращаемся к верхней витрине и в конструктор Карадениза для след. блока
-  await page.locator("#builder-catalog-back").click();
-  await page.waitForTimeout(400);
+  // Возвращаемся к верхней витрине и в конструктор Карадениза для след. блока.
+  // Своей кнопки у сетки программ Умры больше нет — только «Назад» браузера,
+  // и стоящий за ним stepBack ведёт туда же.
+  await page.goBack();
+  await page.waitForTimeout(500);
   await page.locator('#builder-showcase .tt-tourcard[data-product="karadeniz"]').first().click();
   await page.waitForTimeout(700);
 
@@ -956,17 +958,20 @@ console.log("\nКабинет агентства");
         (await page.locator("#builder-karadeniz").isHidden()) &&
         (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3);
 
-  // На витрине кнопки возврата нет; на странице Умры она появляется и
-  // возвращает на витрину туров.
+  // Кнопка `#builder-catalog-back` живёт только в обычном каталоге хоста:
+  // ни на витрине, ни на сетке программ Умры её нет — сетка Умры сама по
+  // себе такая же витрина, и вторая кнопка «Все туры» на ней читалась как
+  // выход из кабинета. Возврат оттуда — «Назад» браузера, через тот же
+  // stepBack, что и у кнопок.
   check("на витрине кнопки «Все туры» нет",
         await page.locator("#builder-catalog-back").isHidden());
   await page.locator('#builder-showcase .tt-tourcard[data-product="Умра"]').first().click({ force: true });
   await page.waitForTimeout(700);
-  check("на странице Умры есть кнопка «Все туры»",
-        await page.locator("#builder-catalog-back").isVisible());
-  await page.locator("#builder-catalog-back").click();
-  await page.waitForTimeout(400);
-  check("кнопка «Все туры» с Умры возвращает на витрину",
+  check("на сетке программ Умры отдельной кнопки «Все туры» нет",
+        await page.locator("#builder-catalog-back").isHidden());
+  await page.goBack();
+  await page.waitForTimeout(500);
+  check("«Назад» с Умры возвращает на витрину",
         (await page.locator("#builder-showcase .tt-tourcard[data-product]").count()) === 3 &&
         (await page.locator("#builder-catalog-back").isHidden()));
 
