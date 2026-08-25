@@ -7011,6 +7011,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   font-weight: 600;
   cursor: pointer;
 }
+.tt-mj-back[hidden] { display: none; }
 .tt-mj-back:hover { border-color: var(--tt-forest); color: var(--tt-forest); }
 /* На странице Умры/Японии контент высокий (герой на весь экран + программы),
    поэтому кнопку возврата держим липкой под шапкой — она всегда под рукой,
