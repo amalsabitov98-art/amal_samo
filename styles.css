@@ -48,6 +48,7 @@ body {
   overflow: hidden;
   background: #071713;
 }
+.tt-destination-showcase { --tt-showcase-baseline: clamp(104px, 13.5vh, 152px); }
 .tt-destination-showcase,
 .tt-showcase-stage {
   position: relative;
@@ -114,46 +115,50 @@ body {
   background-size: 7px 7px, 100% 100%;
 }
 .tt-showcase-poster-meta {
-  top: clamp(176px, 19vh, 212px);
+  top: clamp(44px, 6vh, 78px);
   left: clamp(28px, 4.2vw, 78px);
   right: clamp(24px, 3.2vw, 58px);
   z-index: 3;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 28px;
-  color: rgba(255, 249, 233, .66);
+  text-align: center;
+  color: rgba(255, 249, 233, .6);
   font: 600 clamp(.45rem, .52vw, .59rem)/1.35 Manrope, sans-serif;
   letter-spacing: .21em;
   text-transform: uppercase;
 }
-.tt-showcase-poster-meta small {
-  font: inherit;
-  white-space: nowrap;
-}
-.tt-showcase-poster-meta small:nth-child(2) { text-align: center; }
-.tt-showcase-poster-meta small:last-child { text-align: right; }
+.tt-showcase-poster-meta small { font: inherit; white-space: nowrap; }
+/* Слово — заглавная строка текстовой колонки, а не отдельный слой поверх
+   кадра. Слоем оно жило по собственной координате: на коротких экранах
+   ложилось прямо на строки заголовка, на высоких отрывалось от них — не
+   «поверх», а «случайно рядом». В общем потоке столкнуться им негде,
+   колонка целиком прижата к нижней линии.
+
+   width:0 при overflow:visible — чтобы слово занимало высоту строки, но НЕ
+   растягивало колонку: оно заведомо шире её и должно свободно уходить
+   вправо, в кадр. */
 .tt-showcase-poster-word {
-  top: clamp(216px, 23.5vh, 266px);
-  left: clamp(24px, 3.7vw, 68px);
-  z-index: 2;
-  max-width: calc(100% - 48px);
-  overflow: hidden;
-  color: rgba(241, 229, 199, .20);
-  font: 700 clamp(8.6rem, 18vw, 20rem)/.72 "Barlow Condensed", Impact, "Arial Narrow", sans-serif;
+  position: static;
+  display: block;
+  margin: 0 0 clamp(6px, 1.2vh, 16px) -.045em;   /* оптический вынос Barlow */
+  color: rgba(241, 229, 199, .42);
+  /* Три потолка сразу: по длине слова (--tt-word-vw, считается в
+     js/catalog.js), абсолютный и по ВЫСОТЕ экрана. Последний обязателен:
+     без него на коротком окне колонка не помещалась и слово выдавливало
+     заголовок вверх, под строку колонтитула. */
+  font: 700 min(calc(var(--tt-word-vw, 10) * 1vw), 20rem, 21vh)/.72
+        "Barlow Condensed", Impact, "Arial Narrow", sans-serif;
   letter-spacing: -.055em;
   text-transform: uppercase;
   white-space: nowrap;
+  overflow: visible;
   mix-blend-mode: screen;
-  text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 18px 48px rgba(0,0,0,.12);
-  transform-origin: left top;
+  text-shadow: 0 1px 0 rgba(255,255,255,.06);
 }
 .tt-showcase-slide.is-umrah .tt-showcase-poster-word {
-  color: rgba(233, 214, 166, .18);
+  color: rgba(233, 214, 166, .16);
   letter-spacing: -.035em;
 }
 .tt-showcase-slide.is-japan .tt-showcase-poster-word {
-  color: rgba(245, 232, 213, .19);
+  color: rgba(245, 232, 213, .16);
 }
 .tt-showcase-slide.is-entering {
   animation: tt-showcase-reveal .5s cubic-bezier(.68, 0, .2, 1) both;
@@ -164,9 +169,11 @@ body {
 .tt-showcase-copy {
   position: absolute;
   left: clamp(28px, 4.2vw, 78px);
-  bottom: clamp(118px, 15.5vh, 165px);
+  bottom: var(--tt-showcase-baseline);
   z-index: 4;
-  width: min(44vw, 690px);
+  /* Было min(44vw, 690px): вместе с карточками (49vw) колонки не влезали
+     в 1440, и заголовок налезал на «Путь к святыням». */
+  width: min(37vw, 560px);
 }
 .tt-showcase-slide.is-active .tt-showcase-copy > * {
   animation: tt-copy-enter .45s cubic-bezier(.2,.78,.2,1) both;
@@ -200,7 +207,6 @@ body {
   letter-spacing: -.06em;
   text-wrap: balance;
 }
-.tt-showcase-slide.is-karadeniz .tt-showcase-copy h2 { max-width: 650px; }
 .tt-showcase-copy p,
 .tt-showcase-copy > strong {
   display: block;
@@ -234,12 +240,14 @@ body {
 .tt-showcase-previews {
   position: absolute;
   right: clamp(24px, 3.2vw, 58px);
-  bottom: clamp(88px, 12vh, 124px);
+  /* Та же линия, что у текста: раньше низ кнопки и низ карточек стояли на
+     разных высотах, и composition разъезжалась на ровном месте. */
+  bottom: var(--tt-showcase-baseline);
   z-index: 6;
   display: grid;
   grid-template-columns: repeat(2, minmax(190px, 1fr));
   gap: clamp(12px, 1.4vw, 22px);
-  width: min(49vw, 750px);
+  width: min(46vw, 700px);
   transition: opacity .16s ease;
 }
 .tt-showcase-card {

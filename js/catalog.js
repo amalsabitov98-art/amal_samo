@@ -135,6 +135,17 @@
   /* Главная витрина: три направления меняются внутри одного полноэкранного
    * кадра. Колесо страницы не трогаем — слайдер управляется таймером,
    * стрелками и превью. */
+  /* Кегль плакатного слова. Оно должно кончиться ДО карточек «Следующее
+   * направление» (их левый край ≈ 60vw), иначе упирается в них обрывом —
+   * отсюда 54vw на всё слово. 0.6em на знак — измеренная ширина Barlow
+   * Condensed; потолок 19vw держит короткие слова («UMRAH», «JAPAN») от
+   * раздувания на весь экран. Раньше кегль был задан числом (18vw), и
+   * длинное «KARADENIZ» срезалось краем окна. */
+  function wordVw(word) {
+    var len = String(word || "").length || 1;
+    return Math.min(19, 54 / (len * 0.6)).toFixed(2);
+  }
+
   function destinationMosaic(list) {
     var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
     var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
@@ -145,10 +156,7 @@
       {
         cls: "is-karadeniz", destination: "Турция",
         image: "img/showcase-karadeniz-editorial.webp",
-        posterWord: "KARADENIZ",
-        posterLeft: "Batumi · Rize · Trabzon",
-        posterCenter: "Black Sea / 2026",
-        posterRight: "Авторский тур · 8 дней",
+        posterWord: "KARADENIZ", posterCenter: "Black Sea / 2026",
         kicker: "Авторский тур · сезон 2026", title: "Загадочный Карадениз",
         route: "Батуми · Ризе · Трабзон", meta: "8 дней · " + karadenizPrice,
         action: "Открыть маршрут", duration: 6000,
@@ -156,10 +164,7 @@
       {
         cls: "is-umrah", destination: "Умра",
         image: "img/showcase-umrah-editorial.webp",
-        posterWord: "UMRAH",
-        posterLeft: "Makkah · Madinah · Jeddah",
-        posterCenter: "Путь к святыням",
-        posterRight: "Духовное путешествие · 2026",
+        posterWord: "UMRAH", posterCenter: "Makkah · Madinah · Jeddah",
         kicker: "Духовное путешествие · 2026", title: "Путь к святыням",
         route: "Мекка · Медина · Джидда", meta: "9 программ · 10/13 дней · от $1200",
         action: "Выбрать программу", duration: 5000,
@@ -168,10 +173,7 @@
       {
         cls: "is-japan", destination: "Япония",
         image: "img/showcase-japan-editorial.webp",
-        posterWord: "JAPAN",
-        posterLeft: "Japan · Honshu",
-        posterCenter: "01 Tokyo · 02 Kyoto · 03 Nara · 04 Hakone",
-        posterRight: "Авторский маршрут · 2026",
+        posterWord: "JAPAN", posterCenter: "Japan / Honshu · 2026",
         kicker: "Авторские программы · сезон 2026", title: "Япония",
         route: "Токио · Киото · Нара · Хаконэ", meta: "4 программы · март—ноябрь",
         action: "Открыть Японию", duration: 5000,
@@ -191,15 +193,24 @@
               esc(slide.image) + '\')" aria-hidden="true"></span>' +
             '<span class="tt-showcase-shade" aria-hidden="true"></span>' +
             '<span class="tt-showcase-film" aria-hidden="true"></span>' +
+            // Одна строка по центру вместо трёх: слева и справа стояли тот же
+            // маршрут и та же длительность, что и в самой карточке ниже —
+            // повторённые с одинаковым весом, они убивали иерархию.
             '<span class="tt-showcase-poster-meta" aria-hidden="true">' +
-              '<small>' + esc(slide.posterLeft) + '</small>' +
               '<small>' + esc(slide.posterCenter) + '</small>' +
-              '<small>' + esc(slide.posterRight) + '</small>' +
             '</span>' +
-            '<span class="tt-showcase-poster-word" aria-hidden="true">' +
-              esc(slide.posterWord) + '</span>' +
             '<div class="tt-showcase-copy">' +
               '<span class="tt-showcase-kicker">' + esc(slide.kicker) + '</span>' +
+              // Слово — ПЕРВАЯ строка той же колонки, а не отдельный слой
+              // сверху. Отдельным слоем оно жило по своей координате и на
+              // коротких экранах приходилось ровно на строки заголовка, а на
+              // высоких отрывалось от него. В общем потоке столкнуться им
+              // негде: колонка целиком прижата к нижней линии кадра.
+              // Кегль считается от длины слова (--tt-word-vw) — иначе
+              // длинное слово срезалось краем экрана.
+              '<span class="tt-showcase-poster-word" aria-hidden="true" style="' +
+                '--tt-word-vw:' + wordVw(slide.posterWord) + '">' +
+                esc(slide.posterWord) + '</span>' +
               '<h2>' + esc(slide.title) + '</h2>' +
               '<p>' + esc(slide.route) + '</p>' +
               '<strong>' + esc(slide.meta) + '</strong>' +

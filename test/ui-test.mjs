@@ -106,6 +106,57 @@ console.log("\nТитульная страница");
         (await page.locator("[data-showcase-progress]").count()) === 1 &&
         (await page.locator("[data-showcase-prev], [data-showcase-next]").count()) === 2 &&
         (await page.locator(".tt-showcase-dots [data-showcase-goto]").count()) === 3);
+  /* Плакатная колонка. Слово было отдельным слоем с собственной координатой:
+   * на коротком окне (высота ~760) оно ложилось прямо на строки заголовка, а
+   * на высоком отрывалось от них. Теперь это первая строка той же колонки —
+   * столкнуться им негде. Меряем на трёх высотах, потому что баг был именно
+   * высотозависимый и на 1080 не воспроизводился. */
+  for (const [w, h] of [[1900, 760], [1440, 900], [1920, 1080]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.waitForTimeout(500);
+    const geo = await page.evaluate(() => {
+      const box = (sel) => {
+        const el = document.querySelector(".tt-showcase-slide.is-active " + sel);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+      };
+      const cards = document.querySelector(".tt-showcase-previews").getBoundingClientRect();
+      return {
+        word: box(".tt-showcase-poster-word"), h2: box("h2"),
+        meta: box(".tt-showcase-poster-meta"),
+        cards: { top: cards.top, left: cards.left, bottom: cards.bottom },
+        btn: box(".tt-showcase-open"),
+        vw: window.innerWidth,
+      };
+    });
+    check(`слово и заголовок не налезают друг на друга (${w}×${h})`,
+          geo.word.bottom <= geo.h2.top + 1,
+          `слово до ${Math.round(geo.word.bottom)}, заголовок с ${Math.round(geo.h2.top)}`);
+    check(`слово целиком помещается в кадр (${w}×${h})`,
+          geo.word.right < geo.vw - 4,
+          `правый край ${Math.round(geo.word.right)} при ширине ${geo.vw}`);
+    check(`слово не доходит до карточек (${w}×${h})`,
+          geo.word.right <= geo.cards.left,
+          `слово до ${Math.round(geo.word.right)}, карточки с ${Math.round(geo.cards.left)}`);
+    check(`заголовок не упирается в карточки (${w}×${h})`,
+          geo.h2.right <= geo.cards.left,
+          `заголовок до ${Math.round(geo.h2.right)}, карточки с ${Math.round(geo.cards.left)}`);
+    check(`колонтитул выше текста (${w}×${h})`,
+          geo.meta.bottom <= geo.word.top,
+          `колонтитул до ${Math.round(geo.meta.bottom)}, слово с ${Math.round(geo.word.top)}`);
+    check(`текст и карточки стоят на одной нижней линии (${w}×${h})`,
+          Math.abs(geo.btn.bottom - geo.cards.bottom) < 2,
+          `кнопка ${Math.round(geo.btn.bottom)}, карточки ${Math.round(geo.cards.bottom)}`);
+  }
+  await page.setViewportSize({ width: 1440, height: 950 });
+  await page.waitForTimeout(400);
+  // Маршрут и длительность стояли и в колонтитуле, и под заголовком, и на
+  // нижней шкале — три одинаковых по весу повтора вместо иерархии.
+  check("колонтитул не повторяет маршрут из карточки",
+        (await page.locator(".tt-showcase-slide.is-active .tt-showcase-poster-meta small")
+          .count()) === 1);
+
   check("при появлении витрины её нижний таймер запускается сразу",
         await page.locator("[data-showcase]").evaluate((el) =>
           el.classList.contains("is-timer-running")));
@@ -376,10 +427,13 @@ console.log("\nТитульная страница");
     check("карточки без фото несут водяной знак Etihad", plainMark.plainHasMark);
     check("карточки с фото знак не дублируют", plainMark.photoHasNoMark);
   }
-  check("панель карточки — матовое стекло с размытием",
+  // Стекло с размытием сняли намеренно: текст не спорит с фотографией, и
+  // карточка читается как каталог. Проверяем, что панель осталась плотной —
+  // на прозрачной подложке подписи тонули в кадре.
+  check("панель карточки — плотная подложка, а не прозрачная",
         await page.locator(".tt-up-glass").first().evaluate((el) => {
           const s = getComputedStyle(el);
-          return (s.backdropFilter || s.webkitBackdropFilter || "").includes("blur");
+          return !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(s.backgroundColor);
         }));
   check("у каждой карточки крупное число дня и месяц без точки",
         await page.locator(".tt-up-track").evaluate((el) =>
@@ -606,9 +660,13 @@ console.log("\nКарточка тура Умры");
 
   check("карточка программы Умры открывается",
         (await page.locator("#screen-public .tt-cat-hero h1").innerText()).includes("Умра"));
-  // Своего видео у Умры нет — чужой ролик Карадениза показывать нельзя.
-  check("на карточке Умры нет видеофона Карадениза",
-        (await page.locator(".tt-tour-bg").count()) === 0);
+  /* У Умры теперь СВОЙ фон — статичный кадр Мекки. Проверяем именно это:
+   * видео Узунгёля принадлежит Караденизу, и показывать его на программе
+   * Умры нельзя ни при каких обстоятельствах. */
+  check("у карточки Умры собственный фон",
+        (await page.locator(".tt-tour-bg.tt-tour-bg-umrah").count()) === 1);
+  check("чужого видео Карадениза на Умре нет",
+        (await page.locator(".tt-tour-bg video").count()) === 0);
 
   const calc = page.locator("#tour-departures [data-calc]").first();
   check("у программы Умры есть заезды", (await calc.count()) > 0);
