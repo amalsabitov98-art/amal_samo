@@ -255,10 +255,17 @@ async function cbuRates() {
  * закрыв заезд, теряет его из кабинета и открыть обратно уже нечем.
  * Поэтому флаг раздельный: продающие пути его НЕ передают и закрытых
  * по-прежнему не видят, а управляющий список оператора — передаёт.
+ *
+ * ТО ЖЕ САМОЕ и на этаж выше — `t.is_bookable`. Тур, снятый с продажи,
+ * уводил за собой ВСЕ свои заезды, включая операторский список: снял тур
+ * галочкой — и ведомости, цены и кнопка «открыть продажу» по его заездам
+ * стали недоступны. Пока туры заводились только seed-файлом, эту галочку
+ * никто не трогал и мина молчала; с появлением вкладки «Туры» ожила.
  */
 async function listDepartures(env, includePast, includeClosed) {
   const dateFilter = includePast ? "" : "AND d.date_start >= date('now')";
-  const openFilter = includeClosed ? "" : "AND d.is_open = 1";
+  const openFilter = includeClosed
+    ? "" : "AND d.is_open = 1 AND t.is_bookable = 1";
   const departures = await env.DB.prepare(
     `SELECT d.id, d.code, d.date_start, d.transport, d.is_info_tour,
             d.capacity, d.seats_taken, d.capacity - d.seats_taken AS seats_free,
@@ -266,7 +273,7 @@ async function listDepartures(env, includePast, includeClosed) {
             t.code AS tour_code, t.name AS tour_name, t.destination,
             t.agency_commission, t.nights
        FROM departures d JOIN tours t ON t.id = d.tour_id
-      WHERE t.is_bookable = 1 ${openFilter} ${dateFilter}
+      WHERE 1 = 1 ${openFilter} ${dateFilter}
       ORDER BY d.date_start, d.transport`
   ).all();
 
@@ -849,8 +856,21 @@ async function adminUpdateBookingPassengers(request, env, actor, bookingId) {
   const today = new Date().toISOString().slice(0, 10);
   if (booking.date_start <= today) return fail("Заезд уже начался — состав не меняется");
 
-  const departure = (await listDepartures(env, true)).find((d) => d.code === booking.departure_code);
-  if (!departure) return fail("Заезд закрыт", 409);
+  /*
+   * Заезд ищем ВКЛЮЧАЯ закрытые. Закрытая продажа запрещает новые брони и
+   * новые МЕСТА, но не правку уже проданного: убрать отказавшегося туриста
+   * из брони надо уметь и на полном рейсе — это место не занимает, а
+   * освобождает. Раньше здесь стоял общий отказ, и оператору приходилось
+   * открывать продажу, править и закрывать обратно — а в этот промежуток
+   * заезд снова принимал брони.
+   *
+   * Настоящий запрет остался ниже: UPDATE, занимающий места, идёт с
+   * `AND is_open = 1` — добавить человека на закрытый заезд по-прежнему
+   * нельзя.
+   */
+  const departure = (await listDepartures(env, true, true))
+    .find((d) => d.code === booking.departure_code);
+  if (!departure) return fail("Заезд не найден", 404);
 
   // Та же проверка, что и при создании брони: правка состава меняет тариф
   // и число мест ровно так же, поэтому кривая дата опасна здесь не меньше.
@@ -1837,7 +1857,10 @@ async function updatePassengerBirthdate(request, env, actor, passengerId) {
   const badBirth = invalidBirthDate(birth, pax.date_start);
   if (badBirth) return fail(badBirth);
 
-  const departure = (await listDepartures(env, true)).find((d) => d.code === pax.departure_code);
+  // Тоже включая закрытые: исправление даты рождения места обычно не
+  // добавляет, а если добавляет — это ловит UPDATE с `is_open = 1` ниже.
+  const departure = (await listDepartures(env, true, true))
+    .find((d) => d.code === pax.departure_code);
   if (!departure) return fail("Заезд не найден", 404);
 
   const tariff = priceFor({ birth_date: birth, placement: pax.placement }, departure);

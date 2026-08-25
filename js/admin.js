@@ -1787,6 +1787,8 @@
       // Повторный клик по «+ Новый тур» при открытой ПРАВКЕ должен
       // переключить форму на создание, а не закрыть её молча.
       if (!form.hidden && tourEditing === null) { form.hidden = true; return; }
+      $("ot-content").hidden = true;
+      contentEditing = null;
       fillTourForm(null);
       $("ot-code").focus();
     });
@@ -1800,7 +1802,15 @@
       var t = state.tours.filter(function (x) {
         return x.id === Number(btn.dataset.tourEdit);
       })[0];
-      if (t) { fillTourForm(t); $("ot-name").focus(); }
+      if (t) {
+        // Закрываем редактор карточки: иначе на экране висят ДВА редактора
+        // разных туров — форма правки одного и карточка другого, и «Сохранить
+        // карточку» пишет не туда, куда смотрит оператор.
+        $("ot-content").hidden = true;
+        contentEditing = null;
+        fillTourForm(t);
+        $("ot-name").focus();
+      }
     });
 
     $("ot-form").addEventListener("submit", function (e) {

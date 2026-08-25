@@ -532,7 +532,6 @@
     }
     var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
     if (!d) return Promise.reject(new Error("Заезд не найден"));
-    if (d.is_open === 0) return Promise.reject(new Error("Заезд закрыт"));
 
     for (var j = 0; j < passengers.length; j++) {
       var bad = invalidBirthDate(passengers[j].birth_date, d.date_start);
@@ -587,6 +586,16 @@
       seats_delta: seats - oldSeats,
     };
     if (!opts.confirm) return Promise.resolve(Object.assign({ preview: true }, out));
+
+    /*
+     * Закрытая продажа запрещает новые МЕСТА, а не любую правку: убрать
+     * отказавшегося туриста надо уметь и на полном рейсе — это место
+     * освобождает. Поэтому отказ только когда мест становится больше
+     * (на сервере то же самое делает `AND is_open = 1` в UPDATE).
+     */
+    if (d.is_open === 0 && seats > oldSeats) {
+      return Promise.reject(new Error("Заезд закрыт для продажи. Уточните у оператора."));
+    }
 
     // Прежнюю сумму запоминаем ДО присваивания: в журнал идёт «было →
     // стало», а b.total_price ниже уже станет новым.

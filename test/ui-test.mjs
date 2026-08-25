@@ -2937,6 +2937,87 @@ console.log("\nКарточка тура: чего сервер не даёт");
   await page.close();
 }
 
+console.log("\nЗакрытый заезд: что оператор всё ещё может");
+{
+  const { page, errors } = await session("umida");
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const row = (n, p) => ({ full_name: n, birth_date: adult, passport_number: p,
+      passport_expiry: "2033-01-01", placement: "DBL" });
+    const r = await window.TuronApi.createBooking({
+      departure_code: d.code, passengers: [row("CLOSED ONE", "CL1"), row("CLOSED TWO", "CL2")] });
+    return { code: d.code, id: d.id, booking: r.booking_code, adult: adult };
+  });
+
+  const res = await page.evaluate(async (o) => {
+    const A = window.TuronApi;
+    const list = await A.bookings();
+    const b = list.find((x) => x.code === o.booking);
+    const row = (n, p) => ({ full_name: n, birth_date: o.adult, passport_number: p,
+      passport_expiry: "2033-01-01", placement: "DBL" });
+    const out = {};
+
+    await A.setDepartureOpen(o.id, false);
+
+    // Ведомость и оплаты по закрытому заезду должны работать: заезд закрыт
+    // для ПРОДАЖИ, а не для сопровождения уже проданного.
+    const m = await A.manifest(o.code);
+    out.manifest = m.passengers.length;
+    await A.addPayment(o.booking, 100, "аудит");
+    out.paid = true;
+
+    // Убрать туриста — можно: место освобождается, а не занимается.
+    try {
+      await A.adminUpdatePassengers(b.id, [row("CLOSED ONE", "CL1")], { confirm: true });
+      out.removed = "получилось";
+    } catch (e) { out.removed = e.message; }
+
+    // Добавить — нельзя: это уже новое место на закрытом заезде.
+    try {
+      await A.adminUpdatePassengers(b.id,
+        [row("CLOSED ONE", "CL1"), row("CLOSED THREE", "CL3")], { confirm: true });
+      out.added = "прошло";
+    } catch (e) { out.added = e.message; }
+
+    await A.setDepartureOpen(o.id, true);
+    return out;
+  }, made);
+
+  check("ведомость по закрытому заезду доступна", res.manifest === 2, String(res.manifest));
+  check("оплата по закрытому заезду проводится", res.paid === true);
+  check("убрать туриста на закрытом заезде можно",
+        res.removed === "получилось", res.removed);
+  check("добавить туриста на закрытый заезд нельзя",
+        /закрыт/.test(res.added), res.added);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
+console.log("\nТур снят с продажи: заезды не пропадают у оператора");
+{
+  const { page, errors } = await session("operator");
+  await page.locator('.tt-tab[data-tab="op-tours"]').first().click({ force: true });
+  await page.waitForTimeout(700);
+
+  // Открываем карточку одного тура, потом правку другого — два редактора
+  // одновременно висеть не должны: «Сохранить карточку» писало бы не туда,
+  // куда смотрит оператор.
+  await page.locator("[data-tour-content]").first().click();
+  await page.waitForTimeout(600);
+  check("редактор карточки открыт", await page.locator("#ot-content").isVisible());
+  await page.locator("[data-tour-edit]").nth(1).click();
+  await page.waitForTimeout(400);
+  check("правка тура закрывает редактор карточки",
+        await page.locator("#ot-content").isHidden());
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");
