@@ -310,8 +310,8 @@
           if (name == null) { showBuilderShowcase(); return true; }
           return false;   // Япония и прочие — обычный каталог хоста
         },
-        // На витрине (карточки туров) кнопку возврата прячем, на странице
-        // Умры/Японии/карточке тура — показываем «← Все туры».
+        // На витрине кнопку возврата прячем; она нужна только внутри обычного
+        // каталога. У сетки программ Умры отдельной кнопки больше нет.
         onView: function (view) {
           var back = $("builder-catalog-back");
           if (back) back.hidden = !view || view.kind === "destinations";
@@ -678,7 +678,7 @@
     if ($("builder-catalog")) $("builder-catalog").hidden = which !== "catalog";
     if ($("builder-karadeniz")) $("builder-karadeniz").hidden = which !== "karadeniz";
     if ($("builder-catalog-back")) {
-      $("builder-catalog-back").hidden = which !== "catalog" && which !== "umra";
+      $("builder-catalog-back").hidden = which !== "catalog";
     }
   }
 
