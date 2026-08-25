@@ -1548,7 +1548,10 @@ a { color: inherit; }
 /* ------------------------------------------------------ мои брони */
 .tt-booking {
   display: grid;
-  grid-template-columns: 1fr 260px 130px;
+  /* Третья колонка — действия. 130px хватало на одну кнопку «Запросить
+     отмену»; со второй («Заменить туриста») подпись переносилась по
+     слогам и вставала вплотную к соседке. */
+  grid-template-columns: 1fr 260px 176px;
   gap: 18px;
   align-items: center;
   background: var(--tt-surface);
@@ -1563,7 +1566,25 @@ a { color: inherit; }
 }
 .tt-booking.is-cancelled { opacity: 0.55; }
 .tt-booking-main { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
-.tt-booking-action { text-align: right; }
+/* Кнопки действий — столбиком с зазором, каждая во всю ширину колонки:
+   так подписи не жмутся друг к другу и не рвутся по слогам. Строки
+   состояния («Замена у оператора», «Ожидает решения оператора») идут
+   тем же столбцом и выравниваются по центру, а не липнут к краю. */
+.tt-booking-action {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  text-align: center;
+}
+.tt-booking-action .tt-btn { width: 100%; }
+.tt-booking-action .tt-muted-note { line-height: 1.3; }
+@media (max-width: 780px) {
+  /* На телефоне колонка становится полной шириной — кнопки в ряд,
+     иначе они растягиваются на весь экран каждая. */
+  .tt-booking-action { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .tt-booking-action .tt-btn { width: auto; flex: 1 1 auto; }
+}
 
 .tt-sum-line {
   display: flex;
