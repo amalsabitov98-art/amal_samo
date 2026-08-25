@@ -4481,6 +4481,107 @@ select { font-family: inherit; }
 .tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
 
 /* ------------------------------------------------ операторский обзор */
+/* Фильтры списка заездов: быстрый период + точные операционные срезы. */
+.tt-departure-filters { display: block; padding: 20px; }
+.tt-departure-filter-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.tt-departure-filter-main .tt-field { width: min(380px, 100%); min-width: 280px; }
+.tt-departure-filter-main .tt-field input { min-height: 48px; }
+.tt-departure-filter-main .tt-btn { min-height: 48px; white-space: nowrap; }
+.tt-departure-filter-row {
+  display: grid;
+  grid-template-columns: minmax(350px, 1.55fr) repeat(4, minmax(145px, 1fr)) auto;
+  gap: 12px;
+  align-items: center;
+}
+.tt-period-switch {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--tt-border-strong);
+  border-radius: 11px;
+  background: var(--tt-surface);
+}
+.tt-period-switch button {
+  min-height: 48px;
+  padding: 9px 12px;
+  border: 0;
+  border-right: 1px solid var(--tt-border);
+  background: transparent;
+  color: var(--tt-forest);
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.tt-period-switch button:last-child { border-right: 0; }
+.tt-period-switch button:hover { background: var(--tt-surface-2); }
+.tt-period-switch button.is-active { background: var(--tt-forest); color: #fff; }
+.tt-departure-filter-row select {
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 36px 0 13px;
+  border: 1px solid var(--tt-border);
+  border-radius: 11px;
+  background-color: var(--tt-surface);
+  color: var(--tt-text);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.tt-filter-reset {
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--tt-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tt-filter-reset:hover { color: var(--tt-danger); }
+.tt-filter-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; min-height: 34px; margin-top: 16px; }
+.tt-filter-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tt-filter-chips:empty { display: none; }
+.tt-filter-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  border: 1px solid rgba(22, 128, 95, 0.16);
+  border-radius: 999px;
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  font-size: 0.75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.tt-filter-chips button b { font-size: 1rem; line-height: 0.7; }
+#adm-filter-count { font-size: 0.78rem; }
+@media (max-width: 1250px) {
+  .tt-departure-filter-row { grid-template-columns: repeat(4, minmax(145px, 1fr)); }
+  .tt-period-switch { grid-column: 1 / -1; }
+  .tt-filter-reset { justify-self: start; }
+}
+@media (max-width: 720px) {
+  .tt-departure-filter-main { align-items: stretch; flex-direction: column; }
+  .tt-departure-filter-main .tt-field,
+  .tt-departure-filter-main .tt-btn { width: 100%; min-width: 0; }
+  .tt-departure-filter-row { grid-template-columns: 1fr 1fr; }
+  .tt-period-switch { grid-template-columns: 1fr 1fr; }
+  .tt-period-switch button:nth-child(2) { border-right: 0; }
+  .tt-period-switch button:nth-child(-n+2) { border-bottom: 1px solid var(--tt-border); }
+}
+@media (max-width: 480px) {
+  .tt-departure-filter-row { grid-template-columns: 1fr; }
+  .tt-period-switch { grid-template-columns: 1fr; }
+  .tt-period-switch button { border-right: 0; border-bottom: 1px solid var(--tt-border); }
+  .tt-period-switch button:last-child { border-bottom: 0; }
+}
+
 /* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
    это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
    .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */
@@ -9306,12 +9407,50 @@ a.tt-contact-row:hover { color: var(--cc); }
 
     <section id="panel-manifest" hidden>
       <div id="adm-departure-list">
-      <div class="tt-toolbar">
-        <div class="tt-field" style="min-width:230px">
-          <label for="adm-departure-search">Найти заезд</label>
-          <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
+      <div class="tt-toolbar tt-departure-filters">
+        <div class="tt-departure-filter-main">
+          <div class="tt-field">
+            <label for="adm-departure-search">Найти заезд</label>
+            <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
+          </div>
+          <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
         </div>
-        <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
+        <div class="tt-departure-filter-row">
+          <div class="tt-period-switch" role="group" aria-label="Период заездов">
+            <button type="button" class="is-active" data-dep-period="upcoming">Ближайшие</button>
+            <button type="button" data-dep-period="7">7 дней</button>
+            <button type="button" data-dep-period="30">30 дней</button>
+            <button type="button" data-dep-period="past">Прошедшие</button>
+          </div>
+          <select id="adm-filter-direction" aria-label="Направление">
+            <option value="">Направление: Все</option>
+            <option value="umra">Направление: Умра</option>
+            <option value="karadeniz">Направление: Карадениз</option>
+          </select>
+          <select id="adm-filter-route" aria-label="Маршрут">
+            <option value="">Маршрут: Все</option>
+            <option value="BUS">Маршрут: Батуми</option>
+            <option value="TZX">Маршрут: Трабзон</option>
+            <option value="MED">Маршрут: Медина</option>
+            <option value="JED">Маршрут: Джидда</option>
+          </select>
+          <select id="adm-filter-sale" aria-label="Статус продажи">
+            <option value="">Продажа: Все</option>
+            <option value="open">Продажа: Открыта</option>
+            <option value="closed">Продажа: Закрыта</option>
+          </select>
+          <select id="adm-filter-load" aria-label="Загрузка">
+            <option value="">Загрузка: Все</option>
+            <option value="available">Загрузка: Есть места</option>
+            <option value="low">Загрузка: Мало мест</option>
+            <option value="full">Загрузка: Мест нет</option>
+          </select>
+          <button type="button" class="tt-filter-reset" id="adm-filter-reset">Сбросить</button>
+        </div>
+        <div class="tt-filter-summary">
+          <div id="adm-filter-chips" class="tt-filter-chips"></div>
+          <span id="adm-filter-count" class="tt-muted-note"></span>
+        </div>
       </div>
       <!-- Форма нового заезда. Прайс лежит у КАЖДОГО заезда отдельно
            (3-6 размещений плюс детские), поэтому основной путь — копия с
@@ -19271,6 +19410,8 @@ window.TURON_DESTINATIONS = [
     departures: [], current: null, agencies: [], selectedDeparture: null,
     departureFilter: "", showPast: false, page: 0, pageSize: 20, total: 0,
     detailTab: "passengers", departureListScroll: 0,
+    departurePeriod: "upcoming", departureDirection: "", departureRoute: "",
+    departureSale: "", departureLoad: "",
     // «Обзор» и статистика агентств считаются из одного и того же среза
     // подтверждённых броней — второй запрос не нужен. AGGREGATE_LIMIT это
     // потолок сервера (200): при большем количестве броней сводка станет
@@ -19800,30 +19941,63 @@ window.TURON_DESTINATIONS = [
   // за кнопку; поиск ищет по всем без разбора, раз человек уже назвал дату.
   function renderDepartureCards() {
     var q = state.departureFilter.trim().toLowerCase();
-    if (q) {
-      var found = state.departures.filter(function (d) {
-        return d.code.toLowerCase().indexOf(q) !== -1 ||
-          formatDate(d.date_start).indexOf(q) !== -1;
-      });
-      $("adm-departure-cards").innerHTML = found.length
-        ? grid(found) : '<div class="tt-empty-state">Заезды не найдены.</div>';
-      return;
-    }
-
     var today = new Date().toISOString().slice(0, 10);
-    var upcoming = state.departures.filter(function (d) { return d.date_start >= today; });
-    var past = state.departures.filter(function (d) { return d.date_start < today; });
+    var inSeven = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    var inThirty = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    var filtered = state.departures.filter(function (d) {
+      var identity = opDepIdentity(d);
+      if (q) {
+        var haystack = [d.code, formatDate(d.date_start), d.tour_name, d.tour_code,
+          identity.badge, identity.route].filter(Boolean).join(" ").toLowerCase();
+        if (haystack.indexOf(q) === -1) return false;
+      }
+      if (state.departurePeriod === "upcoming" && d.date_start < today) return false;
+      if (state.departurePeriod === "7" && (d.date_start < today || d.date_start > inSeven)) return false;
+      if (state.departurePeriod === "30" && (d.date_start < today || d.date_start > inThirty)) return false;
+      if (state.departurePeriod === "past" && d.date_start >= today) return false;
+      var umra = /^UMRA_/i.test(d.code || "");
+      if (state.departureDirection === "umra" && !umra) return false;
+      if (state.departureDirection === "karadeniz" && umra) return false;
+      if (state.departureRoute && String(d.transport || "").toUpperCase() !== state.departureRoute) return false;
+      var closed = d.is_open === 0;
+      if (state.departureSale === "open" && closed) return false;
+      if (state.departureSale === "closed" && !closed) return false;
+      var cap = Number(d.capacity || 0);
+      var remaining = cap - Number(d.seats_taken || 0);
+      if (state.departureLoad === "available" && !(cap > 0 && remaining > 0)) return false;
+      if (state.departureLoad === "low" && !(cap > 0 && remaining > 0 && remaining <= 10)) return false;
+      if (state.departureLoad === "full" && !(cap > 0 && remaining <= 0)) return false;
+      return true;
+    }).sort(function (a, b) {
+      if (state.departurePeriod === "past") return a.date_start > b.date_start ? -1 : 1;
+      return a.date_start < b.date_start ? -1 : 1;
+    });
 
-    var html = upcoming.length ? grid(upcoming)
-      : '<div class="tt-empty-state">Предстоящих заездов нет.</div>';
-    if (past.length) {
-      html += '<button type="button" class="tt-btn secondary tt-btn-sm tt-toggle-past" ' +
-        'id="adm-toggle-past">' +
-        (state.showPast ? "Скрыть прошедшие" : "Показать прошедшие (" + past.length + ")") +
-        "</button>";
-      if (state.showPast) html += grid(past.slice().reverse());
+    document.querySelectorAll("[data-dep-period]").forEach(function (button) {
+      button.classList.toggle("is-active", button.dataset.depPeriod === state.departurePeriod);
+    });
+    $("adm-filter-count").textContent = "Найдено " + filtered.length + " " +
+      plural(filtered.length, "заезд", "заезда", "заездов");
+
+    var chips = [];
+    if (state.departurePeriod !== "upcoming") {
+      chips.push(["period", { "7": "7 дней", "30": "30 дней", past: "Прошедшие" }[state.departurePeriod]]);
     }
-    $("adm-departure-cards").innerHTML = html;
+    if (state.departureDirection) chips.push(["direction", state.departureDirection === "umra" ? "Умра" : "Карадениз"]);
+    if (state.departureRoute) chips.push(["route", OP_ARRIVAL[state.departureRoute] || state.departureRoute]);
+    if (state.departureSale) chips.push(["sale", state.departureSale === "open" ? "Продажа открыта" : "Продажа закрыта"]);
+    if (state.departureLoad) chips.push(["load", {
+      available: "Есть места", low: "Мало мест", full: "Мест нет",
+    }[state.departureLoad]]);
+    $("adm-filter-chips").innerHTML = chips.map(function (chip) {
+      return '<button type="button" data-clear-filter="' + chip[0] + '">' +
+        esc(chip[1]) + ' <b aria-hidden="true">×</b></button>';
+    }).join("");
+
+    $("adm-departure-cards").innerHTML = filtered.length
+      ? grid(filtered)
+      : '<div class="tt-empty-state">Заезды по выбранным условиям не найдены.' +
+          '<div class="tt-muted-note">Измените фильтры или нажмите «Сбросить».</div></div>';
   }
 
   function setSelectedDeparture(code) {
@@ -20449,13 +20623,51 @@ window.TURON_DESTINATIONS = [
       state.departureFilter = $("adm-departure-search").value;
       renderDepartureCards();
     }, 200));
+    document.querySelector(".tt-period-switch").addEventListener("click", function (e) {
+      var button = e.target.closest("[data-dep-period]");
+      if (!button) return;
+      state.departurePeriod = button.dataset.depPeriod;
+      renderDepartureCards();
+    });
+    [
+      ["adm-filter-direction", "departureDirection"],
+      ["adm-filter-route", "departureRoute"],
+      ["adm-filter-sale", "departureSale"],
+      ["adm-filter-load", "departureLoad"],
+    ].forEach(function (pair) {
+      $(pair[0]).addEventListener("change", function () {
+        state[pair[1]] = this.value;
+        renderDepartureCards();
+      });
+    });
+    $("adm-filter-reset").addEventListener("click", function () {
+      state.departureFilter = "";
+      state.departurePeriod = "upcoming";
+      state.departureDirection = "";
+      state.departureRoute = "";
+      state.departureSale = "";
+      state.departureLoad = "";
+      $("adm-departure-search").value = "";
+      $("adm-filter-direction").value = "";
+      $("adm-filter-route").value = "";
+      $("adm-filter-sale").value = "";
+      $("adm-filter-load").value = "";
+      renderDepartureCards();
+    });
+    $("adm-filter-chips").addEventListener("click", function (e) {
+      var chip = e.target.closest("[data-clear-filter]");
+      if (!chip) return;
+      var key = chip.dataset.clearFilter;
+      if (key === "period") state.departurePeriod = "upcoming";
+      if (key === "direction") { state.departureDirection = ""; $("adm-filter-direction").value = ""; }
+      if (key === "route") { state.departureRoute = ""; $("adm-filter-route").value = ""; }
+      if (key === "sale") { state.departureSale = ""; $("adm-filter-sale").value = ""; }
+      if (key === "load") { state.departureLoad = ""; $("adm-filter-load").value = ""; }
+      renderDepartureCards();
+    });
     $("adm-departure-cards").addEventListener("click", function (e) {
       var card = e.target.closest("[data-departure]");
       if (card) { setSelectedDeparture(card.dataset.departure); return; }
-      if (e.target.id === "adm-toggle-past") {
-        state.showPast = !state.showPast;
-        renderDepartureCards();
-      }
     });
     /*
      * Редактор цен. Всё внутри #adm-dep-controls, поэтому один обработчик

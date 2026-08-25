@@ -4460,6 +4460,107 @@ select { font-family: inherit; }
 .tt-dep-action .tt-btn { box-shadow: none; font-size: 0.72rem; }
 
 /* ------------------------------------------------ операторский обзор */
+/* Фильтры списка заездов: быстрый период + точные операционные срезы. */
+.tt-departure-filters { display: block; padding: 20px; }
+.tt-departure-filter-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.tt-departure-filter-main .tt-field { width: min(380px, 100%); min-width: 280px; }
+.tt-departure-filter-main .tt-field input { min-height: 48px; }
+.tt-departure-filter-main .tt-btn { min-height: 48px; white-space: nowrap; }
+.tt-departure-filter-row {
+  display: grid;
+  grid-template-columns: minmax(350px, 1.55fr) repeat(4, minmax(145px, 1fr)) auto;
+  gap: 12px;
+  align-items: center;
+}
+.tt-period-switch {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--tt-border-strong);
+  border-radius: 11px;
+  background: var(--tt-surface);
+}
+.tt-period-switch button {
+  min-height: 48px;
+  padding: 9px 12px;
+  border: 0;
+  border-right: 1px solid var(--tt-border);
+  background: transparent;
+  color: var(--tt-forest);
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.tt-period-switch button:last-child { border-right: 0; }
+.tt-period-switch button:hover { background: var(--tt-surface-2); }
+.tt-period-switch button.is-active { background: var(--tt-forest); color: #fff; }
+.tt-departure-filter-row select {
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 36px 0 13px;
+  border: 1px solid var(--tt-border);
+  border-radius: 11px;
+  background-color: var(--tt-surface);
+  color: var(--tt-text);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.tt-filter-reset {
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--tt-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tt-filter-reset:hover { color: var(--tt-danger); }
+.tt-filter-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; min-height: 34px; margin-top: 16px; }
+.tt-filter-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tt-filter-chips:empty { display: none; }
+.tt-filter-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  border: 1px solid rgba(22, 128, 95, 0.16);
+  border-radius: 999px;
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  font-size: 0.75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.tt-filter-chips button b { font-size: 1rem; line-height: 0.7; }
+#adm-filter-count { font-size: 0.78rem; }
+@media (max-width: 1250px) {
+  .tt-departure-filter-row { grid-template-columns: repeat(4, minmax(145px, 1fr)); }
+  .tt-period-switch { grid-column: 1 / -1; }
+  .tt-filter-reset { justify-self: start; }
+}
+@media (max-width: 720px) {
+  .tt-departure-filter-main { align-items: stretch; flex-direction: column; }
+  .tt-departure-filter-main .tt-field,
+  .tt-departure-filter-main .tt-btn { width: 100%; min-width: 0; }
+  .tt-departure-filter-row { grid-template-columns: 1fr 1fr; }
+  .tt-period-switch { grid-template-columns: 1fr 1fr; }
+  .tt-period-switch button:nth-child(2) { border-right: 0; }
+  .tt-period-switch button:nth-child(-n+2) { border-bottom: 1px solid var(--tt-border); }
+}
+@media (max-width: 480px) {
+  .tt-departure-filter-row { grid-template-columns: 1fr; }
+  .tt-period-switch { grid-template-columns: 1fr; }
+  .tt-period-switch button { border-right: 0; border-bottom: 1px solid var(--tt-border); }
+  .tt-period-switch button:last-child { border-bottom: 0; }
+}
+
 /* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
    это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
    .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */

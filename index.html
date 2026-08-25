@@ -452,12 +452,50 @@
 
     <section id="panel-manifest" hidden>
       <div id="adm-departure-list">
-      <div class="tt-toolbar">
-        <div class="tt-field" style="min-width:230px">
-          <label for="adm-departure-search">Найти заезд</label>
-          <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
+      <div class="tt-toolbar tt-departure-filters">
+        <div class="tt-departure-filter-main">
+          <div class="tt-field">
+            <label for="adm-departure-search">Найти заезд</label>
+            <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
+          </div>
+          <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
         </div>
-        <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
+        <div class="tt-departure-filter-row">
+          <div class="tt-period-switch" role="group" aria-label="Период заездов">
+            <button type="button" class="is-active" data-dep-period="upcoming">Ближайшие</button>
+            <button type="button" data-dep-period="7">7 дней</button>
+            <button type="button" data-dep-period="30">30 дней</button>
+            <button type="button" data-dep-period="past">Прошедшие</button>
+          </div>
+          <select id="adm-filter-direction" aria-label="Направление">
+            <option value="">Направление: Все</option>
+            <option value="umra">Направление: Умра</option>
+            <option value="karadeniz">Направление: Карадениз</option>
+          </select>
+          <select id="adm-filter-route" aria-label="Маршрут">
+            <option value="">Маршрут: Все</option>
+            <option value="BUS">Маршрут: Батуми</option>
+            <option value="TZX">Маршрут: Трабзон</option>
+            <option value="MED">Маршрут: Медина</option>
+            <option value="JED">Маршрут: Джидда</option>
+          </select>
+          <select id="adm-filter-sale" aria-label="Статус продажи">
+            <option value="">Продажа: Все</option>
+            <option value="open">Продажа: Открыта</option>
+            <option value="closed">Продажа: Закрыта</option>
+          </select>
+          <select id="adm-filter-load" aria-label="Загрузка">
+            <option value="">Загрузка: Все</option>
+            <option value="available">Загрузка: Есть места</option>
+            <option value="low">Загрузка: Мало мест</option>
+            <option value="full">Загрузка: Мест нет</option>
+          </select>
+          <button type="button" class="tt-filter-reset" id="adm-filter-reset">Сбросить</button>
+        </div>
+        <div class="tt-filter-summary">
+          <div id="adm-filter-chips" class="tt-filter-chips"></div>
+          <span id="adm-filter-count" class="tt-muted-note"></span>
+        </div>
       </div>
       <!-- Форма нового заезда. Прайс лежит у КАЖДОГО заезда отдельно
            (3-6 размещений плюс детские), поэтому основной путь — копия с
