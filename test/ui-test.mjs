@@ -696,6 +696,36 @@ console.log("\nКабинет агентства");
 {
   const { page, errors } = await session("umida");
   check("вход выполнен", await page.locator("#screen-app").isVisible());
+
+  /* СТОРОЖ ОБРЫВА styles.css. Один коммит срезал у файла хвост — 950 строк
+   * оформления кабинета, — и последнее правило осталось незакрытым. Внешне
+   * это выглядело так: иконки без размеров разворачивались во весь блок
+   * (кнопка сворачивания меню стала квадратом 210×210 с чёрным треугольником).
+   * Ни один тест этого не заметил: разметка на месте, JS не падает.
+   *
+   * Ловим сам симптом — иконку, которая заняла пол-экрана, — и отдельно
+   * проверяем, что правила из самого конца файла реально применились. */
+  const oversized = await page.evaluate(() => {
+    const bad = [];
+    document.querySelectorAll("#screen-app svg, #screen-app .tt-tab-icon").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 64 || r.height > 64) {
+        bad.push((el.id || el.parentElement?.id || el.tagName) +
+          " " + Math.round(r.width) + "×" + Math.round(r.height));
+      }
+    });
+    return bad;
+  });
+  check("иконки кабинета не разъехались", oversized.length === 0, oversized.join(", "));
+  check("хвост styles.css доехал (правила последнего блока применены)",
+        await page.evaluate(() => {
+          const btn = document.getElementById("sidebar-collapse");
+          if (!btn) return false;
+          const r = btn.getBoundingClientRect();
+          // Правило .tt-sidebar-collapse живёт в самом конце файла; без него
+          // кнопка растягивается на всю ширину колонки.
+          return r.width > 0 && r.width <= 44 && r.height <= 44;
+        }));
   check("колесо в кабинете не перехватывается hero-слайдером",
         await page.locator("#screen-app").evaluate((app) => {
           const allowed = app.dispatchEvent(new WheelEvent("wheel", {
