@@ -4355,16 +4355,16 @@ select { font-family: inherit; }
 /* Карточка выбора заезда — облегчённый .tt-dep без цен и кнопки брони:
    это выбор для менеджера, не продажа гостю. Общие .tt-dep-date/-code,
    .tt-seat-bar/-text и .tt-badge переиспользуются как есть. */
-.tt-op-week { margin: 0 0 20px; }
+.tt-op-week { margin: 0 0 24px; }
 .tt-op-week > h3 {
   display: flex; align-items: center; gap: 9px;
-  margin: 0 0 10px; color: var(--tt-text); font-family: "Manrope", Arial, sans-serif;
-  font-size: 0.9rem; font-weight: 750; letter-spacing: 0.025em; text-transform: uppercase;
+  margin: 0 0 12px; color: var(--tt-text); font-family: "Manrope", Arial, sans-serif;
+  font-size: 1rem; font-weight: 750; letter-spacing: 0.02em; text-transform: uppercase;
 }
 .tt-op-week > h3 span {
-  display: inline-grid; place-items: center; width: 30px; height: 30px;
+  display: inline-grid; place-items: center; width: 34px; height: 34px;
   border: 1px solid var(--tt-border-strong); border-radius: 50%;
-  color: var(--tt-accent-dark); font-size: 0.72rem;
+  color: var(--tt-accent-dark); font-size: 0.8rem;
 }
 .tt-op-dep-grid {
   overflow: hidden; margin-bottom: 0;
@@ -4373,8 +4373,8 @@ select { font-family: inherit; }
 }
 .tt-op-dep {
   display: grid;
-  grid-template-columns: 68px 14px minmax(150px, 0.8fr) 145px minmax(180px, 1.3fr) auto 122px;
-  align-items: center; gap: 13px; width: 100%; min-height: 70px; padding: 0 15px 0 0;
+  grid-template-columns: 78px 16px minmax(160px, 0.8fr) 155px minmax(190px, 1.3fr) auto 136px;
+  align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 0 17px 0 0;
   border: 0; border-bottom: 1px solid var(--tt-border); border-radius: 0;
   background: var(--tt-surface); color: var(--tt-text); font: inherit; text-align: left;
   cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease;
@@ -4391,38 +4391,40 @@ select { font-family: inherit; }
   justify-content: center; border-right: 1px solid var(--tt-border);
   font-family: "Manrope", Arial, sans-serif; font-variant-numeric: tabular-nums;
 }
-.tt-op-date strong { font-size: 1.38rem; font-weight: 750; line-height: 1; }
-.tt-op-date small { margin-top: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; }
+.tt-op-date strong { font-size: 1.68rem; font-weight: 750; line-height: 1; }
+.tt-op-date small { margin-top: 5px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.045em; }
 .tt-op-dot {
-  width: 9px; height: 9px; border-radius: 50%; background: var(--tt-accent-dark);
+  width: 10px; height: 10px; border-radius: 50%; background: var(--tt-accent-dark);
   box-shadow: 0 0 0 4px var(--tt-surface);
 }
 .tt-op-code {
-  overflow: hidden; color: var(--tt-text-muted); font-size: 0.76rem; font-weight: 600;
+  overflow: hidden; color: var(--tt-text-muted); font-size: 0.85rem; font-weight: 650;
   letter-spacing: 0.035em; text-overflow: ellipsis; white-space: nowrap;
 }
 .tt-op-route-badge { justify-self: start; }
-.tt-op-route { font-size: 0.9rem; font-weight: 650; white-space: nowrap; }
+.tt-op-route-badge,
+.tt-op-status { padding: 7px 10px; font-size: 0.78rem; }
+.tt-op-route { font-size: 1rem; font-weight: 650; white-space: nowrap; }
 .tt-op-status { justify-self: end; white-space: nowrap; }
 .tt-op-status.is-open {
   border-color: rgba(22, 128, 95, 0.14); background: var(--tt-success-soft); color: var(--tt-success);
 }
 .tt-op-open {
   display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
-  min-width: 112px; padding: 10px 13px; border: 1px solid var(--tt-border-strong);
-  border-radius: 10px; color: var(--tt-accent-dark); font-size: 0.82rem; font-weight: 750;
+  min-width: 126px; padding: 12px 15px; border: 1px solid var(--tt-border-strong);
+  border-radius: 11px; color: var(--tt-accent-dark); font-size: 0.92rem; font-weight: 750;
 }
-.tt-op-open b { font-size: 1.18rem; line-height: 0.8; }
+.tt-op-open b { font-size: 1.3rem; line-height: 0.8; }
 .tt-op-dep.is-active .tt-op-open { color: #fff; background: var(--tt-accent-dark); }
 
 @media (max-width: 1120px) {
-  .tt-op-dep { grid-template-columns: 64px 12px minmax(135px, 1fr) 135px auto 112px; }
+  .tt-op-dep { grid-template-columns: 72px 13px minmax(145px, 1fr) 145px auto 122px; }
   .tt-op-route { display: none; }
 }
 @media (max-width: 760px) {
-  .tt-op-dep { grid-template-columns: 58px 9px minmax(110px, 1fr) auto; gap: 9px; min-height: 62px; padding-right: 9px; }
+  .tt-op-dep { grid-template-columns: 64px 10px minmax(118px, 1fr) auto; gap: 10px; min-height: 70px; padding-right: 10px; }
   .tt-op-route-badge, .tt-op-status { display: none; }
-  .tt-op-open { min-width: 94px; padding: 8px 10px; }
+  .tt-op-open { min-width: 100px; padding: 9px 11px; }
 }
 
 /* «Ближайшие заезды» на обзоре — не витрина тура, а рабочая очередь.
