@@ -6913,12 +6913,58 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-tourcard-open b { transition: transform 0.18s ease; }
 .tt-tourcard:hover .tt-tourcard-open b { transform: translateX(3px); }
 
+/* Внутренние программы Умры: название отеля и фактическое размещение важнее
+   повторяющегося маршрута. Фото задаёт атмосферу города, данные продают пакет. */
+.tt-tourcard[data-program] .tt-tourcard-photo { aspect-ratio: 16 / 8.4; }
+.tt-tourcard[data-program] .tt-tourcard-photo::after {
+  background: linear-gradient(180deg, rgba(8, 36, 31, 0.04) 42%, rgba(8, 36, 31, 0.62) 100%);
+}
+.tt-tourcard[data-program] .tt-tourcard-body {
+  gap: 12px; min-height: 238px; padding: 18px 18px 17px;
+}
+.tt-tourcard[data-program] .tt-tourcard-body h3 {
+  font-size: 1.55rem; line-height: 1.04;
+}
+.tt-umra-stays {
+  display: flex; flex-direction: column; gap: 0;
+  border-top: 1px solid var(--tt-border); border-bottom: 1px solid var(--tt-border);
+}
+.tt-umra-stay {
+  display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px;
+  padding: 10px 0;
+}
+.tt-umra-stay + .tt-umra-stay { border-top: 1px dashed var(--tt-border); }
+.tt-umra-stay > span {
+  padding-top: 2px; color: var(--tt-accent-dark); font-size: 0.61rem;
+  font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.tt-umra-stay div { min-width: 0; }
+.tt-umra-stay strong {
+  display: block; overflow: hidden; color: var(--tt-text); font-size: 0.83rem;
+  font-weight: 700; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap;
+}
+.tt-umra-stay small {
+  display: block; margin-top: 2px; color: var(--tt-text-muted); font-size: 0.72rem;
+}
+.tt-umra-card-foot {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  margin-top: auto;
+}
+.tt-umra-card-foot > div { display: flex; flex-direction: column; gap: 2px; }
+.tt-umra-card-foot > div span { color: var(--tt-text-muted); font-size: 0.7rem; }
+.tt-umra-card-foot > div strong {
+  color: var(--tt-forest); font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.18rem; line-height: 1;
+}
+.tt-tourcard[data-program] .tt-tourcard-open { margin: 0; }
+
 @media (max-width: 900px) {
   .tt-tourgrid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 560px) {
   .tt-tourgrid { grid-template-columns: 1fr; }
   .tt-tourcard[data-product] .tt-tourcard-body { min-height: 0; }
+  .tt-tourcard[data-program] .tt-tourcard-body { min-height: 0; }
 }
 
 .tt-mj { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
@@ -20250,23 +20296,70 @@ window.TURON_DESTINATIONS = [
             // если у неё пока нет ни одного будущего заезда.
             var price = builderMinPrice(function (d) { return (d.tour_code || "") === t.code; });
             if (price == null) price = t.from_price;
-            var title = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
-            var kicker = t.nights ? (t.nights + 1) + " дней" : "Умра";
-            var meta = (t.nights ? t.nights + " ночей" : "") +
-              (price != null ? " · от " + money(price) : "");
+            var detail = umraProgramCard(t);
             return '<article class="tt-tourcard" data-program="' + esc(t.code) + '" tabindex="0" role="button">' +
-              '<div class="tt-tourcard-photo"><img src="img/umrah-showcase.webp" alt="' +
-                esc(title) + '" loading="lazy" />' +
-                '<span class="tt-tourcard-kicker">' + esc(kicker) + "</span></div>" +
+              '<div class="tt-tourcard-photo"><img src="' + esc(detail.image) + '" alt="' +
+                esc(detail.title) + ' — программа Умры" loading="lazy" />' +
+                '<span class="tt-tourcard-kicker">Программа ' + esc(detail.code) + "</span></div>" +
               '<div class="tt-tourcard-body">' +
-                "<h3>" + esc(title) + "</h3>" +
-                '<p class="tt-tourcard-route">Мекка · Медина · Джидда</p>' +
-                '<p class="tt-tourcard-meta">' + esc(meta) + "</p>" +
-                '<span class="tt-tourcard-open">Открыть <b aria-hidden="true">→</b></span>' +
+                "<h3>" + esc(detail.title) + "</h3>" +
+                '<div class="tt-umra-stays">' +
+                  umraStayHtml("Мекка", detail.makkah) +
+                  umraStayHtml("Медина", detail.medina) +
+                "</div>" +
+                '<div class="tt-umra-card-foot">' +
+                  '<div><span>' + esc((t.nights || 0) + " ночей") + '</span>' +
+                    (price != null ? '<strong>от ' + esc(money(price)) + "</strong>" : "") +
+                  "</div>" +
+                  '<span class="tt-tourcard-open">Подробнее <b aria-hidden="true">→</b></span>' +
+                "</div>" +
               "</div>" +
             "</article>";
           }).join("") + "</div>"
         : '<div class="tt-empty-state">Программ с таким сроком пока нет.</div>');
+  }
+
+  // Карточки программ различаются не выдуманными фасадами, а фактическим
+  // размещением. Название — гостиница, давшая имя программе; ниже явно
+  // показываем оба отеля и расстояние до святынь. Фотографии — лицензированные
+  // виды городов маршрута, а не заявление «так выглядит конкретный номер».
+  var UMRA_PROGRAM_CARDS = {
+    UMRA_TAJ13:      { title: "Taj Park", code: "TAJ-13", image: "img/card-jeddah-waterfront.webp" },
+    UMRA_TAJ13P:     { title: "Taj Park Plus", code: "TAJ-13+", image: "img/card-jeddah-balad-evening.webp" },
+    UMRA_ANJUM13:    { title: "Anjum Makkah", code: "ANJUM-13", image: "img/umrah-showcase.webp" },
+    UMRA_SHOHADA13:  { title: "Al Shohada", code: "SHOHADA-13", image: "img/showcase-umrah-editorial.webp" },
+    UMRA_JUMEIRAH13: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-13", image: "img/card-medina-sunset.webp" },
+    UMRA_SAJA10:     { title: "Saja Al-Madinah", code: "SAJA-10", image: "img/card-medina-green-dome.webp" },
+    UMRA_SWISS10:    { title: "Swissotel Makkah", code: "SWISSOTEL-10", image: "img/umrah-showcase.webp" },
+    UMRA_ANJUM10:    { title: "Anjum Makkah", code: "ANJUM-10", image: "img/card-medina-nabawi.webp" },
+    UMRA_JUMEIRAH10: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-10", image: "img/card-medina-sunset.webp" },
+  };
+
+  function umraStay(description, city, shrine) {
+    var re = new RegExp(city + "\\s*·\\s*([^·;]+?)\\s*·\\s*(\\d+\\s*м\\s*до\\s*" + shrine + ")", "i");
+    var m = String(description || "").match(re);
+    return m ? { hotel: m[1].trim(), distance: m[2].trim() } : null;
+  }
+
+  function umraProgramCard(t) {
+    var fallbackCode = String(t.name || t.code).replace(/^Умра\s*·\s*/, "");
+    var base = UMRA_PROGRAM_CARDS[t.code] || {
+      title: fallbackCode, code: fallbackCode, image: "img/umrah-showcase.webp",
+    };
+    return {
+      title: base.title,
+      code: base.code,
+      image: base.image,
+      makkah: umraStay(t.description, "Мекка", "Харама"),
+      medina: umraStay(t.description, "Медина", "мечети Пророка"),
+    };
+  }
+
+  function umraStayHtml(city, stay) {
+    if (!stay) return "";
+    return '<div class="tt-umra-stay"><span>' + esc(city) + '</span><div>' +
+      '<strong>' + esc(stay.hotel) + '</strong><small>' + esc(stay.distance) + "</small>" +
+      "</div></div>";
   }
 
   // Конструктор работает по выбранному туру (state.builder.tour): Карадениз или
