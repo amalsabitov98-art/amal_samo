@@ -20319,20 +20319,19 @@ window.TURON_DESTINATIONS = [
         : '<div class="tt-empty-state">Программ с таким сроком пока нет.</div>');
   }
 
-  // Карточки программ различаются не выдуманными фасадами, а фактическим
-  // размещением. Название — гостиница, давшая имя программе; ниже явно
-  // показываем оба отеля и расстояние до святынь. Фотографии — лицензированные
-  // виды городов маршрута, а не заявление «так выглядит конкретный номер».
+  // У каждого отеля — собственный hospitality-кадр. Это оригинальные
+  // атмосферные изображения пакета, а не фотографическое обещание конкретного
+  // номера: фактическое размещение и расстояния явно указаны ниже.
   var UMRA_PROGRAM_CARDS = {
-    UMRA_TAJ13:      { title: "Taj Park", code: "TAJ-13", image: "img/card-jeddah-waterfront.webp" },
-    UMRA_TAJ13P:     { title: "Taj Park Plus", code: "TAJ-13+", image: "img/card-jeddah-balad-evening.webp" },
-    UMRA_ANJUM13:    { title: "Anjum Makkah", code: "ANJUM-13", image: "img/umrah-showcase.webp" },
-    UMRA_SHOHADA13:  { title: "Al Shohada", code: "SHOHADA-13", image: "img/showcase-umrah-editorial.webp" },
-    UMRA_JUMEIRAH13: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-13", image: "img/card-medina-sunset.webp" },
-    UMRA_SAJA10:     { title: "Saja Al-Madinah", code: "SAJA-10", image: "img/card-medina-green-dome.webp" },
-    UMRA_SWISS10:    { title: "Swissotel Makkah", code: "SWISSOTEL-10", image: "img/umrah-showcase.webp" },
-    UMRA_ANJUM10:    { title: "Anjum Makkah", code: "ANJUM-10", image: "img/card-medina-nabawi.webp" },
-    UMRA_JUMEIRAH10: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-10", image: "img/card-medina-sunset.webp" },
+    UMRA_TAJ13:      { title: "Taj Park", code: "TAJ-13", image: "img/umra-hotel-taj-park.webp" },
+    UMRA_TAJ13P:     { title: "Taj Park Plus", code: "TAJ-13+", image: "img/umra-hotel-taj-park.webp" },
+    UMRA_ANJUM13:    { title: "Anjum Makkah", code: "ANJUM-13", image: "img/umra-hotel-anjum.webp" },
+    UMRA_SHOHADA13:  { title: "Al Shohada", code: "SHOHADA-13", image: "img/umra-hotel-shohada.webp" },
+    UMRA_JUMEIRAH13: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-13", image: "img/umra-hotel-jumeirah.webp" },
+    UMRA_SAJA10:     { title: "Saja Al-Madinah", code: "SAJA-10", image: "img/umra-hotel-saja.webp" },
+    UMRA_SWISS10:    { title: "Swissotel Makkah", code: "SWISSOTEL-10", image: "img/umra-hotel-swissotel.webp" },
+    UMRA_ANJUM10:    { title: "Anjum Makkah", code: "ANJUM-10", image: "img/umra-hotel-anjum.webp" },
+    UMRA_JUMEIRAH10: { title: "Jumeirah Jabal Omar", code: "JUMEIRAH-10", image: "img/umra-hotel-jumeirah.webp" },
   };
 
   function umraStay(description, city, shrine) {
