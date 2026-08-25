@@ -401,6 +401,62 @@
     "</div>";
   }
 
+  /* ------------------------------------------------------- новый заезд
+   * Код заезда в ведомости собран как «аэропорт + ДДММ» (BUS2808). Пока
+   * оператор не тронул поле руками, подставляем его сами: набирать код
+   * заново на каждую пятницу сезона незачем, а вводить его вручную легко
+   * с опечаткой — и заезд уйдёт в базу под кривым номером.
+   */
+  function suggestDepartureCode(transport, date) {
+    if (!transport || !date) return "";
+    var parts = date.split("-");
+    if (parts.length !== 3) return "";
+    return String(transport).toUpperCase() + parts[2] + parts[1];
+  }
+
+  function fillNewDepForm() {
+    var sel = $("nd-source");
+    var today = new Date().toISOString().slice(0, 10);
+    // В образцы годятся и прошедшие заезды: прайс у них выверен, а даты
+    // нового сезона всё равно вводятся заново.
+    sel.innerHTML = '<option value="">— без образца (заезд создастся закрытым) —</option>' +
+      state.departures.slice().reverse().map(function (d) {
+        return '<option value="' + esc(d.code) + '">' + formatDate(d.date_start) +
+          " · " + esc(d.code) + " · " + (d.prices || []).length + " цен" +
+          (d.date_start < today ? " (прошедший)" : "") + "</option>";
+      }).join("");
+    // По умолчанию — ближайший предстоящий: у него прайс актуальнее всего.
+    var upcoming = state.departures.filter(function (d) { return d.date_start >= today; })[0];
+    if (upcoming) sel.value = upcoming.code;
+    syncNewDepFromSource();
+    $("nd-date").value = "";
+    $("nd-code").value = "";
+    $("nd-msg").textContent = "";
+    $("nd-msg").className = "tt-editor-msg";
+    newDepCodeTouched = false;
+  }
+
+  // Оператор мог вписать код сам — тогда не перетираем его подсказкой.
+  var newDepCodeTouched = false;
+
+  function syncNewDepFromSource() {
+    var src = state.departures.filter(function (d) {
+      return d.code === $("nd-source").value;
+    })[0];
+    if (src) {
+      $("nd-transport").value = src.transport;
+      $("nd-capacity").value = src.capacity;
+    } else if (!$("nd-capacity").value) {
+      $("nd-capacity").value = 65;
+    }
+    refreshSuggestedCode();
+  }
+
+  function refreshSuggestedCode() {
+    if (newDepCodeTouched) return;
+    $("nd-code").value = suggestDepartureCode($("nd-transport").value, $("nd-date").value);
+  }
+
   // Читаем таблицу обратно в массив. Порядок строк = порядок в разметке,
   // поэтому индексы в data-price-row нужны только для удаления.
   function collectPrices() {
@@ -1105,6 +1161,52 @@
         .forEach(function (el) { el.disabled = !child; });
       var seat = row.querySelector(".tt-price-seat");
       if (seat) seat.classList.toggle("is-off", !child);
+    });
+
+    /* --------------------------------------------------- новый заезд */
+    $("adm-new-dep").addEventListener("click", function () {
+      var form = $("adm-new-dep-form");
+      form.hidden = !form.hidden;
+      if (!form.hidden) { fillNewDepForm(); $("nd-date").focus(); }
+    });
+    $("nd-cancel").addEventListener("click", function () {
+      $("adm-new-dep-form").hidden = true;
+    });
+    $("nd-source").addEventListener("change", syncNewDepFromSource);
+    $("nd-date").addEventListener("change", refreshSuggestedCode);
+    $("nd-transport").addEventListener("input", refreshSuggestedCode);
+    $("nd-code").addEventListener("input", function () { newDepCodeTouched = true; });
+
+    $("adm-new-dep-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("nd-msg"), save = $("nd-save");
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Создаю…";
+      save.disabled = true;
+      TuronApi.createDeparture({
+        source_code: $("nd-source").value || null,
+        code: $("nd-code").value,
+        date_start: $("nd-date").value,
+        transport: $("nd-transport").value,
+        capacity: $("nd-capacity").value === "" ? null : Number($("nd-capacity").value),
+      }).then(function (res) {
+        save.disabled = false;
+        $("adm-new-dep-form").hidden = true;
+        // Перечитываем список: в нём и прайс, и порядок по датам.
+        return TuronApi.departures({ all: true }).then(function (list) {
+          state.departures = list;
+          setSelectedDeparture(res.code);
+          alert("Заезд " + res.code + " создан" +
+            (res.prices_copied
+              ? ". Скопировано цен: " + res.prices_copied + "."
+              : " БЕЗ ЦЕН и закрыт для продажи — заполните прайс кнопкой «Цены» " +
+                "и откройте продажу."));
+        });
+      }).catch(function (err) {
+        save.disabled = false;
+        msg.className = "tt-editor-msg is-err";
+        msg.textContent = err.message;
+      });
     });
 
     $("ov-departures").addEventListener("click", function (e) {

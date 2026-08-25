@@ -617,6 +617,92 @@
    * превью «пустая цена» или удаление проданного тарифа проходили бы
    * молча, а на бою отбивались бы сервером.
    */
+  /*
+   * Существует ли такая дата. Двойник invalidCalendarDate из воркера:
+   * демо идёт мимо сервера, и без копии «31 февраля» прошло бы молча.
+   */
+  function invalidCalendarDate(value) {
+    var v = String(value || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "нужен формат ГГГГ-ММ-ДД";
+    var d = new Date(v + "T00:00:00Z");
+    if (isNaN(d.getTime())) return "даты " + v + " не существует";
+    if (d.toISOString().slice(0, 10) !== v) return "даты " + v + " не существует";
+    return null;
+  }
+
+  // Демо-двойник создания заезда. Повторяет проверки воркера.
+  function demoCreateDeparture(payload) {
+    var s = demoState();
+    var code = String(payload.code || "").trim().toUpperCase();
+    var dateStart = String(payload.date_start || "").trim();
+    var sourceCode = String(payload.source_code || "").trim().toUpperCase();
+
+    if (!/^[A-Z0-9_-]{3,24}$/.test(code)) {
+      return Promise.reject(new Error(
+        "Код заезда: латиница, цифры, дефис — от 3 до 24 знаков"));
+    }
+    var badDate = invalidCalendarDate(dateStart);
+    if (badDate) return Promise.reject(new Error("Дата заезда: " + badDate));
+    if (dateStart < new Date().toISOString().slice(0, 10)) {
+      return Promise.reject(new Error("Дата заезда в прошлом"));
+    }
+    if (s.departures.some(function (d) { return d.code === code; })) {
+      return Promise.reject(new Error("Заезд с кодом " + code + " уже есть"));
+    }
+
+    var source = null;
+    if (sourceCode) {
+      source = s.departures.filter(function (d) { return d.code === sourceCode; })[0];
+      if (!source) {
+        return Promise.reject(new Error("Заезд-образец " + sourceCode + " не найден"));
+      }
+    }
+    if (!source && !payload.tour_code) {
+      return Promise.reject(new Error("Нужен заезд-образец или код тура"));
+    }
+
+    var transport = String(payload.transport || (source ? source.transport : ""))
+      .trim().toUpperCase();
+    if (!/^[A-Z]{2,8}$/.test(transport)) {
+      return Promise.reject(new Error("Код аэропорта: 2-8 латинских букв (TZX, BUS)"));
+    }
+
+    var capacity = payload.capacity == null
+      ? (source ? source.capacity : 65) : Number(payload.capacity);
+    if (!isFinite(capacity) || capacity % 1 !== 0 || capacity < 1 || capacity > 2000) {
+      return Promise.reject(new Error("Вместимость: целое число от 1"));
+    }
+
+    var maxId = s.departures.reduce(function (n, d) { return Math.max(n, d.id || 0); }, 0);
+    var made = {
+      id: maxId + 1,
+      code: code,
+      date_start: dateStart,
+      transport: transport,
+      is_info_tour: payload.is_info_tour ? 1 : (source ? source.is_info_tour : 0),
+      capacity: capacity,
+      seats_taken: 0,
+      // Без прайса продавать нечего — заезд рождается закрытым.
+      is_open: source ? 1 : 0,
+      prices: source ? JSON.parse(JSON.stringify(source.prices || [])) : [],
+      agency_commission: source ? source.agency_commission : 0,
+      tour_code: source ? source.tour_code : (payload.tour_code || ""),
+      tour_name: source ? source.tour_name : "",
+      destination: source ? source.destination : "",
+      nights: source ? source.nights : null,
+    };
+    s.departures.push(made);
+    s.departures.sort(function (a, b) {
+      return a.date_start < b.date_start ? -1 : (a.date_start > b.date_start ? 1 : 0);
+    });
+    saveDemo(s);
+    return Promise.resolve({
+      id: made.id, code: code, date_start: dateStart, transport: transport,
+      capacity: capacity, is_open: !!made.is_open,
+      prices_copied: made.prices.length, source: sourceCode || null,
+    });
+  }
+
   function demoDeparturePrices(id, prices) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.id === id; })[0];
@@ -997,6 +1083,19 @@
       }
       return request("/api/admin/departures/" + id + "/" + (open ? "open" : "close"),
                      { method: "POST" });
+    },
+
+    /*
+     * Новый заезд — по образцу существующего: прайс копируется целиком.
+     * Заводить 3-6 размещений плюс детские тарифы руками на каждую
+     * пятницу сезона нереально, поэтому это основной путь.
+     *
+     * Без образца тоже можно (новому туру копировать неоткуда), но такой
+     * заезд создаётся сразу ЗАКРЫТЫМ: без цен продавать нечего.
+     */
+    createDeparture: function (payload) {
+      if (!API_BASE) return demoCreateDeparture(payload);
+      return request("/api/admin/departures", { method: "POST", body: payload });
     },
 
     /*

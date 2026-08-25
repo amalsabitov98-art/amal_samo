@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260825-9" />
+<link rel="stylesheet" href="styles.css?v=20260825-10" />
 </head>
 <body>
 
@@ -442,8 +442,45 @@
           <label for="adm-departure-search">Найти заезд</label>
           <input type="search" id="adm-departure-search" placeholder="Дата или код заезда" />
         </div>
+        <button class="tt-btn secondary" id="adm-new-dep">+ Новый заезд</button>
         <button class="tt-btn" id="adm-export" disabled>Выгрузить в Excel</button>
       </div>
+      <!-- Форма нового заезда. Прайс лежит у КАЖДОГО заезда отдельно
+           (3-6 размещений плюс детские), поэтому основной путь — копия с
+           заезда-образца, а не ввод цен руками на каждую пятницу сезона. -->
+      <form id="adm-new-dep-form" class="tt-newdep" hidden>
+        <h4>Новый заезд</h4>
+        <p class="tt-editor-hint">Цены скопируются с заезда-образца — потом
+          поправите отличия кнопкой «Цены». Без образца заезд создастся
+          закрытым: продавать без цен нечего.</p>
+        <div class="tt-newdep-grid">
+          <div class="tt-field-full">
+            <label for="nd-source">Образец</label>
+            <select id="nd-source"></select>
+          </div>
+          <div class="tt-field-full">
+            <label for="nd-date">Дата выезда</label>
+            <input type="date" id="nd-date" required />
+          </div>
+          <div class="tt-field-full">
+            <label for="nd-transport">Аэропорт</label>
+            <input type="text" id="nd-transport" placeholder="TZX" maxlength="8" />
+          </div>
+          <div class="tt-field-full">
+            <label for="nd-code">Код заезда</label>
+            <input type="text" id="nd-code" placeholder="BUS2808" maxlength="24" />
+          </div>
+          <div class="tt-field-full">
+            <label for="nd-capacity">Мест в плане</label>
+            <input type="number" id="nd-capacity" min="1" max="2000" />
+          </div>
+        </div>
+        <div class="tt-newdep-actions">
+          <span class="tt-editor-msg" id="nd-msg"></span>
+          <button type="button" class="tt-btn secondary tt-btn-sm" id="nd-cancel">Отмена</button>
+          <button type="submit" class="tt-btn tt-btn-sm" id="nd-save">Создать заезд</button>
+        </div>
+      </form>
       <div id="adm-departure-cards"></div>
       <!-- Управление продажей выбранного заезда. Стоит здесь, а не на самой
            карточке: карточка это <button>, вложить в неё вторую кнопку
@@ -649,11 +686,11 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
-<script src="js/api.js?v=20260825-9"></script>
+<script src="js/api.js?v=20260825-10"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260825-1"></script>
-<script src="js/admin.js?v=20260825-9"></script>
+<script src="js/admin.js?v=20260825-10"></script>
 <script src="js/app.js?v=20260825-6"></script>
 </body>
 </html>

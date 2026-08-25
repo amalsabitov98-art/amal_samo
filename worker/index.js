@@ -466,6 +466,21 @@ async function catalogDepartures(env) {
  * дата выезда: родиться позже вылета нельзя, а без этой проверки ageOn
  * вернул бы отрицательный возраст и тариф не нашёлся бы вовсе.
  */
+/*
+ * Существует ли такая дата вообще. Отдельно от invalidBirthDate: тому
+ * нужны ещё границы «не в будущем» и «не раньше 1900», а датам заездов —
+ * наоборот, будущее и есть норма. Общее у них одно: разбор ОБРАТНО в
+ * строку, иначе 31 февраля молча превратится в 3 марта и пройдёт.
+ */
+function invalidCalendarDate(value) {
+  const v = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "нужен формат ГГГГ-ММ-ДД";
+  const d = new Date(v + "T00:00:00Z");
+  if (isNaN(d.getTime())) return `даты ${v} не существует`;
+  if (d.toISOString().slice(0, 10) !== v) return `даты ${v} не существует`;
+  return null;
+}
+
 function invalidBirthDate(value, departureDate) {
   const birth = String(value || "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) {
@@ -1188,6 +1203,111 @@ async function setDepartureOpen(env, actor, departureId, open) {
     is_open: open,
     changed: true,
     bookings: sold.n,
+  });
+}
+
+/*
+ * Создание заезда — ПО ОБРАЗЦУ существующего.
+ *
+ * Прайс лежит не у тура, а у КАЖДОГО заезда отдельно (`departure_prices`,
+ * 3-6 размещений плюс детские тарифы). Заводить их руками на каждую
+ * пятницу сезона никто не станет — двенадцать заездов по семь полей.
+ * Поэтому основной путь: указать заезд-образец, у которого прайс уже
+ * выверен, и скопировать его целиком. Дальше отличия правятся в редакторе
+ * цен.
+ *
+ * Без образца тоже можно (новому туру копировать неоткуда), но такой заезд
+ * создаётся СРАЗУ ЗАКРЫТЫМ: продавать без цен нечего, а открытый пустой
+ * заезд агентство увидело бы в списке и уткнулось бы в ошибку тарифа.
+ * Оператор заполняет прайс и открывает продажу сам.
+ */
+async function createDeparture(request, env, actor) {
+  const body = await request.json().catch(() => ({}));
+  const code = String(body.code || "").trim().toUpperCase();
+  const dateStart = String(body.date_start || "").trim();
+  const sourceCode = String(body.source_code || "").trim().toUpperCase();
+  const tourCode = String(body.tour_code || "").trim().toUpperCase();
+
+  if (!/^[A-Z0-9_-]{3,24}$/.test(code)) {
+    return fail("Код заезда: латиница, цифры, дефис — от 3 до 24 знаков");
+  }
+  const badDate = invalidCalendarDate(dateStart);
+  if (badDate) return fail(`Дата заезда: ${badDate}`);
+  if (dateStart < new Date().toISOString().slice(0, 10)) {
+    return fail("Дата заезда в прошлом");
+  }
+
+  const exists = await env.DB.prepare("SELECT id FROM departures WHERE code = ?")
+    .bind(code).first();
+  if (exists) return fail(`Заезд с кодом ${code} уже есть`, 409);
+
+  // Образец даёт и тур, и прайс, и вместимость — всё, кроме даты и кода.
+  let source = null;
+  if (sourceCode) {
+    source = await env.DB.prepare(
+      "SELECT id, tour_id, transport, capacity, is_info_tour FROM departures WHERE code = ?"
+    ).bind(sourceCode).first();
+    if (!source) return fail(`Заезд-образец ${sourceCode} не найден`, 404);
+  }
+
+  let tourId = source ? source.tour_id : null;
+  if (tourCode) {
+    const tour = await env.DB.prepare("SELECT id FROM tours WHERE code = ?")
+      .bind(tourCode).first();
+    if (!tour) return fail(`Тур ${tourCode} не найден`, 404);
+    tourId = tour.id;
+  }
+  if (!tourId) return fail("Нужен заезд-образец или код тура");
+
+  const transport = String(body.transport || (source ? source.transport : "")).trim().toUpperCase();
+  if (!/^[A-Z]{2,8}$/.test(transport)) {
+    return fail("Код аэропорта: 2-8 латинских букв (TZX, BUS)");
+  }
+
+  const capacity = body.capacity == null
+    ? (source ? source.capacity : 65)
+    : Number(body.capacity);
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 2000) {
+    return fail("Вместимость: целое число от 1");
+  }
+
+  // Без прайса продавать нечего — такой заезд рождается закрытым.
+  const isOpen = source ? 1 : 0;
+
+  const made = await env.DB.prepare(
+    `INSERT INTO departures (tour_id, code, date_start, transport, is_info_tour,
+                             capacity, seats_taken, is_open)
+     VALUES (?, ?, ?, ?, ?, ?, 0, ?)`
+  ).bind(tourId, code, dateStart, transport,
+         body.is_info_tour ? 1 : (source ? source.is_info_tour : 0),
+         capacity, isOpen).run();
+
+  const newId = made.meta.last_row_id;
+  let copied = 0;
+  if (source) {
+    const prices = (await env.DB.prepare(
+      `SELECT code, label, kind, price, age_from, age_to, occupies_seat
+         FROM departure_prices WHERE departure_id = ?`
+    ).bind(source.id).all()).results;
+    if (prices.length) {
+      await env.DB.batch(prices.map((r) => env.DB.prepare(
+        `INSERT INTO departure_prices
+           (departure_id, code, label, kind, price, age_from, age_to, occupies_seat)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(newId, r.code, r.label, r.kind, r.price, r.age_from, r.age_to, r.occupies_seat)));
+      copied = prices.length;
+    }
+  }
+
+  return json({
+    id: newId,
+    code: code,
+    date_start: dateStart,
+    transport: transport,
+    capacity: capacity,
+    is_open: !!isOpen,
+    prices_copied: copied,
+    source: sourceCode || null,
   });
 }
 
@@ -1974,6 +2094,10 @@ async function route(request, env, ctx) {
 
         // Прайс заезда. Проданные брони не трогает: цена заморожена в
         // passengers.price на момент брони.
+        if (path === "/api/admin/departures" && request.method === "POST") {
+          return await createDeparture(request, env, agency);
+        }
+
         const depPrices = path.match(/^\/api\/admin\/departures\/(\d+)\/prices$/);
         if (depPrices && request.method === "POST") {
           return await updateDeparturePrices(request, env, agency, Number(depPrices[1]));

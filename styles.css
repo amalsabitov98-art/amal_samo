@@ -1977,6 +1977,36 @@ a { color: inherit; }
 .tt-op-dep.is-closed { opacity: 0.62; }
 .tt-op-dep.is-closed .tt-badge-off { margin-top: 4px; }
 
+/* -------------------------------------------------- форма нового заезда */
+.tt-newdep {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  background: var(--tt-surface);
+}
+.tt-newdep h4 { margin: 0 0 4px; font-size: 0.98rem; }
+.tt-newdep .tt-editor-hint { margin: 0 0 12px; }
+.tt-newdep-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(110px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.tt-newdep-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-newdep-actions .tt-editor-msg { flex: 1 1 auto; }
+@media (max-width: 900px) {
+  .tt-newdep-grid { grid-template-columns: 1fr 1fr; }
+  .tt-newdep-grid > :first-child { grid-column: 1 / -1; }
+}
+
 /* ------------------------------------------------- редактор цен заезда */
 .tt-dep-controls-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 

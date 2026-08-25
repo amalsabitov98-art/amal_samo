@@ -2450,6 +2450,128 @@ console.log("\nЦены заезда: чего сервер не даёт");
   await page.close();
 }
 
+console.log("\nНовый заезд по образцу");
+{
+  const { page, errors } = await session("operator");
+  page.on("dialog", (d) => d.accept());
+  await page.locator('.tt-tab[data-tab="manifest"]').first().click({ force: true });
+  await page.waitForTimeout(900);
+
+  const before = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures({ all: true });
+    return { n: deps.length };
+  });
+
+  await page.click("#adm-new-dep");
+  await page.waitForTimeout(400);
+  check("форма нового заезда открылась",
+        !(await page.locator("#adm-new-dep-form").isHidden()));
+  const srcCode = await page.locator("#nd-source").inputValue();
+  check("образец подставлен сам", srcCode.length > 0);
+  // Прайс сверяем с ТЕМ ЖЕ заездом, что подставился в поле «Образец»:
+  // форма берёт ближайший ПРЕДСТОЯЩИЙ, а первым в списке идёт самый
+  // ранний — он вполне может быть прошедшим и с другим прайсом.
+  const srcPrices = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures({ all: true });
+    return deps.find((d) => d.code === code).prices.length;
+  }, srcCode);
+  check("вместимость подтянулась с образца",
+        (await page.locator("#nd-capacity").inputValue()) !== "");
+
+  // Код собирается из аэропорта и даты сам — набирать его руками не надо.
+  await page.fill("#nd-date", "2026-11-20");
+  await page.dispatchEvent("#nd-date", "change");
+  await page.waitForTimeout(300);
+  const airport = await page.locator("#nd-transport").inputValue();
+  check("код заезда подставлен как аэропорт + ДДММ",
+        (await page.locator("#nd-code").inputValue()) === airport + "2011");
+
+  await page.click("#nd-save");
+  await page.waitForTimeout(1200);
+  check("форма закрылась после создания",
+        await page.locator("#adm-new-dep-form").isHidden());
+
+  const after = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures({ all: true });
+    const made = deps.find((d) => d.code === code);
+    return { n: deps.length, made: made ? {
+      prices: made.prices.length, open: made.is_open, seats: made.seats_taken,
+    } : null };
+  }, airport + "2011");
+  check("заезд появился в списке", after.n === before.n + 1 && !!after.made);
+  check("прайс скопирован с образца", after.made.prices === srcPrices,
+        after.made.prices + " против " + srcPrices);
+  check("новый заезд сразу открыт для продажи", after.made.is_open !== 0);
+  check("мест занято ноль", after.made.seats === 0);
+
+  // По нему сразу можно продавать — это и есть смысл копирования прайса.
+  const sold = await page.evaluate(async (code) => {
+    const deps = await window.TuronApi.departures();
+    const d = deps.find((x) => x.code === code);
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const r = await window.TuronApi.createBooking({ departure_code: code, passengers: [
+      { full_name: "NEW DEP", birth_date: adult, passport_number: "ND1111111",
+        passport_expiry: "2033-01-01", placement: "DBL" }] });
+    return r.total_price;
+  }, airport + "2011");
+  check("по новому заезду сразу проходит бронь", sold > 0, String(sold));
+
+  await page.close();
+}
+
+console.log("\nНовый заезд: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures({ all: true });
+    const src = deps[0].code;
+    const out = {};
+    const make = (extra) => window.TuronApi.createDeparture(Object.assign({
+      source_code: src, code: "TEST0101", date_start: "2027-01-01",
+    }, extra));
+
+    try { await make({ code: "ab" }); out.shortCode = "прошло"; }
+    catch (e) { out.shortCode = e.message; }
+
+    try { await make({ date_start: "2027-02-31" }); out.badDate = "прошло"; }
+    catch (e) { out.badDate = e.message; }
+
+    try { await make({ date_start: "2020-05-05" }); out.past = "прошло"; }
+    catch (e) { out.past = e.message; }
+
+    try { await make({ code: src }); out.dupe = "прошло"; }
+    catch (e) { out.dupe = e.message; }
+
+    try { await make({ capacity: 0 }); out.capacity = "прошло"; }
+    catch (e) { out.capacity = e.message; }
+
+    try {
+      await window.TuronApi.createDeparture({
+        code: "NOSRC01", date_start: "2027-03-05", transport: "TZX" });
+      out.noSource = "прошло";
+    } catch (e) { out.noSource = e.message; }
+
+    try { await make({ source_code: "NETTAKOGO" }); out.badSource = "прошло"; }
+    catch (e) { out.badSource = e.message; }
+    return out;
+  });
+
+  check("короткий код не проходит", /Код заезда/.test(res.shortCode), res.shortCode);
+  check("31 февраля не проходит и здесь",
+        /не существует/.test(res.badDate), res.badDate);
+  check("дата в прошлом не проходит", /в прошлом/.test(res.past), res.past);
+  check("код-дубликат не проходит", /уже есть/.test(res.dupe), res.dupe);
+  check("нулевая вместимость не проходит", /Вместимость/.test(res.capacity), res.capacity);
+  check("без образца и без тура не создать",
+        /образец или код тура/.test(res.noSource), res.noSource);
+  check("несуществующий образец не проходит",
+        /не найден/.test(res.badSource), res.badSource);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");
