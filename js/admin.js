@@ -18,8 +18,14 @@
     // потолок сервера (200): при большем количестве броней сводка станет
     // неполной, и это явно подписывается на экране, а не замалчивается.
     confirmedAll: [], confirmedTotal: 0, activity: [],
+    // последний отрисованный список броней — см. renderAdminBookings
+    shown: [],
   };
   var AGGREGATE_LIMIT = 200;
+
+  // Открывалку окна правки состава кладёт сюда app.js: форма брони живёт
+  // там, а admin.js грузится раньше и о ней ничего не знает.
+  var compositionOpener = null;
 
   var TRANSPORT = { TZX: "Авиа · Трабзон", BUS: "Авиа · Батуми" };
 
@@ -45,6 +51,7 @@
     passport: "исправлен документ",
     birthdate: "исправлена дата рождения",
     cancel_requested: "запрошена отмена",
+    change_requested: "запрошена замена туриста",
   };
 
   // Полных дней до выезда — для показа сроков. Правило удержания при отмене
@@ -680,6 +687,9 @@
         '<div class="tt-empty-state">Ничего не найдено по этим условиям.</div>';
       return;
     }
+    // Показанный срез запоминаем целиком: кнопке «Изменить состав» нужна
+    // сама бронь с пассажирами, а из разметки её не восстановить.
+    state.shown = list;
     var html = list.map(function (b) {
       var cancelled = b.status === "cancelled";
       return (
@@ -688,6 +698,8 @@
             "<strong>" + esc(b.code) + "</strong>" +
             (b.cancel_requested_at && !cancelled
               ? ' <span class="tt-badge tt-badge-cancel">Запрошена отмена</span>' : "") +
+            (b.change_requested_at && !cancelled
+              ? ' <span class="tt-badge tt-badge-change">Просят замену</span>' : "") +
             '<div class="tt-muted-note">' + esc(b.agency_name) + " · " +
               formatDate(b.date_start) + " · " + b.passengers_count + " чел." +
               (cancelled ? " · отменена" : "") + "</div>" +
@@ -703,6 +715,11 @@
               '<button class="tt-btn tt-btn-sm" data-pay="' + esc(b.code) +
               '" data-balance="' + b.balance + '">Внести оплату</button>') +
             '<button class="tt-btn secondary tt-btn-sm" data-history="' + b.id + '">История</button>' +
+            // Замену состава тоже проводит только оператор: у агентства
+            // маршрут закрыт на 403, оно шлёт заявку (requestChange).
+            (cancelled ? "" :
+              '<button class="tt-btn secondary tt-btn-sm" data-composition="' + b.id + '">' +
+                (b.change_requested_at ? "Провести замену" : "Изменить состав") + "</button>") +
             // Отмену проводит только оператор — у агентства этой кнопки нет,
             // оно шлёт заявку (см. requestCancel в worker/index.js).
             (cancelled ? "" :
@@ -1106,6 +1123,25 @@
         });
         return;
       }
+      /*
+       * Замена состава. Саму форму держит app.js (она одна на кабинет —
+       * и на новую бронь, и на правку), поэтому здесь только находим бронь
+       * и передаём её открывалке. Если app.js ещё не зарегистрировал её,
+       * честно говорим об этом, а не молчим сломанной кнопкой.
+       */
+      var compBtn = e.target.closest("[data-composition]");
+      if (compBtn) {
+        var compId = Number(compBtn.dataset.composition);
+        var booking = (state.shown || []).filter(function (x) { return x.id === compId; })[0];
+        if (!booking) return;
+        if (!compositionOpener) {
+          alert("Окно правки состава недоступно — обновите страницу.");
+          return;
+        }
+        compositionOpener(booking);
+        return;
+      }
+
       var cancelBtn = e.target.closest("[data-cancel]");
       if (cancelBtn) {
         var cid = Number(cancelBtn.dataset.cancel);
@@ -1264,6 +1300,8 @@
         return loadAdminBookings(true);
       });
     },
+
+    setCompositionOpener: function (fn) { compositionOpener = fn; },
 
     reload: function () {
       loadManifest();

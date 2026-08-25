@@ -500,6 +500,101 @@
     return Promise.resolve(Object.assign({ preview: false, changed: true }, out));
   }
 
+  /*
+   * Демо-двойник операторской замены состава. Повторяет порядок воркера:
+   * без confirm только считает и ничего не пишет, с confirm применяет.
+   * keep_price переносит прежние цены ПО ПОЗИЦИЯМ и поэтому требует того
+   * же числа туристов — иначе сумма брони разошлась бы с суммой строк, и
+   * счёт на оплату показывал бы таблицу, которая не сходится с итогом.
+   */
+  function demoAdminPassengers(id, passengers, opts) {
+    var s = demoState();
+    var b = s.bookings.filter(function (x) { return x.id === id; })[0];
+    if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
+    if (!passengers || !passengers.length) {
+      return Promise.reject(new Error("В брони должен остаться хотя бы один пассажир"));
+    }
+    var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
+    if (!d) return Promise.reject(new Error("Заезд не найден"));
+
+    for (var j = 0; j < passengers.length; j++) {
+      var bad = invalidBirthDate(passengers[j].birth_date, d.date_start);
+      if (bad) {
+        return Promise.reject(new Error(
+          (passengers[j].full_name || "Пассажир") + ": " + bad));
+      }
+    }
+
+    var oldPax = b.passengers || [];
+    if (opts.keepPrice && passengers.length !== oldPax.length) {
+      return Promise.reject(new Error(
+        "Прежние цены можно оставить только при том же числе туристов"));
+    }
+
+    var priced = [], seats = 0, total = 0;
+    var paxId = nextDemoPassengerId(s);
+    for (var i = 0; i < passengers.length; i++) {
+      var t = priceFor(passengers[i], d);
+      if (!t) return Promise.reject(new Error("Нет цены на размещение " + passengers[i].placement));
+      // Тариф ставим настоящий всегда — в ведомости должно стоять то, кем
+      // турист летит на самом деле. Заморозить можно только цену.
+      var price = opts.keepPrice ? oldPax[i].price : t.price;
+      priced.push(Object.assign({}, passengers[i], {
+        // Сохраняем прежний номер, если строка уже была в брони: иначе
+        // операторская правка документа теряла бы адресата.
+        id: passengers[i].id || paxId++,
+        price_code: t.code, tariff: t.label, price: price, occupies_seat: t.occupies_seat,
+      }));
+      if (t.occupies_seat) seats++;
+      total += price;
+    }
+    total = Math.round(total * 100) / 100;
+
+    var oldSeats = b.seats_used;
+    var commission = (d.agency_commission || 0) * seats;
+    var out = {
+      booking_code: b.code,
+      departure_code: b.departure_code,
+      date_start: b.date_start,
+      keep_price: opts.keepPrice === true,
+      from: {
+        passengers_count: oldPax.length, seats: oldSeats,
+        total_price: b.total_price, agency_commission: b.agency_commission,
+        passengers: oldPax.slice(),
+      },
+      to: {
+        passengers_count: priced.length, seats: seats,
+        total_price: total, agency_commission: commission,
+        passengers: priced.slice(),
+      },
+      seats_delta: seats - oldSeats,
+    };
+    if (!opts.confirm) return Promise.resolve(Object.assign({ preview: true }, out));
+
+    // Прежнюю сумму запоминаем ДО присваивания: в журнал идёт «было →
+    // стало», а b.total_price ниже уже станет новым.
+    var oldTotal = b.total_price;
+    // Продажа открыта: по вместимости не блокируем (см. создание брони).
+    d.seats_taken += seats - oldSeats;
+    b.passengers = priced;
+    b.passengers_count = priced.length;
+    b.seats_used = seats;
+    b.total_price = total;
+    b.agency_commission = commission;
+    // Правка закрывает открытую заявку агентства — как и на сервере, где
+    // открытой считается заявка новее последней правки.
+    b.change_requested_at = null;
+    demoLogEvent(s, b, "edited", "состав: " + oldPax.length + " чел., $" +
+      oldTotal + " → " + priced.length + " чел., $" + total +
+      (opts.keepPrice ? " (цены сохранены по решению оператора)" : "") + "; " +
+      priced.map(function (p) { return p.full_name; }).join(", "));
+    saveDemo(s);
+    return Promise.resolve(Object.assign({ preview: false, changed: true }, out, {
+      passengers_count: priced.length, seats_taken: seats, total_price: total,
+      agency_commission: commission,
+    }));
+  }
+
   function demoCreateBooking(payload) {
     var s = demoState();
     var d = s.departures.filter(function (x) { return x.code === payload.departure_code; })[0];
@@ -689,52 +784,47 @@
       return request("/api/bookings", { method: "POST", body: payload });
     },
 
-    updateBookingPassengers: function (id, passengers) {
+    /*
+     * Замена состава — ТОЛЬКО ОПЕРАТОР, как и отмена: меняется тариф
+     * (взрослый/детский), сумма брони и место, на которое может быть уже
+     * выписан билет. Агентство шлёт заявку (requestChange).
+     *
+     * Два шага, как у правки даты рождения: без confirm сервер только
+     * СЧИТАЕТ, что изменится, и ничего не пишет.
+     */
+    adminUpdatePassengers: function (id, passengers, opts) {
+      var o = opts || {};
+      if (!API_BASE) return demoAdminPassengers(id, passengers, o);
+      return request("/api/admin/bookings/" + id + "/passengers", {
+        method: "POST",
+        body: {
+          passengers: passengers,
+          confirm: o.confirm === true,
+          keep_price: o.keepPrice === true,
+        },
+      });
+    },
+
+    /*
+     * Заявка агентства на замену состава — сестра requestCancel. Ничего не
+     * меняет: пишет просьбу в журнал брони и зовёт оператора в Telegram.
+     */
+    requestChange: function (id, reason) {
       if (!API_BASE) {
         var s = demoState();
         var b = s.bookings.filter(function (x) { return x.id === id; })[0];
         if (!b || b.status !== "confirmed") return Promise.reject(new Error("Бронь не найдена"));
-        var d = s.departures.filter(function (x) { return x.code === b.departure_code; })[0];
-        for (var j = 0; j < passengers.length; j++) {
-          var bad = invalidBirthDate(passengers[j].birth_date, d && d.date_start);
-          if (bad) {
-            return Promise.reject(new Error(
-              (passengers[j].full_name || "Пассажир") + ": " + bad));
-          }
+        if (b.change_requested_at) {
+          return Promise.resolve({ booking_code: b.code, requested: true, already_requested: true });
         }
-        var priced = [], seats = 0, total = 0;
-        var paxId = nextDemoPassengerId(s);
-        for (var i = 0; i < passengers.length; i++) {
-          var t = priceFor(passengers[i], d);
-          if (!t) return Promise.reject(new Error("Нет цены на размещение " + passengers[i].placement));
-          priced.push(Object.assign({}, passengers[i], {
-            // Сохраняем прежний номер, если строка уже была в брони: иначе
-            // операторская правка документа теряла бы адресата после
-            // любого изменения состава.
-            id: passengers[i].id || paxId++,
-            price_code: t.code, tariff: t.label, price: t.price, occupies_seat: t.occupies_seat,
-          }));
-          if (t.occupies_seat) seats++;
-          total += t.price;
-        }
-        // Продажа открыта: по вместимости не блокируем (см. создание брони).
-        var delta = seats - b.seats_used;
-        d.seats_taken += delta;
-        b.passengers = priced;
-        b.passengers_count = priced.length;
-        b.seats_used = seats;
-        b.total_price = total;
-        b.agency_commission = (d.agency_commission || 0) * seats;
-        demoLogEvent(s, b, "edited", "состав: " +
-          priced.map(function (p) { return p.full_name; }).join(", ") + "; " + total + " USD");
+        b.change_requested_at = new Date().toISOString();
+        demoLogEvent(s, b, "change_requested", reason || "агентство просит изменить состав");
         saveDemo(s);
-        return Promise.resolve({
-          booking_code: b.code, passengers_count: priced.length,
-          seats_taken: seats, total_price: total,
-        });
+        return Promise.resolve({ booking_code: b.code, requested: true });
       }
-      return request("/api/bookings/" + id + "/passengers",
-                     { method: "POST", body: { passengers: passengers } });
+      return request("/api/bookings/" + id + "/change-request", {
+        method: "POST", body: { reason: reason || "" },
+      });
     },
 
     bookings: function () {

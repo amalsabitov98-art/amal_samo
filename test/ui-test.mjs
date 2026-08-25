@@ -2063,6 +2063,195 @@ console.log("\nИнварианты: сроки, даты, переплата");
   await page.close();
 }
 
+console.log("\nЗамена состава: заявка агентства и правка оператором");
+{
+  const { page, errors } = await session("umida");
+
+  // Своя бронь на двоих взрослых — с неё и будем снимать/добавлять людей.
+  const made = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const r = await window.TuronApi.createBooking({
+      departure_code: d.code,
+      passengers: [
+        { full_name: "SWAP ONE", birth_date: adult, passport_number: "SW1111111",
+          passport_expiry: "2032-01-01", placement: "DBL" },
+        { full_name: "SWAP TWO", birth_date: adult, passport_number: "SW2222222",
+          passport_expiry: "2032-01-01", placement: "DBL" },
+      ],
+    });
+    return { code: r.booking_code, dep: d.code, total: r.total_price, adult };
+  });
+  check("бронь на двоих для замены создана", !!made.code);
+
+  // Список броней кабинет читает при входе, а бронь создана после него —
+  // без перезагрузки карточки на экране просто нет. Токен лежит в
+  // localStorage, поэтому reload возвращает сразу в кабинет.
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(900);
+
+  // 1. Агентство САМО состав не меняет — только просит.
+  await page.locator('.tt-tab[data-tab="bookings"]').first().click({ force: true });
+  await page.waitForTimeout(700);
+  const card = page.locator(".tt-booking").filter({ hasText: made.code });
+  check("у агентства есть кнопка «Заменить туриста»",
+        (await card.locator("[data-change]").count()) === 1);
+  check("кнопки прямой правки состава у агентства нет",
+        (await card.locator("[data-edit-passengers]").count()) === 0);
+
+  page.once("dialog", (d) => d.accept("вместо SWAP TWO едет SWAP THREE"));
+  await card.locator("[data-change]").click();
+  await page.waitForTimeout(700);
+  const afterReq = page.locator(".tt-booking").filter({ hasText: made.code });
+  check("после заявки кнопка сменилась на «Замена у оператора»",
+        (await afterReq.locator("[data-change]").count()) === 0 &&
+        (await afterReq.getByText("Замена у оператора").count()) === 1);
+
+  // Повторная заявка не плодит вторую — состояние то же.
+  const twice = await page.evaluate(async (code) => {
+    const list = await window.TuronApi.bookings();
+    const b = list.find((x) => x.code === code);
+    return await window.TuronApi.requestChange(b.id, "ещё раз");
+  }, made.code);
+  check("повторная заявка не создаёт вторую", twice.already_requested === true);
+
+  // 2. Оператор проводит замену: убираем второго туриста.
+  //
+  // ВАЖНО: пересаживаемся в ТОЙ ЖЕ вкладке, а не через session(). Демо-режим
+  // держит данные в localStorage, а browser.newPage() заводит новый контекст
+  // с чистым хранилищем — созданной брони оператор бы там просто не увидел.
+  const op = { page, errors };
+  await page.evaluate(async () => { await window.TuronApi.logout().catch(() => {}); });
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.waitForTimeout(300);
+  if (await page.locator("#public-login-btn").count()) {
+    try { await page.locator("#public-login-btn").click({ timeout: 1200 }); } catch {}
+  }
+  await page.fill("#l-login", "operator");
+  await page.fill("#l-password", "turon2026");
+  await page.click("#login-btn");
+  await page.waitForTimeout(900);
+  await op.page.locator('.tt-tab[data-tab="admin-bookings"]').first().click({ force: true });
+  await op.page.waitForTimeout(900);
+  const opRow = op.page.locator("#adm-bookings .tt-booking").filter({ hasText: made.code });
+  check("у оператора видна метка «Просят замену»",
+        (await opRow.getByText("Просят замену").count()) === 1);
+  check("кнопка подписана «Провести замену», раз заявка открыта",
+        (await opRow.locator("[data-composition]").innerText()).includes("Провести замену"));
+
+  await opRow.locator("[data-composition]").click();
+  await op.page.waitForTimeout(700);
+  check("окно брони открылось в режиме правки",
+        (await op.page.locator("#booking-modal").isVisible()) &&
+        (await op.page.locator("#bm-title").innerText()).includes(made.code));
+  check("первый шаг называется «Рассчитать», а не «Сохранить»",
+        (await op.page.locator("#bm-submit").innerText()).trim() === "Рассчитать");
+  check("состав подставлен целиком",
+        (await op.page.locator("#bm-passengers [data-pax]").count()) === 2);
+
+  // Убираем вторую строку и считаем.
+  await op.page.locator("#bm-passengers [data-remove]").last().click();
+  await op.page.waitForTimeout(300);
+  check("строка убрана из формы",
+        (await op.page.locator("#bm-passengers [data-pax]").count()) === 1);
+
+  await op.page.locator("#bm-submit").click();
+  await op.page.waitForTimeout(700);
+  check("расчёт показан, а не записан молча",
+        await op.page.locator("#bm-preview").isVisible());
+  check("в расчёте видно «2 → 1»",
+        (await op.page.locator("#bm-preview").innerText()).includes("2 → 1"));
+  check("после расчёта кнопка стала «Применить»",
+        (await op.page.locator("#bm-submit").innerText()).trim() === "Применить");
+
+  // Пока не подтвердили — в базе всё по-прежнему.
+  const midway = await op.page.evaluate(async (code) => {
+    const r = await window.TuronApi.adminBookings({ limit: 200 });
+    const b = (r.items || r).find((x) => x.code === code);
+    return b.passengers_count;
+  }, made.code);
+  check("до подтверждения состав не тронут", midway === 2);
+
+  // Ловушка: расчёт устаревает, если тронуть состав после него.
+  // ФИО в форме ТРЕМЯ полями (см. joinName/splitName) — трогаем фамилию.
+  await op.page.locator('#bm-passengers [data-f="last_name"]').first().fill("SWAPX");
+  await op.page.waitForTimeout(250);
+  check("правка после расчёта гасит его",
+        (await op.page.locator("#bm-preview").isHidden()) &&
+        (await op.page.locator("#bm-submit").innerText()).trim() === "Рассчитать");
+
+  await op.page.locator("#bm-submit").click();
+  await op.page.waitForTimeout(700);
+  await op.page.locator("#bm-submit").click();
+  await op.page.waitForTimeout(1200);
+  check("окно закрылось после применения",
+        await op.page.locator("#booking-modal").isHidden());
+
+  const applied = await op.page.evaluate(async (code) => {
+    const r = await window.TuronApi.adminBookings({ limit: 200 });
+    const b = (r.items || r).find((x) => x.code === code);
+    return { n: b.passengers_count, total: b.total_price, req: b.change_requested_at };
+  }, made.code);
+  check("состав применён — остался один турист", applied.n === 1);
+  check("сумма брони пересчитана", applied.total < made.total);
+  check("заявка агентства закрылась правкой", !applied.req);
+
+  check("нет ошибок JS", op.errors.length === 0, op.errors.slice(0, 3).join(" | "));
+  await op.page.close();
+}
+
+console.log("\nЗамена состава: чего сервер не даёт");
+{
+  const { page, errors } = await session("operator");
+
+  const res = await page.evaluate(async () => {
+    const deps = await window.TuronApi.departures();
+    const d = deps[0];
+    const adult = new Date(new Date(d.date_start).getTime() - 30 * 365 * 86400000)
+      .toISOString().slice(0, 10);
+    const made = await window.TuronApi.createBooking({
+      departure_code: d.code,
+      passengers: [{ full_name: "GUARD ONE", birth_date: adult,
+        passport_number: "GD1111111", passport_expiry: "2032-01-01", placement: "DBL" }],
+    });
+    const list = await window.TuronApi.bookings();
+    const b = list.find((x) => x.code === made.booking_code);
+    const row = { full_name: "GUARD ONE", birth_date: adult,
+      passport_number: "GD1111111", passport_expiry: "2032-01-01", placement: "DBL" };
+
+    const out = {};
+    // пустой состав
+    try {
+      await window.TuronApi.adminUpdatePassengers(b.id, [], { confirm: true });
+      out.empty = "прошло";
+    } catch (e) { out.empty = e.message; }
+    // «оставить цены» при РАЗНОМ числе туристов переносить не с чего
+    try {
+      await window.TuronApi.adminUpdatePassengers(b.id, [row, row],
+        { confirm: true, keepPrice: true });
+      out.keep = "прошло";
+    } catch (e) { out.keep = e.message; }
+    // несуществующая дата рождения
+    try {
+      await window.TuronApi.adminUpdatePassengers(b.id,
+        [Object.assign({}, row, { birth_date: "1990-02-31" })], { confirm: true });
+      out.date = "прошло";
+    } catch (e) { out.date = e.message; }
+    return out;
+  });
+
+  check("пустой состав не принимается", /хотя бы один/.test(res.empty), res.empty);
+  check("«оставить цены» требует того же числа туристов",
+        /том же числе/.test(res.keep), res.keep);
+  check("несуществующая дата рождения не проходит и здесь",
+        /не существует/.test(res.date), res.date);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

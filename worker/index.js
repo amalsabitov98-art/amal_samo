@@ -775,15 +775,35 @@ async function createBooking(request, env, agency, ctx) {
     throw err;
   }
 }
-
 /*
- * Замена состава брони. Номер брони сохраняется — в нём смысл: он уже
- * назван клиенту и стоит в переписке. Меняется только состав, цена и,
- * если нужно, количество занятых мест.
+ * Замена СОСТАВА брони: добавить туриста, убрать, сменить размещение.
+ * Номер брони сохраняется — в нём смысл: он уже назван клиенту и стоит
+ * в переписке. Меняется состав, сумма и, если нужно, число занятых мест.
+ *
+ * ТОЛЬКО ОПЕРАТОР. Раньше маршрут был открыт агентству, и это была та же
+ * дыра, что с отменой: замена туриста — деньги (тариф взрослый/детский) и
+ * место в самолёте, на которое уже может быть выписан билет. Агентство
+ * теперь шлёт заявку (requestChange), меняет оператор. Фильтра по
+ * agency_id здесь поэтому нет — функция живёт лишь в ветке /api/admin/.
+ *
+ * Работает в ДВА ШАГА, как правка даты рождения:
+ *   без confirm — только СЧИТАЕТ, что изменится, и ничего не пишет;
+ *   с confirm   — применяет.
+ * Оператор не подписывается вслепую под новой суммой брони.
+ *
+ * keep_price оставляет прежние цены строк: ошибку внёс агент, и оператор
+ * может решить деньги не двигать (решение оператора — выбирает в момент
+ * правки). Работает только при НЕИЗМЕННОМ числе туристов: цены переносятся
+ * по позициям, и при разном количестве переносить их было бы не с чего.
+ * Так сумма брони всегда равна сумме строк — иначе счёт на оплату
+ * показывал бы таблицу, которая не сходится с итогом.
  */
-async function updateBookingPassengers(request, env, agency, bookingId) {
-  const body = await request.json();
+async function adminUpdateBookingPassengers(request, env, actor, bookingId) {
+  const body = await request.json().catch(() => ({}));
   const passengers = Array.isArray(body.passengers) ? body.passengers : [];
+  const confirm = body.confirm === true;
+  const keepPrice = body.keep_price === true;
+
   if (!passengers.length) return fail("В брони должен остаться хотя бы один пассажир");
   for (const p of passengers) {
     if (!p.full_name || !p.birth_date || !p.passport_number || !p.placement) {
@@ -794,8 +814,8 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
   const booking = await env.DB.prepare(
     `SELECT b.*, d.code AS departure_code, d.date_start
        FROM bookings b JOIN departures d ON d.id = b.departure_id
-      WHERE b.id = ? AND b.agency_id = ? AND b.status = 'confirmed'`
-  ).bind(bookingId, agency.id).first();
+      WHERE b.id = ? AND b.status = 'confirmed'`
+  ).bind(bookingId).first();
   if (!booking) return fail("Бронь не найдена или отменена", 404);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -811,19 +831,64 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
     if (bad) return fail(`${p.full_name || "Пассажир"}: ${bad}`);
   }
 
-  const priced = [];
-  for (const p of passengers) {
-    const tariff = priceFor(p, departure);
-    if (!tariff) return fail(`Нет цены на размещение ${p.placement} для этого заезда`);
-    priced.push({ ...p, tariff });
+  const oldPax = (await env.DB.prepare(
+    `SELECT id, full_name, placement, price_code, price, occupies_seat
+       FROM passengers WHERE booking_id = ? ORDER BY id`
+  ).bind(bookingId).all()).results;
+
+  if (keepPrice && passengers.length !== oldPax.length) {
+    return fail("Прежние цены можно оставить только при том же числе туристов");
   }
 
-  const oldSeatsRow = await env.DB.prepare(
-    "SELECT COALESCE(SUM(occupies_seat), 0) AS n FROM passengers WHERE booking_id = ?"
-  ).bind(bookingId).first();
-  const oldSeats = oldSeatsRow.n;
+  const priced = [];
+  for (let i = 0; i < passengers.length; i++) {
+    const p = passengers[i];
+    const tariff = priceFor(p, departure);
+    if (!tariff) return fail(`Нет цены на размещение ${p.placement} для этого заезда`);
+    // Тариф ставим НАСТОЯЩИЙ всегда: в ведомости и в билете должно стоять
+    // то, кем турист летит на самом деле. Заморозить можно только цену.
+    const price = keepPrice ? oldPax[i].price : tariff.price;
+    priced.push({ ...p, tariff, price });
+  }
+
+  const oldSeats = oldPax.reduce((n, p) => n + (p.occupies_seat ? 1 : 0), 0);
   const newSeats = priced.filter((p) => p.tariff.occupies_seat).length;
   const delta = newSeats - oldSeats;
+
+  const total = Math.round(priced.reduce((sum, p) => sum + p.price, 0) * 100) / 100;
+  const commission = (departure.agency_commission || 0) * newSeats;
+
+  const summary = {
+    booking_code: booking.code,
+    departure_code: booking.departure_code,
+    date_start: booking.date_start,
+    keep_price: keepPrice,
+    from: {
+      passengers_count: oldPax.length,
+      seats: oldSeats,
+      total_price: booking.total_price,
+      agency_commission: booking.agency_commission,
+      passengers: oldPax.map((p) => ({
+        full_name: p.full_name, placement: p.placement,
+        price_code: p.price_code, price: p.price, occupies_seat: p.occupies_seat,
+      })),
+    },
+    to: {
+      passengers_count: priced.length,
+      seats: newSeats,
+      total_price: total,
+      agency_commission: commission,
+      passengers: priced.map((p) => ({
+        full_name: p.full_name.trim(), placement: p.placement,
+        price_code: p.tariff.code, tariff: p.tariff.label,
+        price: p.price, occupies_seat: p.tariff.occupies_seat,
+      })),
+    },
+    seats_delta: delta,
+  };
+
+  // Шаг первый: показать и ничего не трогать.
+  if (!confirm) return json({ preview: true, ...summary });
 
   // Мест нужно больше — занимаем их так же, как при новой брони. Продажа
   // открыта: потолок capacity убран, проверяем только что заезд открыт.
@@ -840,10 +905,9 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
       .bind(delta, booking.departure_id).run();
   }
 
-  const total = priced.reduce((sum, p) => sum + p.tariff.price, 0);
-  const commission = (departure.agency_commission || 0) * newSeats;
-
   try {
+    const was = `${oldPax.length} чел., $${booking.total_price}`;
+    const now = `${priced.length} чел., $${total}`;
     const statements = [
       env.DB.prepare("DELETE FROM passengers WHERE booking_id = ?").bind(bookingId),
       ...priced.map((p) => env.DB.prepare(
@@ -851,12 +915,16 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
                                  passport_expiry, placement, price_code, price, occupies_seat)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(bookingId, p.full_name.trim(), p.birth_date, p.passport_number.trim(),
-             p.passport_expiry || null, p.placement, p.tariff.code, p.tariff.price,
+             p.passport_expiry || null, p.placement, p.tariff.code, p.price,
              p.tariff.occupies_seat)),
       env.DB.prepare("UPDATE bookings SET total_price = ?, agency_commission = ? WHERE id = ?")
         .bind(total, commission, bookingId),
-      logEvent(env, bookingId, agency, "edited",
-               `состав: ${priced.map((p) => p.full_name.trim()).join(", ")}; ${total} USD`),
+      // «было → стало» в журнале: без него спор «мы просили убрать одного,
+      // а сняли двоих» разрешить нечем.
+      logEvent(env, bookingId, actor, "edited",
+               `состав: ${was} → ${now}` +
+               (keepPrice ? " (цены сохранены по решению оператора)" : "") +
+               `; ${priced.map((p) => p.full_name.trim()).join(", ")}`),
     ];
     await env.DB.batch(statements);
   } catch (err) {
@@ -875,7 +943,9 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
   }
 
   return json({
-    booking_code: booking.code,
+    preview: false,
+    changed: true,
+    ...summary,
     passengers_count: priced.length,
     seats_taken: newSeats,
     total_price: total,
@@ -883,7 +953,6 @@ async function updateBookingPassengers(request, env, agency, bookingId) {
     passport_warnings: passportWarnings,
   });
 }
-
 async function listBookings(env, agency) {
   const rows = await env.DB.prepare(
     `SELECT b.id, b.code, b.status, b.total_price, b.agency_commission,
@@ -892,6 +961,15 @@ async function listBookings(env, agency) {
             (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
             (SELECT MAX(ce.created_at) FROM booking_events ce
               WHERE ce.booking_id = b.id AND ce.action = 'cancel_requested') AS cancel_requested_at,
+            -- Заявка на замену считается открытой, пока она НОВЕЕ последней
+            -- правки состава: оператор закрывает её правкой, а бронь при
+            -- этом остаётся confirmed (в отличие от отмены).
+            (SELECT MAX(ce.created_at) FROM booking_events ce
+              WHERE ce.booking_id = b.id AND ce.action = 'change_requested'
+                AND ce.created_at > COALESCE((SELECT MAX(e2.created_at)
+                      FROM booking_events e2
+                     WHERE e2.booking_id = b.id AND e2.action = 'edited'), '')
+            ) AS change_requested_at,
             COALESCE((SELECT SUM(amount) FROM payments pay WHERE pay.booking_id = b.id), 0) AS paid
        FROM bookings b JOIN departures d ON d.id = b.departure_id
       WHERE b.agency_id = ?
@@ -997,6 +1075,73 @@ async function notifyCancelRequest(env, r) {
     "Заезд: " + tgEscape(r.date_start) + " (" + tgEscape(r.departure_code) + ")\n" +
     "Сумма: $" + r.total +
     (r.reason ? "\nПричина: " + tgEscape(r.reason) : "");
+  await tgSend(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, text);
+}
+
+/*
+ * Заявка агентства на ЗАМЕНУ СОСТАВА — родная сестра requestCancel.
+ * Ничего не меняет: пишет `change_requested` в журнал брони и зовёт
+ * оператора в Telegram. Состав правит оператор.
+ *
+ * Отличие от заявки на отмену — в том, когда заявка считается закрытой.
+ * Отмена закрывается сменой статуса брони, и там достаточно проверить,
+ * что события ещё нет. Замену же оператор закрывает ПРАВКОЙ, а бронь
+ * остаётся confirmed — то есть по одной брони заявок за сезон может быть
+ * несколько. Поэтому открытой считается заявка НОВЕЕ последней правки:
+ * пока оператор не тронул состав, повторная кнопка не плодит сообщения,
+ * а после правки агентство может попросить снова.
+ */
+async function requestChange(request, env, agency, bookingId, ctx) {
+  const booking = await env.DB.prepare(
+    `SELECT b.*, d.date_start, d.code AS departure_code
+       FROM bookings b JOIN departures d ON d.id = b.departure_id
+      WHERE b.id = ? AND b.agency_id = ? AND b.status = 'confirmed'`
+  ).bind(bookingId, agency.id).first();
+  if (!booking) return fail("Бронь не найдена или уже отменена", 404);
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (booking.date_start <= today) return fail("Заезд уже начался — состав не меняется");
+
+  const open = await env.DB.prepare(
+    `SELECT id FROM booking_events
+      WHERE booking_id = ? AND action = 'change_requested'
+        AND created_at > COALESCE(
+          (SELECT MAX(created_at) FROM booking_events
+            WHERE booking_id = ? AND action = 'edited'), '')
+      LIMIT 1`
+  ).bind(booking.id, booking.id).first();
+  if (open) {
+    return json({ booking_code: booking.code, requested: true, already_requested: true });
+  }
+
+  // Что именно менять — свободным текстом: список пассажиров агент называет
+  // по телефону, а здесь остаётся письменный след, кто и когда просил.
+  const body = await request.json().catch(() => ({}));
+  const reason = String(body.reason || "").trim().slice(0, 500) || null;
+
+  await logEvent(env, booking.id, agency, "change_requested",
+    reason || "агентство просит изменить состав").run();
+
+  if (ctx && ctx.waitUntil) {
+    ctx.waitUntil(notifyChangeRequest(env, {
+      agency_name: agency.name,
+      code: booking.code,
+      departure_code: booking.departure_code,
+      date_start: booking.date_start,
+      reason,
+    }));
+  }
+  return json({ booking_code: booking.code, requested: true });
+}
+
+async function notifyChangeRequest(env, r) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
+  const text =
+    "✏️ <b>Запрос на замену туриста</b>\n" +
+    "Агентство: <b>" + tgEscape(r.agency_name) + "</b>\n" +
+    "Заказ: <b>" + tgEscape(r.code) + "</b>\n" +
+    "Заезд: " + tgEscape(r.date_start) + " (" + tgEscape(r.departure_code) + ")" +
+    (r.reason ? "\nЧто менять: " + tgEscape(r.reason) : "");
   await tgSend(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_CHAT_ID, text);
 }
 
@@ -1275,6 +1420,15 @@ async function adminBookings(env, params) {
             (SELECT COUNT(*) FROM passengers p WHERE p.booking_id = b.id) AS passengers_count,
             (SELECT MAX(ce.created_at) FROM booking_events ce
               WHERE ce.booking_id = b.id AND ce.action = 'cancel_requested') AS cancel_requested_at,
+            -- Заявка на замену считается открытой, пока она НОВЕЕ последней
+            -- правки состава: оператор закрывает её правкой, а бронь при
+            -- этом остаётся confirmed (в отличие от отмены).
+            (SELECT MAX(ce.created_at) FROM booking_events ce
+              WHERE ce.booking_id = b.id AND ce.action = 'change_requested'
+                AND ce.created_at > COALESCE((SELECT MAX(e2.created_at)
+                      FROM booking_events e2
+                     WHERE e2.booking_id = b.id AND e2.action = 'edited'), '')
+            ) AS change_requested_at,
             COALESCE((SELECT SUM(amount) FROM payments pay
                        WHERE pay.booking_id = b.id), 0) AS paid
        FROM bookings b
@@ -1524,9 +1678,18 @@ async function route(request, env, ctx) {
         return json(await listBookings(env, agency));
     }
 
+    // Замена состава агентству закрыта НА СЕРВЕРЕ — по той же причине, что
+    // и отмена: убранной кнопки мало, токен у агентства есть. Замена туриста
+    // это деньги (взрослый/детский тариф) и место, на которое может быть уже
+    // выписан билет, поэтому решение принимает туроператор.
     const edit = path.match(/^\/api\/bookings\/(\d+)\/passengers$/);
     if (edit && request.method === "POST") {
-      return await updateBookingPassengers(request, env, agency, Number(edit[1]));
+      return fail("Состав меняет оператор. Отправьте заявку на замену.", 403);
+    }
+
+    const changeReq = path.match(/^\/api\/bookings\/(\d+)\/change-request$/);
+    if (changeReq && request.method === "POST") {
+      return await requestChange(request, env, agency, Number(changeReq[1]), ctx);
     }
 
     // Отмена агентству закрыта НА СЕРВЕРЕ, а не только кнопкой в интерфейсе:
@@ -1616,6 +1779,13 @@ async function route(request, env, ctx) {
         const bd = path.match(/^\/api\/admin\/passengers\/(\d+)\/birthdate$/);
         if (bd && request.method === "POST") {
           return await updatePassengerBirthdate(request, env, agency, Number(bd[1]));
+        }
+
+        // Замена состава: как и правка даты рождения, в два шага —
+        // без confirm только считает, с confirm применяет.
+        const adminPax = path.match(/^\/api\/admin\/bookings\/(\d+)\/passengers$/);
+        if (adminPax && request.method === "POST") {
+          return await adminUpdateBookingPassengers(request, env, agency, Number(adminPax[1]));
         }
 
         const adminCancel = path.match(/^\/api\/admin\/bookings\/(\d+)\/cancel$/);

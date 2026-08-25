@@ -1934,6 +1934,36 @@ a { color: inherit; }
   margin-left: 6px;
 }
 
+/* Просьба заменить туриста — не отмена: бронь остаётся в силе, поэтому
+   метка не красная, а «внимание», как у прочего ожидающего действия. */
+.tt-badge-change {
+  border-color: rgba(182, 145, 47, 0.36);
+  background: rgba(182, 145, 47, 0.13);
+  color: var(--tt-warn-text);
+  margin-left: 6px;
+}
+
+/* Расчёт замены состава в окне брони (#bm-preview). Опирается на общий
+   .tt-editor-preview, добавляя только строки «было → стало». */
+.tt-comp-rows { display: grid; gap: 4px; margin-top: 8px; }
+.tt-comp-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tt-comp-rows span { color: var(--tt-text-muted); }
+.tt-comp-delta { color: var(--tt-warn-text); margin-left: 4px; }
+.tt-comp-keep {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--tt-border);
+  line-height: 1.4;
+}
+.tt-comp-keep input { margin-top: 2px; }
+
 .tt-activity-panel { margin-bottom: 20px; }
 .tt-activity-row td:nth-child(2) strong { display: inline-block; margin-right: 4px; }
 .tt-activity-row.is-cancel-request td {

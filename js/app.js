@@ -1522,7 +1522,10 @@
       : "Заезд " + formatDate(d.date_start);
     $("bm-sub").textContent = (TRANSPORT[d.transport] || d.transport) + " · " + d.code;
     $("bm-note").value = (booking && booking.note) || "";
-    $("bm-submit").textContent = booking ? "Сохранить" : "Забронировать";
+    // В режиме правки первый клик СЧИТАЕТ, а не сохраняет — отсюда
+    // «Рассчитать». На «Применить» кнопку переводит уже сам расчёт.
+    $("bm-submit").textContent = booking ? "Рассчитать" : "Забронировать";
+    dropCompPreview();
     // Новое окно — согласие ещё не дано; прячем экран условий, если остался.
     bookingAgreed = false;
     if ($("bm-agree")) $("bm-agree").hidden = true;
@@ -1585,27 +1588,117 @@
     $("bm-agree").hidden = true;
   });
 
+  /*
+   * Расчёт замены состава живёт ЗДЕСЬ, а не в поле ввода: любая перерисовка
+   * формы («Добавить»/«Убрать») стёрла бы его вместе с разметкой. Та же
+   * ловушка, что была в окне правки даты рождения — расчёт устаревает, если
+   * поправить состав уже после него, поэтому dropCompPreview() гасит его на
+   * каждый ввод, и «Применить» снова превращается в «Рассчитать».
+   */
+  var compPreview = null;
+
+  function dropCompPreview() {
+    if (!compPreview) return;
+    compPreview = null;
+    $("bm-preview").hidden = true;
+    $("bm-preview").innerHTML = "";
+    if (state.editing) $("bm-submit").textContent = "Рассчитать";
+  }
+
+  function renderCompPreview(res) {
+    var d = function (a, b) {
+      return a === b ? "" : ' <b class="tt-comp-delta">' +
+        (b > a ? "+" : "−") + Math.abs(Math.round((b - a) * 100) / 100) + "</b>";
+    };
+    // Своё склонение, а не plural() из admin.js: тот живёт в чужом модуле
+    // и отсюда не виден — на этом уже спотыкались.
+    var seatWord = function (n) {
+      var t = Math.abs(n) % 100, o = t % 10;
+      var w = (t > 10 && t < 20) || o > 4 || o === 0 ? "мест"
+            : (o === 1 ? "место" : "места");
+      return n + " " + w;
+    };
+    $("bm-preview").innerHTML =
+      '<h4>Что изменится в брони ' + esc(res.booking_code) + "</h4>" +
+      '<div class="tt-comp-rows">' +
+        '<div><span>Туристов</span><b>' + res.from.passengers_count + " → " +
+          res.to.passengers_count + "</b></div>" +
+        '<div><span>Занято мест</span><b>' + seatWord(res.from.seats) + " → " +
+          seatWord(res.to.seats) + "</b></div>" +
+        '<div><span>Сумма брони</span><b>' + money(res.from.total_price) + " → " +
+          money(res.to.total_price) + d(res.from.total_price, res.to.total_price) + "</b></div>" +
+        '<div><span>Комиссия агентства</span><b>' + money(res.from.agency_commission) +
+          " → " + money(res.to.agency_commission) + "</b></div>" +
+      "</div>" +
+      // Заморозить цену можно только при том же числе туристов: цены
+      // переносятся по позициям, и при разном количестве переносить их
+      // не с чего (сервер такой запрос отклонит).
+      (res.from.passengers_count === res.to.passengers_count &&
+       res.from.total_price !== res.to.total_price
+        ? '<label class="tt-comp-keep"><input type="checkbox" id="bm-keep-price" />' +
+          " Не менять сумму — ошибку внесло агентство, деньги не двигаем</label>"
+        : "") +
+      '<p class="tt-muted-note">Нажмите «Применить», чтобы записать. ' +
+        "Правка попадёт в журнал брони.</p>";
+    $("bm-preview").hidden = false;
+    $("bm-submit").textContent = "Применить";
+  }
+
+  $("bm-passengers").addEventListener("input", dropCompPreview);
+  $("bm-passengers").addEventListener("change", dropCompPreview);
+
   $("bm-submit").addEventListener("click", function () {
     var btn = $("bm-submit");
     var editing = state.editing;
     // Новая бронь: первый клик показывает условия, а не отправляет. Только
     // после «Я согласен» (bookingAgreed) клик проводит бронь. Правка состава
-    // (замена туриста) бесплатна — её пропускаем без согласия.
+    // условий не требует — там уже согласились при бронировании.
     if (!editing && !bookingAgreed) {
       $("bm-agree").hidden = false;
       return;
     }
     btn.disabled = true;
-    var action = editing
-      ? TuronApi.updateBookingPassengers(editing.id, collectPassengers())
-      : TuronApi.createBooking({
-          departure_code: state.current.code,
-          passengers: collectPassengers(),
-          note: $("bm-note").value.trim() || null,
-        });
+
+    var action;
+    if (editing) {
+      /*
+       * Замену состава проводит ТОЛЬКО оператор (маршрут в ветке /api/admin/),
+       * и в два шага: первый клик считает, второй применяет. Так оператор
+       * видит новую сумму брони до того, как её подпишет.
+       *
+       * Флажок читаем из ЖИВОГО расчёта, а не из формы: если оператор
+       * тронул состав после расчёта, dropCompPreview уже погасил и то и
+       * другое, и мы снова окажемся на шаге «Рассчитать».
+       */
+      var keep = compPreview && $("bm-keep-price") && $("bm-keep-price").checked;
+      action = TuronApi.adminUpdatePassengers(editing.id, collectPassengers(), {
+        confirm: !!compPreview,
+        keepPrice: !!keep,
+      });
+    } else {
+      action = TuronApi.createBooking({
+        departure_code: state.current.code,
+        passengers: collectPassengers(),
+        note: $("bm-note").value.trim() || null,
+      });
+    }
+
     action.then(function (res) {
+      // Шаг первый: сервер только посчитал — показываем и ждём подтверждения.
+      if (res && res.preview) {
+        compPreview = res;
+        renderCompPreview(res);
+        btn.disabled = false;
+        return;
+      }
       closeBooking();
       return Promise.all([loadDepartures(), loadBookings()]).then(function () {
+        // Правку состава делает оператор — обновляем и его экраны
+        // (ведомость, список броней, сводку), иначе он увидел бы прежние
+        // цифры до перезагрузки страницы.
+        if (editing && window.TuronAdmin && TuronAdmin.isOperator(session)) {
+          TuronAdmin.reload();
+        }
         goTab("bookings");
         flash(editing
           ? "Бронь " + res.booking_code + " обновлена: " + res.passengers_count +
@@ -1618,6 +1711,45 @@
       btn.disabled = false;
     });
   });
+
+  /*
+   * Точка входа оператора в замену состава.
+   *
+   * Окно брони живёт ЗДЕСЬ, а операторские экраны — в admin.js, поэтому
+   * admin.js получает открывалку через колбэк, а не тянет форму к себе:
+   * форма брони одна на всех, и разъезжаться двум её копиям нельзя (тарифы,
+   * подсказки, размещения и расчёт суммы считаются в одном месте).
+   * Направление вызова именно такое, потому что admin.js грузится РАНЬШЕ
+   * app.js и о нём ничего не знает — обратная связь возможна только так.
+   */
+  if (window.TuronAdmin && TuronAdmin.setCompositionOpener) {
+    TuronAdmin.setCompositionOpener(function (booking) {
+      function has() {
+        return state.departures.some(function (x) {
+          return x.code === booking.departure_code;
+        });
+      }
+      function open() {
+        if (!has()) {
+          // Заезд не в продаже: либо уже начался, либо закрыт. Сервер такую
+          // правку и так отклонит — говорим словами, а не молчаливым
+          // «кнопка не работает».
+          alert("Заезд " + booking.departure_code +
+                " уже начался или закрыт — состав по нему не меняется.");
+          return;
+        }
+        openBooking(booking.departure_code, booking);
+      }
+      /*
+       * У ОПЕРАТОРА state.departures пуст: его кабинет рисует admin.js со
+       * своим списком заездов, а форма брони читает список отсюда. Поэтому
+       * перед открытием подгружаем — иначе окно молча не открывалось бы
+       * (на этом уже поймались: кнопка нажималась, а ничего не происходило).
+       */
+      if (has()) return open();
+      loadDepartures().then(open);
+    });
+  }
 
   // ------------------------------------------------------------ мои брони
   function bookingRowHtml(b) {
@@ -1646,6 +1778,14 @@
           (paidPart ? '<div class="tt-muted-note">частичная оплата</div>' : "") +
         "</div>" +
         '<div class="tt-booking-action">' +
+          // Замена состава — тоже заявка, а не действие: турист, которого
+          // меняют, может быть уже вписан в билет, и тариф у замены бывает
+          // другой. Проводит замену оператор, кнопка только зовёт его.
+          (cancelled || b.change_requested_at ? "" :
+            '<button class="tt-btn secondary tt-btn-sm" data-change="' + b.id +
+              '">Заменить туриста</button>') +
+          (!cancelled && b.change_requested_at
+            ? '<span class="tt-muted-note">Замена у оператора</span>' : "") +
           (cancelled || b.cancel_requested_at ? "" :
             // «Запросить», а не «Отменить»: саму отмену проводит оператор.
             '<button class="tt-btn secondary tt-btn-sm" data-cancel="' + b.id +
@@ -1684,6 +1824,34 @@
         esc(err.message) + "</div></div>";
     });
   }
+
+  /*
+   * Заявка на ЗАМЕНУ состава. Как и отмена, ничего не меняет — зовёт
+   * оператора. Причина спрашивается свободным текстом, потому что вариантов
+   * много (турист не смог, добавляем ребёнка, меняем номер), и заранее их
+   * не перечислить; главное, чтобы просьба осталась в журнале брони.
+   */
+  $("bookings-list").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-change]");
+    if (!btn) return;
+    var id = Number(btn.dataset.change);
+    var b = state.bookings.filter(function (x) { return x.id === id; })[0];
+    var what = prompt(
+      "Что изменить в брони " + (b ? b.code : "") + "?\n\n" +
+      "Например: «вместо Иванова И.И. едет Петров П.П.» или\n" +
+      "«добавить ребёнка 5 лет к номеру Ивановых».\n\n" +
+      "Оператор внесёт правку и пересчитает сумму.", "");
+    if (what === null) return;                 // передумал
+    btn.disabled = true;
+    TuronApi.requestChange(id, what.trim()).then(function (res) {
+      flash("Заявка на замену по брони " + res.booking_code +
+        " отправлена — оператор внесёт правку.");
+      loadBookings();
+    }).catch(function (err) {
+      btn.disabled = false;
+      alert("Не удалось отправить заявку: " + err.message);
+    });
+  });
 
   $("bookings-list").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-cancel]");
@@ -1899,6 +2067,11 @@
         (ev.details && ev.details !== "агентство просит отменить бронь"
           ? " · " + ev.details : "");
     }
+    if (ev.action === "change_requested") {
+      return agency + " просит заменить туриста в брони " + code +
+        (ev.details && ev.details !== "агентство просит изменить состав"
+          ? " · " + ev.details : "");
+    }
     return agency + " · " + code + " · " + (ev.details || ev.action);
   }
 
@@ -1916,8 +2089,14 @@
         var out = activity.slice(0, 20).map(function (ev) {
           var pendingCancel = ev.action === "cancel_requested" &&
             ev.booking_status === "confirmed";
+          // Заявка на замену закрывается ПРАВКОЙ, а не сменой статуса —
+          // бронь так и остаётся confirmed. Открытой её считает сервер
+          // (change_requested новее последнего edited), здесь мы лишь
+          // поднимаем такую строку наверх ленты.
+          var pendingChange = ev.action === "change_requested" &&
+            ev.booking_status === "confirmed" && ev.is_open !== false;
           return {
-            kind: pendingCancel ? "cancel" : "activity",
+            kind: pendingCancel ? "cancel" : (pendingChange ? "change" : "activity"),
             // Ключ на id самого события, а не на его текущий вид: когда
             // оператор проведёт отмену, эта же запись перестанет быть
             // «cancel» и станет обычной «activity», но повторно дёргать
@@ -1950,7 +2129,7 @@
         });
         // Необработанные отмены всегда наверху, затем остальные свежие
         // действия агентств и уже после них расчётные предупреждения.
-        var order = { cancel: 0, activity: 1, late: 2, soon: 3 };
+        var order = { cancel: 0, change: 1, activity: 2, late: 3, soon: 4 };
         out.sort(function (a, b) { return order[a.kind] - order[b.kind]; });
         operatorNotices = out;
         renderNotices();
@@ -2042,7 +2221,7 @@
         : (list.length ? "Уведомления: всё прочитано" : "Уведомлений нет"));
     }
 
-    var icons = { cancel: "×", activity: "↗", late: "!", docs: "✓", soon: "✈", pass: "▣" };
+    var icons = { cancel: "×", change: "⇄", activity: "↗", late: "!", docs: "✓", soon: "✈", pass: "▣" };
     $("notice-panel").innerHTML = list.length
       ? '<div class="tt-notice-head">' +
           '<span class="tt-notice-headline">Уведомления' +

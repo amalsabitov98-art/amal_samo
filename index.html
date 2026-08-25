@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260825-5" />
+<link rel="stylesheet" href="styles.css?v=20260825-6" />
 </head>
 <body>
 
@@ -525,6 +525,11 @@
         <input type="text" id="bm-note" placeholder="Необязательно" />
       </div>
     </div>
+    <!-- Расчёт замены состава (только оператор). Первый клик «Сохранить»
+         ничего не пишет, а показывает сюда, что изменится: сколько человек,
+         мест и какая станет сумма брони. Ровно тот же порядок, что у правки
+         даты рождения — оператор не подписывается вслепую под новой суммой. -->
+    <div id="bm-preview" class="tt-editor-preview" hidden></div>
     <div class="tt-modal-foot">
       <div id="bm-summary"></div>
       <button class="tt-btn" id="bm-submit">Забронировать</button>
@@ -538,12 +543,13 @@
         <h3>Условия бронирования</h3>
         <ul>
           <li><b>Оплата:</b> 30% стоимости — в течение 3 дней с брони,
-            оставшиеся 70% — не позднее чем за 20 дней до выезда. Если до
-            выезда меньше 20 дней — 100% в течение суток.</li>
-          <li><b>Отмена:</b> бесплатно, если до выезда больше 20 дней. За
-            20 дней и менее — удерживается <b>100% стоимости</b> тура,
+            оставшиеся 70% — не позднее чем за 14 дней до выезда. Если до
+            выезда меньше 14 дней — 100% в течение суток.</li>
+          <li><b>Отмена:</b> бесплатно, если до выезда 14 дней или больше.
+            С 13-го дня удерживается <b>100% стоимости</b> тура,
             возврата нет.</li>
-          <li><b>Замена туриста</b> в брони — бесплатно.</li>
+          <li><b>Замена туриста</b> в брони — бесплатно, но проводит её
+            туроператор: отправьте заявку из раздела «Брони».</li>
         </ul>
         <p class="tt-muted-note">Нажимая «Я согласен», вы подтверждаете, что
           ознакомили клиента с этими условиями.</p>
@@ -639,11 +645,11 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
 <script src="js/config.js"></script>
 <script src="js/seed-data.js"></script>
-<script src="js/api.js?v=20260825-5"></script>
+<script src="js/api.js?v=20260825-6"></script>
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260821-3"></script>
 <script src="js/catalog.js?v=20260825-1"></script>
-<script src="js/admin.js?v=20260825-5"></script>
-<script src="js/app.js?v=20260825-5"></script>
+<script src="js/admin.js?v=20260825-6"></script>
+<script src="js/app.js?v=20260825-6"></script>
 </body>
 </html>
