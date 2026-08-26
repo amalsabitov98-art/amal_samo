@@ -2965,7 +2965,10 @@
         "<h2>Контакты оператора</h2>" +
         '<p class="tt-muted-note">По броням отвечают менеджеры Etihad. ' +
         "Пишите в Telegram или звоните.</p>" +
-        '<div class="tt-contact-grid">' +
+        // Класс СВОЙ, а не общий tt-contact-grid: тем же именем назван блок
+        // публичной секции «Свяжитесь с нами», и правило кабинета, стоящее
+        // в styles.css ниже, молча перебивало её раскладку.
+        '<div class="tt-op-contact-grid">' +
           people +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +

@@ -626,10 +626,15 @@
    */
   /*
    * ------------------------------------------------------- «Свяжитесь с нами»
-   * Секция после «О компании». Смысл — показать, что оператор НЕ ограничен
-   * готовыми программами: любой маршрут, даты, отели и состав собираются
-   * индивидуально. Слева — контакты (из TuronProvisional.OPERATOR, как и в
-   * подвале, чтобы телефон/почта не жили в разметке), справа — форма.
+   * Секция после «О компании». Смысл ровно один — показать, что оператор НЕ
+   * ограничен готовым каталогом: любой маршрут, даты, отели и состав группы
+   * собираются под запрос. Поэтому на экране только это и форма запроса.
+   *
+   * Контактов здесь НЕТ намеренно. Раньше слева стояла карточка с телефоном,
+   * почтой и адресом — те же самые, что в подвале двумя блоками ниже. Это
+   * растаскивало внимание: посетитель дочитывал «соберём тур под вас» и
+   * упирался в выбор — писать, звонить или заполнять форму. Осталось одно
+   * действие, форма по центру; контакты никуда не делись, они в подвале.
    *
    * Форма честная: у нас нет отдельного бэкенда под заявки, поэтому «Отправить»
    * СОБИРАЕТ письмо и открывает почтовый клиент на адрес оператора с уже
@@ -637,41 +642,19 @@
    * «отправить в никуда» нельзя. Когда появится маршрут воркера под заявки,
    * сюда достаточно подставить fetch вместо mailto.
    */
-  function contactIcon(kind) {
-    var p = {
-      mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
-      phone: '<path d="M6 4h3l1.6 4-2 1.4a12 12 0 0 0 5.4 5.4l1.4-2 4 1.6v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4 6.2 2 2 0 0 1 6 4z"/>',
-      tg: '<path d="M20.5 5.5L3.8 11.8c-1 .4-1 1.7.1 2l4.2 1.3 1.6 4.6c.3.8 1.3 1 1.9.3l2.3-2.4 4.2 3.1c.7.5 1.7.1 1.9-.7l2.8-13c.2-1-.7-1.8-1.6-1.4z"/>',
-      pin: '<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
-    };
-    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + p[kind] + "</svg>";
-  }
-  function contactRow(kind, href, text, blank) {
-    var inner = contactIcon(kind) + "<span>" + esc(text) + "</span>";
-    if (!href) return '<div class="tt-contact-row">' + inner + "</div>";
-    return '<a class="tt-contact-row" href="' + esc(href) + '"' +
-      (blank ? ' target="_blank" rel="noopener"' : "") + ">" + inner + "</a>";
-  }
   function contactHtml() {
-    var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
-    var rows = "";
-    if (op.email) rows += contactRow("mail", "mailto:" + op.email, op.email);
-    if (op.phone) rows += contactRow("phone", "tel:" + (op.phone_href || op.phone), op.phone);
-    if (op.telegram_href) rows += contactRow("tg", op.telegram_href, "Telegram", true);
-    if (op.address) rows += contactRow("pin", null, op.address);
     return (
       '<section class="tt-contact" id="contact">' +
         '<div class="tt-contact-inner">' +
           '<div class="tt-contact-lead">' +
             '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
             "<h2>" + esc(tr("contact.title")) + "</h2>" +
+            // Текст «мы не ограничены готовыми программами» переехал сюда из
+            // убранной карточки контактов: это и есть смысл блока, терять
+            // его вместе с карточкой нельзя.
+            "<p>" + esc(tr("contact.infoText")) + "</p>" +
           "</div>" +
           '<div class="tt-contact-grid">' +
-            '<div class="tt-contact-card tt-contact-info">' +
-              "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
-              "<p>" + esc(tr("contact.infoText")) + "</p>" +
-              '<div class="tt-contact-rows">' + rows + "</div>" +
-            "</div>" +
             '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
               '<input id="cf-name" type="text" autocomplete="name" ' +
                 'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +

@@ -6106,17 +6106,27 @@ select { font-family: inherit; }
   text-align: center;
 }
 .tt-contact-lead .tt-eyebrow { justify-content: center; color: var(--cc); }
+.tt-contact-lead p {
+  margin: 14px auto 0;
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
 .tt-contact-lead h2 {
   margin: 10px 0 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(2rem, 4.5vw, 3rem);
   line-height: 1.03;
 }
+/* Одна колонка по центру: карточка контактов убрана, на экране осталось
+   единственное действие — форма запроса. Контакты не потеряны, они в
+   подвале двумя блоками ниже. */
 .tt-contact-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
   gap: clamp(16px, 3vw, 28px);
-  align-items: stretch;
 }
 .tt-contact-card {
   position: relative;
@@ -6195,24 +6205,24 @@ a.tt-contact-row:hover { color: var(--cc); }
   border-color: var(--cc);
   box-shadow: 0 0 0 3px rgba(79, 214, 232, 0.22);
 }
+/* Кнопка простая: однотонная заливка, спокойный радиус, никакого градиента
+   и свечения. Прежний вариант — бирюзовый градиент с тенью в 38 пикселей —
+   выглядел как заглушка из генератора, а не как кнопка отправки формы. */
 .tt-contact-send {
   margin-top: 4px;
   padding: 15px 18px;
   border: none;
-  border-radius: 13px;
+  border-radius: 6px;
   color: #05221f;
   font-weight: 700;
   font-size: 0.82rem;
   letter-spacing: 0.01em;
   cursor: pointer;
-  background: linear-gradient(120deg, var(--cc), #7be8f4);
-  box-shadow: 0 14px 30px rgba(79, 214, 232, 0.28);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: var(--cc);
+  transition: background 0.15s ease;
 }
-.tt-contact-send:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 38px rgba(79, 214, 232, 0.4);
-}
+.tt-contact-send:hover { background: #6fe0ee; }
+.tt-contact-send:disabled { opacity: 0.55; cursor: default; }
 .tt-contact-note { margin: 4px 0 0; font-size: 0.72rem; line-height: 1.5; }
 .tt-contact-note.is-ok { color: var(--cc); }
 .tt-contact-note.is-err { color: #ff9a9a; }
@@ -7354,19 +7364,23 @@ a.tt-contact-row:hover { color: var(--cc); }
 .tt-pay-steps li.is-late em { background: var(--tt-warn-bg); color: var(--tt-warn-text); }
 .tt-pay-steps li.is-late strong { color: var(--tt-warn-text); }
 
-.tt-contact-grid {
+/* Вкладка «Контакты» в кабинете. Класс переименован из tt-contact-grid:
+   тем же именем назван блок публичной секции «Свяжитесь с нами», это
+   правило лежит ниже и молча перебивало её раскладку — публичная форма
+   не слушалась своей же ширины. */
+.tt-op-contact-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 14px;
 }
-.tt-contact-grid span {
+.tt-op-contact-grid span {
   display: block;
   font-size: 0.72rem;
   color: var(--tt-text-muted);
   margin-bottom: 3px;
 }
-.tt-contact-grid a { color: var(--tt-accent); }
+.tt-op-contact-grid a { color: var(--tt-accent); }
 /* Telegram у менеджера идёт отдельной строкой под телефоном, а не своей
    ячейкой: с несколькими менеджерами отдельные ячейки разрывали пару
    «имя — телефон», и было не понять, чей это Telegram. */
@@ -18183,10 +18197,15 @@ window.TURON_DESTINATIONS = [
    */
   /*
    * ------------------------------------------------------- «Свяжитесь с нами»
-   * Секция после «О компании». Смысл — показать, что оператор НЕ ограничен
-   * готовыми программами: любой маршрут, даты, отели и состав собираются
-   * индивидуально. Слева — контакты (из TuronProvisional.OPERATOR, как и в
-   * подвале, чтобы телефон/почта не жили в разметке), справа — форма.
+   * Секция после «О компании». Смысл ровно один — показать, что оператор НЕ
+   * ограничен готовым каталогом: любой маршрут, даты, отели и состав группы
+   * собираются под запрос. Поэтому на экране только это и форма запроса.
+   *
+   * Контактов здесь НЕТ намеренно. Раньше слева стояла карточка с телефоном,
+   * почтой и адресом — те же самые, что в подвале двумя блоками ниже. Это
+   * растаскивало внимание: посетитель дочитывал «соберём тур под вас» и
+   * упирался в выбор — писать, звонить или заполнять форму. Осталось одно
+   * действие, форма по центру; контакты никуда не делись, они в подвале.
    *
    * Форма честная: у нас нет отдельного бэкенда под заявки, поэтому «Отправить»
    * СОБИРАЕТ письмо и открывает почтовый клиент на адрес оператора с уже
@@ -18194,41 +18213,19 @@ window.TURON_DESTINATIONS = [
    * «отправить в никуда» нельзя. Когда появится маршрут воркера под заявки,
    * сюда достаточно подставить fetch вместо mailto.
    */
-  function contactIcon(kind) {
-    var p = {
-      mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
-      phone: '<path d="M6 4h3l1.6 4-2 1.4a12 12 0 0 0 5.4 5.4l1.4-2 4 1.6v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4 6.2 2 2 0 0 1 6 4z"/>',
-      tg: '<path d="M20.5 5.5L3.8 11.8c-1 .4-1 1.7.1 2l4.2 1.3 1.6 4.6c.3.8 1.3 1 1.9.3l2.3-2.4 4.2 3.1c.7.5 1.7.1 1.9-.7l2.8-13c.2-1-.7-1.8-1.6-1.4z"/>',
-      pin: '<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
-    };
-    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + p[kind] + "</svg>";
-  }
-  function contactRow(kind, href, text, blank) {
-    var inner = contactIcon(kind) + "<span>" + esc(text) + "</span>";
-    if (!href) return '<div class="tt-contact-row">' + inner + "</div>";
-    return '<a class="tt-contact-row" href="' + esc(href) + '"' +
-      (blank ? ' target="_blank" rel="noopener"' : "") + ">" + inner + "</a>";
-  }
   function contactHtml() {
-    var op = (global.TuronProvisional && global.TuronProvisional.OPERATOR) || {};
-    var rows = "";
-    if (op.email) rows += contactRow("mail", "mailto:" + op.email, op.email);
-    if (op.phone) rows += contactRow("phone", "tel:" + (op.phone_href || op.phone), op.phone);
-    if (op.telegram_href) rows += contactRow("tg", op.telegram_href, "Telegram", true);
-    if (op.address) rows += contactRow("pin", null, op.address);
     return (
       '<section class="tt-contact" id="contact">' +
         '<div class="tt-contact-inner">' +
           '<div class="tt-contact-lead">' +
             '<span class="tt-eyebrow">' + esc(tr("contact.kicker")) + "</span>" +
             "<h2>" + esc(tr("contact.title")) + "</h2>" +
+            // Текст «мы не ограничены готовыми программами» переехал сюда из
+            // убранной карточки контактов: это и есть смысл блока, терять
+            // его вместе с карточкой нельзя.
+            "<p>" + esc(tr("contact.infoText")) + "</p>" +
           "</div>" +
           '<div class="tt-contact-grid">' +
-            '<div class="tt-contact-card tt-contact-info">' +
-              "<h3>" + esc(tr("contact.infoTitle")) + "</h3>" +
-              "<p>" + esc(tr("contact.infoText")) + "</p>" +
-              '<div class="tt-contact-rows">' + rows + "</div>" +
-            "</div>" +
             '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
               '<input id="cf-name" type="text" autocomplete="name" ' +
                 'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
@@ -25360,7 +25357,10 @@ window.TURON_DESTINATIONS = [
         "<h2>Контакты оператора</h2>" +
         '<p class="tt-muted-note">По броням отвечают менеджеры Etihad. ' +
         "Пишите в Telegram или звоните.</p>" +
-        '<div class="tt-contact-grid">' +
+        // Класс СВОЙ, а не общий tt-contact-grid: тем же именем назван блок
+        // публичной секции «Свяжитесь с нами», и правило кабинета, стоящее
+        // в styles.css ниже, молча перебивало её раскладку.
+        '<div class="tt-op-contact-grid">' +
           people +
           "<div><span>Почта</span><strong><a href=\"mailto:" + esc(op.email) +
             '">' + esc(op.email) + "</a></strong></div>" +
