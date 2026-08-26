@@ -642,6 +642,16 @@
    * «отправить в никуда» нельзя. Когда появится маршрут воркера под заявки,
    * сюда достаточно подставить fetch вместо mailto.
    */
+  /** Поле формы обратной связи: подпись над полем ввода. */
+  function cfField(id, label, field) {
+    return (
+      '<div class="tt-cf-field">' +
+        '<label class="tt-cf-label" for="' + id + '">' + esc(label) + "</label>" +
+        field +
+      "</div>"
+    );
+  }
+
   function contactHtml() {
     return (
       '<section class="tt-contact" id="contact">' +
@@ -656,12 +666,18 @@
           "</div>" +
           '<div class="tt-contact-grid">' +
             '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
-              '<input id="cf-name" type="text" autocomplete="name" ' +
-                'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
-              '<input id="cf-contact" type="text" ' +
-                'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
-              '<textarea id="cf-msg" rows="3" ' +
-                'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
+              // Подпись стоит НАД полем, а не подставляется placeholder'ом:
+              // серый текст внутри поля читается хуже белого над ним и
+              // пропадает, стоит начать печатать — заполнив три поля, человек
+              // уже не видит, где что. Класс свой (tt-cf-*), а не общий
+              // .tt-field: тот занят формами кабинета, и правило оттуда
+              // перебивало бы это.
+              cfField("cf-name", tr("contact.name"),
+                '<input id="cf-name" type="text" autocomplete="name" />') +
+              cfField("cf-contact", tr("contact.contact"),
+                '<input id="cf-contact" type="text" autocomplete="tel" />') +
+              cfField("cf-msg", tr("contact.messageLabel"),
+                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>') +
               '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
               '<p class="tt-contact-note" id="cf-note" hidden></p>' +
             "</form>" +

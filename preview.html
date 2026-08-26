@@ -6100,31 +6100,35 @@ select { font-family: inherit; }
   max-width: 1180px;
   margin: 0 auto;
 }
+/* Лид и форма стоят на ОДНОЙ ширине (620px): разъехавшись — текст шире
+   карточки — блок читался как два несвязанных куска, набранных случайно. */
 .tt-contact-lead {
-  max-width: 640px;
-  margin: 0 auto clamp(26px, 4vw, 42px);
+  max-width: 620px;
+  margin: 0 auto clamp(26px, 4vw, 40px);
   text-align: center;
 }
 .tt-contact-lead .tt-eyebrow { justify-content: center; color: var(--cc); }
 .tt-contact-lead p {
   margin: 14px auto 0;
-  max-width: 52ch;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.86rem;
-  line-height: 1.65;
+  max-width: 50ch;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem;
+  line-height: 1.7;
 }
+/* Заголовок был clamp(…, 3rem) — втрое крупнее текста под ним, и на его
+   фоне абзац и поля выглядели мелким шрифтом. Разница ужата до вдвое. */
 .tt-contact-lead h2 {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  line-height: 1.03;
+  font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+  line-height: 1.06;
 }
 /* Одна колонка по центру: карточка контактов убрана, на экране осталось
    единственное действие — форма запроса. Контакты не потеряны, они в
    подвале двумя блоками ниже. */
 .tt-contact-grid {
   display: grid;
-  grid-template-columns: minmax(0, 560px);
+  grid-template-columns: minmax(0, 620px);
   justify-content: center;
   gap: clamp(16px, 3vw, 28px);
 }
@@ -6184,21 +6188,30 @@ a.tt-contact-row:hover { color: var(--cc); }
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.tt-contact-form { display: grid; gap: 12px; align-content: start; }
+.tt-contact-form { display: grid; gap: 18px; align-content: start; }
+.tt-cf-field { display: grid; gap: 7px; }
+/* Подпись поля: белее и крупнее прежнего placeholder'а, потому что теперь
+   именно она объясняет поле — а не серый текст внутри рамки. */
+.tt-cf-label {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
 .tt-contact-form input,
 .tt-contact-form textarea {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
   resize: vertical;
 }
 .tt-contact-form input::placeholder,
-.tt-contact-form textarea::placeholder { color: rgba(255, 255, 255, 0.5); }
+.tt-contact-form textarea::placeholder { color: rgba(255, 255, 255, 0.45); }
 .tt-contact-form input:focus,
 .tt-contact-form textarea:focus {
   outline: none;
@@ -6215,7 +6228,7 @@ a.tt-contact-row:hover { color: var(--cc); }
   border-radius: 6px;
   color: #05221f;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   letter-spacing: 0.01em;
   cursor: pointer;
   background: var(--cc);
@@ -6223,7 +6236,7 @@ a.tt-contact-row:hover { color: var(--cc); }
 }
 .tt-contact-send:hover { background: #6fe0ee; }
 .tt-contact-send:disabled { opacity: 0.55; cursor: default; }
-.tt-contact-note { margin: 4px 0 0; font-size: 0.72rem; line-height: 1.5; }
+.tt-contact-note { margin: 4px 0 0; font-size: 0.8rem; line-height: 1.55; }
 .tt-contact-note.is-ok { color: var(--cc); }
 .tt-contact-note.is-err { color: #ff9a9a; }
 @media (max-width: 720px) {
@@ -16839,6 +16852,7 @@ window.TURON_DESTINATIONS = [
       "contact.name": "Ваше имя",
       "contact.contact": "Телефон или e-mail",
       "contact.message": "Расскажите о поездке…",
+      "contact.messageLabel": "Сообщение",
       "contact.send": "Отправить сообщение",
       "contact.fill": "Заполните имя, контакт и сообщение.",
       "contact.sent": "Открываем почту — сообщение уже внутри.",
@@ -16914,6 +16928,7 @@ window.TURON_DESTINATIONS = [
       "contact.name": "Ismingiz",
       "contact.contact": "Telefon yoki e-mail",
       "contact.message": "Sayohat haqida yozing…",
+      "contact.messageLabel": "Xabar",
       "contact.send": "Xabar yuborish",
       "contact.fill": "Ism, kontakt va xabarni to‘ldiring.",
       "contact.sent": "Pochta ochilmoqda — xabar ichida.",
@@ -16989,6 +17004,7 @@ window.TURON_DESTINATIONS = [
       "contact.name": "Your name",
       "contact.contact": "Phone or e-mail",
       "contact.message": "Tell us about your trip…",
+      "contact.messageLabel": "Message",
       "contact.send": "Send message",
       "contact.fill": "Fill in your name, contact and message.",
       "contact.sent": "Opening your mail — the message is inside.",
@@ -17064,6 +17080,7 @@ window.TURON_DESTINATIONS = [
       "contact.name": "Adınız",
       "contact.contact": "Telefon veya e-posta",
       "contact.message": "Seyahatinizden bahsedin…",
+      "contact.messageLabel": "Mesaj",
       "contact.send": "Mesaj gönder",
       "contact.fill": "Ad, iletişim ve mesajı doldurun.",
       "contact.sent": "Posta açılıyor — mesaj içinde.",
@@ -18213,6 +18230,16 @@ window.TURON_DESTINATIONS = [
    * «отправить в никуда» нельзя. Когда появится маршрут воркера под заявки,
    * сюда достаточно подставить fetch вместо mailto.
    */
+  /** Поле формы обратной связи: подпись над полем ввода. */
+  function cfField(id, label, field) {
+    return (
+      '<div class="tt-cf-field">' +
+        '<label class="tt-cf-label" for="' + id + '">' + esc(label) + "</label>" +
+        field +
+      "</div>"
+    );
+  }
+
   function contactHtml() {
     return (
       '<section class="tt-contact" id="contact">' +
@@ -18227,12 +18254,18 @@ window.TURON_DESTINATIONS = [
           "</div>" +
           '<div class="tt-contact-grid">' +
             '<form class="tt-contact-card tt-contact-form" id="contact-form" novalidate>' +
-              '<input id="cf-name" type="text" autocomplete="name" ' +
-                'placeholder="' + esc(tr("contact.name")) + '" aria-label="' + esc(tr("contact.name")) + '" />' +
-              '<input id="cf-contact" type="text" ' +
-                'placeholder="' + esc(tr("contact.contact")) + '" aria-label="' + esc(tr("contact.contact")) + '" />' +
-              '<textarea id="cf-msg" rows="3" ' +
-                'placeholder="' + esc(tr("contact.message")) + '" aria-label="' + esc(tr("contact.message")) + '"></textarea>' +
+              // Подпись стоит НАД полем, а не подставляется placeholder'ом:
+              // серый текст внутри поля читается хуже белого над ним и
+              // пропадает, стоит начать печатать — заполнив три поля, человек
+              // уже не видит, где что. Класс свой (tt-cf-*), а не общий
+              // .tt-field: тот занят формами кабинета, и правило оттуда
+              // перебивало бы это.
+              cfField("cf-name", tr("contact.name"),
+                '<input id="cf-name" type="text" autocomplete="name" />') +
+              cfField("cf-contact", tr("contact.contact"),
+                '<input id="cf-contact" type="text" autocomplete="tel" />') +
+              cfField("cf-msg", tr("contact.messageLabel"),
+                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>') +
               '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
               '<p class="tt-contact-note" id="cf-note" hidden></p>' +
             "</form>" +
