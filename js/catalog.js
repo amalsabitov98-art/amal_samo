@@ -643,9 +643,9 @@
    * сюда достаточно подставить fetch вместо mailto.
    */
   /** Поле формы обратной связи: подпись над полем ввода. */
-  function cfField(id, label, field) {
+  function cfField(id, label, field, wide) {
     return (
-      '<div class="tt-cf-field">' +
+      '<div class="tt-cf-field' + (wide ? " tt-cf-wide" : "") + '">' +
         '<label class="tt-cf-label" for="' + id + '">' + esc(label) + "</label>" +
         field +
       "</div>"
@@ -677,7 +677,8 @@
               cfField("cf-contact", tr("contact.contact"),
                 '<input id="cf-contact" type="text" autocomplete="tel" />') +
               cfField("cf-msg", tr("contact.messageLabel"),
-                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>') +
+                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>',
+                true) +
               '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
               '<p class="tt-contact-note" id="cf-note" hidden></p>' +
             "</form>" +

@@ -6100,49 +6100,60 @@ select { font-family: inherit; }
   max-width: 1180px;
   margin: 0 auto;
 }
-/* Лид и форма стоят на ОДНОЙ ширине (760px): разъехавшись — текст шире
-   карточки — блок читался как два несвязанных куска, набранных случайно.
-   Сам абзац при этом остаётся в 50ch (ниже) — строка во всю ширину блока
-   слишком длинная для чтения, ограничение ширины держит только карточка. */
-/* Текст выровнен ПО ЛЕВОЙ КРОМКЕ формы, а не по центру. По центру он
-   держался, пока форма была узкой; на 760px абзац в 50-60 знаков висел над
-   ней отдельным столбиком своей ширины — две разные ширины, ничем не
-   связанные. Слева обе колонки начинаются с одной вертикали, и разница в
-   длине строк перестаёт читаться как расхождение. Заодно левый край ровный:
-   центрированный абзац в три строки рвётся по обеим сторонам. */
+/* Блок идёт ВО ВСЮ ШИРИНУ, но текст в нём разложен на две колонки:
+   крупный заголовок слева, абзац справа. Пустить абзац во всю ширину
+   нельзя — строка в 1180px это под двести знаков, и глаз, дочитав до
+   конца, не находит начало следующей. Две колонки дают блоку полную
+   ширину, а строке — читаемую длину.
+
+   Выравнивание по левому краю, а не по центру: слева заголовок, абзац и
+   форма начинаются с одной вертикали, и разница в их ширине перестаёт
+   читаться как расхождение. */
 .tt-contact-lead {
-  max-width: 760px;
-  margin: 0 auto clamp(26px, 4vw, 40px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 46ch);
+  gap: 10px clamp(30px, 5vw, 76px);
+  align-items: end;
+  margin: 0 0 clamp(30px, 4vw, 48px);
   text-align: left;
 }
-.tt-contact-lead .tt-eyebrow { justify-content: flex-start; color: var(--cc); }
-/* 56 знаков — предел удобной строки. Шире пускать нельзя даже при форме в
-   760px: строка во всю её ширину слишком длинная, глаз теряет начало
-   следующей. `pretty` убирает висячее слово в последней строке. */
+.tt-contact-lead .tt-eyebrow {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  color: var(--cc);
+}
+/* Абзац ограничен своей колонкой (46ch) и посажен на нижнюю линию
+   заголовка: подпёртый снизу, он читается как часть одной надписи, а не
+   как отдельный текст, случайно оказавшийся рядом. */
 .tt-contact-lead p {
-  margin: 16px 0 0;
-  max-width: 56ch;
+  grid-column: 2;
+  align-self: end;
+  margin: 0 0 4px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.7;
   text-wrap: pretty;
 }
-/* Заголовок был clamp(…, 3rem) — втрое крупнее текста под ним, и на его
-   фоне абзац и поля выглядели мелким шрифтом. Разница ужата до вдвое. */
 .tt-contact-lead h2 {
-  margin: 12px 0 0;
+  grid-column: 1;
+  margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.9rem, 3.6vw, 2.5rem);
-  line-height: 1.06;
+  font-size: clamp(2.1rem, 5vw, 3.8rem);
+  line-height: 1.02;
   text-wrap: balance;
 }
-/* Одна колонка по центру: карточка контактов убрана, на экране осталось
-   единственное действие — форма запроса. Контакты не потеряны, они в
-   подвале двумя блоками ниже. */
+/* Ниже 900px колонки складываются: 46ch справа от заголовка на планшете
+   ужимаются в столбик по два-три слова. */
+@media (max-width: 900px) {
+  .tt-contact-lead { grid-template-columns: minmax(0, 1fr); }
+  .tt-contact-lead p { grid-column: 1; margin: 14px 0 0; max-width: 56ch; }
+}
+/* Одна колонка: карточка контактов убрана, на экране осталось единственное
+   действие — форма запроса. Контакты не потеряны, они в подвале двумя
+   блоками ниже. Ширина — вся ширина блока, как и у текста над ней. */
 .tt-contact-grid {
   display: grid;
-  grid-template-columns: minmax(0, 760px);
-  justify-content: center;
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(16px, 3vw, 28px);
 }
 .tt-contact-card {
@@ -6201,8 +6212,30 @@ a.tt-contact-row:hover { color: var(--cc); }
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.tt-contact-form { display: grid; gap: 18px; align-content: start; }
+/* Форма во всю ширину блока — но поля в ДВА столбца: «Имя» и «Телефон»
+   растянутые на 1100px выглядели бы как поле под адрес, а не под три
+   слова. Сообщение и кнопка идут через оба столбца. */
+.tt-contact-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px clamp(18px, 2.6vw, 30px);
+  align-content: start;
+}
 .tt-cf-field { display: grid; gap: 7px; }
+.tt-cf-wide, .tt-contact-form .tt-contact-send,
+.tt-contact-form .tt-contact-note { grid-column: 1 / -1; }
+/* Кнопка НЕ растягивается на всю ширину: полоса бирюзы в полтора метра
+   кричит громче всего блока и читается как баннер, а не как отправка
+   формы. На телефоне, наоборот, тянется — там ширина одна на всё. */
+.tt-contact-form .tt-contact-send {
+  justify-self: start;
+  min-width: 300px;
+  padding-inline: 44px;
+}
+@media (max-width: 720px) {
+  .tt-contact-form { grid-template-columns: minmax(0, 1fr); }
+  .tt-contact-form .tt-contact-send { justify-self: stretch; min-width: 0; }
+}
 /* Подпись поля: белее и крупнее прежнего placeholder'а, потому что теперь
    именно она объясняет поле — а не серый текст внутри рамки. */
 .tt-cf-label {
@@ -18244,9 +18277,9 @@ window.TURON_DESTINATIONS = [
    * сюда достаточно подставить fetch вместо mailto.
    */
   /** Поле формы обратной связи: подпись над полем ввода. */
-  function cfField(id, label, field) {
+  function cfField(id, label, field, wide) {
     return (
-      '<div class="tt-cf-field">' +
+      '<div class="tt-cf-field' + (wide ? " tt-cf-wide" : "") + '">' +
         '<label class="tt-cf-label" for="' + id + '">' + esc(label) + "</label>" +
         field +
       "</div>"
@@ -18278,7 +18311,8 @@ window.TURON_DESTINATIONS = [
               cfField("cf-contact", tr("contact.contact"),
                 '<input id="cf-contact" type="text" autocomplete="tel" />') +
               cfField("cf-msg", tr("contact.messageLabel"),
-                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>') +
+                '<textarea id="cf-msg" rows="4" placeholder="' + esc(tr("contact.message")) + '"></textarea>',
+                true) +
               '<button type="submit" class="tt-contact-send">' + esc(tr("contact.send")) + "</button>" +
               '<p class="tt-contact-note" id="cf-note" hidden></p>' +
             "</form>" +
