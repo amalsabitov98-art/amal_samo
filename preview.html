@@ -6088,20 +6088,9 @@ select { font-family: inherit; }
   margin-top: 0;
   padding: clamp(38px, 6vw, 78px) clamp(22px, 5vw, 74px);
   overflow: hidden;
-  /* Фотография крыла над облаками лежит ПОД градиентами, а не вместо них:
-     градиенты сами по себе рабочий фон, поэтому если снимок не загрузился,
-     секция выглядит как раньше, а не пустой плитой. Сам кадр закатный и
-     тёмный по центру, но затемняем его дополнительно — форма поверх должна
-     читаться, а не соревноваться с облаками.
-
-     Файл — JPEG на 88 КБ, пережат из присланного PNG на 1,6 МБ
-     (`ffmpeg -q:v 6`). Фотографию в PNG на публичную страницу класть нельзя:
-     она весит в двадцать раз больше при том же виде. */
   background:
     radial-gradient(circle at 90% 6%, rgba(79, 214, 232, 0.16), transparent 24rem),
     radial-gradient(circle at 4% 104%, rgba(229, 201, 135, 0.11), transparent 22rem),
-    linear-gradient(150deg, rgba(11, 20, 40, 0.78) 0%, rgba(6, 10, 22, 0.88) 100%),
-    url("img/contact-sky.jpg") center / cover no-repeat,
     linear-gradient(150deg, #0e1a33 0%, #070b18 100%);
   color: #f4f7fb;
   box-shadow: 0 30px 90px rgba(4, 10, 22, 0.35);
