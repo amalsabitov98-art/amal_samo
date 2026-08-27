@@ -322,10 +322,31 @@ function mediaKey(kind, ext) {
   return `${safe || "misc"}/${Date.now()}-${rand}.${ext}`;
 }
 
+/* Хранилищ поддерживается ДВА, и воркер берёт то, которое подключено.
+ *
+ * R2 — правильный инструмент, он для файлов и сделан, но требует РАЗОВОГО
+ * включения в панели Cloudflare: без него `wrangler r2 bucket create`
+ * отвечает «Please enable R2 through the Cloudflare Dashboard».
+ *
+ * KV — запасной путь: включать ничего не нужно, он входит в Workers. Для
+ * нескольких десятков снимков по 300 КБ его бесплатного объёма хватает с
+ * большим запасом. Хранить в нём картинки — не то, для чего KV задуман, но
+ * значения до 25 МБ он держит, а нам нужны сотни килобайт.
+ *
+ * Смысл развилки простой: оператор не должен ждать, пока в панели включат
+ * платный продукт, чтобы поставить фотографию тура.
+ */
+function mediaStore(env) {
+  if (env.MEDIA) return { kind: "r2", box: env.MEDIA };
+  if (env.MEDIA_KV) return { kind: "kv", box: env.MEDIA_KV };
+  return null;
+}
+
 async function uploadMedia(request, env, url) {
-  if (!env.MEDIA) {
-    return fail("Хранилище фотографий не подключено. Нужно создать бакет " +
-      "(wrangler r2 bucket create turon-media) и задеплоить воркер.", 503);
+  const store = mediaStore(env);
+  if (!store) {
+    return fail("Хранилище фотографий не подключено. Нужно завести R2-бакет " +
+      "или KV-хранилище и раскомментировать бинд в wrangler.toml.", 503);
   }
   const type = (request.headers.get("Content-Type") || "").split(";")[0].trim();
   const ext = MEDIA_TYPES[type];
@@ -340,21 +361,43 @@ async function uploadMedia(request, env, url) {
   }
 
   const key = mediaKey(url.searchParams.get("kind"), ext);
-  await env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
+  if (store.kind === "r2") {
+    await store.box.put(key, body, { httpMetadata: { contentType: type } });
+  } else {
+    // У KV нет метаданных ответа, поэтому тип кладём в metadata сами —
+    // иначе при раздаче браузер получил бы application/octet-stream и
+    // предложил скачать файл вместо показа.
+    await store.box.put(key, body, { metadata: { contentType: type } });
+  }
   return json({ key, url: `/api/media/${key}` });
 }
 
 async function serveMedia(env, key) {
-  if (!env.MEDIA) return fail("Хранилище фотографий не подключено", 503);
-  const object = await env.MEDIA.get(key);
-  if (!object) return fail("Файл не найден", 404);
-  return new Response(object.body, {
+  const store = mediaStore(env);
+  if (!store) return fail("Хранилище фотографий не подключено", 503);
+
+  // Ключ уникален на каждую загрузку, поэтому содержимое по нему никогда
+  // не меняется — кэшируем навсегда.
+  const cache = "public, max-age=31536000, immutable";
+
+  if (store.kind === "r2") {
+    const object = await store.box.get(key);
+    if (!object) return fail("Файл не найден", 404);
+    return new Response(object.body, {
+      headers: {
+        "Content-Type": object.httpMetadata && object.httpMetadata.contentType
+          ? object.httpMetadata.contentType : "application/octet-stream",
+        "Cache-Control": cache,
+      },
+    });
+  }
+
+  const got = await store.box.getWithMetadata(key, { type: "arrayBuffer" });
+  if (!got || !got.value) return fail("Файл не найден", 404);
+  return new Response(got.value, {
     headers: {
-      "Content-Type": object.httpMetadata && object.httpMetadata.contentType
-        ? object.httpMetadata.contentType : "application/octet-stream",
-      // Ключ уникален на каждую загрузку, поэтому содержимое по нему
-      // никогда не меняется — кэшируем навсегда.
-      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Type": (got.metadata && got.metadata.contentType) || "image/jpeg",
+      "Cache-Control": cache,
     },
   });
 }
