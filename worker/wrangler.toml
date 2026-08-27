@@ -57,6 +57,17 @@ binding = "DB"
 database_name = "turon-tour"
 database_id = "72e6c295-75e2-43cc-adc3-9ec2b38bad21"
 
+# Фотографии, которые оператор загружает из кабинета: заглавный кадр тура и
+# плитка направления. Создать один раз:
+#   wrangler r2 bucket create turon-media
+# Раздаются ЧЕРЕЗ ВОРКЕР (/api/media/<ключ>), а не публичным адресом бакета:
+# не нужен ни отдельный домен, ни настройка публичного доступа, а Cloudflare
+# всё равно кэширует ответ на краю. Пока бинда нет, загрузка отвечает
+# понятной ошибкой, остальное работает как прежде.
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "turon-media"
+
 # Развёртывание:
 #   wrangler d1 execute turon-tour --remote --file=../db/schema.sql
 #   wrangler d1 execute turon-tour --remote --file=../db/seed.sql

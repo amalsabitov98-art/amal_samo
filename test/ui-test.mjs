@@ -3018,6 +3018,63 @@ console.log("\nТур снят с продажи: заезды не пропад
   await page.close();
 }
 
+console.log("\nФотография тура: загрузка из кабинета");
+{
+  const { page, errors } = await session("operator");
+  await page.locator('.tt-tab[data-tab="op-tours"]').first().click({ force: true });
+  await page.waitForTimeout(700);
+  await page.locator("[data-tour-edit]").first().click();
+  await page.waitForTimeout(400);
+
+  check("виджет фотографии есть в форме тура",
+        await page.locator('[data-photo="ot-hero"]').count() === 1);
+
+  // Подсовываем настоящий PNG (1x1) через DataTransfer — тот же путь, что
+  // у выбора файла руками: ужатие через canvas, потом загрузка.
+  const res = await page.evaluate(async () => {
+    const png = Uint8Array.from(atob(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    ), (c) => c.charCodeAt(0));
+    const file = new File([png], "photo.png", { type: "image/png" });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    const input = document.querySelector('[data-photo="ot-hero"] [data-photo-input]');
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 900));
+    const box = document.querySelector('[data-photo="ot-hero"]');
+    return {
+      value: document.getElementById("ot-hero").value.slice(0, 24),
+      note: box.querySelector("[data-photo-note]").textContent,
+      shown: box.querySelector("[data-photo-preview]").classList.contains("has-photo"),
+      clearVisible: !box.querySelector("[data-photo-clear]").hidden,
+    };
+  });
+
+  // В демо-режиме хранилища нет, поэтому api отдаёт сам файл строкой data:.
+  // Проверяем не адрес, а что путь целиком отработал и форма получила
+  // значение: с настоящим бэкендом здесь будет ссылка на воркер.
+  check("снимок ужался и подставился в поле",
+        res.value.startsWith("data:image/jpeg"), res.value);
+  check("превью показано", res.shown === true);
+  check("кнопка «убрать» появилась", res.clearVisible === true);
+  check("оператору сказано сохранить", /сохранить/i.test(res.note), res.note);
+
+  // PNG пересобирается в JPEG намеренно: прозрачность фотографиям не нужна,
+  // а PNG для снимка — это всегда мегабайты вместо десятков килобайт.
+  check("PNG пересобран в JPEG", res.value.indexOf("jpeg") !== -1, res.value);
+
+  const cleared = await page.evaluate(async () => {
+    document.querySelector('[data-photo="ot-hero"] [data-photo-clear]').click();
+    await new Promise((r) => setTimeout(r, 200));
+    return document.getElementById("ot-hero").value;
+  });
+  check("«убрать» очищает поле", cleared === "", cleared.slice(0, 20));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nТур, заведённый оператором, виден агентству");
 {
   // Интерфейс писался, когда туры попадали в базу только seed-файлом, и

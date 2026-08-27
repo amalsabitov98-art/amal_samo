@@ -118,6 +118,123 @@
     return many;
   }
 
+  /* ------------------------------------------------- фотографии оператора
+   *
+   * Снимок ужимается В БРАУЗЕРЕ, до отправки: с телефона приходят кадры на
+   * 8-12 МБ, а на странице они всё равно показываются шириной от силы в
+   * тысячу точек. Так не улетает лишний трафик у оператора, воркеру не
+   * нужна библиотека обработки картинок (в Workers её и не поставить без
+   * платного Images), а в хранилище не копятся оригиналы.
+   *
+   * 1600px по длинной стороне и JPEG 0.82 — на глаз неотличимо от
+   * оригинала на любом экране, а вес падает с мегабайтов до 200-400 КБ.
+   * PNG и WebP тоже пересобираются в JPEG: прозрачность фотографиям не
+   * нужна, а PNG для снимка это всегда мегабайты вместо десятков килобайт
+   * (тем же кончилась история с фотографией в блоке «Свяжитесь с нами»).
+   */
+  var MEDIA_MAX_SIDE = 1600;
+  var MEDIA_QUALITY = 0.82;
+
+  function shrinkImage(file) {
+    return new Promise(function (resolve, reject) {
+      if (!/^image\//.test(file.type)) {
+        reject(new Error("Это не картинка"));
+        return;
+      }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) { reject(new Error("Не удалось прочитать снимок")); return; }
+        var scale = Math.min(1, MEDIA_MAX_SIDE / Math.max(w, h));
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        var ctx = canvas.getContext("2d");
+        // Белая подложка: у PNG с прозрачностью иначе получается чёрный фон,
+        // потому что JPEG прозрачность не хранит.
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          if (blob) resolve(blob);
+          else reject(new Error("Не удалось пересобрать снимок"));
+        }, "image/jpeg", MEDIA_QUALITY);
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error("Не удалось открыть снимок"));
+      };
+      img.src = url;
+    });
+  }
+
+  /* Виджет «фотография»: превью, кнопка выбора, кнопка «убрать».
+   * Значение хранится в скрытом поле — форма собирает его как обычный ввод
+   * и ничего не знает про загрузку. */
+  function photoFieldHtml(id, value, label) {
+    return '<div class="tt-photo-field" data-photo="' + esc(id) + '">' +
+      '<span class="tt-photo-label">' + esc(label) + "</span>" +
+      '<div class="tt-photo-body">' +
+        '<span class="tt-photo-preview' + (value ? " has-photo" : "") + '"' +
+          (value ? ' style="background-image:url(' + esc(value) + ')"' : "") +
+          " data-photo-preview></span>" +
+        '<div class="tt-photo-actions">' +
+          '<label class="tt-btn tt-btn-sm">' +
+            '<input type="file" accept="image/*" hidden data-photo-input />' +
+            "Выбрать файл</label>" +
+          '<button type="button" class="tt-btn tt-btn-sm tt-btn-ghost"' +
+            (value ? "" : " hidden") + " data-photo-clear>Убрать</button>" +
+          '<span class="tt-photo-note" data-photo-note>' +
+            (value ? "" : "JPEG или PNG, снимок ужмётся сам") + "</span>" +
+        "</div>" +
+      "</div>" +
+      '<input type="hidden" id="' + esc(id) + '" value="' + esc(value || "") + '" />' +
+    "</div>";
+  }
+
+  /* Один обработчик на весь кабинет, а не по одному на каждый виджет:
+   * формы перерисовываются целиком, и навешенные на элементы обработчики
+   * терялись бы вместе с разметкой. */
+  document.addEventListener("change", function (e) {
+    var input = e.target.closest("[data-photo-input]");
+    if (!input || !input.files || !input.files[0]) return;
+    var box = input.closest("[data-photo]");
+    var hidden = document.getElementById(box.dataset.photo);
+    var preview = box.querySelector("[data-photo-preview]");
+    var note = box.querySelector("[data-photo-note]");
+    var clear = box.querySelector("[data-photo-clear]");
+    var file = input.files[0];
+    input.value = "";   // чтобы повторный выбор того же файла тоже сработал
+
+    note.textContent = "Готовим снимок…";
+    shrinkImage(file).then(function (blob) {
+      note.textContent = "Загружаем…";
+      return TuronApi.uploadMedia(blob, box.dataset.photo);
+    }).then(function (res) {
+      hidden.value = res.url;
+      preview.style.backgroundImage = "url(" + res.url + ")";
+      preview.classList.add("has-photo");
+      clear.hidden = false;
+      note.textContent = "Загружено — не забудьте сохранить";
+    }).catch(function (err) {
+      note.textContent = err.message || "Не удалось загрузить";
+    });
+  });
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-photo-clear]");
+    if (!btn) return;
+    var box = btn.closest("[data-photo]");
+    document.getElementById(box.dataset.photo).value = "";
+    var preview = box.querySelector("[data-photo-preview]");
+    preview.style.backgroundImage = "";
+    preview.classList.remove("has-photo");
+    btn.hidden = true;
+    box.querySelector("[data-photo-note]").textContent = "Убрано — не забудьте сохранить";
+  });
+
   // ------------------------------------------------------------- выгрузка
   // Колонки и их порядок — как в ведомости, включая узбекские заголовки:
   // менеджер открывает файл и видит привычную таблицу.
@@ -485,6 +602,11 @@
     $("ot-from").value = t && t.from_price != null ? t.from_price : "";
     $("ot-description").value = (t && t.description) || "";
     $("ot-bookable").checked = !t || t.is_bookable !== 0;
+    // Виджет фотографии перерисовывается ЦЕЛИКОМ на каждое открытие формы:
+    // в нём есть состояние (превью, подпись «загружено»), и от прошлого
+    // тура оно осталось бы висеть на новом.
+    $("ot-hero-slot").innerHTML = photoFieldHtml(
+      "ot-hero", (t && t.hero_image) || "", "Заглавный кадр карточки");
     $("ot-msg").textContent = "";
     $("ot-msg").className = "tt-editor-msg";
     $("ot-form").hidden = false;
@@ -1912,6 +2034,7 @@
         operator_commission: $("ot-operator").value,
         from_price: $("ot-from").value,
         description: $("ot-description").value,
+        hero_image: $("ot-hero") ? $("ot-hero").value : "",
         is_bookable: $("ot-bookable").checked ? 1 : 0,
       };
       if (!tourEditing) payload.code = $("ot-code").value;

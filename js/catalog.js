@@ -2198,7 +2198,17 @@
           // статичный кадр Мекки. Оба фона закреплены позади всей страницы:
           // герой и контент читаются как единая премиальная сцена.
           // В кабинете компонент остаётся компактным и без фонового слоя.
-          (!cfg.canBook && tour.code === "KARADENIZ"
+          // Загруженный оператором кадр идёт ПЕРВЫМ: он задан явно, значит
+          // перекрывает встроенное оформление. Дальше — прежние зашитые
+          // фоны двух продуктов; у тура без фотографии фона по-прежнему
+          // нет, и это лучше пустой рамки.
+          (!cfg.canBook && tour.hero_image
+            ? '<div class="tt-tour-bg" aria-hidden="true">' +
+                '<div class="tt-tour-bg-image" style="background-image:url(' +
+                  esc(tour.hero_image) + ')"></div>' +
+                '<div class="tt-tour-bg-shade"></div>' +
+              "</div>"
+            : (!cfg.canBook && tour.code === "KARADENIZ"
             ? '<div class="tt-tour-bg" aria-hidden="true">' +
                 '<video class="tt-hero-video" autoplay muted loop playsinline ' +
                   'preload="metadata" poster="img/tour-karadeniz-hero-poster.jpg" ' +
@@ -2212,7 +2222,7 @@
                   '<div class="tt-tour-bg-image"></div>' +
                   '<div class="tt-tour-bg-shade"></div>' +
                 "</div>"
-              : "")) +
+              : ""))) +
 
           // Без промежуточной крошки направления: направление с одним туром
           // сразу открывает карточку (renderTours → go kind:tour), поэтому

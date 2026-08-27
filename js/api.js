@@ -722,6 +722,9 @@
       is_bookable: body.is_bookable == null
         ? (cur.is_bookable == null ? 1 : cur.is_bookable)
         : (body.is_bookable ? 1 : 0),
+      hero_image: body.hero_image != null
+        ? String(body.hero_image).trim().slice(0, 500) || null
+        : (cur.hero_image || null),
     };
   }
 
@@ -1420,6 +1423,46 @@
     adminTours: function () {
       if (!API_BASE) return Promise.resolve(demoTours());
       return request("/api/admin/tours");
+    },
+
+    /*
+     * Загрузка фотографии. Файл уходит СЫРЫМИ БАЙТАМИ, а не в JSON: base64
+     * раздувает тело на треть, а картинку всё равно принимает отдельный
+     * маршрут, которому разбирать JSON незачем. Поэтому здесь не общий
+     * request(), а свой fetch — тот всегда ставит Content-Type: application/json
+     * и сериализует тело.
+     *
+     * Повторов при сбое НЕТ намеренно: повтор загрузил бы вторую копию
+     * файла в хранилище, а пользы никакой — оператор нажмёт кнопку сам.
+     */
+    uploadMedia: function (blob, kind) {
+      // В демо-режиме хранилища нет: возвращаем сам файл строкой data:.
+      // Так превью и ui-тесты проверяют весь путь «выбрал → ужалось →
+      // подставилось в форму», не поднимая бэкенд.
+      if (!API_BASE) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () { resolve({ url: String(reader.result) }); };
+          reader.onerror = function () { reject(new Error("Не удалось прочитать файл")); };
+          reader.readAsDataURL(blob);
+        });
+      }
+      return fetch(API_BASE + "/api/admin/media?kind=" + encodeURIComponent(kind || ""), {
+        method: "POST",
+        headers: (function () {
+          var h = { "Content-Type": blob.type };
+          if (getToken()) h.Authorization = "Bearer " + getToken();
+          return h;
+        })(),
+        body: blob,
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (!res.ok) throw new Error(data.error || "Не удалось загрузить файл");
+          // Адрес приходит относительным — он живёт на воркере, а страница
+          // на другом домене.
+          return { url: API_BASE + data.url, key: data.key };
+        });
+      });
     },
 
     createTour: function (payload) {

@@ -290,6 +290,76 @@ async function listDepartures(env, includePast, includeClosed) {
 }
 
 /*
+ * ------------------------------------------------------- фотографии (R2)
+ *
+ * Оператор загружает снимок прямо из кабинета. Обработки картинок на
+ * сервере НЕТ и не планируется: браузер ужимает снимок до 1600px и в JPEG
+ * ещё до отправки (uploadImage в js/admin.js). Так с телефона не улетает
+ * восьмимегабайтный оригинал, а воркеру не нужна библиотека для картинок —
+ * их в Workers всё равно не поставить без платного Images.
+ *
+ * Раздаём ЧЕРЕЗ ВОРКЕР, а не публичным адресом бакета: не нужно ни
+ * отдельного домена, ни настройки публичного доступа, а Cloudflare всё
+ * равно кэширует ответ на краю по Cache-Control. Ключ в адресе, поэтому
+ * кэш можно держать вечным — новый файл получает новый ключ.
+ *
+ * Бакет создаётся один раз:
+ *     wrangler r2 bucket create turon-media
+ * и подключается в wrangler.toml. Пока бинда нет, загрузка отвечает
+ * понятной ошибкой, а всё остальное работает как прежде — это важно:
+ * кабинет не должен падать оттого, что хранилище ещё не завели.
+ */
+const MEDIA_MAX_BYTES = 3 * 1024 * 1024;
+const MEDIA_TYPES = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+function mediaKey(kind, ext) {
+  const safe = String(kind || "misc").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24);
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `${safe || "misc"}/${Date.now()}-${rand}.${ext}`;
+}
+
+async function uploadMedia(request, env, url) {
+  if (!env.MEDIA) {
+    return fail("Хранилище фотографий не подключено. Нужно создать бакет " +
+      "(wrangler r2 bucket create turon-media) и задеплоить воркер.", 503);
+  }
+  const type = (request.headers.get("Content-Type") || "").split(";")[0].trim();
+  const ext = MEDIA_TYPES[type];
+  if (!ext) return fail("Только JPEG, PNG или WebP");
+
+  const body = await request.arrayBuffer();
+  if (!body.byteLength) return fail("Пустой файл");
+  // Браузер ужимает снимок заранее, поэтому потолок здесь — страховка от
+  // загрузки в обход кабинета, а не рабочее ограничение.
+  if (body.byteLength > MEDIA_MAX_BYTES) {
+    return fail("Файл больше 3 МБ — уменьшите снимок");
+  }
+
+  const key = mediaKey(url.searchParams.get("kind"), ext);
+  await env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
+  return json({ key, url: `/api/media/${key}` });
+}
+
+async function serveMedia(env, key) {
+  if (!env.MEDIA) return fail("Хранилище фотографий не подключено", 503);
+  const object = await env.MEDIA.get(key);
+  if (!object) return fail("Файл не найден", 404);
+  return new Response(object.body, {
+    headers: {
+      "Content-Type": object.httpMetadata && object.httpMetadata.contentType
+        ? object.httpMetadata.contentType : "application/octet-stream",
+      // Ключ уникален на каждую загрузку, поэтому содержимое по нему
+      // никогда не меняется — кэшируем навсегда.
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
+}
+
+/*
  * ------------------------------------------------------------- каталог
  * Публичная часть: гость видит направления, туры и цены без входа —
  * агент показывает тур клиенту по ссылке, не заводя ему учётку.
@@ -349,7 +419,7 @@ function localizeAll(rows, lang, fields) {
 async function catalogTours(env, lang) {
   const tours = await env.DB.prepare(
     `SELECT t.code, t.name, t.destination, t.note, t.description, t.nights,
-            t.is_bookable, t.i18n,
+            t.is_bookable, t.hero_image, t.i18n,
             -- Заголовок направления отдаём ОТДЕЛЬНЫМ полем. Сам
             -- t.destination переводить нельзя: по нему идёт группировка
             -- плиток, фильтр ?destination= и ветвление на стороне клиента —
@@ -426,7 +496,8 @@ async function catalogDestinations(env, lang) {
 
 async function catalogTour(env, code, lang) {
   const tour = await env.DB.prepare(
-    `SELECT code, name, destination, note, description, nights, is_bookable, i18n
+    `SELECT code, name, destination, note, description, nights, is_bookable,
+            hero_image, i18n
        FROM tours WHERE code = ?`
   ).bind(code).first();
   if (!tour) return null;
@@ -1332,7 +1403,7 @@ async function adminTours(env) {
   const rows = await env.DB.prepare(
     `SELECT t.id, t.code, t.name, t.destination, t.agency_commission,
             t.operator_commission, t.is_bookable, t.note, t.description,
-            t.nights, t.from_price,
+            t.nights, t.from_price, t.hero_image,
             (SELECT COUNT(*) FROM departures d WHERE d.tour_id = t.id) AS departures,
             (SELECT COUNT(*) FROM departures d
               WHERE d.tour_id = t.id AND d.date_start >= date('now')) AS upcoming
@@ -1390,6 +1461,9 @@ function tourFields(body, current) {
     is_bookable: body.is_bookable == null
       ? (cur.is_bookable == null ? 1 : cur.is_bookable)
       : (body.is_bookable ? 1 : 0),
+    hero_image: body.hero_image != null
+      ? String(body.hero_image).trim().slice(0, 500) || null
+      : (cur.hero_image || null),
   };
 }
 
@@ -1408,10 +1482,11 @@ async function createTour(request, env, actor) {
 
   const made = await env.DB.prepare(
     `INSERT INTO tours (code, name, destination, agency_commission, operator_commission,
-                        is_bookable, note, description, nights, from_price)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        is_bookable, note, description, nights, from_price, hero_image)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(code, f.name, f.destination, f.agency_commission, f.operator_commission,
-         f.is_bookable, f.note, f.description, f.nights, f.from_price).run();
+         f.is_bookable, f.note, f.description, f.nights, f.from_price,
+         f.hero_image).run();
 
   return json({ id: made.meta.last_row_id, code, ...f, departures: 0 });
 }
@@ -1446,10 +1521,11 @@ async function updateTour(request, env, actor, tourId) {
   await env.DB.prepare(
     `UPDATE tours SET name = ?, destination = ?, agency_commission = ?,
                       operator_commission = ?, is_bookable = ?, note = ?,
-                      description = ?, nights = ?, from_price = ?
+                      description = ?, nights = ?, from_price = ?, hero_image = ?
       WHERE id = ?`
   ).bind(f.name, f.destination, f.agency_commission, f.operator_commission,
-         f.is_bookable, f.note, f.description, f.nights, f.from_price, tourId).run();
+         f.is_bookable, f.note, f.description, f.nights, f.from_price,
+         f.hero_image, tourId).run();
 
   return json({ id: tourId, code: cur.code, ...f, hidden_upcoming: hiddenUpcoming });
 }
@@ -2390,6 +2466,12 @@ async function route(request, env, ctx) {
     // ------------------------------------------------- публичный каталог
     // Доступен без входа: гость смотрит направления, туры, программу и
     // цены. Бронь остаётся за логином — она ниже, после authenticate().
+    // Раздача фотографий — без входа: они стоят в публичном каталоге.
+    const media = path.match(/^\/api\/media\/(.+)$/);
+    if (media && request.method === "GET") {
+      return await serveMedia(env, decodeURIComponent(media[1]));
+    }
+
     if (path === "/api/public/rates" && request.method === "GET") {
       return json(await cbuRates());
     }
@@ -2585,6 +2667,11 @@ async function route(request, env, ctx) {
 
         // Прайс заезда. Проданные брони не трогает: цена заморожена в
         // passengers.price на момент брони.
+        // Загрузка фотографии. Только оператор: файл уходит в хранилище
+        // и попадает на публичную страницу.
+        if (path === "/api/admin/media" && request.method === "POST") {
+          return await uploadMedia(request, env, url);
+        }
         if (path === "/api/admin/tours" && request.method === "GET") {
           return await adminTours(env);
         }
