@@ -2101,12 +2101,17 @@
           return go({ kind: "tour", code: list[0].code, variant: null }, false);
         }
         var isJapan = destination === "Япония";
+        var destTitle = (list[0] && list[0].destination_title) || destination;
         root.innerHTML =
           '<section class="tt-destination-page' +
             (isJapan ? " tt-destination-japan" : "") + '">' +
           '<div class="tt-destination-inner">' +
-          crumbs([{ text: tr("cat.catalog"), go: "root" }, { text: destination }]) +
-          '<h1 class="tt-cat-h1">' + esc(destination) + "</h1>" +
+          // Показываем ПЕРЕВЕДЁННЫЙ заголовок направления, а не сам ключ:
+          // destination остаётся русским всегда (по нему группировка и
+          // маршрут), а подпись приходит отдельным полем.
+          crumbs([{ text: tr("cat.catalog"), go: "root" },
+                  { text: destTitle }]) +
+          '<h1 class="tt-cat-h1">' + esc(destTitle) + "</h1>" +
           (list.length
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
             : '<div class="tt-empty-state">' + esc(tr("cat.noToursHere")) + "</div>") +

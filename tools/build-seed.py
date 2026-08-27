@@ -411,6 +411,44 @@ def q(v):
     return "'" + str(v).replace("'", "''") + "'"
 
 
+# Переводы наполнения (uz/en/tr) лежат отдельным модулем: в этом файле они
+# утопили бы сами данные. Ключ — точная русская строка отсюда; не нашлось —
+# в базу уходит NULL, и карточка на этом языке покажет русский.
+import importlib.util as _ilu
+_i18n_spec = _ilu.spec_from_file_location(
+    "seed_i18n", str(Path(__file__).resolve().parent / "seed-i18n.py"))
+I18N = _ilu.module_from_spec(_i18n_spec)
+_i18n_spec.loader.exec_module(I18N)
+
+
+def i18n(text):
+    """JSON-строка переводов для SQL, либо NULL."""
+    tr = I18N.ALL.get(text)
+    if not tr:
+        return "NULL"
+    box = {lang: {"text": tr[lang]} for lang in I18N.LANGS if tr.get(lang)}
+    return q(json.dumps(box, ensure_ascii=False)) if box else "NULL"
+
+
+def i18n_fields(**by_field):
+    """То же, но для строки с несколькими переводимыми полями.
+
+    Принимает поле → русская строка. Язык попадает в результат, только если
+    для НЕГО нашёлся хотя бы один перевод: наполовину переведённая строка
+    лучше, чем пустое поле, — недостающее откатится на русский само.
+    """
+    box = {}
+    for field, text in by_field.items():
+        if text is None:
+            continue
+        tr = I18N.ALL.get(text)
+        if not tr:
+            continue
+        for lang in I18N.LANGS:
+            if tr.get(lang):
+                box.setdefault(lang, {})[field] = tr[lang]
+    return q(json.dumps(box, ensure_ascii=False)) if box else "NULL"
+
 def hash_password(password):
     """PBKDF2-SHA256, те же параметры, что проверяет воркер."""
     salt = secrets.token_bytes(16)
@@ -497,6 +535,42 @@ def parse_child_label(label):
     return code, lo, hi, 0 if is_infant else 1
 
 
+def tour_i18n(code, name, note, det):
+    """Переводы строки тура: name, note, description.
+
+    Умра собирается ПО ЧАСТЯМ, а не отдельной строкой в словаре: её описание
+    генерируется из маршрута и списка отелей, и если переводить его целиком,
+    те же отели пришлось бы перевести второй раз — уже внутри описания. Две
+    копии одного текста рано или поздно разойдутся.
+    """
+    box = {}
+    for field, text in (("name", name), ("note", note),
+                        ("description", det.get("description"))):
+        tr = I18N.ALL.get(text) if text else None
+        if not tr:
+            continue
+        for lang in I18N.LANGS:
+            if tr.get(lang):
+                box.setdefault(lang, {})[field] = tr[lang]
+
+    prog = UMRA_BY_CODE.get(code)
+    if prog:
+        for lang in I18N.LANGS:
+            hotels = [I18N.ALL.get(h, {}).get(lang) for h in prog["hotels"]]
+            route = I18N.ALL.get(prog["route"], {}).get(lang)
+            if not route or not all(hotels):
+                continue          # нет перевода части — оставляем русское целиком
+            box.setdefault(lang, {})["name"] = \
+                I18N.UMRA_NAME[lang].format(prog=prog["prog"])
+            box[lang]["description"] = I18N.UMRA_DESCRIPTION[lang].format(
+                prog=prog["prog"], days=prog["nights"] + 1, nights=prog["nights"],
+                route=route, hotels="; ".join(hotels))
+    return q(json.dumps(box, ensure_ascii=False)) if box else "NULL"
+
+
+UMRA_BY_CODE = {p["code"]: p for p in UMRA_PROGRAMS}
+
+
 def main():
     departures = json.load(open(ROOT / "seed" / "departures.json", encoding="utf-8"))
     out = []
@@ -531,8 +605,9 @@ def main():
 
     for name, title, blurb, image, sort in DESTINATIONS:
         out.append(
-            "INSERT INTO destinations (name, title, blurb, image, sort) VALUES ("
-            f"{q(name)}, {q(title)}, {q(blurb)}, {q(image)}, {sort});"
+            "INSERT INTO destinations (name, title, blurb, image, sort, i18n) VALUES ("
+            f"{q(name)}, {q(title)}, {q(blurb)}, {q(image)}, {sort}, "
+            f"{i18n_fields(title=title, blurb=blurb)});"
         )
     out.append("")
 
@@ -540,17 +615,20 @@ def main():
         det = TOUR_DETAILS.get(code, {})
         out.append(
             "INSERT INTO tours (code, name, destination, agency_commission, "
-            "operator_commission, is_bookable, note, description, nights, from_price) VALUES ("
+            "operator_commission, is_bookable, note, description, nights, "
+            "from_price, i18n) VALUES ("
             f"{q(code)}, {q(name)}, {q(dest)}, {agc}, {opc}, {bookable}, {q(note)}, "
-            f"{q(det.get('description'))}, {q(det.get('nights'))}, {q(det.get('from_price'))});"
+            f"{q(det.get('description'))}, {q(det.get('nights'))}, "
+            f"{q(det.get('from_price'))}, {tour_i18n(code, name, note, det)});"
         )
     out.append("")
 
     for code, variants in TOUR_VARIANTS.items():
         for vcode, vtitle, vsort in variants:
             out.append(
-                "INSERT INTO tour_variants (tour_id, code, title, sort) SELECT id, "
-                f"{q(vcode)}, {q(vtitle)}, {vsort} FROM tours WHERE code = {q(code)};"
+                "INSERT INTO tour_variants (tour_id, code, title, sort, i18n) SELECT id, "
+                f"{q(vcode)}, {q(vtitle)}, {vsort}, {i18n_fields(title=vtitle)} "
+                f"FROM tours WHERE code = {q(code)};"
             )
     out.append("")
 
@@ -558,19 +636,23 @@ def main():
         for kind in ("included", "excluded"):
             for i, text in enumerate(blocks.get(kind, []), start=1):
                 out.append(
-                    "INSERT INTO tour_content (tour_id, kind, sort, text) SELECT id, "
-                    f"{q(kind)}, {i}, {q(text)} FROM tours WHERE code = {q(code)};"
+                    "INSERT INTO tour_content (tour_id, kind, sort, text, i18n) SELECT id, "
+                    f"{q(kind)}, {i}, {q(text)}, {i18n(text)} "
+                    f"FROM tours WHERE code = {q(code)};"
                 )
         for i, (text, url) in enumerate(blocks.get("info", []), start=1):
             out.append(
-                "INSERT INTO tour_content (tour_id, kind, sort, text, url) SELECT id, "
-                f"'info', {i}, {q(text)}, {q(url)} FROM tours WHERE code = {q(code)};"
+                "INSERT INTO tour_content (tour_id, kind, sort, text, url, i18n) SELECT id, "
+                f"'info', {i}, {q(text)}, {q(url)}, {i18n(text)} "
+                f"FROM tours WHERE code = {q(code)};"
             )
         for vcode, days in blocks.get("day", {}).items():
             for i, (title, text) in enumerate(days, start=1):
                 out.append(
-                    "INSERT INTO tour_content (tour_id, kind, variant, sort, title, text) "
-                    f"SELECT id, 'day', {q(vcode)}, {i}, {q(title)}, {q(text)} "
+                    "INSERT INTO tour_content (tour_id, kind, variant, sort, title, "
+                    "text, i18n) "
+                    f"SELECT id, 'day', {q(vcode)}, {i}, {q(title)}, {q(text)}, "
+                    f"{i18n_fields(title=title, text=text)} "
                     f"FROM tours WHERE code = {q(code)};"
                 )
     out.append("")

@@ -350,17 +350,35 @@ async function catalogTours(env, lang) {
   const tours = await env.DB.prepare(
     `SELECT t.code, t.name, t.destination, t.note, t.description, t.nights,
             t.is_bookable, t.i18n,
+            -- Заголовок направления отдаём ОТДЕЛЬНЫМ полем. Сам
+            -- t.destination переводить нельзя: по нему идёт группировка
+            -- плиток, фильтр ?destination= и ветвление на стороне клиента —
+            -- переведи его, и «Умра» на английском перестала бы находить
+            -- свою страницу. Поэтому ключ остаётся русским, а показывается
+            -- destination_title.
+            COALESCE(dst.title, t.destination) AS destination_title,
+            dst.i18n AS destination_i18n,
             COUNT(DISTINCT d.id) AS departures_count,
             MIN(CASE WHEN p.kind = 'placement' THEN p.price END) AS min_price,
             MIN(d.date_start) AS next_date
        FROM tours t
+       LEFT JOIN destinations dst ON dst.name = t.destination
        LEFT JOIN departures d ON d.tour_id = t.id AND d.is_open = 1
                              AND d.date_start >= date('now')
        LEFT JOIN departure_prices p ON p.departure_id = d.id
       GROUP BY t.id
       ORDER BY t.destination, t.name`
   ).all();
-  return localizeAll(tours.results, lang, ["name", "description", "note"]);
+  const rows = localizeAll(tours.results, lang, ["name", "description", "note"]);
+  // Заголовок направления переводится своим i18n — он живёт в destinations,
+  // а не в туре, поэтому и localize по нему отдельный.
+  return rows.map((t) => {
+    const box = { i18n: t.destination_i18n, title: t.destination_title };
+    delete t.destination_i18n;
+    localize(box, lang, ["title"]);
+    t.destination_title = box.title;
+    return t;
+  });
 }
 
 // Направления собираем из туров, а оформление плитки подмешиваем из
