@@ -1,2 +1,7 @@
 node_modules/
 .wrangler/
+
+# Питон складывает сюда байткод при импорте tools/*.py друг в друга:
+# check-i18n.py и build-i18n-migration.py грузят build-seed.py как модуль.
+__pycache__/
+*.pyc
