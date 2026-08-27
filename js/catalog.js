@@ -38,6 +38,21 @@
     return global.TuronPublicUi ? global.TuronPublicUi.t(key) : key;
   }
 
+  function curLang() {
+    return global.TuronPublicUi && global.TuronPublicUi.language
+      ? global.TuronPublicUi.language() : "ru";
+  }
+
+  /* Подстановка в строку словаря: tr("cat.air") даёт «Авиа · {city}».
+   * Шаблон, а не склейка кусков, потому что порядок слов в языках разный:
+   * «младше 5 лет» по-узбекски это «5 yoshgacha» — приставка стала суффиксом,
+   * и склейкой «tr(...) + возраст» такое не собрать. */
+  function fmt(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, function (m, k) {
+      return vars[k] == null ? m : vars[k];
+    });
+  }
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -51,16 +66,25 @@
     });
   }
 
+  /* Локаль дат идёт ЗА ЯЗЫКОМ страницы, а не зашита в ru-RU: иначе на
+   * английской странице заезд подписан «31 июля» — русский месяц посреди
+   * английской фразы. Названия месяцев рисует сам браузер, в словарь их
+   * заводить не нужно. */
+  var DATE_LOCALE = { ru: "ru-RU", uz: "uz-UZ", en: "en-GB", tr: "tr-TR" };
+  function dateLocale() {
+    return DATE_LOCALE[curLang()] || "ru-RU";
+  }
+
   // Даты в базе без времени, поэтому форматируем в UTC: иначе местный
   // часовой пояс сдвигает «31 июля» на «30 июля».
   function dateLong(iso) {
-    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+    return new Date(iso + "T00:00:00Z").toLocaleDateString(dateLocale(), {
       day: "numeric", month: "long", timeZone: "UTC",
     });
   }
 
   function dateShort(iso) {
-    return new Date(iso + "T00:00:00Z").toLocaleDateString("ru-RU", {
+    return new Date(iso + "T00:00:00Z").toLocaleDateString(dateLocale(), {
       day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC",
     });
   }
@@ -87,12 +111,24 @@
    * а узбекскому и турецкому склонение после числа вообще не нужно — там во
    * всех трёх формах одно слово. */
   function countWord(n) {
-    var one = tr("search.foundOne");
-    var few = tr("search.foundFew");
-    var many = tr("search.foundMany");
-    var lang = global.TuronPublicUi && global.TuronPublicUi.language
-      ? global.TuronPublicUi.language() : "ru";
-    return lang === "ru" ? plural(n, one, few, many) : (n === 1 ? one : few);
+    return pickForm(n, tr("search.foundOne"), tr("search.foundFew"), tr("search.foundMany"));
+  }
+
+  /* Выбор формы по тому же правилу для ЛЮБОГО существительного из словаря:
+   * word.<основа>.one/few/many. Раньше все такие слова были зашиты в код
+   * русскими тройками («ночь», «ночи», «ночей») прямо в местах вызова. */
+  function noun(n, base) {
+    return pickForm(n, tr("word." + base + ".one"),
+      tr("word." + base + ".few"), tr("word." + base + ".many"));
+  }
+
+  /** Число вместе со словом: «7 ночей», «7 nights», «7 kecha». */
+  function counted(n, base) {
+    return n + " " + noun(n, base);
+  }
+
+  function pickForm(n, one, few, many) {
+    return curLang() === "ru" ? plural(n, one, few, many) : (n === 1 ? one : few);
   }
 
   function crumbs(parts) {
@@ -119,12 +155,12 @@
           (d.blurb ? '<span class="tt-muted-note">' + esc(d.blurb) + "</span>" : "") +
           '<span class="tt-cat-tile-foot">' +
             "<span>" + d.tours_count + " " +
-              plural(d.tours_count, "тур", "тура", "туров") +
+              noun(d.tours_count, "tour") +
               (closed ? "" : " · " + d.departures_count + " " +
-                plural(d.departures_count, "заезд", "заезда", "заездов")) +
+                noun(d.departures_count, "departure")) +
             "</span>" +
             (closed
-              ? '<em class="tt-badge tt-badge-off">Скоро</em>'
+              ? '<em class="tt-badge tt-badge-off">' + esc(tr("cat.soon")) + "</em>"
               : (d.min_price != null ? "<em>от " + money(d.min_price) + "</em>" : "")) +
           "</span>" +
         "</span>" +
@@ -150,7 +186,7 @@
     var karadeniz = list.filter(function (d) { return d.name === "Турция"; })[0] || {};
     var japan = list.filter(function (d) { return d.name === "Япония"; })[0] || {};
     var karadenizPrice = karadeniz.min_price != null
-      ? "от " + money(karadeniz.min_price)
+      ? tr("cat.from") + " " + money(karadeniz.min_price)
       : "сезон 2026";
     var slides = [
       {
@@ -469,10 +505,10 @@
   function tourRow(t) {
     var closed = !t.is_bookable || t.departures_count === 0;
     var meta = [];
-    if (t.nights) meta.push(t.nights + " " + plural(t.nights, "ночь", "ночи", "ночей"));
+    if (t.nights) meta.push(counted(t.nights, "night"));
     if (!closed) {
       meta.push(t.departures_count + " " +
-        plural(t.departures_count, "заезд", "заезда", "заездов"));
+        noun(t.departures_count, "departure"));
       if (t.next_date) meta.push("ближайший " + dateLong(t.next_date));
     }
     return (
@@ -486,14 +522,14 @@
         "</div>" +
         '<div class="tt-cat-tour-side">' +
           (closed
-            ? '<span class="tt-badge tt-badge-off">Скоро</span>'
+            ? '<span class="tt-badge tt-badge-off">' + esc(tr("cat.soon")) + "</span>"
             : (t.min_price != null
-                ? '<div class="tt-cat-from"><span>от</span><strong>' +
+                ? '<div class="tt-cat-from"><span>' + esc(tr("cat.from")) + "</span><strong>" +
                   money(t.min_price) + "</strong></div>"
                 : "")) +
           '<button class="tt-btn' + (closed ? " secondary" : "") +
             ' tt-btn-sm" data-tour="' + esc(t.code) + '">' +
-            (closed ? "Подробнее" : "Программа и даты") +
+            (closed ? tr("cat.more") : tr("cat.programmeDates")) +
           "</button>" +
         "</div>" +
       "</article>"
@@ -525,10 +561,10 @@
         dateShort(s.due.toISOString().slice(0, 10)) + "</span></li>";
     }).join("");
     return '<div class="tt-cat-policy' + (pol.urgent ? " is-urgent" : "") + '">' +
-      "<h4>Порядок оплаты</h4><ul>" + rows + "</ul>" +
+      "<h4>" + esc(tr("cat.paymentOrder")) + "</h4><ul>" + rows + "</ul>" +
       (pol.urgent
-        ? '<p class="tt-muted-note">До выезда меньше ' + TuronApi.FINAL_DAYS +
-          " дней — рассрочки нет.</p>"
+        ? '<p class="tt-muted-note">' + esc(fmt(tr("cat.finalDaysNote"),
+            { days: counted(TuronApi.FINAL_DAYS, "day") })) + "</p>"
         : "") +
       "</div>";
   }
@@ -766,8 +802,8 @@
           "</div>" +
           "<div>" +
             "<strong>Агентствам</strong>" +
-            '<button type="button" class="tt-foot-link" data-go="root">Каталог туров</button>' +
-            '<a href="#/login">Вход для партнёров</a>' +
+            '<button type="button" class="tt-foot-link" data-go="root">' + esc(tr("cat.footCatalog")) + "</button>" +
+            '<a href="#/login">' + esc(tr("cat.footPartners")) + "</a>" +
           "</div>" +
         "</div>" +
         '<div class="tt-foot-bottom">' +
@@ -908,7 +944,7 @@
     var end = TuronApi.departureEnd(g.date_start, g.nights);
     var sub = [];
     if (g.nights) {
-      sub.push(g.nights + " " + plural(g.nights, "ночь", "ночи", "ночей"));
+      sub.push(counted(g.nights, "night"));
     }
     if (end) sub.push("по " + dateLong(end));
 
@@ -917,8 +953,8 @@
     var seats = "";
     if (g.seats_free != null && g.seats_free > 0) {
       seats = g.seats_free >= 21
-        ? "20+ мест"
-        : g.seats_free + " " + plural(g.seats_free, "место", "места", "мест");
+        ? tr("cat.seatsPlus")
+        : counted(g.seats_free, "seat");
     }
 
     var photo = photoFor(g);
@@ -940,7 +976,7 @@
           '<span class="tt-up-sub">' + esc(sub.join(" · ")) + "</span>" +
           '<span class="tt-up-foot">' +
             '<span class="tt-up-price">' +
-              (g.min_price != null ? "<i>от</i>" + money(g.min_price) : "") +
+              (g.min_price != null ? "<i>" + esc(tr("cat.from")) + "</i>" + money(g.min_price) : "") +
             "</span>" +
             '<span class="tt-up-arrow" aria-hidden="true">→</span>' +
           "</span>" +
@@ -1037,12 +1073,12 @@
     function stale(seq) { return seq !== drawSeq; }
 
     function errorBox(err) {
-      root.innerHTML = '<div class="tt-empty-state">Не удалось загрузить каталог.' +
+      root.innerHTML = '<div class="tt-empty-state">' + esc(tr("cat.loadFailed")) +
         '<div class="tt-muted-note">' + esc(err.message) + "</div>" +
         // Без кнопки единственным выходом была перезагрузка страницы:
         // повторных запросов сюда уже никто не делал.
         '<button class="tt-btn tt-btn-sm" type="button" data-catalog-retry>' +
-          "Повторить</button></div>";
+          esc(tr("cat.retry")) + "</button></div>";
     }
 
     // Ошибку показываем, только если экран за время запроса не сменился.
@@ -1060,7 +1096,7 @@
       // разметкой, иначе каждый заход на титульную добавлял бы ещё один.
       if (upcomingCleanup) upcomingCleanup();
       upcomingCleanup = null;
-      root.innerHTML = '<div class="tt-empty-state">Загружаем…</div>';
+      root.innerHTML = '<div class="tt-empty-state">' + esc(tr("cat.loading")) + "</div>";
     }
 
     // Размещение и цена ОДНОГО взрослого выводятся из числа взрослых
@@ -1073,7 +1109,7 @@
     function adultPlacement(d, n) {
       var places = (d.prices || []).filter(function (p) { return p.kind === "placement"; })
         .slice().sort(function (a, b) { return a.price - b.price; });
-      if (!places.length) return { code: null, price: 0, label: "Взрослый" };
+      if (!places.length) return { code: null, price: 0, label: tr("cat.adult") };
       var prefer;
       if (n <= 1) prefer = ["SNG"];
       else if (n === 2) prefer = ["DBL", "TWIN"];
@@ -1119,9 +1155,9 @@
             code: p.code, price: p.price, occupies_seat: p.occupies_seat,
             title: p.label,
             note: p.occupies_seat
-              ? p.age_from + "–" + top + " " + plural(top, "год", "года", "лет")
-              : "младше " + p.age_to + " " + plural(p.age_to, "года", "лет", "лет") +
-                ", без места",
+              ? p.age_from + "–" + top + " " + noun(top, "year")
+              : fmt(tr("cat.underAge"), { age: counted(p.age_to, "year") }) +
+                tr("cat.noSeat"),
           };
         });
       return kids;
@@ -1169,10 +1205,10 @@
           '<div class="tt-calc-price">' + money(price) + "</div>" +
           '<div class="tt-calc-stepper">' +
             '<button type="button" data-step="-1" data-tariff="' + esc(code) + '"' +
-              (n === 0 ? " disabled" : "") + ' aria-label="Убрать">−</button>' +
+              (n === 0 ? " disabled" : "") + ' aria-label="' + esc(tr("cat.remove")) + '">−</button>' +
             "<output>" + n + "</output>" +
             '<button type="button" data-step="1" data-tariff="' + esc(code) +
-              '" aria-label="Добавить">+</button>' +
+              '" aria-label="' + esc(tr("cat.add")) + '">+</button>' +
           "</div>" +
           '<div class="tt-calc-sum">' + (n ? money(n * price) : "") + "</div>" +
         "</div>";
@@ -1185,11 +1221,11 @@
         // Подпись и цена меняются на лету; при 0 — размещение для одного.
         var adultN = counts.ADULT || 0;
         var adultPl = adultPlacement(d, adultN || 1);
-        adultRows = calcRow("ADULT", "Взрослый", adultPl.label || "", adultPl.price, adultN);
+        adultRows = calcRow("ADULT", tr("cat.adult"), adultPl.label || "", adultPl.price, adultN);
       } else {
         // Умра: свой счётчик на каждый тип номера (QUAD/TRPL/DBL).
         adultRows = placementsOf(d).map(function (p) {
-          return calcRow(p.code, "Паломник", p.label, p.price, counts[p.code] || 0);
+          return calcRow(p.code, tr("cat.pilgrim"), p.label, p.price, counts[p.code] || 0);
         }).join("");
       }
       var rows = adultRows +
@@ -1199,18 +1235,18 @@
 
       return rows +
         '<div class="tt-calc-total">' +
-          "<div><span>Туристов</span><strong>" + t.people + "</strong></div>" +
-          "<div><span>Занимают мест</span><strong>" + t.seats + "</strong></div>" +
-          '<div class="tt-calc-grand"><span>Итого</span><strong>' +
+          "<div><span>" + esc(tr("cat.travellers")) + "</span><strong>" + t.people + "</strong></div>" +
+          "<div><span>" + esc(tr("cat.seatsTaken")) + "</span><strong>" + t.seats + "</strong></div>" +
+          '<div class="tt-calc-grand"><span>' + esc(tr("cat.total")) + "</span><strong>" +
             money(t.total) + "</strong></div>" +
         "</div>" +
         policyHtml(d.date_start, t.total) +
         '<div class="tt-calc-actions">' +
           (cfg.canBook
             ? '<button class="tt-btn" data-book-calc="' + esc(d.code) + '"' +
-              (t.people === 0 ? " disabled" : "") + ">Забронировать</button>"
+              (t.people === 0 ? " disabled" : "") + ">" + esc(tr("cat.book")) + "</button>"
             : '<button class="tt-btn secondary" data-login="' + esc(d.code) +
-              '">Войти и забронировать</button>') +
+              '">' + esc(tr("cat.loginToBook")) + "</button>") +
         "</div>";
     }
 
@@ -1228,8 +1264,8 @@
             '<span class="tt-muted-note">' + esc(d.code) + " · " +
               (TRANSPORT[d.transport] || d.transport) +
               (d.nights ? " · " + d.nights + " " +
-                plural(d.nights, "ночь", "ночи", "ночей") : "") + "</span>" +
-            (d.is_info_tour ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
+                noun(d.nights, "night") : "") + "</span>" +
+            (d.is_info_tour ? '<span class="tt-badge tt-badge-info">' + esc(tr("cat.infotour")) + "</span>" : "") +
           "</div>" +
           '<div class="tt-cat-dep-prices">' +
             placements.map(function (p) {
@@ -1245,7 +1281,7 @@
           '<div class="tt-cat-dep-action">' +
             '<button class="tt-btn' + (open ? "" : " secondary") +
               ' tt-btn-sm" data-calc="' + esc(d.code) + '">' +
-              (open ? "Скрыть расчёт" : "Рассчитать") + "</button>" +
+              (open ? tr("cat.hideCalc") : tr("cat.calc")) + "</button>" +
           "</div>" +
           (open
             ? '<div class="tt-cat-calc">' + calcHtml(d) + "</div>"
@@ -1297,13 +1333,10 @@
               (v.code === active.code ? " is-active" : "") +
               '" data-variant="' + esc(v.code) + '">' + esc(v.title) + "</button>";
           }).join("") + "</div>" +
-          '<p class="tt-muted-note">Это два разных маршрута, а не два описания ' +
-          "одного. Вариант определяет аэропорт прилёта заезда: «Авиа · Батуми» — " +
-          "прилёт в Батуми, «Авиа · Трабзон» — прилёт в Трабзон. Откройте расчёт " +
-          "на нужной дате — программа переключится на её маршрут сама.</p>"
+          '<p class="tt-muted-note">' + esc(tr("cat.variantsNote")) + "</p>"
         : "";
       if (!active.days.length)
-        return '<section class="tt-cat-block" id="tour-programme"><h2>Программа</h2>' +
+        return '<section class="tt-cat-block" id="tour-programme"><h2>' + esc(tr("cat.programme")) + "</h2>" +
           switcher + "</section>";
       // Дни сворачиваемые (<details>), а не сплошной список: 8 дней с
       // полным абзацем на каждый день на одном экране читались стеной
@@ -1311,7 +1344,7 @@
       // тоже есть текст, а не просто заголовки. id — чтобы перерисовывать
       // ТОЛЬКО этот блок при смене варианта маршрута, а не всю страницу
       // (иначе пересоздаётся видеофон и мигает).
-      return '<section class="tt-cat-block" id="tour-programme"><h2>Программа</h2>' + switcher +
+      return '<section class="tt-cat-block" id="tour-programme"><h2>' + esc(tr("cat.programme")) + "</h2>" + switcher +
         '<div class="tt-cat-days">' + active.days.map(function (d, i) {
           return '<details class="tt-cat-day"' + (i === 0 ? " open" : "") + ">" +
             "<summary><strong>" + esc(d.title) + "</strong></summary>" +
@@ -1325,7 +1358,7 @@
      * пересоздавала видеофон и мигала). */
     function departuresBlock(tour) {
       var deps = tour.departures || [];
-      return '<section class="tt-cat-block" id="tour-departures"><h2>Заезды и цены</h2>' +
+      return '<section class="tt-cat-block" id="tour-departures"><h2>' + esc(tr("cat.departures")) + "</h2>" +
         (deps.length
           ? '<div class="tt-cat-deps">' + deps.map(function (d) {
               // длительность живёт на туре, а рисуется в строке заезда
@@ -1333,12 +1366,11 @@
             }).join("") + "</div>"
           : '<div class="tt-empty-state">' +
             (tour.is_bookable
-              ? "Предстоящих заездов нет."
-              : esc(tour.note || "Тур ещё не открыт для брони.")) +
+              ? tr("cat.noDepartures")
+              : esc(tour.note || tr("cat.notOpen"))) +
             "</div>") +
         (deps.length && !cfg.canBook
-          ? '<p class="tt-muted-note">Цены партнёрские. Чтобы забронировать, ' +
-            "войдите под логином агентства.</p>"
+          ? '<p class="tt-muted-note">' + esc(tr("cat.partnerPrices")) + "</p>"
           : "") +
       "</section>";
     }
@@ -1350,16 +1382,18 @@
       var out = [];
       if (tour.nights) {
         out.push('<span>' + FACT_ICON.clock + esc(
-          (tour.nights + 1) + " " + plural(tour.nights + 1, "день", "дня", "дней") +
-          " / " + tour.nights + " " + plural(tour.nights, "ночь", "ночи", "ночей")) + "</span>");
+          counted(tour.nights + 1, "day") +
+          " / " + counted(tour.nights, "night")) + "</span>");
       }
-      var CITY = { TZX: "Трабзон", BUS: "Батуми", JED: "Джидда", MED: "Медина" };
+      var CITY = { TZX: tr("city.TZX"), BUS: tr("city.BUS"),
+        JED: tr("city.JED"), MED: tr("city.MED") };
       var cities = [];
       deps.forEach(function (d) {
         var c = CITY[d.transport] || null;
         if (c && cities.indexOf(c) === -1) cities.push(c);
       });
-      if (cities.length) out.push('<span>' + FACT_ICON.plane + "Авиа · " + esc(cities.join(" и ")) + "</span>");
+      if (cities.length) out.push("<span>" + FACT_ICON.plane +
+        esc(fmt(tr("cat.air"), { city: cities.join(" " + tr("cat.and") + " ") })) + "</span>");
       // «от $…» — минимальная взрослая цена по всем заездам. Берём из прайса
       // (kind=placement) самого заезда, а не из d.min_price: в демо-заездах
       // этого сводного поля нет, а прайс есть и там, и в ответе воркера.
@@ -1374,7 +1408,8 @@
         }
       });
       if (minPrice != null) {
-        out.push('<strong>' + FACT_ICON.tag + "от " + money(minPrice) + "</strong>");
+        out.push("<strong>" + FACT_ICON.tag + esc(tr("cat.from")) + " " +
+          money(minPrice) + "</strong>");
       }
       return out.length ? '<div class="tt-tour-facts">' + out.join("") + "</div>" : "";
     }
@@ -1388,7 +1423,7 @@
     function searchResultRow(d) {
       var meta = [TRANSPORT[d.transport] || d.transport];
       if (d.nights) {
-        meta.push(d.nights + " " + plural(d.nights, "ночь", "ночи", "ночей"));
+        meta.push(counted(d.nights, "night"));
       }
       meta.push(d.code);
       return (
@@ -1403,11 +1438,11 @@
               ? '<span class="tt-muted-note">' + esc(d.destination) + "</span>"
               : "") +
             (d.is_info_tour
-              ? '<span class="tt-badge tt-badge-info">Инфотур</span>' : "") +
+              ? '<span class="tt-badge tt-badge-info">' + esc(tr("cat.infotour")) + "</span>" : "") +
           "</div>" +
           '<div class="tt-search-price">' +
             (d.min_price != null
-              ? '<span class="tt-muted-note">от</span><strong>' +
+              ? '<span class="tt-muted-note">' + esc(tr("cat.from")) + "</span><strong>" +
                 money(d.min_price) + "</strong>"
               : "") +
           "</div>" +
@@ -1813,10 +1848,10 @@
             (UMRA_TOUR_CODE[p.name]
               ? '<button type="button" class="tt-umrah-book" data-tour="' +
                 esc(UMRA_TOUR_CODE[p.name]) + '">' +
-                (cfg.canBook ? "Забронировать" : "Открыть и забронировать") +
+                (cfg.canBook ? tr("cat.book") : tr("cat.openAndBook")) +
                 ' <span>→</span></button>'
               : '<a href="' + esc(contact) +
-                '" target="_blank" rel="noopener">Уточнить места <span>→</span></a>') +
+                '" target="_blank" rel="noopener">' + esc(tr("cat.askSeats")) + " <span>→</span></a>") +
           '</div>' +
         '</div>' +
       '</details>';
@@ -1845,7 +1880,7 @@
           if (active) visible.push(programme);
         });
         if (count) count.textContent = visible.length + " " +
-          plural(visible.length, "программа", "программы", "программ");
+          noun(visible.length, "programme");
       }
 
       tabs.forEach(function (tab) {
@@ -1935,11 +1970,11 @@
           '<section class="tt-destination-page' +
             (isJapan ? " tt-destination-japan" : "") + '">' +
           '<div class="tt-destination-inner">' +
-          crumbs([{ text: "Каталог", go: "root" }, { text: destination }]) +
+          crumbs([{ text: tr("cat.catalog"), go: "root" }, { text: destination }]) +
           '<h1 class="tt-cat-h1">' + esc(destination) + "</h1>" +
           (list.length
             ? '<div class="tt-cat-tours">' + list.map(tourRow).join("") + "</div>"
-            : '<div class="tt-empty-state">В этом направлении туров пока нет.</div>') +
+            : '<div class="tt-empty-state">' + esc(tr("cat.noToursHere")) + "</div>") +
           "</div></section>";
       }).catch(failWith(seq));
     }
@@ -2006,8 +2041,8 @@
       var meta = [];
         if (tour.nights) {
           meta.push((tour.nights + 1) + " " +
-            plural(tour.nights + 1, "день", "дня", "дней") + " / " +
-            tour.nights + " " + plural(tour.nights, "ночь", "ночи", "ночей"));
+            noun(tour.nights + 1, "day") + " / " +
+            counted(tour.nights, "night"));
         }
         meta.push(tour.destination);
 
@@ -2044,7 +2079,7 @@
           // «Турция» вела бы на ту же самую карточку — тупиковая петля. Пока
           // в направлении один тур, крошка только «Каталог».
           crumbs([
-            { text: "Каталог", go: "root" },
+            { text: tr("cat.catalog"), go: "root" },
             { text: displayName },
           ]) +
           // Публичный герой — раскладка Умры: надзаголовок, крупное название,
@@ -2067,15 +2102,15 @@
           programmeBlock(tour) +
 
           (included.length || excluded.length
-            ? '<section class="tt-cat-block"><h2>Что входит в цену</h2>' +
+            ? '<section class="tt-cat-block"><h2>' + esc(tr("cat.priceIncludes")) + "</h2>" +
               '<div class="tt-cat-lists">' +
-                listBlock("Включено", included, "is-in") +
-                listBlock("Не включено", excluded, "is-out") +
+                listBlock(tr("cat.included"), included, "is-in") +
+                listBlock(tr("cat.excluded"), excluded, "is-out") +
               "</div></section>"
             : "") +
 
           (gallery.length
-            ? '<section class="tt-cat-block"><h2>Фото</h2><div class="tt-cat-gallery">' +
+            ? '<section class="tt-cat-block"><h2>' + esc(tr("cat.photos")) + '</h2><div class="tt-cat-gallery">' +
               gallery.map(function (g) {
                 return '<img src="' + esc(g.url) + '" alt="' + esc(g.text) +
                   '" loading="lazy" />';
@@ -2083,7 +2118,7 @@
             : "") +
 
           (info.length
-            ? '<section class="tt-cat-block"><h2>Важно знать</h2><ul class="tt-cat-info">' +
+            ? '<section class="tt-cat-block"><h2>' + esc(tr("cat.important")) + '</h2><ul class="tt-cat-info">' +
               info.map(function (x) {
                 return "<li>" + (x.url
                   ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' +
