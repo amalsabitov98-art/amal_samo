@@ -298,12 +298,25 @@
     "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"];
   var OP_ARRIVAL = { TZX: "Трабзон", BUS: "Батуми", MED: "Медина", JED: "Джидда" };
 
+  /* Подпись заезда: НАЗВАНИЕ ТУРА и город прилёта.
+   *
+   * Раньше здесь стояло «Умра» или «Карадениз» — жёстко, по коду заезда.
+   * Пока туры заводились только seed-файлом, других вариантов и не было;
+   * с появлением вкладки «Туры» любой новый заезд стал подписываться
+   * «Карадениз», к какому бы туру ни принадлежал. Название приходит в
+   * listDepartures (t.name AS tour_name), брать его больше неоткуда не
+   * нужно.
+   *
+   * Город прилёта откатывается на сам код транспорта: у нового тура это
+   * может быть аэропорт, которого нет в OP_ARRIVAL, и «CHZ» честнее
+   * выдуманного названия. */
   function opDepIdentity(d) {
     var umra = /^UMRA_/i.test(d.code || "");
     var arrival = OP_ARRIVAL[d.transport] || d.transport || "Маршрут";
+    var tour = d.tour_name || (umra ? "Умра" : "Тур");
     return {
       badge: umra ? "Умра · " + (d.transport || arrival) : (TRANSPORT[d.transport] || arrival),
-      route: (umra ? "Умра" : "Карадениз") + " · " + arrival,
+      route: tour + " · " + arrival,
     };
   }
 
@@ -936,6 +949,28 @@
   // Заездов за сезон десятки — стеной карточек прошедшие мешают найти
   // ближайший. По умолчанию видны только предстоящие, прошедшие сворачиваем
   // за кнопку; поиск ищет по всем без разбора, раз человек уже назвал дату.
+  /* Список направлений в фильтре собирается ИЗ ЗАЕЗДОВ, а не задан в
+   * разметке. В разметке было ровно два пункта — «Умра» и «Карадениз», —
+   * и заезд тура, заведённого оператором, отфильтровать было нечем: он
+   * попадал в «Карадениз» вместе со всем, что не умра. */
+  function fillDirectionFilter() {
+    var select = document.getElementById("adm-filter-direction");
+    if (!select) return;
+    var seen = {};
+    state.departures.forEach(function (d) {
+      if (d.destination) seen[d.destination] = true;
+    });
+    var was = state.departureDirection;
+    select.innerHTML = '<option value="">Направление: Все</option>' +
+      Object.keys(seen).sort().map(function (dest) {
+        return '<option value="' + esc(dest) + '"' +
+          (dest === was ? " selected" : "") + ">Направление: " + esc(dest) + "</option>";
+      }).join("");
+    // Направление могло исчезнуть (последний заезд уехал в прошлое) —
+    // тогда фильтр надо снять, иначе список молча останется пустым.
+    if (was && !seen[was]) state.departureDirection = "";
+  }
+
   function renderDepartureCards() {
     var q = state.departureFilter.trim().toLowerCase();
     var today = new Date().toISOString().slice(0, 10);
@@ -952,9 +987,11 @@
       if (state.departurePeriod === "7" && (d.date_start < today || d.date_start > inSeven)) return false;
       if (state.departurePeriod === "30" && (d.date_start < today || d.date_start > inThirty)) return false;
       if (state.departurePeriod === "past" && d.date_start >= today) return false;
-      var umra = /^UMRA_/i.test(d.code || "");
-      if (state.departureDirection === "umra" && !umra) return false;
-      if (state.departureDirection === "karadeniz" && umra) return false;
+      // Фильтр по РЕАЛЬНОМУ направлению тура. Раньше здесь была развилка
+      // «умра / не умра», и любой заезд нового тура попадал в «Карадениз».
+      if (state.departureDirection && d.destination !== state.departureDirection) {
+        return false;
+      }
       if (state.departureRoute && String(d.transport || "").toUpperCase() !== state.departureRoute) return false;
       var closed = d.is_open === 0;
       if (state.departureSale === "open" && closed) return false;
@@ -980,7 +1017,7 @@
     if (state.departurePeriod !== "upcoming") {
       chips.push(["period", { "7": "7 дней", "30": "30 дней", past: "Прошедшие" }[state.departurePeriod]]);
     }
-    if (state.departureDirection) chips.push(["direction", state.departureDirection === "umra" ? "Умра" : "Карадениз"]);
+    if (state.departureDirection) chips.push(["direction", state.departureDirection]);
     if (state.departureRoute) chips.push(["route", OP_ARRIVAL[state.departureRoute] || state.departureRoute]);
     if (state.departureSale) chips.push(["sale", state.departureSale === "open" ? "Продажа открыта" : "Продажа закрыта"]);
     if (state.departureLoad) chips.push(["load", {
@@ -1804,6 +1841,7 @@
       btn.disabled = true;
       TuronApi.setDepartureOpen(id, open).then(function (res) {
         if (dep) dep.is_open = res.is_open ? 1 : 0;
+        fillDirectionFilter();
         renderDepartureCards();
         renderDepartureControls();
         alert(res.is_open

@@ -9197,6 +9197,24 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-app-lang .tt-lang-btn { padding-inline: 8px; }
 }
 
+/* Карточка витрины БЕЗ фотографии — новое направление, заведённое
+   оператором. Фотографий туров у нас нет ни одной (см. TODO), поэтому
+   вместо битой картинки кладём бледное клеймо на фирменную заливку:
+   пустая рамка читалась бы как «не загрузилось». */
+.tt-tourcard.is-plain .tt-tourcard-photo {
+  position: relative;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(198, 160, 74, 0.22), transparent 60%),
+    linear-gradient(150deg, #14432c, #0d2c1e);
+}
+.tt-tourcard.is-plain .tt-tourcard-photo::before {
+  content: "";
+  position: absolute;
+  inset: 18% 30%;
+  background: url("img/etihad-mark.png") center / contain no-repeat;
+  opacity: 0.22;
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -9665,10 +9683,11 @@ a.tt-contact-row:hover { color: var(--cc); }
             <button type="button" data-dep-period="30">30 дней</button>
             <button type="button" data-dep-period="past">Прошедшие</button>
           </div>
+          <!-- Пункты заполняет fillDirectionFilter() из реальных заездов:
+               в разметке было жёстко «Умра» и «Карадениз», и заезд нового
+               тура отфильтровать было нечем. -->
           <select id="adm-filter-direction" aria-label="Направление">
             <option value="">Направление: Все</option>
-            <option value="umra">Направление: Умра</option>
-            <option value="karadeniz">Направление: Карадениз</option>
           </select>
           <select id="adm-filter-route" aria-label="Маршрут">
             <option value="">Маршрут: Все</option>
@@ -18287,6 +18306,10 @@ window.TURON_DESTINATIONS = [
       "state.empty": "Пока пусто",
       "state.error": "Не удалось загрузить",
       "state.retry": "Повторить",
+      "builder.newProduct": "Новое направление",
+      "word.tour.one": "тур",
+      "word.tour.few": "тура",
+      "word.tour.many": "туров",
     },
     uz: {
       "tab.builder": "Yangi tur",
@@ -18314,6 +18337,10 @@ window.TURON_DESTINATIONS = [
       "state.empty": "Hozircha bo‘sh",
       "state.error": "Yuklab bo‘lmadi",
       "state.retry": "Qayta urinish",
+      "builder.newProduct": "Yangi yo‘nalish",
+      "word.tour.one": "tur",
+      "word.tour.few": "tur",
+      "word.tour.many": "tur",
     },
     en: {
       "tab.builder": "New tour",
@@ -18341,6 +18368,10 @@ window.TURON_DESTINATIONS = [
       "state.empty": "Nothing here yet",
       "state.error": "Could not load",
       "state.retry": "Try again",
+      "builder.newProduct": "New destination",
+      "word.tour.one": "tour",
+      "word.tour.few": "tours",
+      "word.tour.many": "tours",
     },
     tr: {
       "tab.builder": "Yeni tur",
@@ -18368,6 +18399,10 @@ window.TURON_DESTINATIONS = [
       "state.empty": "Henüz boş",
       "state.error": "Yüklenemedi",
       "state.retry": "Tekrar dene",
+      "builder.newProduct": "Yeni yön",
+      "word.tour.one": "tur",
+      "word.tour.few": "tur",
+      "word.tour.many": "tur",
     },
   };
 
@@ -21355,12 +21390,25 @@ window.TURON_DESTINATIONS = [
     "ИЮЛ", "АВГ", "СЕН", "ОКТ", "НОЯ", "ДЕК"];
   var OP_ARRIVAL = { TZX: "Трабзон", BUS: "Батуми", MED: "Медина", JED: "Джидда" };
 
+  /* Подпись заезда: НАЗВАНИЕ ТУРА и город прилёта.
+   *
+   * Раньше здесь стояло «Умра» или «Карадениз» — жёстко, по коду заезда.
+   * Пока туры заводились только seed-файлом, других вариантов и не было;
+   * с появлением вкладки «Туры» любой новый заезд стал подписываться
+   * «Карадениз», к какому бы туру ни принадлежал. Название приходит в
+   * listDepartures (t.name AS tour_name), брать его больше неоткуда не
+   * нужно.
+   *
+   * Город прилёта откатывается на сам код транспорта: у нового тура это
+   * может быть аэропорт, которого нет в OP_ARRIVAL, и «CHZ» честнее
+   * выдуманного названия. */
   function opDepIdentity(d) {
     var umra = /^UMRA_/i.test(d.code || "");
     var arrival = OP_ARRIVAL[d.transport] || d.transport || "Маршрут";
+    var tour = d.tour_name || (umra ? "Умра" : "Тур");
     return {
       badge: umra ? "Умра · " + (d.transport || arrival) : (TRANSPORT[d.transport] || arrival),
-      route: (umra ? "Умра" : "Карадениз") + " · " + arrival,
+      route: tour + " · " + arrival,
     };
   }
 
@@ -21993,6 +22041,28 @@ window.TURON_DESTINATIONS = [
   // Заездов за сезон десятки — стеной карточек прошедшие мешают найти
   // ближайший. По умолчанию видны только предстоящие, прошедшие сворачиваем
   // за кнопку; поиск ищет по всем без разбора, раз человек уже назвал дату.
+  /* Список направлений в фильтре собирается ИЗ ЗАЕЗДОВ, а не задан в
+   * разметке. В разметке было ровно два пункта — «Умра» и «Карадениз», —
+   * и заезд тура, заведённого оператором, отфильтровать было нечем: он
+   * попадал в «Карадениз» вместе со всем, что не умра. */
+  function fillDirectionFilter() {
+    var select = document.getElementById("adm-filter-direction");
+    if (!select) return;
+    var seen = {};
+    state.departures.forEach(function (d) {
+      if (d.destination) seen[d.destination] = true;
+    });
+    var was = state.departureDirection;
+    select.innerHTML = '<option value="">Направление: Все</option>' +
+      Object.keys(seen).sort().map(function (dest) {
+        return '<option value="' + esc(dest) + '"' +
+          (dest === was ? " selected" : "") + ">Направление: " + esc(dest) + "</option>";
+      }).join("");
+    // Направление могло исчезнуть (последний заезд уехал в прошлое) —
+    // тогда фильтр надо снять, иначе список молча останется пустым.
+    if (was && !seen[was]) state.departureDirection = "";
+  }
+
   function renderDepartureCards() {
     var q = state.departureFilter.trim().toLowerCase();
     var today = new Date().toISOString().slice(0, 10);
@@ -22009,9 +22079,11 @@ window.TURON_DESTINATIONS = [
       if (state.departurePeriod === "7" && (d.date_start < today || d.date_start > inSeven)) return false;
       if (state.departurePeriod === "30" && (d.date_start < today || d.date_start > inThirty)) return false;
       if (state.departurePeriod === "past" && d.date_start >= today) return false;
-      var umra = /^UMRA_/i.test(d.code || "");
-      if (state.departureDirection === "umra" && !umra) return false;
-      if (state.departureDirection === "karadeniz" && umra) return false;
+      // Фильтр по РЕАЛЬНОМУ направлению тура. Раньше здесь была развилка
+      // «умра / не умра», и любой заезд нового тура попадал в «Карадениз».
+      if (state.departureDirection && d.destination !== state.departureDirection) {
+        return false;
+      }
       if (state.departureRoute && String(d.transport || "").toUpperCase() !== state.departureRoute) return false;
       var closed = d.is_open === 0;
       if (state.departureSale === "open" && closed) return false;
@@ -22037,7 +22109,7 @@ window.TURON_DESTINATIONS = [
     if (state.departurePeriod !== "upcoming") {
       chips.push(["period", { "7": "7 дней", "30": "30 дней", past: "Прошедшие" }[state.departurePeriod]]);
     }
-    if (state.departureDirection) chips.push(["direction", state.departureDirection === "umra" ? "Умра" : "Карадениз"]);
+    if (state.departureDirection) chips.push(["direction", state.departureDirection]);
     if (state.departureRoute) chips.push(["route", OP_ARRIVAL[state.departureRoute] || state.departureRoute]);
     if (state.departureSale) chips.push(["sale", state.departureSale === "open" ? "Продажа открыта" : "Продажа закрыта"]);
     if (state.departureLoad) chips.push(["load", {
@@ -22861,6 +22933,7 @@ window.TURON_DESTINATIONS = [
       btn.disabled = true;
       TuronApi.setDepartureOpen(id, open).then(function (res) {
         if (dep) dep.is_open = res.is_open ? 1 : 0;
+        fillDirectionFilter();
         renderDepartureCards();
         renderDepartureControls();
         alert(res.is_open
@@ -24229,6 +24302,70 @@ window.TURON_DESTINATIONS = [
     return m;
   }
 
+  /* Витрина = три фирменные карточки ПЛЮС всё остальное, что реально есть
+   * в продаже.
+   *
+   * До этого список был жёстко из BUILDER_PRODUCTS, и тур, заведённый
+   * оператором через вкладку «Туры», не появлялся у агентства ВООБЩЕ:
+   * найти его можно было только на публичной титульной, в блоке ближайших
+   * заездов. Интерфейс писался, когда туры попадали в базу только
+   * seed-файлом, и с тех пор считал, что продуктов ровно три.
+   *
+   * Карточки собираются из УЖЕ ЗАГРУЖЕННЫХ заездов — лишнего запроса нет.
+   * Фотографии у новых направлений нет (их вообще нет ни у одного тура,
+   * см. TODO), поэтому карточка рисуется клеймом, а не пустой рамкой.
+   */
+  function builderExtraProducts() {
+    var known = {};
+    BUILDER_PRODUCTS.forEach(function (x) { known[x.key] = true; });
+    // «Турция» — это и есть Карадениз, у него своя карточка выше.
+    known["Турция"] = true;
+
+    var byDest = {};
+    state.departures.forEach(function (d) {
+      var dest = d.destination;
+      if (!dest || known[dest]) return;
+      var g = byDest[dest];
+      if (!g) { g = byDest[dest] = { key: dest, tours: {}, count: 0 }; }
+      if (d.tour_code && !g.tours[d.tour_code]) {
+        g.tours[d.tour_code] = d.tour_name || d.tour_code;
+        g.count++;
+      }
+    });
+
+    return Object.keys(byDest).sort().map(function (dest) {
+      var g = byDest[dest];
+      var names = Object.keys(g.tours).map(function (c) { return g.tours[c]; });
+      var price = builderMinPrice(function (d) { return d.destination === dest; });
+      return {
+        key: dest,
+        title: dest,
+        // Один тур — показываем его название, несколько — сколько их.
+        route: g.count === 1 ? names[0] : counted(g.count, "tour"),
+        facts: [],
+        plain: true,
+        kicker: trApp("builder.newProduct"),
+        price: function () { return price; },
+      };
+    });
+  }
+
+  /** «3 тура» — склонение по языку кабинета. */
+  function counted(n, base) {
+    var one = trApp("word." + base + ".one");
+    var few = trApp("word." + base + ".few");
+    var many = trApp("word." + base + ".many");
+    if (appLang() !== "ru") return n + " " + (n === 1 ? one : few);
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + " " + one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return n + " " + few;
+    return n + " " + many;
+  }
+
+  function appLang() {
+    return global.TuronAppI18n ? global.TuronAppI18n.language() : "ru";
+  }
+
   function renderBuilderShowcase() {
     var host = $("builder-showcase");
     if (!host) return;
@@ -24237,14 +24374,20 @@ window.TURON_DESTINATIONS = [
         '<span class="tt-eyebrow">Каталог направлений</span>' +
         "<h2>Выберите тур</h2>" +
       "</div>" +
-      '<div class="tt-tourgrid">' + BUILDER_PRODUCTS.map(function (p) {
+      '<div class="tt-tourgrid">' +
+        BUILDER_PRODUCTS.concat(builderExtraProducts()).map(function (p) {
         var price = p.price();
         var facts = p.facts.slice();
         if (price != null) facts.push({ label: "Стоимость", value: "от " + money(price), accent: true });
         else if (p.tailFact) facts.push(p.tailFact);
-        return '<article class="tt-tourcard" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
-          '<div class="tt-tourcard-photo"><img src="' + esc(p.image) + '" alt="' +
-            esc(p.title) + '" loading="lazy" />' +
+        return '<article class="tt-tourcard' + (p.plain ? " is-plain" : "") +
+          '" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
+          '<div class="tt-tourcard-photo">' +
+            // Фотографий у новых направлений нет ни одной (TODO), поэтому
+            // вместо битой картинки — клеймо на заливке, как у карточек
+            // заездов без фото на титульной.
+            (p.plain ? "" : '<img src="' + esc(p.image) + '" alt="' +
+              esc(p.title) + '" loading="lazy" />') +
             '<span class="tt-tourcard-kicker">' + esc(p.kicker) + "</span></div>" +
           '<div class="tt-tourcard-body">' +
             "<h3>" + esc(p.title) + "</h3>" +
@@ -24856,7 +24999,10 @@ window.TURON_DESTINATIONS = [
   // контейнере, потому что витрина перерисовывается через innerHTML.
   function openBuilderProduct(key) {
     var p = BUILDER_PRODUCTS.filter(function (x) { return x.key === key; })[0];
-    if (!p) return;
+    // Ключа нет среди фирменных трёх — значит это направление, заведённое
+    // оператором. Раньше здесь стоял голый return, и клик по такой карточке
+    // не делал НИЧЕГО: ни перехода, ни ошибки в консоли.
+    if (!p) return openBuilderDestination(key);
     if (p.key === "karadeniz") openKaradenizBuilder();
     else if (p.key === "Умра") openUmraShowcase();
     else openBuilderDestination(p.key);   // Япония пока не разбита — её каталог

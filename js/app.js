@@ -678,6 +678,70 @@
     return m;
   }
 
+  /* Витрина = три фирменные карточки ПЛЮС всё остальное, что реально есть
+   * в продаже.
+   *
+   * До этого список был жёстко из BUILDER_PRODUCTS, и тур, заведённый
+   * оператором через вкладку «Туры», не появлялся у агентства ВООБЩЕ:
+   * найти его можно было только на публичной титульной, в блоке ближайших
+   * заездов. Интерфейс писался, когда туры попадали в базу только
+   * seed-файлом, и с тех пор считал, что продуктов ровно три.
+   *
+   * Карточки собираются из УЖЕ ЗАГРУЖЕННЫХ заездов — лишнего запроса нет.
+   * Фотографии у новых направлений нет (их вообще нет ни у одного тура,
+   * см. TODO), поэтому карточка рисуется клеймом, а не пустой рамкой.
+   */
+  function builderExtraProducts() {
+    var known = {};
+    BUILDER_PRODUCTS.forEach(function (x) { known[x.key] = true; });
+    // «Турция» — это и есть Карадениз, у него своя карточка выше.
+    known["Турция"] = true;
+
+    var byDest = {};
+    state.departures.forEach(function (d) {
+      var dest = d.destination;
+      if (!dest || known[dest]) return;
+      var g = byDest[dest];
+      if (!g) { g = byDest[dest] = { key: dest, tours: {}, count: 0 }; }
+      if (d.tour_code && !g.tours[d.tour_code]) {
+        g.tours[d.tour_code] = d.tour_name || d.tour_code;
+        g.count++;
+      }
+    });
+
+    return Object.keys(byDest).sort().map(function (dest) {
+      var g = byDest[dest];
+      var names = Object.keys(g.tours).map(function (c) { return g.tours[c]; });
+      var price = builderMinPrice(function (d) { return d.destination === dest; });
+      return {
+        key: dest,
+        title: dest,
+        // Один тур — показываем его название, несколько — сколько их.
+        route: g.count === 1 ? names[0] : counted(g.count, "tour"),
+        facts: [],
+        plain: true,
+        kicker: trApp("builder.newProduct"),
+        price: function () { return price; },
+      };
+    });
+  }
+
+  /** «3 тура» — склонение по языку кабинета. */
+  function counted(n, base) {
+    var one = trApp("word." + base + ".one");
+    var few = trApp("word." + base + ".few");
+    var many = trApp("word." + base + ".many");
+    if (appLang() !== "ru") return n + " " + (n === 1 ? one : few);
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + " " + one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return n + " " + few;
+    return n + " " + many;
+  }
+
+  function appLang() {
+    return global.TuronAppI18n ? global.TuronAppI18n.language() : "ru";
+  }
+
   function renderBuilderShowcase() {
     var host = $("builder-showcase");
     if (!host) return;
@@ -686,14 +750,20 @@
         '<span class="tt-eyebrow">Каталог направлений</span>' +
         "<h2>Выберите тур</h2>" +
       "</div>" +
-      '<div class="tt-tourgrid">' + BUILDER_PRODUCTS.map(function (p) {
+      '<div class="tt-tourgrid">' +
+        BUILDER_PRODUCTS.concat(builderExtraProducts()).map(function (p) {
         var price = p.price();
         var facts = p.facts.slice();
         if (price != null) facts.push({ label: "Стоимость", value: "от " + money(price), accent: true });
         else if (p.tailFact) facts.push(p.tailFact);
-        return '<article class="tt-tourcard" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
-          '<div class="tt-tourcard-photo"><img src="' + esc(p.image) + '" alt="' +
-            esc(p.title) + '" loading="lazy" />' +
+        return '<article class="tt-tourcard' + (p.plain ? " is-plain" : "") +
+          '" data-product="' + esc(p.key) + '" tabindex="0" role="button">' +
+          '<div class="tt-tourcard-photo">' +
+            // Фотографий у новых направлений нет ни одной (TODO), поэтому
+            // вместо битой картинки — клеймо на заливке, как у карточек
+            // заездов без фото на титульной.
+            (p.plain ? "" : '<img src="' + esc(p.image) + '" alt="' +
+              esc(p.title) + '" loading="lazy" />') +
             '<span class="tt-tourcard-kicker">' + esc(p.kicker) + "</span></div>" +
           '<div class="tt-tourcard-body">' +
             "<h3>" + esc(p.title) + "</h3>" +
@@ -1305,7 +1375,10 @@
   // контейнере, потому что витрина перерисовывается через innerHTML.
   function openBuilderProduct(key) {
     var p = BUILDER_PRODUCTS.filter(function (x) { return x.key === key; })[0];
-    if (!p) return;
+    // Ключа нет среди фирменных трёх — значит это направление, заведённое
+    // оператором. Раньше здесь стоял голый return, и клик по такой карточке
+    // не делал НИЧЕГО: ни перехода, ни ошибки в консоли.
+    if (!p) return openBuilderDestination(key);
     if (p.key === "karadeniz") openKaradenizBuilder();
     else if (p.key === "Умра") openUmraShowcase();
     else openBuilderDestination(p.key);   // Япония пока не разбита — её каталог

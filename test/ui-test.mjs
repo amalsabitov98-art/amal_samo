@@ -3018,6 +3018,60 @@ console.log("\nТур снят с продажи: заезды не пропад
   await page.close();
 }
 
+console.log("\nТур, заведённый оператором, виден агентству");
+{
+  // Интерфейс писался, когда туры попадали в базу только seed-файлом, и
+  // считал, что продуктов ровно три. Заезд тура, созданного через вкладку
+  // «Туры», не появлялся у агентства ВООБЩЕ — найти его можно было только
+  // на публичной титульной.
+  //
+  // Заезды кабинет грузит ОДИН РАЗ при входе, поэтому подменяем список ДО
+  // логина: подмена после входа ничего бы не изменила, и тест «проходил» бы
+  // на сломанном коде.
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("file://" + PREVIEW, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    const real = window.TuronApi.departures;
+    window.TuronApi.departures = function (opts) {
+      return real.call(window.TuronApi, opts).then(function (list) {
+        const sample = list[0] || {};
+        return list.concat([Object.assign({}, sample, {
+          id: 9901, code: "MRS0101", destination: "Марс", tour_code: "MARS",
+          tour_name: "Полёт на Марс", date_start: "2027-01-01", transport: "MRS",
+        })]);
+      });
+    };
+  });
+  await page.waitForTimeout(200);
+  if (await page.locator("#public-login-btn").count()) {
+    try { await page.locator("#public-login-btn").click({ timeout: 1200 }); } catch {}
+  }
+  await page.fill("#l-login", "umida");
+  await page.fill("#l-password", "turon2026");
+  await page.click("#login-btn");
+  await page.waitForTimeout(1200);
+
+  const cards = await page.$$eval("#builder-showcase [data-product]",
+    (n) => n.map((x) => x.dataset.product));
+  check("новое направление появилось в витрине",
+        cards.includes("Марс"), cards.join(" | "));
+  check("фирменные карточки на месте",
+        cards.includes("karadeniz") && cards.includes("Умра"), cards.join(" | "));
+
+  // Клик по такой карточке раньше не делал НИЧЕГО: openBuilderProduct не
+  // находил ключ среди трёх и выходил голым return, без ошибки в консоли.
+  await page.locator('#builder-showcase [data-product="Марс"]').first().click();
+  await page.waitForTimeout(700);
+  const moved = await page.evaluate(() =>
+    !document.getElementById("builder-catalog").hidden);
+  check("клик по новому направлению открывает каталог", moved === true);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nЯзык кабинета");
 {
   // Язык кабинета ОТДЕЛЬНЫЙ от публичного и виден только агентству:

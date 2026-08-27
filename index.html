@@ -45,7 +45,7 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" />
 </noscript>
-<link rel="stylesheet" href="styles.css?v=20260827-2" />
+<link rel="stylesheet" href="styles.css?v=20260827-3" />
 </head>
 <body>
 
@@ -485,10 +485,11 @@
             <button type="button" data-dep-period="30">30 дней</button>
             <button type="button" data-dep-period="past">Прошедшие</button>
           </div>
+          <!-- Пункты заполняет fillDirectionFilter() из реальных заездов:
+               в разметке было жёстко «Умра» и «Карадениз», и заезд нового
+               тура отфильтровать было нечем. -->
           <select id="adm-filter-direction" aria-label="Направление">
             <option value="">Направление: Все</option>
-            <option value="umra">Направление: Умра</option>
-            <option value="karadeniz">Направление: Карадениз</option>
           </select>
           <select id="adm-filter-route" aria-label="Маршрут">
             <option value="">Маршрут: Все</option>
@@ -905,9 +906,9 @@ if (window.top !== window.self) { window.top.location = window.self.location; }
 <script src="js/provisional.js?v=20260731-12"></script>
 <script src="js/public-ui.js?v=20260827-2"></script>
 <!-- Словарь кабинета: свой язык, своё хранилище, оператора не трогает. -->
-<script src="js/app-i18n.js?v=20260827-1"></script>
+<script src="js/app-i18n.js?v=20260827-2"></script>
 <script src="js/catalog.js?v=20260827-2"></script>
-<script src="js/admin.js?v=20260827-1"></script>
-<script src="js/app.js?v=20260827-1"></script>
+<script src="js/admin.js?v=20260827-2"></script>
+<script src="js/app.js?v=20260827-2"></script>
 </body>
 </html>

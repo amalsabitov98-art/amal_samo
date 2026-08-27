@@ -9175,3 +9175,21 @@ a.tt-contact-row:hover { color: var(--cc); }
   .tt-app-lang .tt-lang-caret { display: none; }
   .tt-app-lang .tt-lang-btn { padding-inline: 8px; }
 }
+
+/* Карточка витрины БЕЗ фотографии — новое направление, заведённое
+   оператором. Фотографий туров у нас нет ни одной (см. TODO), поэтому
+   вместо битой картинки кладём бледное клеймо на фирменную заливку:
+   пустая рамка читалась бы как «не загрузилось». */
+.tt-tourcard.is-plain .tt-tourcard-photo {
+  position: relative;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(198, 160, 74, 0.22), transparent 60%),
+    linear-gradient(150deg, #14432c, #0d2c1e);
+}
+.tt-tourcard.is-plain .tt-tourcard-photo::before {
+  content: "";
+  position: absolute;
+  inset: 18% 30%;
+  background: url("img/etihad-mark.png") center / contain no-repeat;
+  opacity: 0.22;
+}

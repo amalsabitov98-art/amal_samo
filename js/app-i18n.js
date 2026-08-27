@@ -54,6 +54,10 @@
       "state.empty": "Пока пусто",
       "state.error": "Не удалось загрузить",
       "state.retry": "Повторить",
+      "builder.newProduct": "Новое направление",
+      "word.tour.one": "тур",
+      "word.tour.few": "тура",
+      "word.tour.many": "туров",
     },
     uz: {
       "tab.builder": "Yangi tur",
@@ -81,6 +85,10 @@
       "state.empty": "Hozircha bo‘sh",
       "state.error": "Yuklab bo‘lmadi",
       "state.retry": "Qayta urinish",
+      "builder.newProduct": "Yangi yo‘nalish",
+      "word.tour.one": "tur",
+      "word.tour.few": "tur",
+      "word.tour.many": "tur",
     },
     en: {
       "tab.builder": "New tour",
@@ -108,6 +116,10 @@
       "state.empty": "Nothing here yet",
       "state.error": "Could not load",
       "state.retry": "Try again",
+      "builder.newProduct": "New destination",
+      "word.tour.one": "tour",
+      "word.tour.few": "tours",
+      "word.tour.many": "tours",
     },
     tr: {
       "tab.builder": "Yeni tur",
@@ -135,6 +147,10 @@
       "state.empty": "Henüz boş",
       "state.error": "Yüklenemedi",
       "state.retry": "Tekrar dene",
+      "builder.newProduct": "Yeni yön",
+      "word.tour.one": "tur",
+      "word.tour.few": "tur",
+      "word.tour.many": "tur",
     },
   };
 
