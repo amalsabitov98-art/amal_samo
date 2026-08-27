@@ -497,6 +497,51 @@
     return "oc-" + kind;
   }
 
+  /* Переводы строки контента. Свёрнуты в <details> намеренно: оператор
+   * заводит тур по-русски, а переводы дописывает потом — развёрнутые поля
+   * втрое удлинили бы форму и мешали бы основной работе.
+   *
+   * Пустое поле = перевода нет, и карточка на этом языке покажет русский.
+   * Это не ошибка, а рабочее состояние: новый тур живёт без переводов,
+   * пока их не напишут.
+   */
+  var OC_LANGS = [["uz", "O‘zbekcha"], ["en", "English"], ["tr", "Türkçe"]];
+
+  function ocI18nBox(fields, i18n) {
+    var data = i18n || {};
+    var filled = OC_LANGS.some(function (l) {
+      var v = data[l[0]] || {};
+      return fields.some(function (f) { return v[f[0]]; });
+    });
+    return '<details class="tt-oc-i18n"' + (filled ? " open" : "") + ">" +
+      "<summary>" + (filled ? "Переводы ✓" : "Переводы") + "</summary>" +
+      OC_LANGS.map(function (l) {
+        var v = data[l[0]] || {};
+        return '<div class="tt-oc-i18n-lang"><b>' + l[1] + "</b>" +
+          fields.map(function (f) {
+            return '<input type="text" data-i18n="' + l[0] + "." + f[0] +
+              '" value="' + esc(v[f[0]] || "") + '" placeholder="' + esc(f[1]) +
+              '" aria-label="' + esc(f[1] + ", " + l[1]) + '" />';
+          }).join("") +
+        "</div>";
+      }).join("") +
+    "</details>";
+  }
+
+  /** Собрать {uz:{…},en:{…},tr:{…}} из полей строки; пусто → null. */
+  function collectI18n(row) {
+    var out = {};
+    var any = false;
+    Array.prototype.forEach.call(row.querySelectorAll("[data-i18n]"), function (el) {
+      var parts = el.dataset.i18n.split(".");
+      var value = el.value.trim();
+      if (!value) return;
+      (out[parts[0]] = out[parts[0]] || {})[parts[1]] = value;
+      any = true;
+    });
+    return any ? out : null;
+  }
+
   function ocVariantRow(v) {
     return '<div class="tt-oc-row" data-oc-kind="variant">' +
       '<input type="text" data-f="code" value="' + esc(v.code || "") +
@@ -504,6 +549,7 @@
       '<input type="text" data-f="title" value="' + esc(v.title || "") +
         '" placeholder="Прилёт в Батуми" aria-label="Заголовок варианта" />' +
       ocRowButtons() +
+      ocI18nBox([["title", "Заголовок варианта"]], v.i18n) +
     "</div>";
   }
 
@@ -538,6 +584,7 @@
       '<textarea data-f="text" rows="2" placeholder="Что происходит в этот день"' +
         ' aria-label="Описание дня">' + esc(r.text || "") + "</textarea>" +
       ocRowButtons() +
+      ocI18nBox([["title", "Заголовок дня"], ["text", "Описание дня"]], r.i18n) +
     "</div>";
   }
 
@@ -552,6 +599,7 @@
           '" placeholder="ссылка, если нужна" aria-label="Ссылка" />'
         : "") +
       ocRowButtons() +
+      ocI18nBox([["text", "Текст строки"]], r.i18n) +
     "</div>";
   }
 
@@ -590,6 +638,7 @@
           variant: kind === "day" ? (v("variant") || null) : null,
           text: v("text"),
           url: v("url") || null,
+          i18n: collectI18n(row),
         });
       });
     });
@@ -602,6 +651,7 @@
         return {
           code: row.querySelector('[data-f="code"]').value,
           title: row.querySelector('[data-f="title"]').value,
+          i18n: collectI18n(row),
         };
       });
   }

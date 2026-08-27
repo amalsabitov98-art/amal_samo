@@ -2046,6 +2046,36 @@ a { color: inherit; }
 .tt-oc-day { grid-template-columns: 1fr 160px auto; }
 .tt-oc-day textarea { grid-column: 1 / -1; }
 
+/* Переводы строки: свёрнутый блок во всю ширину строки, под её полями.
+   Свёрнут по умолчанию — оператор заводит тур по-русски, и развёрнутые
+   поля втрое удлинили бы форму; галочка в заголовке показывает, что
+   перевод уже есть, не разворачивая. */
+.tt-oc-i18n {
+  grid-column: 1 / -1;
+  margin: 2px 0 8px;
+  border-left: 2px solid var(--tt-line, rgba(0, 0, 0, 0.12));
+  padding-left: 10px;
+}
+.tt-oc-i18n > summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--tt-text-muted);
+  padding: 2px 0;
+}
+.tt-oc-i18n-lang {
+  display: grid;
+  grid-template-columns: 92px repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+.tt-oc-i18n-lang b {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tt-text-muted);
+}
+
 .tt-oc-row input,
 .tt-oc-row select,
 .tt-oc-row textarea {
@@ -14741,6 +14771,16 @@ window.TURON_DESTINATIONS = [
     });
   }
 
+  /* Язык для публичных маршрутов каталога. Русский параметра не шлёт: он
+   * лежит в обычных колонках базы и служит откатом, а лишний ?lang=ru
+   * только мешал бы кэшированию ответа. */
+  function langQuery(hasQuery) {
+    var lang = global.TuronPublicUi && global.TuronPublicUi.language
+      ? global.TuronPublicUi.language() : "ru";
+    if (lang === "ru") return "";
+    return (hasQuery ? "&" : "?") + "lang=" + encodeURIComponent(lang);
+  }
+
   function request(path, options) {
     options = options || {};
     var method = options.method || "GET";
@@ -15436,6 +15476,31 @@ window.TURON_DESTINATIONS = [
   }
 
   // Двойник updateTourContent: те же проверки, тот же порядок по позиции.
+  /* Переводы строки контента в демо-режиме. Копия cleanI18n из воркера и
+   * по той же причине, что invalidBirthDate: превью и ui-тесты идут мимо
+   * воркера целиком, и без копии здесь пустой {"tr":{}} проходил бы в
+   * браузере молча. Правите одну — правьте вторую. */
+  var I18N_LANGS = ["uz", "en", "tr"];
+
+  function cleanI18n(raw, fields) {
+    if (!raw || typeof raw !== "object") return null;
+    var out = {}, any = false;
+    I18N_LANGS.forEach(function (lang) {
+      var src = raw[lang];
+      if (!src || typeof src !== "object") return;
+      var box = {}, filled = false;
+      fields.forEach(function (f) {
+        var v = src[f];
+        if (typeof v !== "string") return;
+        var value = v.trim().slice(0, 4000);
+        if (!value) return;
+        box[f] = value; filled = true;
+      });
+      if (filled) { out[lang] = box; any = true; }
+    });
+    return any ? out : null;
+  }
+
   function demoSaveTourContent(id, content, variants) {
     var s = demoState();
     var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
@@ -15458,7 +15523,10 @@ window.TURON_DESTINATIONS = [
       }
       seenVar[vcode] = true;
       if (!vtitle) return Promise.reject(new Error("Вариант " + vcode + ": нужен заголовок"));
-      cleanVars.push({ code: vcode, title: vtitle, sort: cleanVars.length });
+      cleanVars.push({
+        code: vcode, title: vtitle, sort: cleanVars.length,
+        i18n: cleanI18n(v.i18n, ["title"]),
+      });
     }
 
     var cleanRows = [], perKind = {};
@@ -15490,6 +15558,7 @@ window.TURON_DESTINATIONS = [
         title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
         text: text,
         url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+        i18n: cleanI18n(r.i18n, ["title", "text"]),
       });
     }
 
@@ -15821,9 +15890,15 @@ window.TURON_DESTINATIONS = [
 
     // ------------------------------------------------- публичный каталог
     // Работают и без входа: карточку тура агент может показать клиенту.
+    //
+    // Язык уходит параметром ?lang=, и переводит СЕРВЕР: ответ приходит уже
+    // на нужном языке, форма его не меняется. Русский параметра не требует
+    // и остаётся откатом — для тура без переводов ответ тот же, что был.
+    // В демо-режиме переводов нет вовсе (seed-данные русские), поэтому
+    // демо-ветки параметр игнорируют и отдают русский.
     catalogDestinations: function () {
       if (!API_BASE) return Promise.resolve(demoDestinations());
-      return request("/api/public/destinations");
+      return request("/api/public/destinations" + langQuery());
     },
 
     catalogTours: function (destination) {
@@ -15833,13 +15908,13 @@ window.TURON_DESTINATIONS = [
           ? list.filter(function (t) { return t.destination === destination; })
           : list);
       }
-      return request("/api/public/tours" +
-        (destination ? "?destination=" + encodeURIComponent(destination) : ""));
+      var q = destination ? "?destination=" + encodeURIComponent(destination) : "";
+      return request("/api/public/tours" + q + langQuery(!!q));
     },
 
     catalogTour: function (code) {
       if (!API_BASE) return demoCatalogTour(code);
-      return request("/api/public/tours/" + encodeURIComponent(code));
+      return request("/api/public/tours/" + encodeURIComponent(code) + langQuery());
     },
 
     /*
@@ -21179,6 +21254,51 @@ window.TURON_DESTINATIONS = [
     return "oc-" + kind;
   }
 
+  /* Переводы строки контента. Свёрнуты в <details> намеренно: оператор
+   * заводит тур по-русски, а переводы дописывает потом — развёрнутые поля
+   * втрое удлинили бы форму и мешали бы основной работе.
+   *
+   * Пустое поле = перевода нет, и карточка на этом языке покажет русский.
+   * Это не ошибка, а рабочее состояние: новый тур живёт без переводов,
+   * пока их не напишут.
+   */
+  var OC_LANGS = [["uz", "O‘zbekcha"], ["en", "English"], ["tr", "Türkçe"]];
+
+  function ocI18nBox(fields, i18n) {
+    var data = i18n || {};
+    var filled = OC_LANGS.some(function (l) {
+      var v = data[l[0]] || {};
+      return fields.some(function (f) { return v[f[0]]; });
+    });
+    return '<details class="tt-oc-i18n"' + (filled ? " open" : "") + ">" +
+      "<summary>" + (filled ? "Переводы ✓" : "Переводы") + "</summary>" +
+      OC_LANGS.map(function (l) {
+        var v = data[l[0]] || {};
+        return '<div class="tt-oc-i18n-lang"><b>' + l[1] + "</b>" +
+          fields.map(function (f) {
+            return '<input type="text" data-i18n="' + l[0] + "." + f[0] +
+              '" value="' + esc(v[f[0]] || "") + '" placeholder="' + esc(f[1]) +
+              '" aria-label="' + esc(f[1] + ", " + l[1]) + '" />';
+          }).join("") +
+        "</div>";
+      }).join("") +
+    "</details>";
+  }
+
+  /** Собрать {uz:{…},en:{…},tr:{…}} из полей строки; пусто → null. */
+  function collectI18n(row) {
+    var out = {};
+    var any = false;
+    Array.prototype.forEach.call(row.querySelectorAll("[data-i18n]"), function (el) {
+      var parts = el.dataset.i18n.split(".");
+      var value = el.value.trim();
+      if (!value) return;
+      (out[parts[0]] = out[parts[0]] || {})[parts[1]] = value;
+      any = true;
+    });
+    return any ? out : null;
+  }
+
   function ocVariantRow(v) {
     return '<div class="tt-oc-row" data-oc-kind="variant">' +
       '<input type="text" data-f="code" value="' + esc(v.code || "") +
@@ -21186,6 +21306,7 @@ window.TURON_DESTINATIONS = [
       '<input type="text" data-f="title" value="' + esc(v.title || "") +
         '" placeholder="Прилёт в Батуми" aria-label="Заголовок варианта" />' +
       ocRowButtons() +
+      ocI18nBox([["title", "Заголовок варианта"]], v.i18n) +
     "</div>";
   }
 
@@ -21220,6 +21341,7 @@ window.TURON_DESTINATIONS = [
       '<textarea data-f="text" rows="2" placeholder="Что происходит в этот день"' +
         ' aria-label="Описание дня">' + esc(r.text || "") + "</textarea>" +
       ocRowButtons() +
+      ocI18nBox([["title", "Заголовок дня"], ["text", "Описание дня"]], r.i18n) +
     "</div>";
   }
 
@@ -21234,6 +21356,7 @@ window.TURON_DESTINATIONS = [
           '" placeholder="ссылка, если нужна" aria-label="Ссылка" />'
         : "") +
       ocRowButtons() +
+      ocI18nBox([["text", "Текст строки"]], r.i18n) +
     "</div>";
   }
 
@@ -21272,6 +21395,7 @@ window.TURON_DESTINATIONS = [
           variant: kind === "day" ? (v("variant") || null) : null,
           text: v("text"),
           url: v("url") || null,
+          i18n: collectI18n(row),
         });
       });
     });
@@ -21284,6 +21408,7 @@ window.TURON_DESTINATIONS = [
         return {
           code: row.querySelector('[data-f="code"]').value,
           title: row.querySelector('[data-f="title"]').value,
+          i18n: collectI18n(row),
         };
       });
   }

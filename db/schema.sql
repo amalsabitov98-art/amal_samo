@@ -65,7 +65,13 @@ CREATE TABLE IF NOT EXISTS tours (
   nights               INTEGER,
   -- минимальная цена программы (для карточек-витрин, если у тура ещё нет
   -- ни одного будущего заезда — например, даты Умры не подтверждены оператором)
-  from_price           INTEGER
+  from_price           INTEGER,
+  -- Переводы полей строки, JSON: {"uz":{"name":…,"description":…},"en":…,"tr":…}.
+  -- Одна колонка, а не name_uz/name_en/name_tr по колонке на язык: пятый язык
+  -- или новое переводимое поле иначе означали бы миграцию и правку каждого
+  -- INSERT в воркере. Русский лежит в обычных колонках и остаётся откатом:
+  -- у тура, только что заведённого оператором, переводов нет вовсе.
+  i18n                 TEXT
 );
 
 -- ------------------------------------------------------------- каталог
@@ -79,7 +85,8 @@ CREATE TABLE IF NOT EXISTS destinations (
   title  TEXT NOT NULL,
   blurb  TEXT,
   image  TEXT,
-  sort   INTEGER NOT NULL DEFAULT 0
+  sort   INTEGER NOT NULL DEFAULT 0,
+  i18n   TEXT              -- {"uz":{"title":…,"blurb":…},"en":…,"tr":…}
 );
 
 -- Варианты маршрута одного тура. У Карадениза их два, зеркальных
@@ -90,6 +97,7 @@ CREATE TABLE IF NOT EXISTS tour_variants (
   code     TEXT    NOT NULL,
   title    TEXT    NOT NULL,
   sort     INTEGER NOT NULL DEFAULT 0,
+  i18n     TEXT,            -- {"uz":{"title":…},"en":…,"tr":…}
   PRIMARY KEY (tour_id, code)
 );
 
@@ -105,7 +113,8 @@ CREATE TABLE IF NOT EXISTS tour_content (
   sort     INTEGER NOT NULL DEFAULT 0,
   title    TEXT,            -- для 'day': «День 1 · Батуми»
   text     TEXT    NOT NULL,
-  url      TEXT             -- для 'info' и 'gallery'
+  url      TEXT,            -- для 'info' и 'gallery'
+  i18n     TEXT             -- {"uz":{"title":…,"text":…},"en":…,"tr":…}
 );
 CREATE INDEX IF NOT EXISTS idx_tour_content ON tour_content(tour_id, kind, sort);
 

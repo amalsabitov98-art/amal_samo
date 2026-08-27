@@ -2025,6 +2025,36 @@ a { color: inherit; }
 .tt-oc-day { grid-template-columns: 1fr 160px auto; }
 .tt-oc-day textarea { grid-column: 1 / -1; }
 
+/* Переводы строки: свёрнутый блок во всю ширину строки, под её полями.
+   Свёрнут по умолчанию — оператор заводит тур по-русски, и развёрнутые
+   поля втрое удлинили бы форму; галочка в заголовке показывает, что
+   перевод уже есть, не разворачивая. */
+.tt-oc-i18n {
+  grid-column: 1 / -1;
+  margin: 2px 0 8px;
+  border-left: 2px solid var(--tt-line, rgba(0, 0, 0, 0.12));
+  padding-left: 10px;
+}
+.tt-oc-i18n > summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--tt-text-muted);
+  padding: 2px 0;
+}
+.tt-oc-i18n-lang {
+  display: grid;
+  grid-template-columns: 92px repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+.tt-oc-i18n-lang b {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tt-text-muted);
+}
+
 .tt-oc-row input,
 .tt-oc-row select,
 .tt-oc-row textarea {

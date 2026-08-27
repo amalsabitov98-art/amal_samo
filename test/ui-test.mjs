@@ -3018,6 +3018,49 @@ console.log("\nТур снят с продажи: заезды не пропад
   await page.close();
 }
 
+console.log("\nПереводы контента каталога");
+{
+  const { page, errors } = await session("operator");
+
+  // Кладём перевод через ТОТ ЖЕ путь, которым пользуется оператор — демо-копию
+  // cleanI18n в api.js, — и читаем его обратно. Проверяем не разметку полей, а
+  // что перевод доезжает до хранилища и возвращается разобранным: форма полей
+  // может переехать, а контракт «сохранили — прочитали» переезжать не должен.
+  const saved = await page.evaluate(async () => {
+    const A = window.TuronApi;
+    const tours = await A.adminTours();
+    const t = tours[0];
+    const before = await A.tourContent(t.id);
+    await A.updateTourContent(t.id, [
+      { kind: "included", text: "Перелёт", i18n: { en: { text: "Flight" },
+        tr: { text: "Uçuş" }, uz: {} } },
+      // Пустой перевод не должен сохраняться вовсе: иначе карточка на
+      // узбекском показала бы пустую строку вместо русской.
+      { kind: "included", text: "Отели", i18n: { uz: { text: "   " } } },
+    ], before.variants || []);
+    const after = await A.tourContent(t.id);
+    const rows = (after.content || []).filter((r) => r.kind === "included");
+    return {
+      first: rows[0] && rows[0].i18n,
+      second: rows[1] && rows[1].i18n,
+      code: t.code,
+    };
+  });
+
+  check("перевод строки сохраняется", saved.first && saved.first.en &&
+        saved.first.en.text === "Flight", JSON.stringify(saved.first));
+  check("сохраняются все заполненные языки",
+        saved.first && saved.first.tr && saved.first.tr.text === "Uçuş",
+        JSON.stringify(saved.first));
+  check("язык без заполненных полей не сохраняется",
+        saved.first && !saved.first.uz, JSON.stringify(saved.first));
+  check("перевод из одних пробелов не сохраняется",
+        saved.second == null, JSON.stringify(saved.second));
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nУстойчивость к сбоям сети");
 {
   const apiSource = fs.readFileSync(path.resolve("js/api.js"), "utf8");

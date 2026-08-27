@@ -78,6 +78,16 @@
     });
   }
 
+  /* Язык для публичных маршрутов каталога. Русский параметра не шлёт: он
+   * лежит в обычных колонках базы и служит откатом, а лишний ?lang=ru
+   * только мешал бы кэшированию ответа. */
+  function langQuery(hasQuery) {
+    var lang = global.TuronPublicUi && global.TuronPublicUi.language
+      ? global.TuronPublicUi.language() : "ru";
+    if (lang === "ru") return "";
+    return (hasQuery ? "&" : "?") + "lang=" + encodeURIComponent(lang);
+  }
+
   function request(path, options) {
     options = options || {};
     var method = options.method || "GET";
@@ -773,6 +783,31 @@
   }
 
   // Двойник updateTourContent: те же проверки, тот же порядок по позиции.
+  /* Переводы строки контента в демо-режиме. Копия cleanI18n из воркера и
+   * по той же причине, что invalidBirthDate: превью и ui-тесты идут мимо
+   * воркера целиком, и без копии здесь пустой {"tr":{}} проходил бы в
+   * браузере молча. Правите одну — правьте вторую. */
+  var I18N_LANGS = ["uz", "en", "tr"];
+
+  function cleanI18n(raw, fields) {
+    if (!raw || typeof raw !== "object") return null;
+    var out = {}, any = false;
+    I18N_LANGS.forEach(function (lang) {
+      var src = raw[lang];
+      if (!src || typeof src !== "object") return;
+      var box = {}, filled = false;
+      fields.forEach(function (f) {
+        var v = src[f];
+        if (typeof v !== "string") return;
+        var value = v.trim().slice(0, 4000);
+        if (!value) return;
+        box[f] = value; filled = true;
+      });
+      if (filled) { out[lang] = box; any = true; }
+    });
+    return any ? out : null;
+  }
+
   function demoSaveTourContent(id, content, variants) {
     var s = demoState();
     var t = demoTourStore(s).filter(function (x) { return x.id === id; })[0];
@@ -795,7 +830,10 @@
       }
       seenVar[vcode] = true;
       if (!vtitle) return Promise.reject(new Error("Вариант " + vcode + ": нужен заголовок"));
-      cleanVars.push({ code: vcode, title: vtitle, sort: cleanVars.length });
+      cleanVars.push({
+        code: vcode, title: vtitle, sort: cleanVars.length,
+        i18n: cleanI18n(v.i18n, ["title"]),
+      });
     }
 
     var cleanRows = [], perKind = {};
@@ -827,6 +865,7 @@
         title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
         text: text,
         url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+        i18n: cleanI18n(r.i18n, ["title", "text"]),
       });
     }
 
@@ -1158,9 +1197,15 @@
 
     // ------------------------------------------------- публичный каталог
     // Работают и без входа: карточку тура агент может показать клиенту.
+    //
+    // Язык уходит параметром ?lang=, и переводит СЕРВЕР: ответ приходит уже
+    // на нужном языке, форма его не меняется. Русский параметра не требует
+    // и остаётся откатом — для тура без переводов ответ тот же, что был.
+    // В демо-режиме переводов нет вовсе (seed-данные русские), поэтому
+    // демо-ветки параметр игнорируют и отдают русский.
     catalogDestinations: function () {
       if (!API_BASE) return Promise.resolve(demoDestinations());
-      return request("/api/public/destinations");
+      return request("/api/public/destinations" + langQuery());
     },
 
     catalogTours: function (destination) {
@@ -1170,13 +1215,13 @@
           ? list.filter(function (t) { return t.destination === destination; })
           : list);
       }
-      return request("/api/public/tours" +
-        (destination ? "?destination=" + encodeURIComponent(destination) : ""));
+      var q = destination ? "?destination=" + encodeURIComponent(destination) : "";
+      return request("/api/public/tours" + q + langQuery(!!q));
     },
 
     catalogTour: function (code) {
       if (!API_BASE) return demoCatalogTour(code);
-      return request("/api/public/tours/" + encodeURIComponent(code));
+      return request("/api/public/tours/" + encodeURIComponent(code) + langQuery());
     },
 
     /*

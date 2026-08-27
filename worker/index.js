@@ -296,10 +296,60 @@ async function listDepartures(env, includePast, includeClosed) {
  * Бронировать без входа нельзя, и комиссий здесь нет ни агентской, ни
  * операторской: это внутренние B2B-цифры.
  */
-async function catalogTours(env) {
+/* Переводы строки каталога лежат в колонке i18n одним JSON:
+ * {"uz":{"поле":…},"en":{…},"tr":{…}}. Русский — в обычных колонках и
+ * служит откатом.
+ *
+ * Язык разрешает СЕРВЕР, а не клиент: публичные ответы уходят уже
+ * переведёнными, и форма ответа не меняется вовсе — included остаётся
+ * массивом строк, name строкой. Иначе переводы пришлось бы протаскивать
+ * через каждое поле в трёх файлах клиента (каталог, кабинет, демо-режим),
+ * и любое забытое место молча показывало бы русский там, где перевод есть.
+ *
+ * Обратная сторона — смена языка требует перезапроса. Она его и так делает:
+ * событие turon:language перерисовывает каталог целиком.
+ *
+ * Разбор JSON здесь же и в try: битый i18n (правили базу руками, оборвалась
+ * запись) не должен ронять карточку тура — на его месте просто останется
+ * русский.
+ *
+ * Админские маршруты localize НЕ вызывают: редактору нужен сырой i18n,
+ * иначе оператор не сможет править переводы.
+ */
+const I18N_LANGS = ["uz", "en", "tr"];
+
+function langOf(url) {
+  const raw = url.searchParams.get("lang");
+  return I18N_LANGS.includes(raw) ? raw : null;
+}
+
+function localize(row, lang, fields) {
+  if (!row) return row;
+  const raw = row.i18n;
+  delete row.i18n;
+  if (!lang || !raw) return row;
+  let tr = null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") tr = parsed[lang];
+  } catch (e) { /* переводов нет — остаётся русский */ }
+  if (!tr) return row;
+  for (const f of fields) {
+    // Пустая строка — это НЕ перевод: оператор мог завести поле и не
+    // заполнить. Откатываемся на русский, а не показываем пустоту.
+    if (typeof tr[f] === "string" && tr[f].trim()) row[f] = tr[f];
+  }
+  return row;
+}
+
+function localizeAll(rows, lang, fields) {
+  return (rows || []).map((r) => localize(r, lang, fields));
+}
+
+async function catalogTours(env, lang) {
   const tours = await env.DB.prepare(
     `SELECT t.code, t.name, t.destination, t.note, t.description, t.nights,
-            t.is_bookable,
+            t.is_bookable, t.i18n,
             COUNT(DISTINCT d.id) AS departures_count,
             MIN(CASE WHEN p.kind = 'placement' THEN p.price END) AS min_price,
             MIN(d.date_start) AS next_date
@@ -310,20 +360,20 @@ async function catalogTours(env) {
       GROUP BY t.id
       ORDER BY t.destination, t.name`
   ).all();
-  return tours.results;
+  return localizeAll(tours.results, lang, ["name", "description", "note"]);
 }
 
 // Направления собираем из туров, а оформление плитки подмешиваем из
 // destinations. Направления без строки в destinations не теряются —
 // показываются просто по названию.
-async function catalogDestinations(env) {
-  const tours = await catalogTours(env);
+async function catalogDestinations(env, lang) {
+  const tours = await catalogTours(env, lang);
   const meta = await env.DB.prepare(
-    "SELECT name, title, blurb, image, sort FROM destinations"
+    "SELECT name, title, blurb, image, sort, i18n FROM destinations"
   ).all();
 
   const byName = {};
-  for (const m of meta.results) byName[m.name] = m;
+  for (const m of localizeAll(meta.results, lang, ["title", "blurb"])) byName[m.name] = m;
 
   const grouped = new Map();
   for (const t of tours) {
@@ -356,23 +406,26 @@ async function catalogDestinations(env) {
     .sort((a, b) => a.sort - b.sort || a.title.localeCompare(b.title));
 }
 
-async function catalogTour(env, code) {
+async function catalogTour(env, code, lang) {
   const tour = await env.DB.prepare(
-    `SELECT code, name, destination, note, description, nights, is_bookable
+    `SELECT code, name, destination, note, description, nights, is_bookable, i18n
        FROM tours WHERE code = ?`
   ).bind(code).first();
   if (!tour) return null;
+  localize(tour, lang, ["name", "description", "note"]);
 
   const content = await env.DB.prepare(
-    `SELECT c.kind, c.variant, c.sort, c.title, c.text, c.url
+    `SELECT c.kind, c.variant, c.sort, c.title, c.text, c.url, c.i18n
        FROM tour_content c JOIN tours t ON t.id = c.tour_id
       WHERE t.code = ? ORDER BY c.kind, c.sort`
   ).bind(code).all();
 
   const variants = await env.DB.prepare(
-    `SELECT v.code, v.title FROM tour_variants v JOIN tours t ON t.id = v.tour_id
+    `SELECT v.code, v.title, v.i18n FROM tour_variants v JOIN tours t ON t.id = v.tour_id
       WHERE t.code = ? ORDER BY v.sort`
   ).bind(code).all();
+  localizeAll(content.results, lang, ["title", "text"]);
+  localizeAll(variants.results, lang, ["title"]);
 
   // Закрытый тур заездов не отдаёт даже если они завелись: продавать его
   // нельзя, и предлагать бронь в карточке тоже не нужно.
@@ -1397,6 +1450,39 @@ async function updateTour(request, env, actor, tourId) {
  * Батуми и прилёт в Трабзон), и день программы привязан к варианту полем
  * `variant`. День без варианта — общий для всех.
  */
+/* Переводы строки, пришедшие из редактора: {"uz":{"поле":…},…}.
+ *
+ * Чистим ровно так же, как русские поля — обрезаем, отбрасываем пустое, — и
+ * НЕ сохраняем язык, в котором не осталось ни одного заполненного поля:
+ * иначе в базе копились бы {"tr":{}} от каждого сохранения, а localize
+ * потом честно подставлял бы из них пустоту вместо русского.
+ *
+ * Неизвестные языки и неизвестные поля отбрасываются молча: это не ввод
+ * оператора, а то, что прислал браузер, и падать из-за лишнего ключа
+ * незачем — но и класть в базу мусор тоже.
+ */
+function cleanI18n(raw, fields) {
+  if (!raw || typeof raw !== "object") return null;
+  const out = {};
+  let any = false;
+  for (const lang of I18N_LANGS) {
+    const src = raw[lang];
+    if (!src || typeof src !== "object") continue;
+    const box = {};
+    let filled = false;
+    for (const f of fields) {
+      const v = src[f];
+      if (typeof v !== "string") continue;
+      const value = v.trim().slice(0, 4000);
+      if (!value) continue;
+      box[f] = value;
+      filled = true;
+    }
+    if (filled) { out[lang] = box; any = true; }
+  }
+  return any ? JSON.stringify(out) : null;
+}
+
 async function updateTourContent(request, env, actor, tourId) {
   const body = await request.json().catch(() => ({}));
   const tour = await env.DB.prepare("SELECT id, code FROM tours WHERE id = ?")
@@ -1419,7 +1505,10 @@ async function updateTourContent(request, env, actor, tourId) {
     if (seenVariant[code]) return fail(`Вариант ${code} встречается дважды`);
     seenVariant[code] = true;
     if (!title) return fail(`Вариант ${code}: нужен заголовок`);
-    cleanVariants.push({ code, title, sort: cleanVariants.length });
+    cleanVariants.push({
+      code, title, sort: cleanVariants.length,
+      i18n: cleanI18n(v.i18n, ["title"]),
+    });
   }
 
   const cleanRows = [];
@@ -1447,6 +1536,7 @@ async function updateTourContent(request, env, actor, tourId) {
       title: r.title == null ? null : String(r.title).trim().slice(0, 200) || null,
       text,
       url: r.url == null ? null : String(r.url).trim().slice(0, 500) || null,
+      i18n: cleanI18n(r.i18n, ["title", "text"]),
     });
   }
 
@@ -1456,14 +1546,15 @@ async function updateTourContent(request, env, actor, tourId) {
   ];
   for (const v of cleanVariants) {
     statements.push(env.DB.prepare(
-      "INSERT INTO tour_variants (tour_id, code, title, sort) VALUES (?, ?, ?, ?)"
-    ).bind(tourId, v.code, v.title, v.sort));
+      `INSERT INTO tour_variants (tour_id, code, title, sort, i18n)
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(tourId, v.code, v.title, v.sort, v.i18n));
   }
   for (const r of cleanRows) {
     statements.push(env.DB.prepare(
-      `INSERT INTO tour_content (tour_id, kind, variant, sort, title, text, url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).bind(tourId, r.kind, r.variant, r.sort, r.title, r.text, r.url));
+      `INSERT INTO tour_content (tour_id, kind, variant, sort, title, text, url, i18n)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(tourId, r.kind, r.variant, r.sort, r.title, r.text, r.url, r.i18n));
   }
   await env.DB.batch(statements);
 
@@ -1481,17 +1572,24 @@ async function tourContent(env, tourId) {
   if (!tour) return fail("Тур не найден", 404);
 
   const content = await env.DB.prepare(
-    `SELECT kind, variant, sort, title, text, url FROM tour_content
+    `SELECT kind, variant, sort, title, text, url, i18n FROM tour_content
       WHERE tour_id = ? ORDER BY kind, sort`
   ).bind(tourId).all();
   const variants = await env.DB.prepare(
-    "SELECT code, title, sort FROM tour_variants WHERE tour_id = ? ORDER BY sort"
+    "SELECT code, title, sort, i18n FROM tour_variants WHERE tour_id = ? ORDER BY sort"
   ).bind(tourId).all();
 
+  // Редактору i18n нужен РАЗОБРАННЫМ: он рисует поля по языкам. Публичные
+  // маршруты, наоборот, переводят у себя и колонку наружу не отдают.
+  const parse = (rows) => rows.map((r) => {
+    try { r.i18n = r.i18n ? JSON.parse(r.i18n) : null; }
+    catch (e) { r.i18n = null; }
+    return r;
+  });
   return json({
     code: tour.code,
-    content: content.results,
-    variants: variants.results,
+    content: parse(content.results),
+    variants: parse(variants.results),
   });
 }
 
@@ -2279,7 +2377,7 @@ async function route(request, env, ctx) {
     }
 
     if (path === "/api/public/destinations" && request.method === "GET") {
-      return json(await catalogDestinations(env));
+      return json(await catalogDestinations(env, langOf(url)));
     }
 
     if (path === "/api/public/departures" && request.method === "GET") {
@@ -2288,13 +2386,13 @@ async function route(request, env, ctx) {
 
     if (path === "/api/public/tours" && request.method === "GET") {
       const dest = url.searchParams.get("destination");
-      const list = await catalogTours(env);
+      const list = await catalogTours(env, langOf(url));
       return json(dest ? list.filter((t) => t.destination === dest) : list);
     }
 
     const pubTour = path.match(/^\/api\/public\/tours\/([A-Za-z0-9_-]+)$/);
     if (pubTour && request.method === "GET") {
-      const tour = await catalogTour(env, pubTour[1]);
+      const tour = await catalogTour(env, pubTour[1], langOf(url));
       if (!tour) return fail("Тур не найден", 404);
       return json(tour);
     }
