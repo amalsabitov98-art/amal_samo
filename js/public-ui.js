@@ -1290,6 +1290,13 @@
     language: function () { return language; },
     setLanguage: setLanguage,
     loadRates: loadRates,
-    enhance: enhance
+    enhance: enhance,
+    // Флаги и порядок языков нужны ещё и кабинету: у него свой словарь и
+    // своё хранилище языка (js/app-i18n.js), но рисовать вторые такие же
+    // SVG-флаги было бы копией на 40 строк, которая разойдётся при первой
+    // же правке.
+    flags: FLAGS,
+    langOrder: LANG_ORDER,
+    langCodes: LANG_CODES
   };
 })(window);

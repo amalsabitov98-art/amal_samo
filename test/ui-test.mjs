@@ -3018,6 +3018,46 @@ console.log("\nТур снят с продажи: заезды не пропад
   await page.close();
 }
 
+console.log("\nЯзык кабинета");
+{
+  // Язык кабинета ОТДЕЛЬНЫЙ от публичного и виден только агентству:
+  // оператору английская панель управления не нужна, а строки admin.js
+  // и не переведены — кнопка у него была бы обманом.
+  const { page, errors } = await session("umida");
+  const agency = await page.evaluate(() => {
+    const w = document.getElementById("app-lang-widget");
+    return { hidden: w.hidden };
+  });
+  check("агентству переключатель языка виден", agency.hidden === false);
+
+  const tabs = await page.evaluate(async () => {
+    const read = () => [...document.querySelectorAll(".tt-tab-ag:not([hidden]) span[data-app-i18n]")]
+      .map((n) => n.textContent.trim());
+    const before = read();
+    window.TuronAppI18n.setLanguage("en");
+    await new Promise((r) => setTimeout(r, 400));
+    const after = read();
+    // Публичный язык трогать не должны: у кабинета своё хранилище.
+    const pub = window.TuronPublicUi.language();
+    window.TuronAppI18n.setLanguage("ru");
+    return { before, after, pub };
+  });
+  check("вкладки переводятся", tabs.after[0] === "New tour",
+        tabs.after.slice(0, 3).join(" | "));
+  check("русский возвращается", tabs.before[0] === "Новый тур", tabs.before[0]);
+  check("язык кабинета не трогает публичный", tabs.pub === "ru", tabs.pub);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+{
+  const { page, errors } = await session("operator");
+  const op = await page.evaluate(() => document.getElementById("app-lang-widget").hidden);
+  check("оператору переключатель языка скрыт", op === true);
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nПереводы контента каталога");
 {
   const { page, errors } = await session("operator");

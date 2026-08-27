@@ -9182,6 +9182,21 @@ a.tt-contact-row:hover { color: var(--cc); }
   }
 }
 
+/* Переключатель языка кабинета. Жетон тот же, что у соседей по шапке
+   (курс, Telegram, колокольчик), поэтому оформление наследуется от
+   .tt-lang — здесь только посадка в ряд и поведение на узком экране. */
+.tt-app-lang .tt-lang-btn { height: 100%; }
+@media (max-width: 640px) {
+  /* На телефоне в шапке кабинета и так тесно: бренд, курс, Telegram,
+     колокольчик, аккаунт и «Выход». Виджет языка добавлял 24px и выводил
+     строку за 390px — тест на горизонтальную прокрутку это ловит. Прячем
+     код языка, оставляем один флаг: он и есть опознавательный знак, а
+     выбор всё равно происходит в раскрывающемся списке. */
+  .tt-app-lang .tt-lang-code,
+  .tt-app-lang .tt-lang-caret { display: none; }
+  .tt-app-lang .tt-lang-btn { padding-inline: 8px; }
+}
+
 
 /* — только для превью: полоса-пояснение над реальным интерфейсом — */
 .tt-preview-note {
@@ -9363,13 +9378,13 @@ a.tt-contact-row:hover { color: var(--cc); }
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
     </button>
     <div class="tt-tabs">
-      <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span>Новый тур</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span>Бронирования</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="travellers"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.5-3.5 2.3-5 5.5-5s5 1.5 5.5 5M15 6.5a2.6 2.6 0 0 1 0 5M16.5 14c2.5.3 3.7 1.8 4 5" /></svg></span><span>Туристы</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="payments"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></svg></span><span>Платежи</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="tours"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8M16 7h4v4" /><circle cx="7" cy="7" r="2.5" /><path d="M7 5.5v3" /></svg></span><span>Комиссии</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="documents"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" /></svg></span><span>Документы</span></button>
-      <button class="tt-tab tt-tab-ag" data-tab="messages"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4z" /><path d="M8 9h8M8 13h5" /></svg></span><span>Контакты</span></button>
+      <button class="tt-tab tt-tab-ag is-active" data-tab="builder"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></span><span data-app-i18n="tab.builder">Новый тур</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="bookings"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M9 4V2h6v2M8.5 10.5l2 2 5-5M9 16h6" /></svg></span><span data-app-i18n="tab.bookings">Бронирования</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="travellers"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.5-3.5 2.3-5 5.5-5s5 1.5 5.5 5M15 6.5a2.6 2.6 0 0 1 0 5M16.5 14c2.5.3 3.7 1.8 4 5" /></svg></span><span data-app-i18n="tab.travellers">Туристы</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="payments"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></svg></span><span data-app-i18n="tab.payments">Платежи</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="tours"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8M16 7h4v4" /><circle cx="7" cy="7" r="2.5" /><path d="M7 5.5v3" /></svg></span><span data-app-i18n="tab.tours">Комиссии</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="documents"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" /></svg></span><span data-app-i18n="tab.documents">Документы</span></button>
+      <button class="tt-tab tt-tab-ag" data-tab="messages"><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4z" /><path d="M8 9h8M8 13h5" /></svg></span><span data-app-i18n="tab.messages">Контакты</span></button>
       <button class="tt-tab tt-tab-op" data-tab="overview" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 10h6V4h-6z" /></svg></span><span>Обзор</span></button>
       <button class="tt-tab tt-tab-op" data-tab="manifest" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" /></svg></span><span>Заезды и пассажиры</span></button>
       <button class="tt-tab tt-tab-op" data-tab="admin-bookings" hidden><span class="tt-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3" /></svg></span><span>Все брони</span></button>
@@ -9398,7 +9413,24 @@ a.tt-contact-row:hover { color: var(--cc); }
         </a>
         <!-- Своя тема кабинета (отдельно от публичной): по умолчанию кремовая,
              тёмная включается этой кнопкой. Иконки — как в публичной шапке. -->
+        <!-- Язык кабинета — СВОЙ, отдельный от публичного, и виден только
+             агентству: оператору английская панель управления не нужна.
+             Скрытием управляет syncAppLangVisibility в js/app.js. -->
+        <div class="tt-lang tt-app-lang" id="app-lang-widget" hidden>
+          <button type="button" class="tt-lang-btn" id="app-lang-toggle"
+                  aria-haspopup="listbox" aria-expanded="false"
+                  data-app-i18n-label="hdr.language" aria-label="Язык кабинета">
+            <span class="tt-lang-flag" id="app-lang-flag"></span>
+            <span class="tt-lang-code" id="app-lang-code">RU</span>
+            <svg class="tt-lang-caret" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor"
+                    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <ul class="tt-lang-menu" id="app-lang-menu" role="listbox" hidden></ul>
+        </div>
         <button class="tt-theme-btn tt-app-theme" id="app-theme-toggle" type="button"
+                data-app-i18n-label="hdr.theme"
                 aria-label="Тема кабинета" title="Тема кабинета">
           <svg class="tt-theme-moon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M20 13.5A8 8 0 0 1 10.5 4a8.2 8.2 0 1 0 9.5 9.5Z" />
@@ -10047,6 +10079,7 @@ a.tt-contact-row:hover { color: var(--cc); }
    можно наложить прозрачный слой и собирать пароли агентств. */
 if (window.top !== window.self) { window.top.location = window.self.location; }
 </script>
+<!-- Словарь кабинета: свой язык, своё хранилище, оператора не трогает. -->
 
 <script>
 // Настройка источника данных Etihad.
@@ -18185,7 +18218,269 @@ window.TURON_DESTINATIONS = [
     language: function () { return language; },
     setLanguage: setLanguage,
     loadRates: loadRates,
-    enhance: enhance
+    enhance: enhance,
+    // Флаги и порядок языков нужны ещё и кабинету: у него свой словарь и
+    // своё хранилище языка (js/app-i18n.js), но рисовать вторые такие же
+    // SVG-флаги было бы копией на 40 строк, которая разойдётся при первой
+    // же правке.
+    flags: FLAGS,
+    langOrder: LANG_ORDER,
+    langCodes: LANG_CODES
+  };
+})(window);
+
+</script>
+<script>
+/*
+ * Язык КАБИНЕТА — свой, отдельный от публичного.
+ *
+ * Почему не общий с сайтом: публичную часть смотрит клиент агентства, и он
+ * может открыть её на любом языке. Кабинет смотрят два разных человека с
+ * разными потребностями:
+ *
+ *   - агентство-партнёр — ему язык нужен, ради него всё и делается;
+ *   - оператор (вы) — ему кабинет нужен русским всегда.
+ *
+ * Будь язык один на сайт и кабинет, оператор, посмотрев публичную страницу
+ * по-английски, вернулся бы в английскую панель управления. Поэтому у
+ * кабинета своё хранилище (turon.app-language), по умолчанию русский, а
+ * переключатель показывается ТОЛЬКО агентству — см. syncAppLangVisibility
+ * в js/app.js.
+ *
+ * Тот же приём, что с темой: data-app-theme отдельный от data-theme.
+ *
+ * ОПЕРАТОРСКАЯ ПАНЕЛЬ НЕ ПЕРЕВЕДЕНА и не планируется: её видите только вы,
+ * английская или турецкая она бы вам мешала. Строки admin.js остаются
+ * русскими намеренно — это не забытая работа.
+ */
+(function (global) {
+  "use strict";
+
+  var STORAGE = "turon.app-language";
+
+  var dictionaries = {
+    ru: {
+      // ---------------------------------------------------------- вкладки
+      "tab.builder": "Новый тур",
+      "tab.bookings": "Бронирования",
+      "tab.travellers": "Туристы",
+      "tab.payments": "Платежи",
+      "tab.tours": "Комиссии",
+      "tab.documents": "Документы",
+      "tab.messages": "Контакты",
+      "hdr.logout": "Выход",
+      "hdr.notices": "Уведомления",
+      "hdr.theme": "Тема кабинета",
+      "hdr.language": "Язык кабинета",
+      "hdr.toSite": "На сайт",
+      // ------------------------------------------------------------ общее
+      "act.book": "Забронировать",
+      "act.cancel": "Отмена",
+      "act.save": "Сохранить",
+      "act.close": "Закрыть",
+      "act.calc": "Рассчитать",
+      "act.apply": "Применить",
+      "act.details": "Подробнее",
+      "act.print": "Печать",
+      "act.download": "Скачать",
+      "state.loading": "Загружаем…",
+      "state.empty": "Пока пусто",
+      "state.error": "Не удалось загрузить",
+      "state.retry": "Повторить",
+    },
+    uz: {
+      "tab.builder": "Yangi tur",
+      "tab.bookings": "Bronlar",
+      "tab.travellers": "Sayohatchilar",
+      "tab.payments": "To‘lovlar",
+      "tab.tours": "Komissiyalar",
+      "tab.documents": "Hujjatlar",
+      "tab.messages": "Kontaktlar",
+      "hdr.logout": "Chiqish",
+      "hdr.notices": "Bildirishnomalar",
+      "hdr.theme": "Kabinet mavzusi",
+      "hdr.language": "Kabinet tili",
+      "hdr.toSite": "Saytga",
+      "act.book": "Bron qilish",
+      "act.cancel": "Bekor qilish",
+      "act.save": "Saqlash",
+      "act.close": "Yopish",
+      "act.calc": "Hisoblash",
+      "act.apply": "Qo‘llash",
+      "act.details": "Batafsil",
+      "act.print": "Chop etish",
+      "act.download": "Yuklab olish",
+      "state.loading": "Yuklanmoqda…",
+      "state.empty": "Hozircha bo‘sh",
+      "state.error": "Yuklab bo‘lmadi",
+      "state.retry": "Qayta urinish",
+    },
+    en: {
+      "tab.builder": "New tour",
+      "tab.bookings": "Bookings",
+      "tab.travellers": "Travellers",
+      "tab.payments": "Payments",
+      "tab.tours": "Commissions",
+      "tab.documents": "Documents",
+      "tab.messages": "Contacts",
+      "hdr.logout": "Sign out",
+      "hdr.notices": "Notifications",
+      "hdr.theme": "Cabinet theme",
+      "hdr.language": "Cabinet language",
+      "hdr.toSite": "To the site",
+      "act.book": "Book",
+      "act.cancel": "Cancel",
+      "act.save": "Save",
+      "act.close": "Close",
+      "act.calc": "Calculate",
+      "act.apply": "Apply",
+      "act.details": "Details",
+      "act.print": "Print",
+      "act.download": "Download",
+      "state.loading": "Loading…",
+      "state.empty": "Nothing here yet",
+      "state.error": "Could not load",
+      "state.retry": "Try again",
+    },
+    tr: {
+      "tab.builder": "Yeni tur",
+      "tab.bookings": "Rezervasyonlar",
+      "tab.travellers": "Yolcular",
+      "tab.payments": "Ödemeler",
+      "tab.tours": "Komisyonlar",
+      "tab.documents": "Belgeler",
+      "tab.messages": "İletişim",
+      "hdr.logout": "Çıkış",
+      "hdr.notices": "Bildirimler",
+      "hdr.theme": "Kabin teması",
+      "hdr.language": "Kabin dili",
+      "hdr.toSite": "Siteye",
+      "act.book": "Rezervasyon yap",
+      "act.cancel": "İptal",
+      "act.save": "Kaydet",
+      "act.close": "Kapat",
+      "act.calc": "Hesapla",
+      "act.apply": "Uygula",
+      "act.details": "Ayrıntılar",
+      "act.print": "Yazdır",
+      "act.download": "İndir",
+      "state.loading": "Yükleniyor…",
+      "state.empty": "Henüz boş",
+      "state.error": "Yüklenemedi",
+      "state.retry": "Tekrar dene",
+    },
+  };
+
+  function saved() {
+    try {
+      var v = global.localStorage.getItem(STORAGE);
+      return dictionaries[v] ? v : "ru";
+    } catch (_) {
+      return "ru";
+    }
+  }
+
+  var language = saved();
+
+  /* Пропущенный ключ не падает ошибкой — откатывается на русский, а если и
+   * его нет, отдаёт само имя ключа. Имя ключа на экране заметнее пустоты:
+   * «tab.payments» видно сразу, а пустая вкладка выглядит как «так и было». */
+  function t(key) {
+    return (dictionaries[language] && dictionaries[language][key]) ||
+      dictionaries.ru[key] || key;
+  }
+
+  /** Подстановка: t() даёт «Осталось {n}», сюда — значения. */
+  function fmt(key, vars) {
+    return String(t(key)).replace(/\{(\w+)\}/g, function (m, k) {
+      return vars && vars[k] != null ? vars[k] : m;
+    });
+  }
+
+  function setLanguage(next) {
+    if (!dictionaries[next] || next === language) return;
+    language = next;
+    try { global.localStorage.setItem(STORAGE, next); } catch (_) {}
+    apply();
+    global.dispatchEvent(new CustomEvent("turon:app-language", {
+      detail: { language: language }
+    }));
+  }
+
+  /** Статические подписи разметки кабинета: [data-app-i18n]. */
+  function apply() {
+    document.querySelectorAll("[data-app-i18n]").forEach(function (node) {
+      node.textContent = t(node.dataset.appI18n);
+    });
+    document.querySelectorAll("[data-app-i18n-label]").forEach(function (node) {
+      var value = t(node.dataset.appI18nLabel);
+      node.setAttribute("aria-label", value);
+      if (node.hasAttribute("title")) node.setAttribute("title", value);
+    });
+    syncWidget();
+  }
+
+  /* Виджет языка кабинета. Флаги берём у публичной шапки: свой набор
+   * SVG был бы копией на сорок строк, которая разойдётся при первой правке. */
+  function syncWidget() {
+    var pub = global.TuronPublicUi;
+    var flag = document.getElementById("app-lang-flag");
+    var code = document.getElementById("app-lang-code");
+    if (!pub || !flag || !code) return;
+    flag.innerHTML = pub.flags[language] || "";
+    code.textContent = pub.langCodes[language] || language.toUpperCase();
+    var menu = document.getElementById("app-lang-menu");
+    if (!menu) return;
+    Array.prototype.forEach.call(menu.querySelectorAll("[data-lang]"), function (li) {
+      li.setAttribute("aria-selected", li.dataset.lang === language ? "true" : "false");
+    });
+  }
+
+  function initWidget() {
+    var pub = global.TuronPublicUi;
+    var widget = document.getElementById("app-lang-widget");
+    var toggle = document.getElementById("app-lang-toggle");
+    var menu = document.getElementById("app-lang-menu");
+    if (!pub || !widget || !toggle || !menu) return;
+
+    menu.innerHTML = pub.langOrder.map(function (lc) {
+      return '<li class="tt-lang-opt" role="option" data-lang="' + lc + '">' +
+        '<span class="tt-lang-flag">' + pub.flags[lc] + "</span>" +
+        '<span class="tt-lang-code">' + pub.langCodes[lc] + "</span></li>";
+    }).join("");
+
+    function close() { menu.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
+    toggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (menu.hidden) {
+        menu.hidden = false;
+        toggle.setAttribute("aria-expanded", "true");
+      } else { close(); }
+    });
+    menu.addEventListener("click", function (e) {
+      var opt = e.target.closest("[data-lang]");
+      if (!opt) return;
+      setLanguage(opt.dataset.lang);
+      close();
+    });
+    document.addEventListener("click", function (e) {
+      if (!widget.contains(e.target)) close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+    syncWidget();
+  }
+
+  global.TuronAppI18n = {
+    t: t,
+    fmt: fmt,
+    language: function () { return language; },
+    setLanguage: setLanguage,
+    apply: apply,
+    initWidget: initWidget,
+    // Для тестов и проверки паритета ключей.
+    dictionaries: dictionaries
   };
 })(window);
 
@@ -23254,7 +23549,7 @@ window.TURON_DESTINATIONS = [
 
 </script>
 <script>
-(function () {
+(function (global) {
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -23524,6 +23819,42 @@ window.TURON_DESTINATIONS = [
   /* Кабинет. Тяжёлая часть (загрузка заездов, броней, каталога) выполняется
    * один раз: showApp зовётся на каждое переключение вкладки, и грузить всё
    * заново на каждый клик было бы расточительно. */
+  /* --------------------------------------------------------- язык кабинета
+   * Язык кабинета отдельный от публичного (js/app-i18n.js): оператор,
+   * посмотрев сайт по-английски, не должен возвращаться в английскую панель
+   * управления. Здесь только показ виджета и перерисовка на смену языка.
+   */
+  function trApp(key) {
+    return global.TuronAppI18n ? global.TuronAppI18n.t(key) : key;
+  }
+
+  function fmtApp(key, vars) {
+    return global.TuronAppI18n ? global.TuronAppI18n.fmt(key, vars) : key;
+  }
+
+  /* Смена языка кабинета: статические подписи перерисовывает сам модуль,
+   * а содержимое вкладки — мы, потому что оно собрано в JS. Перерисовываем
+   * ТЕКУЩУЮ вкладку, а не все: остальные всё равно соберутся заново при
+   * открытии, а лишние запросы к API на смене языка ни к чему. */
+  global.addEventListener("turon:app-language", function () {
+    if (!session || $("screen-app").hidden) return;
+    var active = document.querySelector(".tt-tab.is-active");
+    var name = active && active.dataset.tab;
+    if (name) {
+      switchTab(name);
+      refreshTab(name);
+    }
+  });
+
+  function syncAppLangVisibility(isOperator) {
+    var widget = $("app-lang-widget");
+    if (!widget) return;
+    widget.hidden = !!isOperator;
+    if (isOperator || !global.TuronAppI18n) return;
+    global.TuronAppI18n.initWidget();
+    global.TuronAppI18n.apply();
+  }
+
   function ensureCabinet() {
     if (cabinetReady) return;
     cabinetReady = true;
@@ -23538,6 +23869,11 @@ window.TURON_DESTINATIONS = [
     var isOperator = TuronAdmin.isOperator(session);
     document.querySelectorAll(".tt-tab-op").forEach(function (t) { t.hidden = !isOperator; });
     document.querySelectorAll(".tt-tab-ag").forEach(function (t) { t.hidden = isOperator; });
+
+    /* Переключатель языка кабинета — только агентству. Операторская панель
+     * не переведена намеренно (её видит только оператор), и кнопка у него
+     * была бы обманом: нажал UZ — половина экрана осталась русской. */
+    syncAppLangVisibility(isOperator);
 
     if (isOperator) {
       TuronAdmin.start();
@@ -26570,6 +26906,6 @@ window.TURON_DESTINATIONS = [
   } else {
     applyRoute();   // #/app/* без сессии сам уведёт на вход
   }
-})();
+})(window);
 
 </script>

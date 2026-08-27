@@ -1,4 +1,4 @@
-(function () {
+(function (global) {
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -268,6 +268,42 @@
   /* Кабинет. Тяжёлая часть (загрузка заездов, броней, каталога) выполняется
    * один раз: showApp зовётся на каждое переключение вкладки, и грузить всё
    * заново на каждый клик было бы расточительно. */
+  /* --------------------------------------------------------- язык кабинета
+   * Язык кабинета отдельный от публичного (js/app-i18n.js): оператор,
+   * посмотрев сайт по-английски, не должен возвращаться в английскую панель
+   * управления. Здесь только показ виджета и перерисовка на смену языка.
+   */
+  function trApp(key) {
+    return global.TuronAppI18n ? global.TuronAppI18n.t(key) : key;
+  }
+
+  function fmtApp(key, vars) {
+    return global.TuronAppI18n ? global.TuronAppI18n.fmt(key, vars) : key;
+  }
+
+  /* Смена языка кабинета: статические подписи перерисовывает сам модуль,
+   * а содержимое вкладки — мы, потому что оно собрано в JS. Перерисовываем
+   * ТЕКУЩУЮ вкладку, а не все: остальные всё равно соберутся заново при
+   * открытии, а лишние запросы к API на смене языка ни к чему. */
+  global.addEventListener("turon:app-language", function () {
+    if (!session || $("screen-app").hidden) return;
+    var active = document.querySelector(".tt-tab.is-active");
+    var name = active && active.dataset.tab;
+    if (name) {
+      switchTab(name);
+      refreshTab(name);
+    }
+  });
+
+  function syncAppLangVisibility(isOperator) {
+    var widget = $("app-lang-widget");
+    if (!widget) return;
+    widget.hidden = !!isOperator;
+    if (isOperator || !global.TuronAppI18n) return;
+    global.TuronAppI18n.initWidget();
+    global.TuronAppI18n.apply();
+  }
+
   function ensureCabinet() {
     if (cabinetReady) return;
     cabinetReady = true;
@@ -282,6 +318,11 @@
     var isOperator = TuronAdmin.isOperator(session);
     document.querySelectorAll(".tt-tab-op").forEach(function (t) { t.hidden = !isOperator; });
     document.querySelectorAll(".tt-tab-ag").forEach(function (t) { t.hidden = isOperator; });
+
+    /* Переключатель языка кабинета — только агентству. Операторская панель
+     * не переведена намеренно (её видит только оператор), и кнопка у него
+     * была бы обманом: нажал UZ — половина экрана осталась русской. */
+    syncAppLangVisibility(isOperator);
 
     if (isOperator) {
       TuronAdmin.start();
@@ -3314,4 +3355,4 @@
   } else {
     applyRoute();   // #/app/* без сессии сам уведёт на вход
   }
-})();
+})(window);
