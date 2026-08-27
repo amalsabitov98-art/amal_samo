@@ -1442,6 +1442,79 @@ async function setDepartureOpen(env, actor, departureId, open) {
  * через них брони. Снять с продажи — `is_bookable = 0`: тур исчезает из
  * каталога и из продажи, но всё проданное остаётся на месте.
  */
+/*
+ * ---------------------------------------------------- ПЛИТКИ НАПРАВЛЕНИЙ
+ *
+ * Направление НЕ заводится отдельно и не удаляется: оно появляется само,
+ * как только у тура в поле «направление» написано новое слово. Строка в
+ * `destinations` — это только ОФОРМЛЕНИЕ плитки (заголовок, подзаголовок,
+ * фотография, порядок), и её может не быть вовсе: тогда плитка рисуется
+ * по самому названию.
+ *
+ * Поэтому список собирается из ТУРОВ, а не из таблицы destinations:
+ *   - направление без оформления в списке всё равно видно, и оператор
+ *     понимает, что его надо оформить;
+ *   - оформление, оставшееся от направления, у которого больше нет туров,
+ *     наружу не лезет и никого не путает.
+ *
+ * Имя направления здесь НЕ МЕНЯЕТСЯ. Оно связывает плитку с турами по
+ * тексту (см. schema.sql), и переименование тихо отцепило бы оформление от
+ * всех туров сразу. Название меняется в самом туре — тогда и плитка
+ * переедет вместе с ним.
+ */
+async function adminDestinations(env) {
+  const rows = await env.DB.prepare(
+    `SELECT t.destination AS name,
+            COUNT(*) AS tours_count,
+            SUM(CASE WHEN t.is_bookable = 1 THEN 1 ELSE 0 END) AS bookable_count,
+            d.title, d.blurb, d.image, d.sort, d.i18n
+       FROM tours t
+       LEFT JOIN destinations d ON d.name = t.destination
+      GROUP BY t.destination
+      ORDER BY COALESCE(d.sort, 999), t.destination`
+  ).all();
+  return json(rows.results.map((r) => {
+    try { r.i18n = r.i18n ? JSON.parse(r.i18n) : null; }
+    catch (e) { r.i18n = null; }
+    return r;
+  }));
+}
+
+async function saveDestination(request, env, actor, name) {
+  const body = await request.json().catch(() => ({}));
+
+  // Оформлять можно только то направление, у которого есть туры: строка без
+  // тура наружу всё равно не покажется, а в списке мешалась бы.
+  const used = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM tours WHERE destination = ?"
+  ).bind(name).first();
+  if (!used.n) return fail("Нет туров с таким направлением", 404);
+
+  const title = String(body.title == null ? "" : body.title).trim().slice(0, 200);
+  if (!title) return fail("Нужен заголовок плитки");
+  const blurb = String(body.blurb == null ? "" : body.blurb).trim().slice(0, 500) || null;
+  const image = String(body.image == null ? "" : body.image).trim().slice(0, 500) || null;
+
+  const sort = body.sort == null || body.sort === "" ? 0 : Number(body.sort);
+  if (!Number.isInteger(sort) || sort < 0 || sort > 999) {
+    return fail("Порядок: целое число от 0 до 999");
+  }
+
+  const i18n = cleanI18n(body.i18n, ["title", "blurb"]);
+
+  // Одним запросом: строки может не быть вовсе (направление ещё не
+  // оформляли), и разделять на INSERT/UPDATE незачем — ключ здесь имя.
+  await env.DB.prepare(
+    `INSERT INTO destinations (name, title, blurb, image, sort, i18n)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(name) DO UPDATE SET
+       title = excluded.title, blurb = excluded.blurb,
+       image = excluded.image, sort = excluded.sort, i18n = excluded.i18n`
+  ).bind(name, title, blurb, image, sort, i18n).run();
+
+  return json({ name, title, blurb, image, sort });
+}
+
 async function adminTours(env) {
   const rows = await env.DB.prepare(
     `SELECT t.id, t.code, t.name, t.destination, t.agency_commission,
@@ -2714,6 +2787,14 @@ async function route(request, env, ctx) {
         // и попадает на публичную страницу.
         if (path === "/api/admin/media" && request.method === "POST") {
           return await uploadMedia(request, env, url);
+        }
+        if (path === "/api/admin/destinations" && request.method === "GET") {
+          return await adminDestinations(env);
+        }
+        const destOne = path.match(/^\/api\/admin\/destinations\/(.+)$/);
+        if (destOne && request.method === "POST") {
+          return await saveDestination(request, env, agency,
+            decodeURIComponent(destOne[1]));
         }
         if (path === "/api/admin/tours" && request.method === "GET") {
           return await adminTours(env);

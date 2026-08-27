@@ -535,6 +535,68 @@
    */
   var tourEditing = null;   // id правимого тура; null — форма создаёт новый
 
+  /* ------------------------------------------- плитки направлений
+   * Направление НЕ заводится и НЕ удаляется отдельно: оно появляется само,
+   * как только у тура в поле «направление» написано новое слово. Здесь
+   * правится только оформление плитки — заголовок, подзаголовок,
+   * фотография, порядок.
+   *
+   * Список приходит СОБРАННЫМ ИЗ ТУРОВ, а не из таблицы destinations:
+   * направление без оформления должно быть видно, иначе оператор не поймёт,
+   * что его надо оформить.
+   */
+  function destRowHtml(d) {
+    var id = "od-" + d.name.replace(/[^\wА-Яа-яЁё]+/g, "_");
+    var plain = !d.title;
+    return '<form class="tt-dest-row' + (plain ? " is-plain" : "") +
+      '" data-dest="' + esc(d.name) + '">' +
+      '<div class="tt-dest-head">' +
+        "<strong>" + esc(d.name) + "</strong>" +
+        '<span class="tt-muted-note">' + esc(d.tours_count + " " + plural(d.tours_count, "тур", "тура", "туров")) +
+          (d.bookable_count !== d.tours_count
+            ? ", в продаже " + d.bookable_count : "") + "</span>" +
+        (plain ? '<span class="tt-badge tt-badge-off">Без оформления</span>' : "") +
+      "</div>" +
+      '<div class="tt-dest-grid">' +
+        '<div class="tt-field-full">' +
+          '<label for="' + id + '-title">Заголовок плитки</label>' +
+          '<input type="text" id="' + id + '-title" data-f="title" value="' +
+            esc(d.title || "") + '" placeholder="' + esc(d.name) + '" />' +
+        "</div>" +
+        '<div class="tt-field-full">' +
+          '<label for="' + id + '-sort">Порядок</label>' +
+          '<input type="number" id="' + id + '-sort" data-f="sort" min="0" max="999" value="' +
+            (d.sort == null ? "" : d.sort) + '" />' +
+        "</div>" +
+        '<div class="tt-field-full tt-col-2">' +
+          '<label for="' + id + '-blurb">Подзаголовок</label>' +
+          '<input type="text" id="' + id + '-blurb" data-f="blurb" value="' +
+            esc(d.blurb || "") + '" placeholder="Черноморское побережье: Трабзон, Ризе, Батуми" />' +
+        "</div>" +
+      "</div>" +
+      photoFieldHtml(id + "-image", d.image || "", "Фотография плитки") +
+      '<div class="tt-newdep-actions">' +
+        '<span class="tt-editor-msg" data-dest-msg></span>' +
+        '<button type="submit" class="tt-btn tt-btn-sm">Сохранить</button>' +
+      "</div>" +
+    "</form>";
+  }
+
+  function renderDestinations(list) {
+    $("od-list").innerHTML = list.length
+      ? list.map(destRowHtml).join("")
+      : '<p class="tt-muted-note">Нет ни одного тура — направления появятся ' +
+        "вместе с ними.</p>";
+  }
+
+  function loadDestinations() {
+    $("od-list").innerHTML = '<p class="tt-muted-note">Загружаем…</p>';
+    return TuronApi.adminDestinations().then(renderDestinations).catch(function (e) {
+      $("od-list").innerHTML = '<p class="tt-editor-msg is-err">' +
+        esc(e.message || "Не удалось загрузить") + "</p>";
+    });
+  }
+
   function tourRowHtml(t) {
     var off = t.is_bookable === 0;
     return '<article class="tt-booking' + (off ? " is-cancelled" : "") + '">' +
@@ -1992,6 +2054,39 @@
     });
 
     /* ---------------------------------------------------------- туры */
+// Плитки направлений — свёрнуты по умолчанию: оформление правят редко,
+    // а вкладка «Туры» и так плотная.
+    $("od-toggle").addEventListener("click", function () {
+      var box = $("od-box");
+      box.hidden = !box.hidden;
+      if (!box.hidden) loadDestinations();
+    });
+
+    $("od-list").addEventListener("submit", function (e) {
+      var form = e.target.closest("[data-dest]");
+      if (!form) return;
+      e.preventDefault();
+      var msg = form.querySelector("[data-dest-msg]");
+      function v(name) {
+        var el = form.querySelector('[data-f="' + name + '"]');
+        return el ? el.value : "";
+      }
+      var image = form.querySelector('input[type="hidden"]');
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Сохраняю…";
+      TuronApi.saveDestination(form.dataset.dest, {
+        title: v("title"), blurb: v("blurb"), sort: v("sort"),
+        image: image ? image.value : "",
+      }).then(function () {
+        msg.className = "tt-editor-msg is-ok";
+        msg.textContent = "Сохранено — плитка обновится в каталоге";
+        form.classList.remove("is-plain");
+      }).catch(function (err) {
+        msg.className = "tt-editor-msg is-err";
+        msg.textContent = err.message || "Не удалось сохранить";
+      });
+    });
+
     $("ot-new").addEventListener("click", function () {
       var form = $("ot-form");
       // Повторный клик по «+ Новый тур» при открытой ПРАВКЕ должен

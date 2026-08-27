@@ -3018,6 +3018,59 @@ console.log("\nТур снят с продажи: заезды не пропад
   await page.close();
 }
 
+console.log("\nПлитки направлений");
+{
+  const { page, errors } = await session("operator");
+  await page.locator('.tt-tab[data-tab="op-tours"]').first().click({ force: true });
+  await page.waitForTimeout(600);
+  await page.locator("#od-toggle").click();
+  await page.waitForTimeout(700);
+
+  const rows = await page.$$eval("#od-list [data-dest]",
+    (n) => n.map((x) => x.dataset.dest));
+  check("направления собраны из туров", rows.length > 0, rows.join(" | "));
+
+  // Направление НЕ заводится отдельно — оно появляется вместе с туром.
+  // Проверяем именно это: в списке должны быть направления существующих
+  // туров, даже те, у которых оформления ещё нет.
+  const state = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminDestinations();
+    return {
+      names: list.map((d) => d.name),
+      counted: list.every((d) => d.tours_count > 0),
+    };
+  });
+  check("у каждого направления есть туры", state.counted === true,
+        state.names.join(" | "));
+
+  const saved = await page.evaluate(async () => {
+    const list = await window.TuronApi.adminDestinations();
+    const name = list[0].name;
+    await window.TuronApi.saveDestination(name, {
+      title: "Проверочный заголовок", blurb: "Подзаголовок", sort: 3,
+    });
+    const after = await window.TuronApi.adminDestinations();
+    const row = after.filter((d) => d.name === name)[0];
+    let err = null;
+    try {
+      await window.TuronApi.saveDestination(name, { title: "" });
+    } catch (e) { err = e.message; }
+    let unknown = null;
+    try {
+      await window.TuronApi.saveDestination("Такого нет", { title: "X" });
+    } catch (e) { unknown = e.message; }
+    return { title: row.title, sort: row.sort, err, unknown };
+  });
+  check("оформление сохраняется", saved.title === "Проверочный заголовок", saved.title);
+  check("порядок сохраняется", saved.sort === 3, String(saved.sort));
+  check("пустой заголовок отклоняется", /заголов/i.test(saved.err || ""), saved.err);
+  check("направление без туров отклоняется",
+        /нет туров/i.test(saved.unknown || ""), saved.unknown);
+
+  check("нет ошибок JS", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 console.log("\nФотография тура: загрузка из кабинета");
 {
   const { page, errors } = await session("operator");

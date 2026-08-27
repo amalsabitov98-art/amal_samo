@@ -728,6 +728,73 @@
     };
   }
 
+  /* Плитки направлений в демо-режиме. Список собирается ИЗ ТУРОВ — так же,
+   * как на сервере: направление без оформления должно быть видно, иначе
+   * оператор не поймёт, что его надо оформить. */
+  function demoDestinationRows() {
+    var s = demoState();
+    var deco = s.destinations || {};
+    var byName = {};
+    demoTourStore(s).forEach(function (t) {
+      if (!t.destination) return;
+      var g = byName[t.destination];
+      if (!g) {
+        g = byName[t.destination] = {
+          name: t.destination, tours_count: 0, bookable_count: 0,
+          title: null, blurb: null, image: null, sort: null, i18n: null,
+        };
+      }
+      g.tours_count++;
+      if (t.is_bookable !== 0) g.bookable_count++;
+    });
+    (global.TURON_DESTINATIONS || []).forEach(function (d) {
+      if (byName[d.name]) {
+        byName[d.name].title = d.title;
+        byName[d.name].blurb = d.blurb;
+        byName[d.name].image = d.image;
+        byName[d.name].sort = d.sort;
+      }
+    });
+    Object.keys(deco).forEach(function (name) {
+      if (byName[name]) {
+        byName[name].title = deco[name].title;
+        byName[name].blurb = deco[name].blurb;
+        byName[name].image = deco[name].image;
+        byName[name].sort = deco[name].sort;
+        byName[name].i18n = deco[name].i18n || null;
+      }
+    });
+    return Object.keys(byName).map(function (n) { return byName[n]; })
+      .sort(function (a, b) {
+        return (a.sort == null ? 999 : a.sort) - (b.sort == null ? 999 : b.sort) ||
+          a.name.localeCompare(b.name);
+      });
+  }
+
+  function demoSaveDestination(name, payload) {
+    var s = demoState();
+    var used = demoTourStore(s).some(function (t) { return t.destination === name; });
+    if (!used) return Promise.reject(new Error("Нет туров с таким направлением"));
+
+    var title = String(payload.title == null ? "" : payload.title).trim().slice(0, 200);
+    if (!title) return Promise.reject(new Error("Нужен заголовок плитки"));
+    var sort = payload.sort == null || payload.sort === "" ? 0 : Number(payload.sort);
+    if (!isFinite(sort) || sort % 1 !== 0 || sort < 0 || sort > 999) {
+      return Promise.reject(new Error("Порядок: целое число от 0 до 999"));
+    }
+
+    s.destinations = s.destinations || {};
+    s.destinations[name] = {
+      title: title,
+      blurb: String(payload.blurb == null ? "" : payload.blurb).trim().slice(0, 500) || null,
+      image: String(payload.image == null ? "" : payload.image).trim().slice(0, 500) || null,
+      sort: sort,
+      i18n: cleanI18n(payload.i18n, ["title", "blurb"]),
+    };
+    saveDemo(s);
+    return Promise.resolve(Object.assign({ name: name }, s.destinations[name]));
+  }
+
   function demoSaveTour(id, payload) {
     var s = demoState();
     var list = demoTourStore(s);
@@ -1469,6 +1536,23 @@
           return { url: API_BASE + data.url, key: data.key };
         });
       });
+    },
+
+    /*
+     * Плитки направлений. Направление не заводится и не удаляется — оно
+     * появляется само, как только у тура написано новое направление; здесь
+     * правится только ОФОРМЛЕНИЕ плитки. Имя не меняется: оно связывает
+     * плитку с турами по тексту.
+     */
+    adminDestinations: function () {
+      if (!API_BASE) return Promise.resolve(demoDestinationRows());
+      return request("/api/admin/destinations");
+    },
+
+    saveDestination: function (name, payload) {
+      if (!API_BASE) return demoSaveDestination(name, payload);
+      return request("/api/admin/destinations/" + encodeURIComponent(name),
+        { method: "POST", body: payload });
     },
 
     createTour: function (payload) {

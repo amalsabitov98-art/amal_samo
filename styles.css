@@ -9242,3 +9242,35 @@ a.tt-contact-row:hover { color: var(--cc); }
   filter: saturate(0.9) contrast(1.03) brightness(0.7);
   transform: scale(1.02);
 }
+
+/* Оформление плиток направлений — свёрнутый блок во вкладке «Туры».
+   Отдельной вкладки не завели намеренно: направлений мало и правят их
+   редко, а пустая вкладка в меню занимала бы место постоянно. */
+.tt-dest-box { margin-bottom: 18px; }
+.tt-dest-row {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--tt-line, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+  background: var(--tt-card, #fff);
+}
+/* Направление, у которого ещё нет оформления: плитка в каталоге рисуется
+   голым названием, и это надо видеть в списке сразу. */
+.tt-dest-row.is-plain { border-style: dashed; }
+.tt-dest-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tt-dest-head strong { font-size: 1.02rem; }
+.tt-dest-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 10px 14px;
+}
+.tt-dest-grid .tt-col-2 { grid-column: 1 / -1; }
+@media (max-width: 620px) {
+  .tt-dest-grid { grid-template-columns: minmax(0, 1fr); }
+}
