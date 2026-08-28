@@ -623,136 +623,279 @@
     <!-- Туры — это ПРОДУКТЫ, а заезды на вкладке «Заезды» — их даты.
          Код тура после создания не меняется: он стоит в публичной ссылке
          на карточку, которую агенты рассылают клиентам. -->
+    <!--
+      ТУРЫ. Два вида в одной вкладке: список туров и страница одного тура.
+      Раньше формы (основное, карточка) лежали подряд под списком, а заезды
+      тура вообще на другой вкладке — последовательность существовала
+      только в голове у оператора. Теперь всё об одном туре на одном
+      экране, а порядок задаёт чек-лист готовности.
+    -->
     <section id="panel-op-tours" hidden>
-      <div class="tt-toolbar">
-        <button class="tt-btn secondary" id="ot-new">+ Новый тур</button>
-        <button class="tt-btn secondary" id="od-toggle">Плитки направлений</button>
+
+      <!-- ============ вид 1: список туров ============ -->
+      <div id="ot-view-list">
+        <div class="tt-toolbar">
+          <button class="tt-btn" id="ot-new">+ Новый тур</button>
+          <button class="tt-btn secondary" id="od-toggle">Плитки направлений</button>
+        </div>
+
+        <!-- Оформление плиток направлений. Направление не заводится и не
+             удаляется отдельно: оно появляется само, как только у тура в поле
+             «направление» написано новое слово. Здесь правится только то, как
+             плитка выглядит в каталоге. Список рисует renderDestinations(). -->
+        <div id="od-box" class="tt-dest-box" hidden>
+          <p class="tt-editor-hint">Направление появляется само, как только у
+            тура написано новое направление — заводить его отдельно не нужно.
+            Здесь задаётся только вид плитки в каталоге. Название не меняется:
+            оно связывает плитку с турами, и переименование отцепило бы её от
+            всех сразу — меняйте направление в самом туре.</p>
+          <div id="od-list"></div>
+        </div>
+
+        <!--
+          Создание тура — ТРИ КОРОТКИХ ШАГА, а не одна форма на девять полей.
+          Шаги идут по смыслу: как называется → куда и на сколько → сколько
+          зарабатывает агентство. Всё остальное (описание, программа, заезды)
+          заполняется потом на странице тура по чек-листу.
+        -->
+        <form id="ot-wizard" class="tt-newdep tt-wizard" hidden>
+          <div class="tt-wiz-steps" id="ow-steps" aria-hidden="true">
+            <span data-wiz-dot="1"><b>1</b> Название</span>
+            <span data-wiz-dot="2"><b>2</b> Куда и на сколько</span>
+            <span data-wiz-dot="3"><b>3</b> Комиссии</span>
+          </div>
+
+          <div class="tt-wiz-pane" data-wiz-pane="1">
+            <h4>Шаг 1 из 3 · Как называется тур</h4>
+            <div class="tt-field-full">
+              <label for="ow-name">Название</label>
+              <input type="text" id="ow-name" placeholder="Каппадокия — воздушные шары" />
+              <p class="tt-editor-hint">Так тур увидит клиент в каталоге и агент
+                в кабинете.</p>
+            </div>
+          </div>
+
+          <div class="tt-wiz-pane" data-wiz-pane="2" hidden>
+            <h4>Шаг 2 из 3 · Куда и на сколько</h4>
+            <div class="tt-newdep-grid tt-tour-grid">
+              <div class="tt-field-full">
+                <label for="ow-destination">Направление</label>
+                <input type="text" id="ow-destination" placeholder="Турция"
+                  list="ot-dest-list" />
+                <p class="tt-editor-hint">Выберите из уже заведённых. Новое слово
+                  заводит новую плитку в каталоге — «Турция » с лишним пробелом
+                  создаст вторую.</p>
+              </div>
+              <div class="tt-field-full">
+                <label for="ow-nights">Ночей</label>
+                <input type="number" id="ow-nights" min="0" max="365" />
+              </div>
+            </div>
+            <div class="tt-field-full">
+              <label for="ow-code">Код тура</label>
+              <input type="text" id="ow-code" placeholder="CAPPADOCIA" maxlength="32" />
+              <p class="tt-editor-hint">Стоит в ссылке на карточку
+                (<code>#/t/CAPPADOCIA</code>). После создания не меняется:
+                агенты рассылают такие ссылки клиентам.</p>
+            </div>
+          </div>
+
+          <div class="tt-wiz-pane" data-wiz-pane="3" hidden>
+            <h4>Шаг 3 из 3 · Комиссии</h4>
+            <div class="tt-newdep-grid tt-tour-grid">
+              <div class="tt-field-full">
+                <label for="ow-agency">Комиссия агентства, $</label>
+                <input type="number" id="ow-agency" min="0" step="1" value="0" />
+              </div>
+              <div class="tt-field-full">
+                <label for="ow-operator">Комиссия оператора, $</label>
+                <input type="number" id="ow-operator" min="0" step="1" value="0" />
+                <p class="tt-editor-hint">Сверху агентской, агентству не видна.</p>
+              </div>
+            </div>
+            <p class="tt-editor-hint">Цены у тура нет — она задаётся на каждом
+              заезде отдельно. Тур создастся <b>черновиком</b>: в каталог он
+              попадёт только после того, как вы его опубликуете.</p>
+          </div>
+
+          <div class="tt-newdep-actions">
+            <span class="tt-editor-msg" id="ow-msg"></span>
+            <button type="button" class="tt-btn secondary tt-btn-sm" id="ow-cancel">Отмена</button>
+            <button type="button" class="tt-btn secondary tt-btn-sm" id="ow-back" hidden>Назад</button>
+            <button type="button" class="tt-btn tt-btn-sm" id="ow-next">Дальше</button>
+            <button type="submit" class="tt-btn tt-btn-sm" id="ow-save" hidden>Создать тур</button>
+          </div>
+        </form>
+
+        <div id="ot-list"></div>
       </div>
 
-      <!-- Оформление плиток направлений. Направление не заводится и не
-           удаляется отдельно: оно появляется само, как только у тура в поле
-           «направление» написано новое слово. Здесь правится только то, как
-           плитка выглядит в каталоге. Список рисует renderDestinations(). -->
-      <div id="od-box" class="tt-dest-box" hidden>
-        <p class="tt-editor-hint">Направление появляется само, как только у
-          тура написано новое направление — заводить его отдельно не нужно.
-          Здесь задаётся только вид плитки в каталоге. Название не меняется:
-          оно связывает плитку с турами, и переименование отцепило бы её от
-          всех сразу — меняйте направление в самом туре.</p>
-        <div id="od-list"></div>
+      <!-- ============ вид 2: страница одного тура ============ -->
+      <div id="ot-view-page" hidden>
+        <div class="tt-tourpage-head">
+          <button type="button" class="tt-crumb" id="ot-back">← Все туры</button>
+          <div class="tt-tourpage-title">
+            <h3 id="ot-page-name">Тур</h3>
+            <span id="ot-page-badge"></span>
+          </div>
+          <div class="tt-muted-note" id="ot-page-meta"></div>
+          <div class="tt-tourpage-actions">
+            <button type="button" class="tt-btn secondary tt-btn-sm" id="ot-preview">
+              Как видит клиент</button>
+          </div>
+        </div>
+
+        <!-- Чек-лист готовности. Считается ИЗ ДАННЫХ (renderChecklist):
+             отмечать вручную нечего, галочка гаснет сама, если строки
+             удалили. Кнопка «Опубликовать» подписана тем, чего не хватает. -->
+        <div class="tt-panel tt-checklist-panel">
+          <div class="tt-panel-head-row">
+            <div>
+              <h2>Что осталось сделать</h2>
+              <span class="tt-muted-note">Считается из самих данных — отмечать
+                вручную нечего</span>
+            </div>
+          </div>
+          <div id="ot-checklist"></div>
+          <div class="tt-publish-row">
+            <button type="button" class="tt-btn tt-btn-sm" id="ot-publish">Опубликовать</button>
+            <span class="tt-publish-why" id="ot-publish-why"></span>
+          </div>
+        </div>
+
+        <form id="ot-form" class="tt-newdep">
+          <h4 id="ot-form-title">Основное</h4>
+          <p class="tt-editor-hint" id="ot-form-hint">Код тура не меняется: он
+            стоит в ссылке на карточку, которую агенты уже разослали клиентам.
+            Всё остальное правится свободно.</p>
+          <div class="tt-newdep-grid tt-tour-grid">
+            <div class="tt-field-full">
+              <label for="ot-code">Код тура</label>
+              <input type="text" id="ot-code" placeholder="KARADENIZ" maxlength="32" />
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-name">Название</label>
+              <input type="text" id="ot-name" placeholder="Карадениз" />
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-destination">Направление</label>
+              <input type="text" id="ot-destination" placeholder="Турция" list="ot-dest-list" />
+              <datalist id="ot-dest-list"></datalist>
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-nights">Ночей</label>
+              <input type="number" id="ot-nights" min="0" max="365" />
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-agency">Комиссия агентства, $</label>
+              <input type="number" id="ot-agency" min="0" step="1" />
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-operator">Комиссия оператора, $</label>
+              <input type="number" id="ot-operator" min="0" step="1" />
+            </div>
+            <div class="tt-field-full">
+              <label for="ot-from">Цена «от», $</label>
+              <input type="number" id="ot-from" min="0" step="1"
+                placeholder="если заездов ещё нет" />
+            </div>
+            <!-- Надзаголовок — строка над названием на публичной карточке.
+                 Была зашита в js/catalog.js, и любой тур не из умры выходил
+                 подписанным «Загадочный Карадениз». -->
+            <div class="tt-field-full">
+              <label for="ot-kicker">Надзаголовок карточки</label>
+              <input type="text" id="ot-kicker" maxlength="120"
+                placeholder="Загадочный Карадениз" />
+            </div>
+            <div class="tt-field-full tt-col-2">
+              <label for="ot-description">Описание — в плитке каталога и абзацем
+                под названием</label>
+              <textarea id="ot-description" rows="3"
+                placeholder="Что это за тур — гость увидит это в каталоге"></textarea>
+            </div>
+          </div>
+          <!-- Заглавный кадр карточки тура. Разметку виджета рисует
+               photoFieldHtml() в js/admin.js — здесь только место под неё. -->
+          <div id="ot-hero-slot"></div>
+          <div class="tt-newdep-actions">
+            <span class="tt-editor-msg" id="ot-msg"></span>
+            <button type="submit" class="tt-btn tt-btn-sm" id="ot-save">Сохранить</button>
+          </div>
+        </form>
+
+        <!-- Редактор карточки тура: программа по дням, «включено /
+             не включено / информация» и варианты маршрута. Порядок строк
+             задаётся их ПОЛОЖЕНИЕМ в списке — оператор двигает строки
+             стрелками, а не правит числа сортировки. -->
+        <div id="ot-content" class="tt-content-editor">
+          <div class="tt-content-head">
+            <div>
+              <h4 id="oc-title">Карточка тура</h4>
+              <p class="tt-editor-hint">Это читает гость в каталоге и клиент по
+                ссылке от агента. Писать сюда то, чего в туре нет, нельзя —
+                агент пообещает услугу, которой не существует.</p>
+            </div>
+          </div>
+
+          <section class="tt-content-block">
+            <h5>Варианты маршрута <span class="tt-opt">если их несколько</span></h5>
+            <p class="tt-editor-hint">У Карадениза два: прилёт в Батуми и прилёт
+              в Трабзон. День программы можно привязать к варианту.</p>
+            <div id="oc-variants"></div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="variant">
+              + Вариант</button>
+          </section>
+
+          <section class="tt-content-block">
+            <h5>Программа по дням</h5>
+            <div id="oc-days"></div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="day">
+              + День</button>
+          </section>
+
+          <section class="tt-content-block">
+            <h5>Включено в стоимость</h5>
+            <div id="oc-included"></div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="included">
+              + Строка</button>
+          </section>
+
+          <section class="tt-content-block">
+            <h5>Не включено</h5>
+            <div id="oc-excluded"></div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="excluded">
+              + Строка</button>
+          </section>
+
+          <section class="tt-content-block">
+            <h5>Информация</h5>
+            <div id="oc-info"></div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="info">
+              + Строка</button>
+          </section>
+
+          <div class="tt-newdep-actions">
+            <span class="tt-editor-msg" id="oc-msg"></span>
+            <button type="button" class="tt-btn tt-btn-sm" id="oc-save">Сохранить карточку</button>
+          </div>
+        </div>
+
+        <!-- Заезды ЭТОГО тура. Раньше жили на вкладке «Списки пассажиров»,
+             и оператор прыгал между вкладками; здесь же видно, у какого
+             заезда нет цен — последнее, что держит публикацию. -->
+        <div class="tt-panel">
+          <div class="tt-panel-head-row">
+            <div>
+              <h2>Заезды этого тура</h2>
+              <span class="tt-muted-note">Заезд — дата вылета со своим прайсом.
+                Цена берётся с заезда, а не с тура</span>
+            </div>
+            <button type="button" class="tt-btn secondary tt-btn-sm" id="ot-add-dep">
+              + Новый заезд</button>
+          </div>
+          <div id="ot-deps"></div>
+        </div>
       </div>
-      <form id="ot-form" class="tt-newdep" hidden>
-        <h4 id="ot-form-title">Новый тур</h4>
-        <p class="tt-editor-hint" id="ot-form-hint">После создания к туру можно
-          вешать заезды. Код в ссылке на карточку — поменять его потом нельзя.</p>
-        <div class="tt-newdep-grid tt-tour-grid">
-          <div class="tt-field-full">
-            <label for="ot-code">Код тура</label>
-            <input type="text" id="ot-code" placeholder="KARADENIZ" maxlength="32" />
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-name">Название</label>
-            <input type="text" id="ot-name" placeholder="Карадениз" />
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-destination">Направление</label>
-            <input type="text" id="ot-destination" placeholder="Турция" list="ot-dest-list" />
-            <datalist id="ot-dest-list"></datalist>
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-nights">Ночей</label>
-            <input type="number" id="ot-nights" min="0" max="365" />
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-agency">Комиссия агентства, $</label>
-            <input type="number" id="ot-agency" min="0" step="1" />
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-operator">Комиссия оператора, $</label>
-            <input type="number" id="ot-operator" min="0" step="1" />
-          </div>
-          <div class="tt-field-full">
-            <label for="ot-from">Цена «от», $</label>
-            <input type="number" id="ot-from" min="0" step="1"
-              placeholder="если заездов ещё нет" />
-          </div>
-          <div class="tt-field-full tt-col-2">
-            <label for="ot-description">Описание для карточки</label>
-            <textarea id="ot-description" rows="3"
-              placeholder="Что это за тур — гость увидит это в каталоге"></textarea>
-          </div>
-        </div>
-        <!-- Заглавный кадр карточки тура. Разметку виджета рисует
-             photoFieldHtml() в js/admin.js — здесь только место под неё. -->
-        <div id="ot-hero-slot"></div>
-        <label class="tt-comp-keep" id="ot-bookable-row">
-          <input type="checkbox" id="ot-bookable" checked />
-          В продаже — тур виден в каталоге и по нему принимаются брони
-        </label>
-        <div class="tt-newdep-actions">
-          <span class="tt-editor-msg" id="ot-msg"></span>
-          <button type="button" class="tt-btn secondary tt-btn-sm" id="ot-cancel">Отмена</button>
-          <button type="submit" class="tt-btn tt-btn-sm" id="ot-save">Сохранить</button>
-        </div>
-      </form>
-      <!-- Редактор карточки тура: программа по дням, «включено /
-           не включено / информация» и варианты маршрута. Порядок строк
-           задаётся их ПОЛОЖЕНИЕМ в списке — оператор двигает строки
-           стрелками, а не правит числа сортировки. -->
-      <div id="ot-content" class="tt-content-editor" hidden>
-        <div class="tt-content-head">
-          <div>
-            <h4 id="oc-title">Карточка тура</h4>
-            <p class="tt-editor-hint">Это читает гость в каталоге и клиент по
-              ссылке от агента. Писать сюда то, чего в туре нет, нельзя —
-              агент пообещает услугу, которой не существует.</p>
-          </div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" id="oc-close">Закрыть</button>
-        </div>
-
-        <section class="tt-content-block">
-          <h5>Варианты маршрута <span class="tt-opt">если их несколько</span></h5>
-          <p class="tt-editor-hint">У Карадениза два: прилёт в Батуми и прилёт
-            в Трабзон. День программы можно привязать к варианту.</p>
-          <div id="oc-variants"></div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="variant">
-            + Вариант</button>
-        </section>
-
-        <section class="tt-content-block">
-          <h5>Программа по дням</h5>
-          <div id="oc-days"></div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="day">
-            + День</button>
-        </section>
-
-        <section class="tt-content-block">
-          <h5>Включено в стоимость</h5>
-          <div id="oc-included"></div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="included">
-            + Строка</button>
-        </section>
-
-        <section class="tt-content-block">
-          <h5>Не включено</h5>
-          <div id="oc-excluded"></div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="excluded">
-            + Строка</button>
-        </section>
-
-        <section class="tt-content-block">
-          <h5>Информация</h5>
-          <div id="oc-info"></div>
-          <button type="button" class="tt-btn secondary tt-btn-sm" data-oc-add="info">
-            + Строка</button>
-        </section>
-
-        <div class="tt-newdep-actions">
-          <span class="tt-editor-msg" id="oc-msg"></span>
-          <button type="button" class="tt-btn tt-btn-sm" id="oc-save">Сохранить карточку</button>
-        </div>
-      </div>
-      <div id="ot-list"></div>
     </section>
 
     <section id="panel-agencies" hidden>

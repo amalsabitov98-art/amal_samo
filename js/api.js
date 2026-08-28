@@ -666,18 +666,50 @@
     return s.tours;
   }
 
+  /* Список туров с теми же счётчиками, что считает adminTours на сервере:
+   * из них строится чек-лист готовности на странице тура. Демо-режим идёт
+   * мимо воркера целиком, и без этих полей чек-лист в превью и ui-тестах
+   * был бы всегда пустым. */
   function demoTours() {
     var s = demoState();
     var list = demoTourStore(s);
+    var content = demoContentStore(s);
     saveDemo(s);
+    var today = new Date().toISOString().slice(0, 10);
     return list.map(function (t) {
       var deps = s.departures.filter(function (d) { return d.tour_code === t.code; });
-      var today = new Date().toISOString().slice(0, 10);
+      var up = deps.filter(function (d) { return d.date_start >= today; });
+      var rows = (content[t.id] && content[t.id].content) || [];
+      function ofKind(kind) {
+        return rows.filter(function (r) { return r.kind === kind; }).length;
+      }
       return Object.assign({}, t, {
         departures: deps.length,
-        upcoming: deps.filter(function (d) { return d.date_start >= today; }).length,
+        upcoming: up.length,
+        days_count: ofKind("day"),
+        included_count: ofKind("included"),
+        info_count: ofKind("info"),
+        gallery_count: ofKind("gallery"),
+        deps_no_price: up.filter(function (d) {
+          return !(d.prices || []).some(function (p) { return p.kind === "placement"; });
+        }).length,
       });
     });
+  }
+
+  /* Чего не хватает туру для продажи — двойник tourBlockers из воркера.
+   * Список причин человеческим языком; пустой = можно публиковать. */
+  function demoTourBlockers(t) {
+    var out = [];
+    if (!t.description) out.push("описание карточки");
+    if (!t.days_count) out.push("программа по дням");
+    if (!t.upcoming) out.push("хотя бы один предстоящий заезд");
+    else if (t.deps_no_price) {
+      out.push(t.deps_no_price === t.upcoming
+        ? "цены на заездах"
+        : "цены на " + t.deps_no_price + " из " + t.upcoming + " заездов");
+    }
+    return out;
   }
 
   // Общая проверка полей — двойник tourFields из воркера.
@@ -716,6 +748,9 @@
       description: body.description != null
         ? String(body.description).trim().slice(0, 4000) || null
         : (cur.description || null),
+      kicker: body.kicker != null
+        ? String(body.kicker).trim().slice(0, 120) || null
+        : (cur.kicker || null),
       note: body.note != null
         ? String(body.note).trim().slice(0, 500) || null
         : (cur.note || null),
@@ -810,9 +845,12 @@
       }
       var f = demoTourFields(payload, null);
       if (f.error) return Promise.reject(new Error(f.error));
+      // Новый тур — всегда черновик, как на сервере: пустой тур не должен
+      // попадать в каталог. Продажу открывает publishTour с проверкой.
+      f.is_bookable = 0;
       var made = Object.assign({
         id: list.reduce(function (n, t) { return Math.max(n, t.id || 0); }, 0) + 1,
-        code: code,
+        code: code, published_at: null,
       }, f);
       list.push(made);
       saveDemo(s);
@@ -831,6 +869,38 @@
     Object.assign(cur, upd);
     saveDemo(s);
     return Promise.resolve(Object.assign({}, cur));
+  }
+
+  /* Открыть/снять тур с продажи в демо-режиме. Проверка готовности та же,
+   * что на сервере: отказ приходит с полем missing, и кабинет показывает
+   * ровно то же сообщение, что показал бы бой. */
+  function demoPublishTour(id, on) {
+    var s = demoState();
+    var cur = demoTourStore(s).filter(function (t) { return t.id === id; })[0];
+    if (!cur) return Promise.reject(new Error("Тур не найден"));
+
+    if (on) {
+      var full = demoTours().filter(function (t) { return t.id === id; })[0] || cur;
+      var missing = demoTourBlockers(full);
+      if (missing.length) {
+        var err = new Error("Тур ещё не готов к продаже");
+        err.data = { missing: missing };
+        return Promise.reject(err);
+      }
+      cur.is_bookable = 1;
+      if (!cur.published_at) cur.published_at = new Date().toISOString();
+      saveDemo(s);
+      return Promise.resolve({ id: id, code: cur.code, is_bookable: 1 });
+    }
+
+    var today = new Date().toISOString().slice(0, 10);
+    var hidden = s.departures.filter(function (d) {
+      return d.tour_code === cur.code && d.date_start >= today && d.is_open !== 0;
+    }).length;
+    cur.is_bookable = 0;
+    saveDemo(s);
+    return Promise.resolve({ id: id, code: cur.code, is_bookable: 0,
+                             hidden_upcoming: hidden });
   }
 
   /* ------------------------------------------- контент карточки (демо) */
@@ -1490,6 +1560,26 @@
     adminTours: function () {
       if (!API_BASE) return Promise.resolve(demoTours());
       return request("/api/admin/tours");
+    },
+
+    /*
+     * Открыть тур в продажу. Отдельный маршрут, а не галочка в форме:
+     * публикация — это ПРОВЕРКА готовности, и делает её сервер. Кабинет
+     * гасит кнопку заранее для удобства, но запрет живёт на сервере —
+     * иначе пустой тур публиковался бы в обход интерфейса.
+     *
+     * Отказ приходит с полем missing: чего именно не хватает.
+     */
+    publishTour: function (id) {
+      if (!API_BASE) return demoPublishTour(id, true);
+      return request("/api/admin/tours/" + id + "/publish", { method: "POST" });
+    },
+
+    /* Снять с продажи. В ответе hidden_upcoming — сколько предстоящих
+     * заездов пропало из каталога вместе с туром. */
+    unpublishTour: function (id) {
+      if (!API_BASE) return demoPublishTour(id, false);
+      return request("/api/admin/tours/" + id + "/unpublish", { method: "POST" });
     },
 
     /*

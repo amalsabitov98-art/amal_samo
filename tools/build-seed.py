@@ -107,6 +107,10 @@ DESTINATIONS = [
 TOUR_DETAILS = {
     "KARADENIZ": {
         "nights": 7,
+        # Строка над названием на публичной карточке. Раньше была зашита в
+        # js/catalog.js, и ЛЮБОЙ тур не из умры выходил подписанным
+        # Караденизом. Теперь это поле тура (tours.kicker).
+        "kicker": "Загадочный Карадениз",
         "description": (
             "Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и "
             "Трабзон за 8 дней. Сопровождение узбекского гида, более 15 "
@@ -383,6 +387,7 @@ for _u in UMRA_PROGRAMS:
     TOURS.append((_u["code"], "Умра · " + _u["prog"], "Умра", _agc, 0, 1, _u["dates_note"]))
     TOUR_DETAILS[_u["code"]] = {
         "nights": _u["nights"],
+        "kicker": "Умра · Мекка и Медина",
         "description": (
             "Умра по программе " + _u["prog"] + " ("
             + str(_u["nights"] + 1) + " дней / " + str(_u["nights"]) + " ночей). "
@@ -483,6 +488,7 @@ def write_demo_seed(demo_departures):
             "is_bookable": bookable,
             "note": note,
             "description": det.get("description"),
+            "kicker": det.get("kicker"),
             "nights": det.get("nights"),
             "from_price": det.get("from_price"),
             "included": list(blocks.get("included", [])),
@@ -613,12 +619,17 @@ def main():
 
     for code, name, dest, agc, opc, bookable, note in TOURS:
         det = TOUR_DETAILS.get(code, {})
+        # published_at проставляем сразу продающимся турам: NULL означает
+        # «черновик, ни разу не публиковался», и без этого тур, снятый
+        # оператором с продажи, показался бы черновиком.
+        published = "datetime('now')" if bookable else "NULL"
         out.append(
             "INSERT INTO tours (code, name, destination, agency_commission, "
-            "operator_commission, is_bookable, note, description, nights, "
-            "from_price, i18n) VALUES ("
-            f"{q(code)}, {q(name)}, {q(dest)}, {agc}, {opc}, {bookable}, {q(note)}, "
-            f"{q(det.get('description'))}, {q(det.get('nights'))}, "
+            "operator_commission, is_bookable, published_at, note, description, "
+            "kicker, nights, from_price, i18n) VALUES ("
+            f"{q(code)}, {q(name)}, {q(dest)}, {agc}, {opc}, {bookable}, {published}, "
+            f"{q(note)}, {q(det.get('description'))}, {q(det.get('kicker'))}, "
+            f"{q(det.get('nights'))}, "
             f"{q(det.get('from_price'))}, {tour_i18n(code, name, note, det)});"
         )
     out.append("")

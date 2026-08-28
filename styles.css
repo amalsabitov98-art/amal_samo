@@ -9274,3 +9274,133 @@ a.tt-contact-row:hover { color: var(--cc); }
 @media (max-width: 620px) {
   .tt-dest-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ======================================================================
+   СТРАНИЦА ТУРА У ОПЕРАТОРА: чек-лист, статусы, заезды тура, мастер.
+   Всё об одном туре на одном экране — раньше формы лежали подряд под
+   списком, а заезды вообще на другой вкладке.
+   ================================================================== */
+
+/* Полоса готовности в списке туров. Числа рядом обязательны: одна полоса
+   без подписи не говорит, СКОЛЬКО осталось. */
+.tt-tour-row { grid-template-columns: minmax(0, 1fr) 190px auto; }
+.tt-tour-ready { min-width: 150px; }
+.tt-ready-bar {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(16, 55, 47, 0.12);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.tt-ready-bar i { display: block; height: 100%; background: var(--tt-success); }
+.tt-ready-bar.is-partial i { background: var(--tt-warn-border); }
+
+.tt-badge-draft {
+  background: var(--tt-warn-bg);
+  color: var(--tt-warn-text);
+  border: 1px solid var(--tt-warn-border);
+}
+.tt-badge-ok {
+  background: var(--tt-success-soft);
+  color: var(--tt-success);
+  border: 1px solid rgba(22, 128, 95, 0.3);
+}
+
+/* Шапка страницы тура */
+.tt-tourpage-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.tt-tourpage-head > .tt-crumb { grid-column: 1 / -1; justify-self: start; }
+.tt-tourpage-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tt-tourpage-title h3 { margin: 0; font-size: 1.5rem; }
+.tt-tourpage-actions { grid-row: 2 / 4; grid-column: 2; }
+
+/* Чек-лист */
+.tt-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--tt-border);
+}
+.tt-step:last-child { border-bottom: none; }
+.tt-step-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid var(--tt-border-strong);
+  color: var(--tt-text-subtle);
+}
+.tt-step.is-done .tt-step-mark {
+  background: var(--tt-success);
+  border-color: var(--tt-success);
+  color: #fff;
+}
+.tt-step strong { display: block; }
+.tt-step.is-done strong { color: var(--tt-text-muted); }
+.tt-step .tt-muted-note { display: block; }
+
+.tt-publish-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tt-border);
+}
+.tt-publish-why { font-size: 13px; color: var(--tt-text-muted); }
+.tt-publish-why.is-warn {
+  color: var(--tt-warn-text);
+  background: var(--tt-warn-bg);
+  border: 1px solid var(--tt-warn-border);
+  border-radius: 10px;
+  padding: 7px 12px;
+}
+
+/* Заезды тура: «нет цен» — то, чего не видно в общем списке заездов */
+.tt-tour-dep { grid-template-columns: minmax(0, 1fr) 200px auto; }
+.tt-dep-state { display: flex; flex-direction: column; gap: 2px; }
+.tt-ok-note { color: var(--tt-success); font-weight: 600; font-size: 13px; }
+.tt-warn-note { color: var(--tt-warn-text); font-weight: 600; font-size: 13px; }
+
+/* Мастер создания тура */
+.tt-wiz-steps { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 16px; }
+.tt-wiz-steps span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--tt-text-subtle);
+}
+.tt-wiz-steps b {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  border: 2px solid var(--tt-border-strong);
+}
+.tt-wiz-steps span.is-on { color: var(--tt-forest); font-weight: 600; }
+.tt-wiz-steps span.is-on b {
+  background: var(--tt-forest-soft);
+  border-color: var(--tt-forest-soft);
+  color: #fff;
+}
+.tt-wizard .tt-wiz-pane h4 { margin: 0 0 10px; }
+
+@media (max-width: 720px) {
+  .tt-tour-row,
+  .tt-tour-dep { grid-template-columns: minmax(0, 1fr); }
+  .tt-tourpage-actions { grid-row: auto; grid-column: 1 / -1; }
+}

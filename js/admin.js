@@ -597,26 +597,95 @@
     });
   }
 
+  /*
+   * ЧЕК-ЛИСТ ГОТОВНОСТИ ТУРА.
+   *
+   * Считается ИЗ ДАННЫХ — счётчики приходят вместе со списком туров
+   * (adminTours). Отмечать пункты вручную нечего: это факты, а не задачи.
+   * Заполнил программу — пункт позеленел, удалил все дни — погас обратно.
+   * Тот же принцип, что у колокольчика уведомлений.
+   *
+   * `blocks: true` — пункт держит публикацию. Заглавный кадр её НЕ держит:
+   * у тура без фотографии фона просто нет, и это лучше пустой рамки.
+   * «Включено», галерея, «Информация» и переводы — тоже: карточка без них
+   * выходит целой.
+   */
+  function tourSteps(t) {
+    var deps = t.upcoming || 0;
+    var noPrice = t.deps_no_price || 0;
+    return [
+      { key: "basic", title: "Основное", blocks: true,
+        done: !!(t.name && t.destination),
+        hint: "Название, направление, ночи, комиссии" },
+      { key: "about", title: "Описание и оформление", blocks: true,
+        done: !!t.description,
+        hint: t.description
+          ? (t.hero_image ? "Описание и кадр на месте"
+                          : "Описание есть, заглавного кадра нет — фона у карточки не будет")
+          : "Описания нет — в каталоге под названием будет пусто" },
+      { key: "included", title: "Что входит в цену", blocks: false,
+        done: (t.included_count || 0) > 0,
+        hint: (t.included_count || 0) + " строк «включено»" },
+      { key: "days", title: "Программа по дням", blocks: true,
+        done: (t.days_count || 0) > 0,
+        hint: (t.days_count || 0)
+          ? (t.days_count + " дней")
+          : "Ни одного дня — клиент увидит карточку без маршрута" },
+      { key: "deps", title: "Заезды", blocks: true,
+        done: deps > 0,
+        hint: deps ? (deps + " предстоящих") : "Ни одной даты — продавать нечего" },
+      { key: "prices", title: "Цены на заездах", blocks: true,
+        done: deps > 0 && !noPrice,
+        hint: !deps
+          ? "Появится, когда будет хотя бы один заезд"
+          : (noPrice ? ("Без цен: " + noPrice + " из " + deps)
+                     : "У всех заездов есть прайс") },
+      { key: "info", title: "Важно знать", blocks: false, optional: true,
+        done: (t.info_count || 0) > 0,
+        hint: "Визы, страховка, ссылка на программу" },
+      { key: "gallery", title: "Фотографии", blocks: false, optional: true,
+        done: (t.gallery_count || 0) > 0,
+        hint: "Галерея под блоком «В цену входит»" },
+    ];
+  }
+
+  /* Сколько обязательных пунктов закрыто — для полосы в списке туров. */
+  function tourReady(t) {
+    var must = tourSteps(t).filter(function (s) { return s.blocks; });
+    return { done: must.filter(function (s) { return s.done; }).length, total: must.length };
+  }
+
+  /* Статус тура. «Черновик» и «снят с продажи» — это is_bookable = 0 в
+   * обоих случаях, различает их published_at: NULL значит, что тур ни разу
+   * не публиковался. */
+  function tourStatus(t) {
+    if (t.is_bookable !== 0) return { cls: "tt-badge-ok", text: "В продаже" };
+    if (!t.published_at) return { cls: "tt-badge-draft", text: "Черновик" };
+    return { cls: "tt-badge-off", text: "Снят с продажи" };
+  }
+
   function tourRowHtml(t) {
-    var off = t.is_bookable === 0;
-    return '<article class="tt-booking' + (off ? " is-cancelled" : "") + '">' +
-      "<div><strong>" + esc(t.name) + "</strong>" +
-        (off ? ' <span class="tt-badge tt-badge-off">Снят с продажи</span>' : "") +
+    var st = tourStatus(t);
+    var r = tourReady(t);
+    var full = r.done === r.total;
+    return '<article class="tt-booking tt-tour-row' +
+        (t.is_bookable === 0 ? " is-cancelled" : "") + '">' +
+      "<div><strong>" + esc(t.name) + "</strong> " +
+        '<span class="tt-badge ' + st.cls + '">' + esc(st.text) + "</span>" +
         '<div class="tt-muted-note">' + esc(t.code) + " · " + esc(t.destination) +
-          (t.nights ? " · " + t.nights + " ноч." : "") + "</div></div>" +
-      '<div class="tt-booking-money">' +
-        '<div class="tt-sum-line"><span>Заездов</span><strong>' +
-          (t.upcoming || 0) + " из " + (t.departures || 0) + "</strong></div>" +
-        '<div class="tt-sum-line"><span>Комиссия агентства</span><strong>' +
-          money(t.agency_commission || 0) + "</strong></div>" +
-        '<div class="tt-sum-line"><span>Комиссия оператора</span><strong>' +
-          money(t.operator_commission || 0) + "</strong></div>" +
+          (t.nights ? " · " + t.nights + " ноч." : "") +
+          " · заездов " + (t.upcoming || 0) + " из " + (t.departures || 0) +
+        "</div></div>" +
+      '<div class="tt-tour-ready">' +
+        '<div class="tt-muted-note">Готовность ' + r.done + " из " + r.total + "</div>" +
+        '<div class="tt-ready-bar' + (full ? "" : " is-partial") + '">' +
+          '<i style="width:' + Math.round((r.done / r.total) * 100) + '%"></i>' +
+        "</div>" +
       "</div>" +
       '<div class="tt-booking-action">' +
-        '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-edit="' +
-          t.id + '">Изменить</button>' +
-        '<button type="button" class="tt-btn secondary tt-btn-sm" data-tour-content="' +
-          t.id + '">Карточка</button>' +
+        '<button type="button" class="tt-btn' + (full ? " secondary" : "") +
+          ' tt-btn-sm" data-tour-open="' + t.id + '">' +
+          (full ? "Открыть" : "Продолжить") + "</button>" +
       "</div>" +
     "</article>";
   }
@@ -648,12 +717,6 @@
 
   function fillTourForm(t) {
     tourEditing = t ? t.id : null;
-    $("ot-form-title").textContent = t ? "Тур " + t.code : "Новый тур";
-    $("ot-form-hint").textContent = t
-      ? "Код тура не меняется: он стоит в ссылке на карточку, которую агенты " +
-        "уже разослали клиентам. Всё остальное правится свободно."
-      : "После создания к туру можно вешать заезды. Код в ссылке на карточку — " +
-        "поменять его потом нельзя.";
     $("ot-code").value = t ? t.code : "";
     $("ot-code").disabled = !!t;
     $("ot-name").value = t ? t.name : "";
@@ -663,7 +726,7 @@
     $("ot-operator").value = t ? (t.operator_commission || 0) : "";
     $("ot-from").value = t && t.from_price != null ? t.from_price : "";
     $("ot-description").value = (t && t.description) || "";
-    $("ot-bookable").checked = !t || t.is_bookable !== 0;
+    $("ot-kicker").value = (t && t.kicker) || "";
     // Виджет фотографии перерисовывается ЦЕЛИКОМ на каждое открытие формы:
     // в нём есть состояние (превью, подпись «загружено»), и от прошлого
     // тура оно осталось бы висеть на новом.
@@ -672,6 +735,139 @@
     $("ot-msg").textContent = "";
     $("ot-msg").className = "tt-editor-msg";
     $("ot-form").hidden = false;
+  }
+
+  /* --------------------------------------------- СТРАНИЦА ОДНОГО ТУРА
+   * Всё об одном туре на одном экране: чек-лист, основное, карточка и
+   * ЕГО заезды. Раньше формы лежали подряд под общим списком, а заезды
+   * вообще на другой вкладке — оператор прыгал между ними и нигде не
+   * видел, что у тура ещё не заполнено.
+   */
+  var tourPageId = null;   // id тура, чья страница открыта
+
+  function currentTour() {
+    return state.tours.filter(function (t) { return t.id === tourPageId; })[0] || null;
+  }
+
+  function showTourList() {
+    tourPageId = null;
+    $("ot-view-page").hidden = true;
+    $("ot-view-list").hidden = false;
+  }
+
+  /* Чек-лист. Кнопка у пункта уводит к нужному блоку той же страницы —
+   * прокруткой, а не переходом: всё уже здесь. */
+  function renderChecklist(t) {
+    var steps = tourSteps(t);
+    var n = 0;
+    $("ot-checklist").innerHTML = steps.map(function (s) {
+      if (!s.optional) n++;
+      var num = s.optional ? "·" : String(n);
+      return '<div class="tt-step' + (s.done ? " is-done" : "") +
+          (s.optional ? " is-optional" : "") + '">' +
+        '<span class="tt-step-mark">' + (s.done ? "✓" : esc(num)) + "</span>" +
+        "<div><strong>" + esc(s.title) + "</strong>" +
+          (s.optional ? ' <span class="tt-opt">необязательно</span>' : "") +
+          '<span class="tt-muted-note">' + esc(s.hint) + "</span></div>" +
+        '<button type="button" class="tt-btn secondary tt-btn-sm" data-step-go="' +
+          esc(s.key) + '">' + (s.done ? "Изменить" : "Заполнить") + "</button>" +
+      "</div>";
+    }).join("");
+
+    // Кнопка публикации подписана тем, чего НЕ ХВАТАЕТ. «Заполните
+    // обязательные поля» заставляло бы оператора искать, какие именно.
+    var missing = steps.filter(function (s) { return s.blocks && !s.done; });
+    var live = t.is_bookable !== 0;
+    var btn = $("ot-publish"), why = $("ot-publish-why");
+    btn.textContent = live ? "Снять с продажи" : "Опубликовать";
+    btn.className = "tt-btn tt-btn-sm" + (live ? " secondary" : "");
+    btn.disabled = !live && missing.length > 0;
+    why.textContent = live
+      ? "Тур в каталоге. Снятие уберёт его вместе с предстоящими заездами."
+      : (missing.length
+          ? "Осталось: " + missing.map(function (s) {
+              return s.title.toLowerCase(); }).join(", ")
+          : "Всё готово — можно открывать продажу.");
+    why.className = "tt-publish-why" + (missing.length && !live ? " is-warn" : "");
+  }
+
+  function renderTourPageHead(t) {
+    var st = tourStatus(t);
+    $("ot-page-name").textContent = t.name;
+    $("ot-page-badge").className = "tt-badge " + st.cls;
+    $("ot-page-badge").textContent = st.text;
+    $("ot-page-meta").textContent = t.code + " · " + t.destination +
+      (t.nights ? " · " + t.nights + " ноч." : "");
+  }
+
+  /* Заезды ЭТОГО тура. Берём из уже загруженных state.departures —
+   * лишнего запроса нет. Подпись «нет цен» здесь важнее остального: это
+   * последнее, что держит публикацию, и в общем списке заездов такого
+   * признака не видно. */
+  function renderTourDepartures(t) {
+    var today = new Date().toISOString().slice(0, 10);
+    var mine = state.departures.filter(function (d) {
+      return d.tour_code === t.code || d.tour_id === t.id;
+    }).sort(function (a, b) { return a.date_start < b.date_start ? -1 : 1; });
+
+    if (!mine.length) {
+      $("ot-deps").innerHTML = '<div class="tt-empty-state">Заездов нет. ' +
+        "Заезд — это дата вылета со своим прайсом; пока его нет, продавать нечего." +
+        "</div>";
+      return;
+    }
+    $("ot-deps").innerHTML = mine.map(function (d) {
+      var past = d.date_start < today;
+      var hasPrice = (d.prices || []).some(function (p) {
+        return p.kind === "placement";
+      });
+      return '<article class="tt-booking tt-tour-dep' + (past ? " is-cancelled" : "") + '">' +
+        "<div><strong>" + formatDate(d.date_start) + "</strong>" +
+          '<div class="tt-muted-note">' + esc(d.code) + " · " +
+            esc(d.transport || "") + (past ? " · прошедший" : "") + "</div></div>" +
+        '<div class="tt-dep-state">' +
+          '<span class="' + (hasPrice ? "tt-ok-note" : "tt-warn-note") + '">' +
+            (hasPrice ? "Цены заданы" : "Нет цен") + "</span>" +
+          '<span class="tt-muted-note">' +
+            (d.is_open === 0 ? "Продажа закрыта" : "Продажа открыта") + "</span>" +
+        "</div>" +
+        '<div class="tt-booking-action">' +
+          '<button type="button" class="tt-btn secondary tt-btn-sm" data-dep-go="' +
+            esc(d.code) + '">Открыть заезд</button>' +
+        "</div>" +
+      "</article>";
+    }).join("");
+  }
+
+  /* Перерисовать всё, что зависит от данных тура. Зовётся и при открытии
+   * страницы, и после каждого сохранения: чек-лист обязан гаснуть сам. */
+  function paintTourPage() {
+    var t = currentTour();
+    if (!t) return showTourList();
+    renderTourPageHead(t);
+    renderChecklist(t);
+    renderTourDepartures(t);
+  }
+
+  function openTourPage(id) {
+    tourPageId = id;
+    var t = currentTour();
+    if (!t) return;
+    $("ot-view-list").hidden = true;
+    $("ot-view-page").hidden = false;
+    fillTourForm(t);
+    paintTourPage();
+    // Контент карточки лежит отдельным запросом — он тяжелее списка.
+    TuronApi.tourContent(id).then(function (data) {
+      contentEditing = id;
+      renderContentEditor(data);
+    }).catch(function (err) {
+      $("oc-msg").className = "tt-editor-msg is-err";
+      $("oc-msg").textContent = err.message;
+    });
+    if ($("ot-view-page").scrollIntoView) {
+      $("ot-view-page").scrollIntoView({ block: "start" });
+    }
   }
 
   /* ------------------------------------------ контент карточки тура
@@ -2087,35 +2283,204 @@
       });
     });
 
+    /* ------------------------------ мастер создания тура (три шага)
+     * Шаги идут по смыслу: как называется → куда и на сколько → сколько
+     * зарабатывает агентство. Одна форма на девять полей заставляла
+     * оператора решать всё сразу, включая то, что он ещё не знает.
+     */
+    var wizStep = 1;
+
+    function showWizStep(n) {
+      wizStep = n;
+      Array.prototype.forEach.call(
+        document.querySelectorAll("[data-wiz-pane]"), function (p) {
+          p.hidden = Number(p.dataset.wizPane) !== n;
+        });
+      Array.prototype.forEach.call(
+        document.querySelectorAll("[data-wiz-dot]"), function (d) {
+          d.classList.toggle("is-on", Number(d.dataset.wizDot) <= n);
+        });
+      $("ow-back").hidden = n === 1;
+      $("ow-next").hidden = n === 3;
+      $("ow-save").hidden = n !== 3;
+      $("ow-msg").textContent = "";
+      $("ow-msg").className = "tt-editor-msg";
+    }
+
+    // Код собирается из названия латиницей — но только пока оператор не
+    // тронул поле сам (та же схема, что у кода заезда).
+    var wizCodeTouched = false;
+    $("ow-code").addEventListener("input", function () { wizCodeTouched = true; });
+
+    function suggestTourCode(name) {
+      var map = { а:"A",б:"B",в:"V",г:"G",д:"D",е:"E",ё:"E",ж:"ZH",з:"Z",и:"I",
+        й:"Y",к:"K",л:"L",м:"M",н:"N",о:"O",п:"P",р:"R",с:"S",т:"T",у:"U",
+        ф:"F",х:"H",ц:"C",ч:"CH",ш:"SH",щ:"SCH",ъ:"",ы:"Y",ь:"",э:"E",ю:"YU",я:"YA" };
+      var out = String(name || "").toLowerCase().split("").map(function (ch) {
+        if (map[ch] != null) return map[ch];
+        return /[a-z0-9]/.test(ch) ? ch.toUpperCase() : " ";
+      }).join("").trim().split(/\s+/)[0] || "";
+      return out.slice(0, 32);
+    }
+
+    function openWizard() {
+      $("ot-wizard").hidden = false;
+      $("ow-name").value = "";
+      $("ow-destination").value = "";
+      $("ow-nights").value = "";
+      $("ow-code").value = "";
+      $("ow-agency").value = "0";
+      $("ow-operator").value = "0";
+      wizCodeTouched = false;
+      showWizStep(1);
+      $("ow-name").focus();
+    }
+
     $("ot-new").addEventListener("click", function () {
-      var form = $("ot-form");
-      // Повторный клик по «+ Новый тур» при открытой ПРАВКЕ должен
-      // переключить форму на создание, а не закрыть её молча.
-      if (!form.hidden && tourEditing === null) { form.hidden = true; return; }
-      $("ot-content").hidden = true;
-      contentEditing = null;
-      fillTourForm(null);
-      $("ot-code").focus();
+      if (!$("ot-wizard").hidden) { $("ot-wizard").hidden = true; return; }
+      openWizard();
     });
-    $("ot-cancel").addEventListener("click", function () {
-      $("ot-form").hidden = true;
-      tourEditing = null;
+    $("ow-cancel").addEventListener("click", function () {
+      $("ot-wizard").hidden = true;
     });
-    $("ot-list").addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-tour-edit]");
-      if (!btn) return;
-      var t = state.tours.filter(function (x) {
-        return x.id === Number(btn.dataset.tourEdit);
-      })[0];
-      if (t) {
-        // Закрываем редактор карточки: иначе на экране висят ДВА редактора
-        // разных туров — форма правки одного и карточка другого, и «Сохранить
-        // карточку» пишет не туда, куда смотрит оператор.
-        $("ot-content").hidden = true;
-        contentEditing = null;
-        fillTourForm(t);
-        $("ot-name").focus();
+    $("ow-back").addEventListener("click", function () {
+      showWizStep(Math.max(1, wizStep - 1));
+    });
+    $("ow-next").addEventListener("click", function () {
+      // Шаг не пропускаем вперёд с пустым обязательным полем: иначе
+      // оператор дойдёт до конца и получит отказ сервера на третьем шаге.
+      if (wizStep === 1) {
+        if (!$("ow-name").value.trim()) {
+          $("ow-msg").className = "tt-editor-msg is-err";
+          $("ow-msg").textContent = "Нужно название тура";
+          return;
+        }
+        if (!wizCodeTouched) $("ow-code").value = suggestTourCode($("ow-name").value);
       }
+      if (wizStep === 2 && !$("ow-destination").value.trim()) {
+        $("ow-msg").className = "tt-editor-msg is-err";
+        $("ow-msg").textContent = "Нужно направление";
+        return;
+      }
+      showWizStep(Math.min(3, wizStep + 1));
+    });
+
+    $("ot-wizard").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = $("ow-msg"), save = $("ow-save");
+      msg.className = "tt-editor-msg";
+      msg.textContent = "Создаю…";
+      save.disabled = true;
+      TuronApi.createTour({
+        code: $("ow-code").value,
+        name: $("ow-name").value,
+        destination: $("ow-destination").value,
+        nights: $("ow-nights").value,
+        agency_commission: $("ow-agency").value,
+        operator_commission: $("ow-operator").value,
+      }).then(function (res) {
+        save.disabled = false;
+        $("ot-wizard").hidden = true;
+        // Сразу открываем страницу нового тура: там чек-лист, и он
+        // показывает, что делать дальше. Отдельное «тур создан, теперь
+        // заведите заезд» было единственной подсказкой и терялось.
+        return loadTours().then(function () { openTourPage(res.id); });
+      }).catch(function (err) {
+        save.disabled = false;
+        msg.className = "tt-editor-msg is-err";
+        msg.textContent = err.message;
+      });
+    });
+
+    /* ------------------------------------- список туров и страница */
+    $("ot-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-tour-open]");
+      if (!btn) return;
+      openTourPage(Number(btn.dataset.tourOpen));
+    });
+
+    $("ot-back").addEventListener("click", showTourList);
+
+    // «Как видит клиент» — публичная карточка тура в новой вкладке.
+    // Черновик там тоже открывается: карточка не требует is_bookable,
+    // и оператор должен увидеть результат ДО публикации.
+    $("ot-preview").addEventListener("click", function () {
+      var t = currentTour();
+      if (!t) return;
+      global.open(location.pathname + "#/t/" + encodeURIComponent(t.code), "_blank");
+    });
+
+    // Пункт чек-листа уводит к своему блоку на этой же странице.
+    $("ot-checklist").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-step-go]");
+      if (!btn) return;
+      var TARGET = {
+        basic: "ot-form", about: "ot-form",
+        included: "ot-content", days: "ot-content",
+        info: "ot-content", gallery: "ot-content",
+        deps: "ot-deps", prices: "ot-deps",
+      };
+      var box = $(TARGET[btn.dataset.stepGo] || "ot-form");
+      if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (btn.dataset.stepGo === "about") $("ot-description").focus();
+    });
+
+    /* Публикация. Кнопка гаснет заранее для удобства, но настоящий
+     * запрет живёт на сервере — маршрут открыт по токену. */
+    $("ot-publish").addEventListener("click", function () {
+      var t = currentTour();
+      if (!t) return;
+      var live = t.is_bookable !== 0;
+      if (live && !confirm("Снять «" + t.name + "» с продажи? Тур пропадёт из " +
+          "каталога вместе с предстоящими заездами.")) return;
+
+      var btn = $("ot-publish");
+      btn.disabled = true;
+      (live ? TuronApi.unpublishTour(t.id) : TuronApi.publishTour(t.id))
+        .then(function (res) {
+          return loadTours().then(function () {
+            paintTourPage();
+            if (live && res.hidden_upcoming) {
+              alert("Тур снят с продажи. Вместе с ним из каталога пропали " +
+                    "предстоящие заезды: " + res.hidden_upcoming + ".");
+            }
+          });
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          var miss = err.data && err.data.missing;
+          alert(miss && miss.length
+            ? "Тур ещё не готов к продаже. Не хватает: " + miss.join(", ") + "."
+            : err.message);
+        });
+    });
+
+    // Заезд этого тура — открывается в «Списках пассажиров», где ведомость,
+    // прайс и управление продажей. Дублировать их здесь незачем.
+    $("ot-deps").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-dep-go]");
+      if (!btn) return;
+      jumpToTab("manifest");
+      setSelectedDeparture(btn.dataset.depGo);
+    });
+
+    // «+ Новый заезд» со страницы тура: та же форма, что на вкладке
+    // заездов, но с уже выбранным туром — иначе оператор ищет его в
+    // списке и промахивается.
+    $("ot-add-dep").addEventListener("click", function () {
+      var t = currentTour();
+      if (!t) return;
+      jumpToTab("manifest");
+      var form = $("adm-new-dep-form");
+      form.hidden = false;
+      fillTourOptions().then(function () {
+        fillNewDepForm();
+        // Без образца сервер спрашивает тур — подставляем текущий.
+        $("nd-source").value = "";
+        syncNewDepFromSource();
+        $("nd-tour").value = t.code;
+        $("nd-date").focus();
+      });
     });
 
     $("ot-form").addEventListener("submit", function (e) {
@@ -2129,58 +2494,28 @@
         operator_commission: $("ot-operator").value,
         from_price: $("ot-from").value,
         description: $("ot-description").value,
+        kicker: $("ot-kicker").value,
         hero_image: $("ot-hero") ? $("ot-hero").value : "",
-        is_bookable: $("ot-bookable").checked ? 1 : 0,
       };
-      if (!tourEditing) payload.code = $("ot-code").value;
+      // Продажей управляет кнопка «Опубликовать», а не поле формы: там
+      // проверка готовности, здесь просто правка данных. is_bookable
+      // сервер оставит прежним — в теле его нет.
 
       msg.className = "tt-editor-msg";
       msg.textContent = "Сохраняю…";
       save.disabled = true;
-      var action = tourEditing
-        ? TuronApi.updateTour(tourEditing, payload)
-        : TuronApi.createTour(payload);
-      action.then(function (res) {
+      TuronApi.updateTour(tourEditing, payload).then(function () {
         save.disabled = false;
-        $("ot-form").hidden = true;
-        var wasNew = !tourEditing;
-        tourEditing = null;
-        return loadTours().then(function () {
-          alert(wasNew
-            ? "Тур " + res.code + " создан. Теперь заведите ему заезд на вкладке " +
-              "«Заезды и пассажиры» — цены берутся с заезда, не с тура."
-            : "Тур " + res.code + " сохранён." +
-              (res.hidden_upcoming
-                ? " Снят с продажи вместе с предстоящими заездами: " +
-                  res.hidden_upcoming + "."
-                : ""));
-        });
+        msg.className = "tt-editor-msg is-ok";
+        msg.textContent = "Сохранено";
+        // Чек-лист обязан пересчитаться сразу: заполнил описание —
+        // пункт зеленеет, не отходя от формы.
+        return loadTours().then(paintTourPage);
       }).catch(function (err) {
         save.disabled = false;
         msg.className = "tt-editor-msg is-err";
         msg.textContent = err.message;
       });
-    });
-
-    /* -------------------------------------- контент карточки тура */
-    $("ot-list").addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-tour-content]");
-      if (!btn) return;
-      var id = Number(btn.dataset.tourContent);
-      TuronApi.tourContent(id).then(function (data) {
-        contentEditing = id;
-        renderContentEditor(data);
-        $("ot-content").hidden = false;
-        $("ot-form").hidden = true;
-        $("ot-content").scrollIntoView({ behavior: "smooth", block: "start" });
-      }).catch(function (err) {
-        alert("Не удалось открыть карточку: " + err.message);
-      });
-    });
-
-    $("oc-close").addEventListener("click", function () {
-      $("ot-content").hidden = true;
-      contentEditing = null;
     });
 
     $("ot-content").addEventListener("click", function (e) {
@@ -2241,6 +2576,9 @@
           msg.className = "tt-editor-msg is-ok";
           msg.textContent = "Сохранено: строк " + res.rows +
             (res.variants ? ", вариантов " + res.variants : "") + ".";
+          // Программа и «включено» — пункты чек-листа: он должен
+          // пересчитаться, не отходя от редактора.
+          return loadTours().then(paintTourPage);
         }).catch(function (err) {
           btn.disabled = false;
           msg.className = "tt-editor-msg is-err";

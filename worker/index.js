@@ -539,12 +539,12 @@ async function catalogDestinations(env, lang) {
 
 async function catalogTour(env, code, lang) {
   const tour = await env.DB.prepare(
-    `SELECT code, name, destination, note, description, nights, is_bookable,
+    `SELECT code, name, destination, note, description, kicker, nights, is_bookable,
             hero_image, i18n
        FROM tours WHERE code = ?`
   ).bind(code).first();
   if (!tour) return null;
-  localize(tour, lang, ["name", "description", "note"]);
+  localize(tour, lang, ["name", "description", "note", "kicker"]);
 
   const content = await env.DB.prepare(
     `SELECT c.kind, c.variant, c.sort, c.title, c.text, c.url, c.i18n
@@ -1515,17 +1515,128 @@ async function saveDestination(request, env, actor, name) {
   return json({ name, title, blurb, image, sort });
 }
 
+/*
+ * Список туров для оператора — он же источник ЧЕК-ЛИСТА готовности.
+ *
+ * Счётчики считаются здесь, а не собираются кабинетом из трёх запросов:
+ * иначе список туров тянул бы контент каждого тура целиком ради того,
+ * чтобы узнать, есть ли у него хоть один день программы.
+ *
+ * `deps_no_price` — предстоящие заезды, у которых в прайсе нет ни одного
+ * размещения. Такой заезд агентство видит, но забронировать не может:
+ * форма упирается в «нет цены на размещение». Это и есть последний шаг
+ * перед публикацией, и без счётчика оператор о нём не узнаёт.
+ */
 async function adminTours(env) {
   const rows = await env.DB.prepare(
     `SELECT t.id, t.code, t.name, t.destination, t.agency_commission,
-            t.operator_commission, t.is_bookable, t.note, t.description,
-            t.nights, t.from_price, t.hero_image,
+            t.operator_commission, t.is_bookable, t.published_at, t.note,
+            t.description, t.kicker, t.nights, t.from_price, t.hero_image,
             (SELECT COUNT(*) FROM departures d WHERE d.tour_id = t.id) AS departures,
             (SELECT COUNT(*) FROM departures d
-              WHERE d.tour_id = t.id AND d.date_start >= date('now')) AS upcoming
+              WHERE d.tour_id = t.id AND d.date_start >= date('now')) AS upcoming,
+            (SELECT COUNT(*) FROM tour_content c
+              WHERE c.tour_id = t.id AND c.kind = 'day') AS days_count,
+            (SELECT COUNT(*) FROM tour_content c
+              WHERE c.tour_id = t.id AND c.kind = 'included') AS included_count,
+            (SELECT COUNT(*) FROM tour_content c
+              WHERE c.tour_id = t.id AND c.kind = 'info') AS info_count,
+            (SELECT COUNT(*) FROM tour_content c
+              WHERE c.tour_id = t.id AND c.kind = 'gallery') AS gallery_count,
+            (SELECT COUNT(*) FROM departures d
+              WHERE d.tour_id = t.id AND d.date_start >= date('now')
+                AND NOT EXISTS (SELECT 1 FROM departure_prices p
+                                 WHERE p.departure_id = d.id
+                                   AND p.kind = 'placement')) AS deps_no_price
        FROM tours t ORDER BY t.destination, t.name`
   ).all();
   return json(rows.results);
+}
+
+/*
+ * Чего не хватает туру, чтобы его можно было продавать. Одна функция на
+ * проверку кнопки и на запрет публикации: разойдись они — кабинет
+ * показывал бы «всё готово» там, где сервер отказывает.
+ *
+ * Возвращает список человеческих причин. Пустой список = можно публиковать.
+ *
+ * Заглавный кадр сюда НЕ входит: у тура без фотографии фона просто нет, и
+ * это лучше пустой рамки (решение принято раньше, см. hero_image). Список
+ * «включено», переводы и галерея — тоже: карточка без них выходит целой.
+ */
+async function tourBlockers(env, tour) {
+  const out = [];
+  if (!tour.description) out.push("описание карточки");
+
+  const days = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM tour_content WHERE tour_id = ? AND kind = 'day'"
+  ).bind(tour.id).first();
+  if (!days.n) out.push("программа по дням");
+
+  const deps = await env.DB.prepare(
+    `SELECT COUNT(*) AS n,
+            SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM departure_prices p
+                                       WHERE p.departure_id = d.id
+                                         AND p.kind = 'placement')
+                     THEN 1 ELSE 0 END) AS no_price
+       FROM departures d
+      WHERE d.tour_id = ? AND d.date_start >= date('now')`
+  ).bind(tour.id).first();
+  if (!deps.n) out.push("хотя бы один предстоящий заезд");
+  else if (deps.no_price) {
+    out.push(deps.no_price === deps.n
+      ? "цены на заездах"
+      : `цены на ${deps.no_price} из ${deps.n} заездов`);
+  }
+  return out;
+}
+
+/*
+ * Открыть тур в продажу. Запрет живёт ЗДЕСЬ, а не только в кабинете:
+ * кнопка — удобство, а маршрут открыт по токену, и опубликовать пустой
+ * тур можно было бы в обход интерфейса. Та же дыра уже была с отменой
+ * брони и заменой состава.
+ */
+async function publishTour(env, actor, tourId) {
+  const tour = await env.DB.prepare("SELECT * FROM tours WHERE id = ?")
+    .bind(tourId).first();
+  if (!tour) return fail("Тур не найден", 404);
+
+  const missing = await tourBlockers(env, tour);
+  if (missing.length) {
+    return json({ error: "Тур ещё не готов к продаже", missing }, 409);
+  }
+
+  // published_at ставим только в первый раз: он отличает черновик от тура,
+  // который снимали с продажи и открывают заново.
+  await env.DB.prepare(
+    `UPDATE tours SET is_bookable = 1,
+            published_at = COALESCE(published_at, datetime('now'))
+      WHERE id = ?`
+  ).bind(tourId).run();
+
+  return json({ id: tourId, code: tour.code, is_bookable: 1 });
+}
+
+/*
+ * Снять с продажи. Тур пропадает из каталога вместе с предстоящими
+ * заездами, поэтому в ответе — сколько их скрылось: оператор должен
+ * понимать, что убирает не только карточку.
+ */
+async function unpublishTour(env, actor, tourId) {
+  const tour = await env.DB.prepare("SELECT id, code, is_bookable FROM tours WHERE id = ?")
+    .bind(tourId).first();
+  if (!tour) return fail("Тур не найден", 404);
+
+  const up = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM departures
+      WHERE tour_id = ? AND is_open = 1 AND date_start >= date('now')`
+  ).bind(tourId).first();
+
+  await env.DB.prepare("UPDATE tours SET is_bookable = 0 WHERE id = ?")
+    .bind(tourId).run();
+
+  return json({ id: tourId, code: tour.code, is_bookable: 0, hidden_upcoming: up.n });
 }
 
 function tourFields(body, current) {
@@ -1571,6 +1682,9 @@ function tourFields(body, current) {
     description: body.description != null
       ? String(body.description).trim().slice(0, 4000) || null
       : (cur.description || null),
+    kicker: body.kicker != null
+      ? String(body.kicker).trim().slice(0, 120) || null
+      : (cur.kicker || null),
     note: body.note != null
       ? String(body.note).trim().slice(0, 500) || null
       : (cur.note || null),
@@ -1596,15 +1710,23 @@ async function createTour(request, env, actor) {
   const f = tourFields(body, null);
   if (f.error) return fail(f.error);
 
+  // Новый тур — ВСЕГДА черновик, что бы ни прислал клиент. Раньше галочка
+  // «В продаже» стояла по умолчанию, и тур появлялся в публичном каталоге
+  // в момент создания: без программы, без заездов и без цен. Открывает
+  // продажу отдельный маршрут /publish, и он же проверяет готовность.
+  f.is_bookable = 0;
+
   const made = await env.DB.prepare(
     `INSERT INTO tours (code, name, destination, agency_commission, operator_commission,
-                        is_bookable, note, description, nights, from_price, hero_image)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        is_bookable, note, description, kicker, nights, from_price,
+                        hero_image)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(code, f.name, f.destination, f.agency_commission, f.operator_commission,
-         f.is_bookable, f.note, f.description, f.nights, f.from_price,
+         f.is_bookable, f.note, f.description, f.kicker, f.nights, f.from_price,
          f.hero_image).run();
 
-  return json({ id: made.meta.last_row_id, code, ...f, departures: 0 });
+  return json({ id: made.meta.last_row_id, code, ...f, departures: 0,
+                published_at: null });
 }
 
 async function updateTour(request, env, actor, tourId) {
@@ -1637,10 +1759,11 @@ async function updateTour(request, env, actor, tourId) {
   await env.DB.prepare(
     `UPDATE tours SET name = ?, destination = ?, agency_commission = ?,
                       operator_commission = ?, is_bookable = ?, note = ?,
-                      description = ?, nights = ?, from_price = ?, hero_image = ?
+                      description = ?, kicker = ?, nights = ?, from_price = ?,
+                      hero_image = ?
       WHERE id = ?`
   ).bind(f.name, f.destination, f.agency_commission, f.operator_commission,
-         f.is_bookable, f.note, f.description, f.nights, f.from_price,
+         f.is_bookable, f.note, f.description, f.kicker, f.nights, f.from_price,
          f.hero_image, tourId).run();
 
   return json({ id: tourId, code: cur.code, ...f, hidden_upcoming: hiddenUpcoming });
@@ -2808,6 +2931,15 @@ async function route(request, env, ctx) {
         }
         if (tourCnt && request.method === "POST") {
           return await updateTourContent(request, env, agency, Number(tourCnt[1]));
+        }
+
+        // Открыть/снять с продажи. Отдельными маршрутами, а не галочкой в
+        // форме тура: публикация — это проверка готовности, а не поле.
+        const tourPub = path.match(/^\/api\/admin\/tours\/(\d+)\/(publish|unpublish)$/);
+        if (tourPub && request.method === "POST") {
+          return tourPub[2] === "publish"
+            ? await publishTour(env, agency, Number(tourPub[1]))
+            : await unpublishTour(env, agency, Number(tourPub[1]));
         }
 
         const tourEdit = path.match(/^\/api\/admin\/tours\/(\d+)$/);

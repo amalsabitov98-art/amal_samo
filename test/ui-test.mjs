@@ -2725,20 +2725,41 @@ console.log("\nТуры: оператор заводит продукт");
   const before = await page.locator("#ot-list .tt-booking").count();
   check("список туров непустой", before > 0, before + " туров");
 
+  // Создание — мастер из трёх шагов, а не одна форма на девять полей.
   await page.click("#ot-new");
-  await page.waitForTimeout(400);
-  check("код нового тура вводится", !(await page.locator("#ot-code").isDisabled()));
+  await page.waitForTimeout(300);
+  check("мастер открылся на первом шаге",
+        await page.locator('[data-wiz-pane="1"]').isVisible());
+  check("на первом шаге не показаны комиссии",
+        !(await page.locator('[data-wiz-pane="3"]').isVisible()));
 
-  await page.fill("#ot-code", "PROBA");
-  await page.fill("#ot-name", "Пробный тур");
-  await page.fill("#ot-destination", "Турция");
-  await page.fill("#ot-agency", "40");
-  await page.fill("#ot-operator", "25");
-  await page.fill("#ot-nights", "7");
-  await page.click("#ot-save");
+  // Пустое обязательное поле не пускает дальше: иначе оператор дойдёт до
+  // конца и получит отказ сервера на третьем шаге.
+  await page.click("#ow-next");
+  await page.waitForTimeout(200);
+  check("без названия дальше не пускает",
+        await page.locator('[data-wiz-pane="1"]').isVisible());
+  check("сказано, чего не хватает",
+        (await page.locator("#ow-msg").innerText()).includes("название"));
+
+  await page.fill("#ow-name", "Пробный тур");
+  await page.click("#ow-next");
+  await page.waitForTimeout(200);
+  check("второй шаг открылся",
+        await page.locator('[data-wiz-pane="2"]').isVisible());
+  check("код подсказан из названия",
+        (await page.inputValue("#ow-code")).length > 0,
+        await page.inputValue("#ow-code"));
+
+  await page.fill("#ow-code", "PROBA");
+  await page.fill("#ow-destination", "Турция");
+  await page.fill("#ow-nights", "7");
+  await page.click("#ow-next");
+  await page.waitForTimeout(200);
+  await page.fill("#ow-agency", "40");
+  await page.fill("#ow-operator", "25");
+  await page.click("#ow-save");
   await page.waitForTimeout(1000);
-  check("тур появился в списке",
-        (await page.locator("#ot-list .tt-booking").count()) === before + 1);
 
   const made = await page.evaluate(async () => {
     const list = await window.TuronApi.adminTours();
@@ -2746,16 +2767,93 @@ console.log("\nТуры: оператор заводит продукт");
   });
   check("комиссии сохранены",
         made.agency_commission === 40 && made.operator_commission === 25);
-  check("новый тур сразу в продаже", made.is_bookable !== 0);
+  // Раньше галочка «В продаже» стояла по умолчанию, и пустой тур попадал
+  // в публичный каталог в момент создания.
+  check("новый тур создан ЧЕРНОВИКОМ", made.is_bookable === 0,
+        "is_bookable=" + made.is_bookable);
+  check("черновик не помечен опубликованным", !made.published_at);
   check("заездов у нового тура нет", made.departures === 0);
 
+  // После создания сразу открывается страница тура: чек-лист там и
+  // говорит, что делать дальше.
+  check("открылась страница нового тура",
+        await page.locator("#ot-view-page").isVisible());
+  check("список туров при этом скрыт",
+        !(await page.locator("#ot-view-list").isVisible()));
+  check("в шапке стоит «Черновик»",
+        (await page.locator("#ot-page-badge").innerText()).includes("Черновик"));
+
+  // Чек-лист считается из данных: у пустого тура закрыт только «Основное».
+  const steps = await page.locator("#ot-checklist .tt-step").count();
+  check("чек-лист нарисован", steps >= 6, steps + " пунктов");
+  const doneNow = await page.locator("#ot-checklist .tt-step.is-done").count();
+  check("у пустого тура закрыт один пункт", doneNow === 1, doneNow + " закрыто");
+
+  check("публикация недособранного тура заблокирована",
+        await page.locator("#ot-publish").isDisabled());
+  const why = await page.locator("#ot-publish-why").innerText();
+  check("сказано, чего именно не хватает",
+        why.includes("описание") && why.includes("заезд"), why);
+
   // Код — часть публичной ссылки на карточку, менять его нельзя.
-  await page.locator('[data-tour-edit]').first().click();
-  await page.waitForTimeout(400);
   check("при правке код заблокирован", await page.locator("#ot-code").isDisabled());
   check("в подсказке объяснено, почему",
         (await page.locator("#ot-form-hint").innerText()).includes("ссылке"));
 
+  // Чек-лист обязан пересчитаться сразу после сохранения — иначе оператор
+  // не понимает, засчиталось ли то, что он только что вписал.
+  await page.fill("#ot-description", "Описание пробного тура для проверки.");
+  await page.click("#ot-save");
+  await page.waitForTimeout(900);
+  const doneAfter = await page.locator("#ot-checklist .tt-step.is-done").count();
+  check("после описания пункт чек-листа зеленеет", doneAfter === 2,
+        doneAfter + " закрыто");
+
+  await page.click("#ot-back");
+  await page.waitForTimeout(300);
+  check("«Все туры» возвращает к списку",
+        await page.locator("#ot-view-list").isVisible());
+  check("тур появился в списке",
+        (await page.locator("#ot-list .tt-booking").count()) === before + 1);
+  check("в списке видна готовность",
+        (await page.locator("#ot-list .tt-tour-ready").first().innerText())
+          .includes("Готовность"));
+
+  await page.close();
+}
+
+console.log("\nТуры: публикацию держит сервер, а не кнопка");
+{
+  const { page, errors } = await session("operator");
+  const res = await page.evaluate(async () => {
+    const made = await window.TuronApi.createTour({
+      code: "PUBTEST", name: "Тур на публикацию", destination: "Турция",
+    });
+    const out = { id: made.id, bookable: made.is_bookable };
+    // Кнопка в кабинете гаснет, но маршрут открыт по токену — запрет
+    // обязан жить на сервере. Дёргаем API напрямую, в обход интерфейса.
+    try {
+      await window.TuronApi.publishTour(made.id);
+      out.published = "прошло";
+    } catch (e) {
+      out.published = e.message;
+      out.missing = (e.data && e.data.missing) || [];
+    }
+    const after = (await window.TuronApi.adminTours())
+      .find((t) => t.id === made.id);
+    out.stillDraft = after.is_bookable === 0;
+    return out;
+  });
+
+  check("тур создан закрытым", res.bookable === 0);
+  check("публикация пустого тура отбита сервером",
+        /не готов/.test(res.published), res.published);
+  check("в отказе перечислено, чего не хватает",
+        res.missing.length >= 3, JSON.stringify(res.missing));
+  check("описание названо в причинах",
+        res.missing.some((m) => /описание/.test(m)), JSON.stringify(res.missing));
+  check("тур остался черновиком после отказа", res.stillDraft);
+  check("без ошибок в консоли", errors.length === 0, errors.join("; "));
   await page.close();
 }
 
