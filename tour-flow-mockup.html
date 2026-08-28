@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Макет: создание тура</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+:root{
+  --tt-bg:#f4f1e9; --tt-surface:#fffdf8; --tt-surface-2:#f9f6ef;
+  --tt-border:rgba(16,55,47,.14); --tt-border-strong:rgba(16,55,47,.24);
+  --tt-text:#172923; --tt-text-muted:#6b7771; --tt-text-subtle:#8d968f;
+  --tt-accent:#e9653a; --tt-accent-dark:#c94925; --tt-accent-soft:#fae9e2;
+  --tt-forest:#0d302a; --tt-forest-deep:#08241f; --tt-forest-soft:#17463c;
+  --tt-success:#16805f; --tt-success-soft:#e6f3ed;
+  --tt-warn-bg:#fff4dc; --tt-warn-border:#e9bd69; --tt-warn-text:#8b5c0d;
+  --tt-danger:#c95145;
+  --tt-radius:14px; --tt-radius-lg:22px;
+  --tt-shadow:0 10px 34px rgba(24,45,38,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--tt-bg);color:var(--tt-text);
+  font:15px/1.5 "Inter","Segoe UI",system-ui,-apple-system,sans-serif;}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:inherit}
+
+/* ---- каркас кабинета ---- */
+.wrap{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.side{background:var(--tt-forest-deep);color:#e8efe9;padding:22px 16px;display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em}
+.brand i{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,#b6912f,#e0c470);display:block}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side nav b{font:600 11px/1 inherit;letter-spacing:.12em;text-transform:uppercase;color:#8ea79b;padding:14px 10px 6px}
+.side nav a{display:block;padding:9px 12px;border-radius:10px;color:#cfdcd4;text-decoration:none;font-size:14px}
+.side nav a.on{background:rgba(255,255,255,.11);color:#fff;font-weight:600}
+.main{padding:0 0 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 32px;background:var(--tt-surface);border-bottom:1px solid var(--tt-border)}
+.chip{border:1px solid var(--tt-border);background:var(--tt-surface-2);border-radius:999px;
+  padding:6px 13px;font-size:13px;color:var(--tt-text-muted)}
+.sub{padding:20px 32px 0}
+.sub h1{font-size:23px}
+.sub p{margin:5px 0 0;color:var(--tt-text-muted);font-size:14px}
+.body{padding:20px 32px}
+
+/* ---- общие ---- */
+.panel{background:var(--tt-surface);border:1px solid var(--tt-border);border-radius:var(--tt-radius-lg);
+  box-shadow:var(--tt-shadow);padding:22px 24px;margin-bottom:18px}
+.panel > h2{font-size:17px;margin-bottom:4px}
+.note{color:var(--tt-text-muted);font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--tt-forest);color:#fff;
+  border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600}
+.btn.sec{background:var(--tt-surface-2);color:var(--tt-forest);border:1px solid var(--tt-border-strong)}
+.btn.sm{padding:7px 13px;font-size:13px;border-radius:9px;white-space:nowrap}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;vertical-align:2px}
+.badge.draft{background:var(--tt-warn-bg);color:var(--tt-warn-text);border:1px solid var(--tt-warn-border)}
+.badge.live{background:var(--tt-success-soft);color:var(--tt-success);border:1px solid rgba(22,128,95,.3)}
+.badge.off{background:#efe7e5;color:#8a5b53;border:1px solid rgba(201,81,69,.25)}
+
+/* ---- список туров ---- */
+.trow{display:grid;grid-template-columns:minmax(0,1fr) 190px 330px;gap:18px;align-items:center;
+  border:1px solid var(--tt-border);border-radius:var(--tt-radius);background:var(--tt-surface-2);
+  padding:16px 18px;margin-top:12px}
+.trow h3{font-size:16px}
+.bar{height:7px;border-radius:999px;background:rgba(16,55,47,.1);overflow:hidden;margin-top:7px}
+.bar i{display:block;height:100%;background:var(--tt-success)}
+.bar.warn i{background:var(--tt-warn-border)}
+.trow .acts{display:flex;gap:8px;justify-content:flex-end}
+
+/* ---- чек-лист ---- */
+.tourhead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.tourhead h1{font-size:26px}
+.steps{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.step{display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:center;
+  padding:13px 4px;border-bottom:1px solid var(--tt-border);text-align:left;width:100%}
+.step:last-child{border-bottom:none}
+.step .mark{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-size:13px;font-weight:700;border:2px solid var(--tt-border-strong);color:var(--tt-text-subtle)}
+.step.done .mark{background:var(--tt-success);border-color:var(--tt-success);color:#fff}
+.step.now .mark{border-color:var(--tt-accent);color:var(--tt-accent)}
+.step strong{display:block;font-size:15px}
+.step.done strong{color:var(--tt-text-muted)}
+.step span{font-size:13px;color:var(--tt-text-muted)}
+.step .go{font-size:13px;font-weight:600;color:var(--tt-forest);border:1px solid var(--tt-border-strong);
+  border-radius:9px;padding:6px 12px;background:var(--tt-surface)}
+.step.opt strong:after{content:"необязательно";margin-left:8px;font-size:11px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--tt-text-subtle)}
+.publish{margin-top:18px;border-top:1px solid var(--tt-border);padding-top:16px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.publish .why{font-size:13px;color:var(--tt-warn-text);background:var(--tt-warn-bg);
+  border:1px solid var(--tt-warn-border);border-radius:10px;padding:8px 12px}
+
+/* ---- секции страницы тура ---- */
+.sect{border:1px solid var(--tt-border);border-radius:var(--tt-radius);background:var(--tt-surface);
+  margin-top:12px;overflow:hidden}
+.sect > .h{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px 18px;background:var(--tt-surface-2);border-bottom:1px solid var(--tt-border)}
+.sect > .h b{font-size:15px}
+.sect > .h .st{font-size:12.5px;font-weight:600;color:var(--tt-success)}
+.sect > .h .st.no{color:var(--tt-warn-text)}
+.sect > .c{padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f label{display:block;font-size:12.5px;font-weight:600;color:var(--tt-text-muted);margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;padding:9px 11px;border:1px solid var(--tt-border-strong);
+  border-radius:9px;background:var(--tt-surface);font:inherit;font-size:14px}
+.f input[readonly]{background:#f1eee6;color:var(--tt-text-muted)}
+.hint{font-size:12px;color:var(--tt-text-subtle);margin-top:5px}
+.photo{display:flex;gap:14px;align-items:center}
+.photo .ph{width:170px;height:104px;border-radius:11px;border:1px dashed var(--tt-border-strong);
+  display:grid;place-items:center;color:var(--tt-text-subtle);font-size:12.5px;
+  background:linear-gradient(135deg,#e7ecdf,#d8e3d5)}
+.dep{display:grid;grid-template-columns:1fr 150px 150px 190px;gap:14px;align-items:center;
+  border:1px solid var(--tt-border);border-radius:11px;padding:12px 15px;margin-top:9px;background:var(--tt-surface-2)}
+.dep .warn{color:var(--tt-warn-text);font-weight:600;font-size:13px}
+.dep .ok{color:var(--tt-success);font-weight:600;font-size:13px}
+.empty{border:1px dashed var(--tt-border-strong);border-radius:11px;padding:18px;text-align:center;
+  color:var(--tt-text-muted);font-size:13.5px;margin-top:9px}
+
+/* ---- мастер из 3 шагов ---- */
+.wiz{max-width:620px;margin:0 auto}
+.wizbar{display:flex;gap:10px;justify-content:center;margin-bottom:22px}
+.wizbar div{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tt-text-subtle)}
+.wizbar b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;
+  border:2px solid var(--tt-border-strong)}
+.wizbar div.on{color:var(--tt-forest);font-weight:600}
+.wizbar div.on b{background:var(--tt-forest);border-color:var(--tt-forest);color:#fff}
+.wizbar i{width:26px;height:1px;background:var(--tt-border-strong);display:block}
+.foot{display:flex;justify-content:space-between;margin-top:20px}
+
+/* ---- предпросмотр героя карточки ---- */
+.hero-demo{border:1px solid var(--tt-border);border-radius:12px;overflow:hidden;
+  background:linear-gradient(150deg,#1d3a2c,#2b4a36 55%,#3a5a41)}
+.hd-row{display:grid;grid-template-columns:1fr 250px;gap:16px;align-items:center;
+  padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.09)}
+.hd-row:last-child{border-bottom:none}
+.hd-row em{font-style:normal;font-size:11.5px;color:#a9c0ae;text-align:right}
+.hd-k{color:#e2c47a;font-size:12px;font-weight:700;letter-spacing:.16em}
+.hd-t{color:#f3ead2;font-size:26px;font-weight:600;font-family:Georgia,"Times New Roman",serif}
+.hd-l{color:#dfe8dd;font-size:13px;display:block}
+.hd-f{display:flex;gap:8px;flex-wrap:wrap}
+.hd-f b{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.16);border-radius:999px;
+  padding:5px 12px;font-size:12px;color:#e7efe6;font-weight:600}
+
+/* ---- карта карточки ---- */
+.map{display:grid;grid-template-columns:1fr auto;gap:0 18px;margin-top:12px}
+.map > div{padding:11px 0;border-bottom:1px solid var(--tt-border);border-left:3px solid var(--tt-forest-soft);padding-left:12px}
+.map > em{padding:11px 0;border-bottom:1px solid var(--tt-border);font-style:normal;
+  font-size:12.5px;color:var(--tt-text-muted);text-align:right;align-self:center}
+.map > div b{display:block;font-size:14.5px}
+.map > div i{font-style:normal;font-size:12.5px;color:var(--tt-text-muted)}
+.map > div:last-of-type,.map > em:last-of-type{border-bottom:none}
+
+.tabs{display:flex;gap:8px;padding:14px 32px 0}
+.tabs button{border:1px solid var(--tt-border-strong);background:var(--tt-surface);border-radius:999px;
+  padding:7px 16px;font-size:13px;font-weight:600;color:var(--tt-text-muted)}
+.tabs button.on{background:var(--tt-forest);border-color:var(--tt-forest);color:#fff}
+.mk{margin:0 32px 4px;font-size:12px;color:var(--tt-text-subtle);letter-spacing:.06em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <div class="brand"><i></i> Etihad</div>
+    <nav>
+      <b>Оператор</b>
+      <a href="#">Обзор</a>
+      <a href="#">Все брони</a>
+      <a href="#">Списки пассажиров</a>
+      <a href="#" class="on">Туры</a>
+      <a href="#">Агентства</a>
+      <a href="#">Контакты</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div class="chip">USD 12 640 · EUR 13 720</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="chip">Telegram</span><span class="chip">🔔 3</span>
+        <span class="chip">Оператор · Выход</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="on" data-v="list">1 · Список туров</button>
+      <button data-v="wiz">2 · Новый тур: 3 шага</button>
+      <button data-v="page">3 · Страница тура</button>
+    </div>
+    <p class="mk">Макет на выдуманных данных — в репозиторий ничего не записано</p>
+
+    <!-- ================= ВИД 1: СПИСОК ================= -->
+    <section data-view="list">
+      <div class="sub">
+        <h1>Туры</h1>
+        <p>Тур — это продукт. Даты продажи у него живут заездами внутри самого тура.</p>
+      </div>
+      <div class="body">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+            <div><h2>Все туры</h2><span class="note">Черновик виден только вам, пока не опубликован</span></div>
+            <button class="btn" data-go="wiz">+ Новый тур</button>
+          </div>
+
+          <div class="trow">
+            <div>
+              <h3>Карадениз <span class="badge live">В продаже</span></h3>
+              <div class="note">KARADENIZ · Турция · 7 ноч. · 12 заездов, ближайший 04.09</div>
+            </div>
+            <div><div class="note">Готовность 7 из 7</div><div class="bar"><i style="width:100%"></i></div></div>
+            <div class="acts"><button class="btn sec sm" data-go="page">Открыть</button>
+              <button class="btn sec sm">Как видит клиент</button></div>
+          </div>
+
+          <div class="trow">
+            <div>
+              <h3>Каппадокия — воздушные шары <span class="badge draft">Черновик</span></h3>
+              <div class="note">CAPPADOCIA · Турция · нет заездов · создан сегодня</div>
+            </div>
+            <div><div class="note">Готовность 3 из 7</div><div class="bar warn"><i style="width:43%"></i></div></div>
+            <div class="acts"><button class="btn sm" data-go="page">Продолжить</button></div>
+          </div>
+
+          <div class="trow">
+            <div>
+              <h3>Умра · 13 дней <span class="badge live">В продаже</span></h3>
+              <div class="note">UMRA13 · Умра · 13 ноч. · 6 заездов, ближайший 12.09</div>
+            </div>
+            <div><div class="note">Готовность 6 из 7</div><div class="bar"><i style="width:86%"></i></div></div>
+            <div class="acts"><button class="btn sec sm" data-go="page">Открыть</button>
+              <button class="btn sec sm">Как видит клиент</button></div>
+          </div>
+
+          <div class="trow">
+            <div>
+              <h3>Япония весной <span class="badge off">Снят с продажи</span></h3>
+              <div class="note">JAPAN · Япония · 9 ноч. · заезды скрыты вместе с туром</div>
+            </div>
+            <div><div class="note">Готовность 7 из 7</div><div class="bar"><i style="width:100%"></i></div></div>
+            <div class="acts"><button class="btn sec sm" data-go="page">Открыть</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ВИД 2: МАСТЕР ================= -->
+    <section data-view="wiz" hidden>
+      <div class="sub"><h1>Новый тур</h1><p>Три коротких шага. Всё остальное — уже на странице тура.</p></div>
+      <div class="body">
+        <div class="wiz">
+          <div class="wizbar">
+            <div class="on"><b>1</b> Название</div><i></i>
+            <div class="on"><b>2</b> Направление</div><i></i>
+            <div><b>3</b> Комиссии</div>
+          </div>
+          <div class="panel">
+            <h2>Шаг 2 из 3 · Куда и на сколько</h2>
+            <span class="note">Цены здесь нет: она задаётся на каждом заезде отдельно.</span>
+            <div class="grid2" style="margin-top:16px">
+              <div class="f"><label>Направление</label>
+                <input value="Турция" list="d" /><datalist id="d"></datalist>
+                <div class="hint">Выберите из уже заведённых — новое слово создаст новую плитку в каталоге</div>
+              </div>
+              <div class="f"><label>Ночей</label><input value="5" /></div>
+            </div>
+            <div class="f" style="margin-top:14px"><label>Код тура</label>
+              <input value="CAPPADOCIA" />
+              <div class="hint">Стоит в ссылке на карточку (#/t/CAPPADOCIA). После создания не меняется — агенты уже разошлют ссылку клиентам.</div>
+            </div>
+            <div class="foot">
+              <button class="btn sec">Назад</button>
+              <button class="btn">Дальше · комиссии</button>
+            </div>
+          </div>
+          <p class="note" style="text-align:center">После третьего шага тур создаётся <b>черновиком</b> и открывается его страница с чек-листом.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ВИД 3: СТРАНИЦА ТУРА ================= -->
+    <section data-view="page" hidden>
+      <div class="sub">
+        <p class="note" style="margin-bottom:6px"><a href="#" data-go="list">← Туры</a></p>
+        <div class="tourhead">
+          <div>
+            <h1>Каппадокия — воздушные шары <span class="badge draft">Черновик</span></h1>
+            <p>CAPPADOCIA · Турция · 5 ночей · создан сегодня</p>
+          </div>
+          <div style="display:flex;gap:9px">
+            <button class="btn sec">Как видит клиент</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="panel">
+          <h2>Что осталось сделать</h2>
+          <span class="note">Считается из самих данных — галочки ставятся сами, отмечать вручную нечего.</span>
+          <div class="steps">
+            <div class="step done"><span class="mark">✓</span>
+              <div><strong>Основное</strong><span>Название, направление, ночи, комиссии</span></div>
+              <button class="go">Изменить</button></div>
+
+            <div class="step now"><span class="mark">2</span>
+              <div><strong>Описание и оформление</strong><span>Кадр загружен, но описания нет — в каталоге под названием будет пусто</span></div>
+              <button class="go">Дописать</button></div>
+
+            <div class="step done"><span class="mark">✓</span>
+              <div><strong>Что входит в цену</strong><span>6 строк «включено», 3 «не включено»</span></div>
+              <button class="go">Изменить</button></div>
+
+            <div class="step"><span class="mark">4</span>
+              <div><strong>Программа и маршрут</strong><span>Ни одного дня и ни одного варианта маршрута — карточка выйдет без программы</span></div>
+              <button class="go">Заполнить</button></div>
+
+            <div class="step"><span class="mark">5</span>
+              <div><strong>Заезды</strong><span>Ни одной даты — продавать нечего</span></div>
+              <button class="go">Добавить</button></div>
+
+            <div class="step"><span class="mark">6</span>
+              <div><strong>Цены на заездах</strong><span>Появится, когда будет хотя бы один заезд</span></div>
+              <button class="go" disabled>Цены</button></div>
+          </div>
+
+          <p class="note" style="margin:16px 0 0;font-weight:600">Можно дописать потом</p>
+          <div class="steps">
+            <div class="step opt"><span class="mark">·</span>
+              <div><strong>Важно знать</strong><span>Визы, страховка, ссылка на программу PDF — блок внизу карточки</span></div>
+              <button class="go">Добавить</button></div>
+            <div class="step opt"><span class="mark">·</span>
+              <div><strong>Фотографии</strong><span>Галерея под блоком «В цену входит». Сейчас пусто — блок просто не показывается</span></div>
+              <button class="go">Добавить</button></div>
+            <div class="step opt"><span class="mark">·</span>
+              <div><strong>Переводы</strong><span>Пока их нет, карточка выходит по-русски на всех языках</span></div>
+              <button class="go">Дописать</button></div>
+          </div>
+
+          <div class="publish">
+            <button class="btn" disabled>Опубликовать</button>
+            <span class="why">Осталось: описание, программа, хотя бы один заезд и цены на нём</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Что клиент увидит на карточке</h2>
+          <span class="note">Сверху вниз, как открывается страница тура. Справа — откуда берётся блок.</span>
+          <div class="map">
+            <div><b>Фон и заголовок</b><i>кадр, название, надзаголовок</i></div><em>шаг 2</em>
+            <div><b>Описание</b><i>абзац под названием</i></div><em>шаг 2</em>
+            <div><b>Плашки-факты</b><i>7 дней / 5 ночей · Авиа · Трабзон · от $560</i></div><em>считаются сами из ночей и заездов</em>
+            <div><b>Программа по дням</b><i>с переключателем варианта маршрута</i></div><em>шаг 4</em>
+            <div><b>В цену входит / не входит</b><i>два списка</i></div><em>шаг 3</em>
+            <div><b>Фотографии</b><i>галерея; пусто — блока нет вовсе</i></div><em>необязательно</em>
+            <div><b>Важно знать</b><i>список, можно со ссылками</i></div><em>необязательно</em>
+            <div><b>Заезды и цены</b><i>даты, расчёт, кнопка брони</i></div><em>шаги 5 и 6</em>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>1 · Основное</b><span class="st">Заполнено</span></div>
+          <div class="c">
+            <div class="grid2">
+              <div class="f"><label>Название</label><input value="Каппадокия — воздушные шары" /></div>
+              <div class="f"><label>Код тура</label><input value="CAPPADOCIA" readonly />
+                <div class="hint">Стоит в ссылке на карточку — не меняется</div></div>
+              <div class="f"><label>Направление</label><input value="Турция" /></div>
+              <div class="f"><label>Ночей</label><input value="5" /></div>
+              <div class="f"><label>Комиссия агентства, $</label><input value="30" /></div>
+              <div class="f"><label>Комиссия оператора, $</label><input value="20" />
+                <div class="hint">Сверху агентской, агентству не видна</div></div>
+            </div>
+            <p class="hint" style="margin-top:12px">Это всё заполняется мастером при создании — сюда возвращаются, только чтобы поправить.</p>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>2 · Описание и оформление</b><span class="st no">Нет описания</span></div>
+          <div class="c">
+            <div class="hero-demo">
+              <div class="hd-row"><span class="hd-k">ЗАГАДОЧНЫЙ КАРАДЕНИЗ</span><em>надзаголовок — поле ниже</em></div>
+              <div class="hd-row"><span class="hd-t">Батуми - Ризе - Трабзон</span><em>название тура — шаг 1</em></div>
+              <div class="hd-row"><span class="hd-l">Комбинированный групповой тур по Чёрному морю: Батуми, Ризе и Трабзон за 8 дней. Сопровождение узбекского гида, более 15 экскурсий…</span><em>описание — поле ниже, оно же в плитке каталога</em></div>
+              <div class="hd-row"><span class="hd-f"><b>8 дней / 7 ночей</b><b>Авиа · Батуми и Трабзон</b><b>от $880</b></span><em>считается само: ночи тура + аэропорты и цены заездов</em></div>
+            </div>
+            <div class="f" style="margin-top:16px"><label>Надзаголовок — строка над названием</label>
+              <input placeholder="Например: Каппадокия · долины и шары" />
+              <div class="hint">Сейчас зашит в коде: у любого тура не из Умры над названием стоит «Загадочный Карадениз»</div>
+            </div>
+            <div class="f" style="margin-top:14px"><label>Описание — в плитке каталога и абзацем под названием</label>
+              <textarea rows="3" placeholder="Что это за тур — гость увидит это в каталоге и первым абзацем на карточке"></textarea>
+              <div class="hint">Одно-два предложения. Подробности маршрута — ниже, в программе по дням.</div>
+            </div>
+            <div class="grid2" style="margin-top:14px">
+              <div class="f"><label>Цена «от», $</label><input placeholder="если заездов ещё нет" />
+                <div class="hint">Пока нет ни одного заезда, в каталоге показывается это число</div></div>
+              <div class="f"><label>Примечание (для себя)</label><input />
+                <div class="hint">Клиенту не показывается</div></div>
+            </div>
+            <div class="photo" style="margin-top:16px">
+              <div class="ph">кадр 1600×1000</div>
+              <div>
+                <button class="btn sec sm">Заменить кадр</button>
+                <div class="hint" style="margin-top:8px">Снимок ужимается в браузере до 1600 px — с телефона можно грузить как есть</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>3 · Что входит в цену</b><span class="st">Заполнено</span></div>
+          <div class="c">
+            <div class="grid2">
+              <div class="f"><label>Включено · 6 строк</label>
+                <input value="Перелёт Ташкент — Кайсери и обратно" />
+                <input value="Проживание в отеле 4★, 5 ночей" style="margin-top:8px" />
+                <div class="hint">…и ещё 4 строки</div></div>
+              <div class="f"><label>Не включено · 3 строки</label>
+                <input value="Полёт на воздушном шаре" />
+                <input value="Обеды и ужины" style="margin-top:8px" />
+                <div class="hint">…и ещё 1 строка</div></div>
+            </div>
+            <p class="hint" style="margin-top:12px">Порядок строк — стрелками, как сейчас в редакторе карточки. Числа сортировки руками не правятся.</p>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>4 · Программа и маршрут</b><span class="st no">Пусто</span></div>
+          <div class="c">
+            <p class="note" style="margin:0">Вариант маршрута — это физически разные поездки одного тура (у Карадениза прилёт в Батуми или в Трабзон). День можно привязать к варианту, а можно оставить общим для всех.</p>
+            <div class="empty">Ни одного дня и ни одного варианта.<br />Клиент откроет карточку и увидит цену без маршрута.
+              <div style="margin-top:11px;display:flex;gap:9px;justify-content:center">
+                <button class="btn sm">+ Добавить день</button>
+                <button class="btn sec sm">+ Вариант маршрута</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>Важно знать</b><span class="st no">Пусто · необязательно</span></div>
+          <div class="c">
+            <div class="empty">Пусто — блок на карточке просто не показывается.<br />
+              <span class="note">Сюда обычно идут визы, страховка и ссылка на программу PDF. Строка может быть ссылкой.</span><br />
+              <button class="btn sec sm" style="margin-top:11px">+ Добавить строку</button></div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>Фотографии</b><span class="st no">Пусто · необязательно</span></div>
+          <div class="c">
+            <div class="empty">Галерея под блоком «В цену входит». Пока пуста ни у одного тура.<br />
+              <button class="btn sec sm" style="margin-top:11px">+ Загрузить фото</button></div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>5 · Заезды этого тура</b><span class="st no">Ни одного</span></div>
+          <div class="c">
+            <p class="note" style="margin:0">Заезд — это дата вылета со своим прайсом. Раньше они жили на другой вкладке; здесь видно сразу, у какого заезда нет цен.</p>
+            <div class="empty">Заездов нет.
+              <div style="margin-top:11px;display:flex;gap:9px;justify-content:center">
+                <button class="btn sm">+ Один заезд</button>
+                <button class="btn sec sm">+ Серия: каждую пятницу с … по …</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <div class="h"><b>Так это выглядит у заполненного тура</b><span class="st">пример</span></div>
+          <div class="c">
+            <div class="dep"><div><b>04.09.2026</b> · пятница<div class="note">TZX2409 · Трабзон · 65 мест</div></div>
+              <div class="ok">Цены заданы</div><div class="note">Продажа открыта · 18 мест продано</div>
+              <div style="display:flex;gap:7px;justify-content:flex-end"><button class="btn sec sm">Цены</button><button class="btn sec sm">Закрыть</button></div></div>
+            <div class="dep"><div><b>11.09.2026</b> · пятница<div class="note">TZX1109 · Трабзон · 65 мест</div></div>
+              <div class="warn">Нет цен</div><div class="note">Продажа закрыта</div>
+              <div style="display:flex;gap:7px;justify-content:flex-end"><button class="btn sm">Задать цены</button><button class="btn sec sm">Открыть</button></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+document.addEventListener("click", function (e) {
+  var t = e.target.closest("[data-v],[data-go]");
+  if (!t) return;
+  e.preventDefault();
+  var v = t.dataset.v || t.dataset.go;
+  document.querySelectorAll("[data-view]").forEach(function (s) { s.hidden = s.dataset.view !== v; });
+  document.querySelectorAll(".tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === v); });
+  window.scrollTo(0, 0);
+});
+</script>
+</body>
+</html>
